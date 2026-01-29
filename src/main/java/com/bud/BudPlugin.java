@@ -8,6 +8,9 @@ import com.bud.systems.CleanUpHandler;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.bud.npc.NPCManager;
+import java.util.concurrent.TimeUnit;
 
 public class BudPlugin extends JavaPlugin {
     private final Config<BudConfig> config;
@@ -47,6 +50,14 @@ public class BudPlugin extends JavaPlugin {
             System.err.println("[BUD] Player disconnected: " + playerRef.getUuid());
             CleanUpHandler.removeOwnerBuds(playerRef);
         });
-    }
 
+        // Schedule Random Chat Task (every 3 minutes)
+        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            try {
+                NPCManager.getInstance().getStateTracker().triggerRandomChats();
+            } catch (Exception e) {
+                System.err.println("[BUD] Error in random chat task: " + e.getMessage());
+            }
+        }, 180L, 180L, TimeUnit.SECONDS);
+    }
 }

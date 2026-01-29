@@ -125,4 +125,26 @@ public class NPCManager {
         }
         return false;
     }
+
+    public NPCEntity getRandomBud(UUID ownerId) {
+        Set<NPCEntity> buds = spawnedBuds.get(ownerId);
+        
+        if (buds == null || buds.isEmpty()) {
+            return null;
+        }
+        
+        int size = buds.size();
+        int item = new java.util.Random().nextInt(size);
+        int i = 0;
+        for(NPCEntity bud : buds) {
+            if (i == item)
+                return bud;
+            i++;
+        }
+        return null;
+    }
+
+    public NPCStateTracker getStateTracker() {
+        return stateTracker;
+    }
 }
