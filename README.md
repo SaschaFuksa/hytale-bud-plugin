@@ -14,7 +14,7 @@ This is like a small PoC to create a Hytale Plugin with integrated LLM calls. Th
 Currently there are three Buds implemented:
 - **Veri**: A Feran buddy. It is a little bit childish, but very curious and friendly. It supports the player with daggers.
 - **Gronkh**: A Trork buddy. He is a little bit grumpy, but very loyal and strong. And yes, we all love his streams. He supports the player with a mace.
-- **Kacche**: A Kweebec buddy. She is very smart, but also a little bit shy. She supports the player with a bow. [Not implemented yet]
+- **Kacche**: A Kweebec buddy. She is very smart, but also a little bit shy. She supports the player with a bow.
 
 ## Features
 

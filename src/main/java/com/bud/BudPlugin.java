@@ -13,12 +13,12 @@ public class BudPlugin extends JavaPlugin {
     public BudPlugin(JavaPluginInit init) {
         super(init);
         this.config = this.withConfig("Bud", BudConfig.CODEC);
-        BudConfig.setInstance(this.config.get());
     }
 
     @Override
     protected void setup() {
         super.setup();
+        BudConfig.setInstance(this.config.get());
         this.config.save();
         
         // Register commands
@@ -30,6 +30,7 @@ public class BudPlugin extends JavaPlugin {
                 CleanUpHandler.removeOwnerBuds(event.getPlayerRef());
             }
         });
+        
 
         this.getEventRegistry().register(PlayerDisconnectEvent.class, event -> {
             CleanUpHandler.removeOwnerBuds(event.getPlayerRef());

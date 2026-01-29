@@ -11,7 +11,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudSoundInteraction {
-    private static final String SOUND_EVENT_HINT = "Trork";
+    private static final String SOUND_EVENT_HINT = "Kweebec";
     private static final int SOUND_EVENT_LOG_LIMIT = 50;
 
     public void playSound(World world, NPCEntity bud, String soundEventID) {

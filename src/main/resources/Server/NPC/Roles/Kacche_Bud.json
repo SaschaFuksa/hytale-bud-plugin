@@ -1,0 +1,43 @@
+{
+  "Type": "Variant",
+  "Reference": "Template_Kacche_Bud",
+  "Modify": {
+    "Appearance": "Kacche_Bud",
+    "MaxHealth": 70,
+    "WalkSpeed": 6,
+    "AttitudeGroup": "BudAttitude",
+    "AttackAnimation": "Attack",
+    "AttackDamage": 15,
+    "Particle_Defensive": "Attack",
+    "Particle_Passive": "Passive",
+    "Particle_Sitting": "SitAndStay",
+    "NameTranslationKey": {
+      "Compute": "NameTranslationKey"
+    },
+    "_InteractionVars": {
+      "Melee_Damage": {
+        "Interactions": [
+          {
+            "Parent": "NPC_Attack_Melee_Damage",
+            "DamageCalculator": {
+              "BaseDamage": {
+                "Physical": 20
+              }
+            }
+            
+          }
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "Appearance": {
+      "Value": "Kacche_Bud",
+      "Description": "The model to use."
+    },
+    "NameTranslationKey": {
+      "Value": "server.npcRoles.Kacche_Bud.name",
+      "Description": "Translation key"
+    }
+  }
+}
