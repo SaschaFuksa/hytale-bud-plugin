@@ -9,7 +9,7 @@
     },
     {
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Razorleaf/Head.blockymodel",
-      "Texture": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Razorleaf/Eyebrows_Textures/Head_Hard_Hat_Texture.png"
+      "Texture": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Razorleaf/Head_Hard_Hat_Texture.png"
     },
     {
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Eyes.blockymodel",
@@ -21,7 +21,7 @@
     },
     {
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Eyelashes.blockymodel",
-      "Texture": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Eyelashes_Textures/Black.png"
+      "Texture": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Eyelashes_Texture/Black.png"
     },
     {
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Haircuts/Leaves_RockPlant.blockymodel",

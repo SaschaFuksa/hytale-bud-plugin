@@ -18,7 +18,7 @@
       "Melee_Damage": {
         "Interactions": [
           {
-            "Parent": "NPC_Attack_Melee_Damage",
+            "Parent": "RangedAttack",
             "DamageCalculator": {
               "BaseDamage": {
                 "Physical": 20

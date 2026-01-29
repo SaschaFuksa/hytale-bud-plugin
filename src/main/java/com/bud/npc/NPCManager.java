@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.bud.npcdata.BudFeranData;
+import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
 import com.hypixel.hytale.component.Ref;
@@ -28,8 +29,9 @@ public class NPCManager {
     }
     
     private static final Set<IBudNPCData> BUDS = Set.of(
-        new BudFeranData(),
-        new BudTrorkData()
+        // new BudFeranData(),
+        // new BudTrorkData(),
+        new BudKweebecData()
     );
 
     public static NPCManager getInstance() {
@@ -89,12 +91,8 @@ public class NPCManager {
     }
 
     public void removeBudForOwner(UUID ownerId) {
-        Set<NPCEntity> buds = spawnedBuds.remove(ownerId);
         this.stateTracker.untrackBud(ownerId);
-
-        if (buds == null) {
-            return;
-        }
+        Set<NPCEntity> buds = spawnedBuds.get(ownerId);
 
         for (NPCEntity bud : buds) {
             Ref<EntityStore> budRef = bud.getReference();
@@ -106,5 +104,6 @@ public class NPCManager {
             world.execute(() -> store.removeEntity(budRef, RemoveReason.REMOVE));
             System.out.println("[BUD] Removed Bud for player " + ownerId);
         }
+        spawnedBuds.remove(ownerId);
     }    
 }

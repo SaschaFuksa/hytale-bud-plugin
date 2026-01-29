@@ -13,7 +13,9 @@
       "Void",
       "Skeleton",
       "Zombie",
-      "Rat"
+      "Beast",
+      "Boss",
+      "Undead"
     ],
     "Ignore": [
       "Player"

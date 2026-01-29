@@ -4,17 +4,17 @@ public class BudKweebecSoundData implements IBudNPCSoundData {
 
     @Override
     public String getAttackSound() {
-        return "SFX_Kweebec_Exertion";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override
     public String getPassiveSound() {
-        return "SFX_Kweebec_Alerted";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override
     public String getIdleSound() {
-        return "SFX_Kweebec_Search";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override
