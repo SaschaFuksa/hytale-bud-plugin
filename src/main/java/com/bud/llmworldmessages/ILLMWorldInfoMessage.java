@@ -4,6 +4,6 @@ import com.bud.systems.BudWorldContext;
 
 public interface ILLMWorldInfoMessage {
 
-    String getMessageForContext(BudWorldContext context);
+    String getMessageForContext(BudWorldContext context, String additionalInfo);
     
 }

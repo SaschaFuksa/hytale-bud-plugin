@@ -6,7 +6,7 @@ import com.bud.systems.TimeOfDay;
 public class LLMWorldTimeMessage implements ILLMWorldInfoMessage {
 
     @Override
-    public String getMessageForContext(BudWorldContext context) {
+    public String getMessageForContext(BudWorldContext context, String additionalInfo) {
         TimeOfDay time = context.timeOfDay();
         return switch (time) {
             case MORNING -> "Current time: Morning. In the morning, get ready for the next journey.";

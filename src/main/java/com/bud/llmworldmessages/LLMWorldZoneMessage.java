@@ -5,7 +5,7 @@ import com.bud.systems.BudWorldContext;
 public class LLMWorldZoneMessage implements ILLMWorldInfoMessage {
 
     @Override
-    public String getMessageForContext(BudWorldContext context) {
+    public String getMessageForContext(BudWorldContext context, String additionalInfo) {
         String currentZoneName = context.currentZone().name().toLowerCase();
         if (currentZoneName.contains("1") || currentZoneName.contains("emerald") || currentZoneName.contains("grove")) {
             return "Current zone: Emerald Grove: This zone is safe and calm. It's moderate and sometimes rainy. Plains, forest, swamps and caves are present.";

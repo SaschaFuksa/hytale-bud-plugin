@@ -3,11 +3,14 @@ package com.bud.npc;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
 import com.bud.systems.BudTimeInformation;
+import com.bud.systems.BudWorldContext;
 import com.bud.systems.BudWorldInformation;
 import com.bud.systems.TimeOfDay;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
@@ -18,6 +21,7 @@ import com.bud.interaction.BudSoundInteraction;
 import com.bud.npcsound.IBudNPCSoundData;
 import com.bud.llm.BudLLM;
 import com.bud.llmmessages.ILLMBudNPCMessage;
+import com.bud.llmworldmessages.LLMWorldInfoMessageManager;
 import com.bud.npcdata.IBudNPCData;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -93,7 +97,7 @@ public class NPCStateTracker {
         Set<BudInstance> copy = Set.copyOf(buds);
         
         for (BudInstance bud : copy) {
-             BudRegistry.getInstance().unregister(bud.getEntity());
+            BudRegistry.getInstance().unregister(bud.getEntity());
         }
         System.out.println("[BUD] Stopped tracking Bud for player " + ownerId);
 
@@ -103,10 +107,10 @@ public class NPCStateTracker {
     }
     
     public void untrackBud(BudInstance instance) {
-         BudRegistry.getInstance().unregister(instance.getEntity());
-         if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
-             stopPolling();
-         }
+        BudRegistry.getInstance().unregister(instance.getEntity());
+        if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
+            stopPolling();
+        }
     }
 
     public synchronized void startPolling() {
@@ -292,8 +296,8 @@ public class NPCStateTracker {
         
         IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
         if (npcSoundData != null) {
-             String soundEventID = npcSoundData.getSoundForState(toState);
-             this.soundInteraction.playSound(world, bud, soundEventID);
+            String soundEventID = npcSoundData.getSoundForState(toState);
+            this.soundInteraction.playSound(world, bud, soundEventID);
         }
         
         // Get prompt for the new state
@@ -329,7 +333,7 @@ public class NPCStateTracker {
         Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
         for (UUID ownerId : owners) {
             // Pick a random bud for this owner from the registry
-            java.util.List<BudInstance> ownerBuds = new java.util.ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
+            List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
             if (ownerBuds.isEmpty()) continue;
             
             BudInstance randomInstance = ownerBuds.get((int) (Math.random() * ownerBuds.size()));
@@ -347,32 +351,25 @@ public class NPCStateTracker {
         if (budNPCData == null) return;
         
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        String npcName = npcMessage != null ? npcMessage.getNPCName() : "Unknown Bud";
-        System.out.println("[BUD] current bud: " + bud.getNPCTypeId());
+        String npcName = npcMessage.getNPCName();
+        System.out.println("[BUD] current bud: " + npcName);
         
-        final World world;
-        try {
-            System.out.println("[BUD] Start extracting world data.");
-            Ref<EntityStore> ownerRef = owner.getReference();
-            if (ownerRef == null) return;
-            
-            Store<EntityStore> store = ownerRef.getStore();
-            world = store.getExternalData().getWorld();
-            Vector3d pos = owner.getTransform().getPosition();
-            TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
-            System.out.println("[BUD] time of day: " + timeOfDay.name());
-            Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
-            System.out.println("[BUD] current biome: " + currentBiome.getName());
-            Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
-            System.out.println("[BUD] current zone: " + currentZone.name());
-        } catch (Exception e) {
-            System.out.println("[BUD] Context Error: " + e.getMessage());
-            return;
+        System.out.println("[BUD] Start extracting world data.");
+        Ref<EntityStore> ownerRef = owner.getReference();
+        if (ownerRef == null) return;
+        
+        Store<EntityStore> store = ownerRef.getStore();
+        World world = store.getExternalData().getWorld();
+        BudWorldContext context = getWorldContext(owner, world, store);
+        System.err.println("[BUD] World data extracted: " + context.toString());
+
+        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
+        if (npcSoundData != null) {
+            String soundEventID = npcSoundData.getSoundForState("PetPassive");
+            this.soundInteraction.playSound(world, bud, soundEventID);
         }
 
-        String prompt = "You are " + npcName + ". You are currently in the world. " +
-                        "Here is your environment context: []. " +
-                        "Say something random and strictly related to your current context or status. Keep it short.";
+        String prompt = LLMWorldInfoMessageManager.createPrompt(context, npcMessage);
         
         Thread.ofVirtual().start(() -> {
             try {
@@ -385,4 +382,14 @@ public class NPCStateTracker {
         });
     }
 
+    private BudWorldContext getWorldContext(PlayerRef owner, World world, Store<EntityStore> store) {
+        Vector3d pos = owner.getTransform().getPosition();
+        TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
+        System.out.println("[BUD] time of day: " + timeOfDay.name());
+        Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
+        System.out.println("[BUD] current biome: " + currentBiome.getName());
+        Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
+        System.out.println("[BUD] current zone: " + currentZone.name());
+        return new BudWorldContext(timeOfDay, currentZone, currentBiome);
+    }
 }

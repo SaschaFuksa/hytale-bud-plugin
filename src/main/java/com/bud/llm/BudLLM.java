@@ -30,7 +30,7 @@ public class BudLLM {
     }
 
     public String callLLM(String message) throws IOException, InterruptedException {
-        String jsonPayload = "{\"model\":\"" + this.budConfig.getModel() + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + this.systemPrompt.replace("\"", "\\\"") + "\"},{\"role\":\"user\",\"content\":\"" + message + "\"}],\"temperature\":0.7,\"max_tokens\":100}";
+        String jsonPayload = "{\"model\":\"" + this.budConfig.getModel() + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + this.systemPrompt.replace("\"", "\\\"") + "\"},{\"role\":\"user\",\"content\":\"" + message + "\"}],\"temperature\":0.8,\"max_tokens\":50}";
 
         System.out.println("[LLM] Sending request to " + budConfig.getUrl());
         

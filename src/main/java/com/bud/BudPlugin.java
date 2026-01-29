@@ -61,13 +61,15 @@ public class BudPlugin extends JavaPlugin {
             CleanUpHandler.removeOwnerBuds(playerRef);
         });
 
-        // Schedule Random Chat Task (every 3 minutes)
-        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            try {
-                NPCManager.getInstance().getStateTracker().triggerRandomChats();
-            } catch (Exception e) {
-                System.err.println("[BUD] Error in random chat task: " + e.getMessage());
-            }
-        }, 180L, 180L, TimeUnit.SECONDS);
+        if (BudConfig.get().isEnableLLM()) {
+            // Schedule Random Chat Task (every 3 minutes)
+            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+                try {
+                    NPCManager.getInstance().getStateTracker().triggerRandomChats();
+                } catch (Exception e) {
+                    System.err.println("[BUD] Error in random chat task: " + e.getMessage());
+                }
+            }, 180L, 180L, TimeUnit.SECONDS);
+        }
     }
 }

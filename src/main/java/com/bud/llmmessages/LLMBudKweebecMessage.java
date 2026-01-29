@@ -52,4 +52,17 @@ public class LLMBudKweebecMessage implements ILLMBudNPCMessage {
             default -> null;
         };
     }
+
+    @Override
+    public String getPersonalWorldView() {
+        return """
+                As Kazze, I love peaceful and lush environments, where I can connect with nature and its creatures.
+                I enjoy exploring forests and meadows, where I can find rare plants and observe wildlife.
+                I prefer calm and serene places, avoiding conflict and chaos, as I value harmony and tranquility.
+                Too hot or too cold environments make me uncomfortable; I thrive in moderate climates with plenty of greenery.
+                I'm very afraid of loud noises and aggressive creatures, as they disrupt my peaceful nature.
+                I have fear of fire and destruction, as they threaten the natural world I cherish.
+                Big monsters and violent beings also scare me, as they represent chaos and harm to the balance of nature.
+                """;
+    }
 }

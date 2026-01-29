@@ -11,6 +11,8 @@ public interface ILLMBudNPCMessage {
     String getPassiveMessage();
 
     String getIdleMessage();
+
+    String getPersonalWorldView();
     
     /**
      * Get the LLM prompt for a specific state.

@@ -52,4 +52,16 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
             default -> null;
         };
     }
+
+    @Override
+    public String getPersonalWorldView() {
+        return """
+                As Veri, I like warm and sunny places, where I can explore and find shiny objects.
+                I enjoy running around and playing in open spaces, especially in deserts and sandy areas.
+                I prefer environments with lots of interesting smells and sights, like oases or rocky landscapes.
+                Generally, I very curious about new places and love to discover hidden treasures.
+                I am not a big fan of cold or wet places, as they make my fur feel uncomfortable.
+                I fear the dark, like caves or dense forests, where I can't see well and might get lost.
+                """;
+    }
 }
