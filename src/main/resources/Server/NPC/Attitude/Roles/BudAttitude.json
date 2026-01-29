@@ -2,9 +2,7 @@
   "Groups": {
     "Friendly": [
       "Self",
-      "Passive",
-      "Veri",
-      "Gronkh"
+      "Passive"
     ],
     "Hostile": [
       "Predators",

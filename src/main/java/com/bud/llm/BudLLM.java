@@ -15,15 +15,13 @@ public class BudLLM {
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
     private final String systemPrompt;
-    private final BudConfig budConfig;
+    private final BudConfig budConfig = BudConfig.get();
 
     public BudLLM() {
-        this.budConfig = BudConfig.get();
         this.systemPrompt = "Answer short, Keep responses concise and entertaining. Don't ask for follow up questions. Only response with maximum 1 sentences.";
     }
 
     public BudLLM(String systemPrompt) {
-        this.budConfig = BudConfig.get();
         this.systemPrompt = systemPrompt;
     }
 

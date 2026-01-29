@@ -15,6 +15,10 @@ public class BudConfig {
 
     private static BudConfig instance;
 
+    public static void setInstance(BudConfig config) {
+        instance = config;
+    }
+
     public static BudConfig get() { return instance; }
 
     public boolean isEnableLLM() {

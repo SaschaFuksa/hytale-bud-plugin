@@ -84,7 +84,6 @@ public class BudCommand extends AbstractPlayerCommand {
                 printNPCDebugInfo(npc);
             }
         }
-        NPCManager.makeAllBudsFriendly(playerRef);
     }
 
     private void printError(Exception e) {
@@ -158,7 +157,7 @@ public class BudCommand extends AbstractPlayerCommand {
         private final RequiredArg<String> modeArg;
 
         public BudSetVariant() {
-            super("manage", "Manage Bud NPCs");
+            super("Manage Bud NPCs");
             this.modeArg = this.withRequiredArg("mode", "clean or clean-all", ArgTypes.STRING);
         }
 
