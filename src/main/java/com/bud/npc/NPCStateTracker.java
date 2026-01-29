@@ -5,6 +5,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.HashSet;
 
 import javax.annotation.Nonnull;
 
@@ -36,7 +38,7 @@ public class NPCStateTracker {
     
     private final BudConfig config;
     // Map of player UUID to their Bud NPC
-    private final Map<UUID, NPCEntity> trackedBuds = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<NPCEntity>> trackedBuds = new ConcurrentHashMap<>();
     // Map of player UUID to their PlayerRef for sending messages
     private final Map<UUID, PlayerRef> budOwners = new ConcurrentHashMap<>();
     // Map of player UUID to last known state (to detect changes)
@@ -76,7 +78,7 @@ public class NPCStateTracker {
         UUID ownerId = owner.getUuid();
         String stateName = getMainStateName(role.getStateSupport().getStateName());
 
-        trackedBuds.put(ownerId, bud);
+        trackedBuds.computeIfAbsent(ownerId, k -> new HashSet<>()).add(bud);
         budOwners.put(ownerId, owner);
         npcToOwner.put(budRef, ownerId);
         npcToLLMMessage.put(budRef, budNPCData);
@@ -91,13 +93,15 @@ public class NPCStateTracker {
      * Stop tracking a Bud.
      */
     public void untrackBud(UUID ownerId) {
-        NPCEntity bud = trackedBuds.remove(ownerId);
+        Set<NPCEntity> buds = trackedBuds.remove(ownerId);
         budOwners.remove(ownerId);
-        if (bud != null) {
-            Ref<EntityStore> budRef = bud.getReference();
-            if (budRef != null) {
-                npcToOwner.remove(budRef);
-                npcToLLMMessage.remove(budRef);
+        if (buds != null) {
+            for (NPCEntity bud : buds) {
+                Ref<EntityStore> budRef = bud.getReference();
+                if (budRef != null) {
+                    npcToOwner.remove(budRef);
+                    npcToLLMMessage.remove(budRef);
+                }
             }
         }
         lastKnownStates.remove(ownerId);
@@ -129,23 +133,25 @@ public class NPCStateTracker {
             return;
         }
 
-        for (Map.Entry<UUID, NPCEntity> entry : trackedBuds.entrySet()) {
+        for (Map.Entry<UUID, Set<NPCEntity>> entry : trackedBuds.entrySet()) {
             UUID ownerId = entry.getKey();
-            NPCEntity bud = entry.getValue();
-            if (bud == null) {
+            Set<NPCEntity> buds = entry.getValue();
+            if (buds.isEmpty()) {
                 untrackBud(ownerId);
                 continue;
             }
-
-            Ref<EntityStore> ref = bud.getReference();
-            if (ref == null) {
-                untrackBud(ownerId);
-                continue;
+            for (NPCEntity bud : buds) {
+                Ref<EntityStore> ref = bud.getReference();
+                if (ref == null) {
+                    untrackBud(ownerId);
+                    continue;
+                }
+    
+                Store<EntityStore> store = ref.getStore();
+                World world = store.getExternalData().getWorld();
+                world.execute(() -> checkStateChange(ownerId, bud));
             }
 
-            Store<EntityStore> store = ref.getStore();
-            World world = store.getExternalData().getWorld();
-            world.execute(() -> checkStateChange(ownerId, bud));
         }
     }
 
@@ -311,63 +317,65 @@ public class NPCStateTracker {
         if (owner == null) return;
 
         System.out.println("[BUD] State changed: " + fromState + " -> " + toState);
-        NPCEntity bud = trackedBuds.get(ownerId);
-        if (bud == null) {
+        Set<NPCEntity> buds = trackedBuds.get(ownerId);
+        if (buds.isEmpty()) {
             System.out.println("[BUD] Warning: Bud NPC not found for owner " + ownerId);
             untrackBud(ownerId);
             return;
         }
-        Ref<EntityStore> budRef = bud.getReference();
-        if (budRef == null) {
-            System.out.println("[BUD] Warning: Bud NPC has no valid reference!");
-            untrackBud(ownerId);
-            return;
-        }
-        IBudNPCData budNPCData = npcToLLMMessage.get(budRef);
-        if (budNPCData == null) {
-            System.out.println("[BUD] Warning: Bud NPC data not found!");
-            return;
-        }
-        final Ref<EntityStore> ownerRef = owner.getReference();
-        final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
-        if (world == null) {
-            System.out.println("[BUD] Warning: Player world not available for sending messages!");
-            return;
-        }
-        
-        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
-        if (npcSoundData == null) {
-            System.out.println("[BUD] Warning: Bud NPC sound data not found!");
-            return;
-        }
-        String soundEventID = npcSoundData.getSoundForState(toState);
-        this.soundInteraction.playSound(world, bud, soundEventID);
-        
-        // Get prompt for the new state
-        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        if (npcMessage == null) {
-            System.out.println("[BUD] Warning: Bud NPC LLM message data not found!");
-            return;
-        }
-        String prompt = npcMessage.getPromptForState(toState);
-        
-        if (budLLM != null && prompt != null && this.config.isEnableLLM()) {
-            // Run LLM call async
-            Thread.ofVirtual().start(() -> {
-                String message;
-                try {
-                    String response = budLLM.callLLM(prompt);
-                    message = npcMessage.getNPCName() + ": " + response;
-                } catch (java.io.IOException | InterruptedException e) {
-                    System.out.println("[BUD] LLM error: " + e.getMessage());
-                    message = npcMessage.getFallbackMessage(toState);
-                }
-                this.chatInteraction.sendChatMessage(world, owner, message);
-            });
-        } else {
-            // No LLM configured or no prompt, send fallback
-            String fallbackMessage = npcMessage.getFallbackMessage(toState);
-            this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
+        for (NPCEntity bud : buds) {
+            Ref<EntityStore> budRef = bud.getReference();
+            if (budRef == null) {
+                System.out.println("[BUD] Warning: Bud NPC has no valid reference!");
+                untrackBud(ownerId);
+                return;
+            }
+            IBudNPCData budNPCData = npcToLLMMessage.get(budRef);
+            if (budNPCData == null) {
+                System.out.println("[BUD] Warning: Bud NPC data not found!");
+                return;
+            }
+            final Ref<EntityStore> ownerRef = owner.getReference();
+            final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
+            if (world == null) {
+                System.out.println("[BUD] Warning: Player world not available for sending messages!");
+                return;
+            }
+            
+            IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
+            if (npcSoundData == null) {
+                System.out.println("[BUD] Warning: Bud NPC sound data not found!");
+                return;
+            }
+            String soundEventID = npcSoundData.getSoundForState(toState);
+            this.soundInteraction.playSound(world, bud, soundEventID);
+            
+            // Get prompt for the new state
+            ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+            if (npcMessage == null) {
+                System.out.println("[BUD] Warning: Bud NPC LLM message data not found!");
+                return;
+            }
+            String prompt = npcMessage.getPromptForState(toState);
+            
+            if (budLLM != null && prompt != null && this.config.isEnableLLM()) {
+                // Run LLM call async
+                Thread.ofVirtual().start(() -> {
+                    String message;
+                    try {
+                        String response = budLLM.callLLM(prompt);
+                        message = npcMessage.getNPCName() + ": " + response;
+                    } catch (java.io.IOException | InterruptedException e) {
+                        System.out.println("[BUD] LLM error: " + e.getMessage());
+                        message = npcMessage.getFallbackMessage(toState);
+                    }
+                    this.chatInteraction.sendChatMessage(world, owner, message);
+                });
+            } else {
+                // No LLM configured or no prompt, send fallback
+                String fallbackMessage = npcMessage.getFallbackMessage(toState);
+                this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
+            }
         }
     }
 
