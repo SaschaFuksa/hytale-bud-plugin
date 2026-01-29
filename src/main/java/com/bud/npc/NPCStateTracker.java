@@ -10,7 +10,15 @@ import java.util.HashSet;
 
 import javax.annotation.Nonnull;
 
-import com.bud.BudConfig;
+import com.bud.systems.BudTimeInformation;
+import com.bud.systems.BudWorldInformation;
+import com.bud.systems.TimeOfDay;
+import com.hypixel.hytale.server.core.universe.world.worldgen.IWorldGen;
+import com.hypixel.hytale.server.worldgen.biome.Biome;
+import com.hypixel.hytale.server.worldgen.chunk.ChunkGenerator;
+import com.hypixel.hytale.server.worldgen.chunk.ZoneBiomeResult;
+import com.hypixel.hytale.server.worldgen.zone.Zone;
+
 import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
 import com.bud.npcsound.IBudNPCSoundData;
@@ -19,6 +27,7 @@ import com.bud.llmmessages.ILLMBudNPCMessage;
 import com.bud.npcdata.IBudNPCData;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
@@ -75,6 +84,15 @@ public class NPCStateTracker {
             System.out.println("[BUD] Warning: Bud NPC has no valid Role!");
             return;
         }
+
+        // Auto-Follow: Set state to PetDefensive immediately
+        try {
+            // role.getStateSupport().setState("PetDefensive");
+            System.out.println("[BUD] Auto-assigned PetDefensive (Follow) state to new Bud.");
+        } catch (Exception e) {
+            System.err.println("[BUD] Failed to set auto-follow state: " + e.getMessage());
+        }
+
         UUID ownerId = owner.getUuid();
         String stateName = getMainStateName(role.getStateSupport().getStateName());
 
@@ -381,6 +399,69 @@ public class NPCStateTracker {
             String fallbackMessage = npcMessage.getFallbackMessage(toState);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }
+    }
+
+    public void triggerRandomChats() {
+        if (budLLM == null || !budLLM.isEnabled()) {
+            return;
+        }
+        
+        // Iterate over all track owners
+        for (UUID ownerId : budOwners.keySet()) {
+            PlayerRef owner = budOwners.get(ownerId);
+            if (owner == null) continue;
+
+            // Pick a random bud for this owner
+            NPCEntity randomBud = NPCManager.getInstance().getRandomBud(ownerId);
+            if (randomBud == null) continue;
+
+            triggerRandomChatForBud(owner, randomBud);
+        }
+    }
+
+    private void triggerRandomChatForBud(PlayerRef owner, NPCEntity bud) {
+        Ref<EntityStore> budRef = bud.getReference();
+        if (budRef == null) return;
+
+        IBudNPCData budNPCData = npcToLLMMessage.get(budRef);
+        if (budNPCData == null) return;
+        
+        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+        String npcName = npcMessage != null ? npcMessage.getNPCName() : "Unknown Bud";
+        
+        // Get context from World and Position
+        String environmentContext;
+        final World world;
+        try {
+            Store<EntityStore> store = owner.getReference().getStore();
+            world = store.getExternalData().getWorld();
+            Vector3d pos = owner.getTransform().getPosition();
+
+            TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
+            Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
+            Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
+            System.out.println("[BUD] time of day: " + timeOfDay.name());
+            System.out.println("[BUD] current biome: " + currentBiome.getName());
+            System.out.println("[BUD] current zone: " + currentZone.name());
+            System.out.println("[BUD] current bud: " + bud.getNPCTypeId());
+        } catch (Exception e) {
+            environmentContext = "Context Error: " + e.getMessage();
+            return;
+        }
+
+        String prompt = "You are " + npcName + ". You are currently in the world. " +
+                        "Here is your environment context: []. " +
+                        "Say something random and strictly related to your current context or status. Keep it short.";
+        
+        Thread.ofVirtual().start(() -> {
+            try {
+                String response = budLLM.callLLM(prompt);
+                String message = npcName + ": " + response;
+                this.chatInteraction.sendChatMessage(world, owner, message);
+            } catch (Exception e) {
+                System.out.println("[BUD] Random Chat Error: " + e.getMessage());
+            }
+        });
     }
 
 }
