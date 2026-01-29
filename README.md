@@ -10,7 +10,7 @@ This mod will also work without LLM, but the main goal is to have interactive bu
 
 ## Bud Plugin
 
-This is like a small PoC to create a Hytale Plugin with integrated LLM calls. The goal is to bring more RPG like buddies into Hytale, which can interact with the player via LLM.
+This is like a small proof of concept (PoC) to create a Hytale Plugin with integrated LLM calls. The goal is to bring more RPG like buddies into Hytale, which can interact with the player via LLM.
 Currently there are three Buds implemented:
 - **Veri**: A Feran buddy. It is a little bit childish, but very curious and friendly. It supports the player with daggers.
 - **Gronkh**: A Trork buddy. He is a little bit grumpy, but very loyal and strong. And yes, we all love his streams. He supports the player with a mace.
@@ -70,3 +70,14 @@ start server: .\gradlew runServer
 
 # ingame: direct connect -> localhost
 # /bud in chat
+```
+## To-Dos
+- Teleport Buds to player if "/buds" is entered again.
+- Automatical "F" binding on spawn.
+- Correct persistent data saving/loading of player -> Bud relations to despawn Buds on player disconnect and login.
+- Command to toggle state for all Buds like "/bud attack"
+- More commands? Like individual Bud spawning "/bud veri" etc.
+
+## Roadmap
+- PoC for Bud interaction with world via LLM. Like mining or farming?
+- "Do the same as player" -> Buds also start to mine of player do (Could be funny, if they break blocks you standing on)
