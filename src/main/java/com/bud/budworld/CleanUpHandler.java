@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.BudCommand;
+import com.bud.BudConfig;
+import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -17,7 +19,7 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class CleanUpHandler {
 
-    public void handlePlayerConnect(World world, Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
+    public static void handlePlayerConnect(World world, Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
         Set<Ref<EntityStore>> refsSnapshot = new HashSet<>(trackedBudRefs);
         Set<String> typesSnapshot = new HashSet<>(trackedBudTypes);
 
@@ -28,18 +30,18 @@ public class CleanUpHandler {
         );
     }
     
-    public void handlePlayerDisconnect(PlayerRef playerRef, BudCommand budCommand) {
+    public static void handlePlayerDisconnect(PlayerRef playerRef, NPCManager manager) {
         if (playerRef == null) {
             return;
         }
-        budCommand.removeBudForOwner(playerRef.getUuid());
+        manager.removeBudForOwner(playerRef.getUuid());
     }
 
-    private void cleanupAllWorlds(Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
+    private static void cleanupAllWorlds(Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
         Universe.get().getWorlds().forEach((name, world) -> cleanupWorld(world, trackedBudRefs, trackedBudTypes));
     }
 
-    private void cleanupWorld(World world, Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
+    private static void cleanupWorld(World world, Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
         if (world == null) {
             return;
         }

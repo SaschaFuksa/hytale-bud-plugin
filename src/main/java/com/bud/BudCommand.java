@@ -1,26 +1,19 @@
 package com.bud;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
-import com.bud.npc.NPCStateTracker;
+import com.bud.npc.NPCManager;
 import com.bud.npc.NPCSpawner;
-import com.bud.npcdata.BudFeranData;
-import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
-import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
-import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
@@ -38,20 +31,8 @@ import it.unimi.dsi.fastutil.Pair;
  */
 public class BudCommand extends AbstractPlayerCommand {
 
-    //private static final String FERAN_BUD = "Feran_Bud";
-
-    private static final List<IBudNPCData> BUDS = List.of(
-        new BudFeranData(),
-        new BudTrorkData()
-    );
-
-    private static final ConcurrentHashMap<UUID, Set<NPCEntity>> spawnedBuds = new ConcurrentHashMap<>();
-
-    private final NPCStateTracker stateTracker;
-    
     public BudCommand(BudConfig config) {
         super("bud", "spawn bud.");
-        this.stateTracker = new NPCStateTracker(config);
     }
     
     @Override
@@ -62,16 +43,13 @@ public class BudCommand extends AbstractPlayerCommand {
             @NonNullDecl World world) {
         UUID id = playerRef.getUuid();
 
-        if (playerHasValidBud(id, store)) {
-            removeBudForOwner(id);
-            return;
-        }
+        Set<IBudNPCData> missingBuds = NPCManager.getMissingBuds(id, store);
 
         Vector3d position = getPlayerPosition(playerRef);
         Vector3f rotation = new Vector3f(0, 0, 0);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = null;
 
-        for (IBudNPCData budNPCData : BUDS) {
+        for (IBudNPCData budNPCData : missingBuds) {
             NPCEntity npc = null;
             try {
                 result = NPCSpawner.create(store, budNPCData.getNPCTypeId(), position)
@@ -97,77 +75,11 @@ public class BudCommand extends AbstractPlayerCommand {
             }
     
             if (npc != null) {
-                spawnedBuds.putIfAbsent(id, new HashSet<>());
-                spawnedBuds.get(id).add(npc);
-                stateTracker.trackBud(playerRef, npc, budNPCData);
+                budNPCData.setNPC(npc);
+                NPCManager.addSpawnedBud(playerRef, budNPCData);
                 printNPCDebugInfo(npc);
             }
         }
-    }
-
-    public Set<String> getTrackedBudTypes() {
-        Set<String> types = new HashSet<>();
-        for (IBudNPCData budData : BUDS) {
-            types.add(budData.getNPCTypeId());
-        }
-        return types;
-    }
-    
-    public void removeBudForOwner(UUID ownerId) {
-        Set<NPCEntity> buds = spawnedBuds.remove(ownerId);
-        this.stateTracker.untrackBud(ownerId);
-
-        for (NPCEntity bud : buds) {
-            Ref<EntityStore> budRef = bud.getReference();
-            if (budRef == null) {
-                continue;
-            }
-            Store<EntityStore> store = budRef.getStore();
-            World world = store.getExternalData().getWorld();
-            world.execute(() -> store.removeEntity(budRef, RemoveReason.REMOVE));
-            System.out.println("[BUD] Removed Bud for player " + ownerId);
-        }
-    }
-    
-    public Set<Ref<EntityStore>> getTrackedBudRefs() {
-        Set<Ref<EntityStore>> refs = new HashSet<>();
-        for (Set<NPCEntity> npcs : spawnedBuds.values()) {
-            for (NPCEntity npc : npcs) {
-                if (npc == null) {
-                    continue;
-                }
-                Ref<EntityStore> ref = npc.getReference();
-                if (ref != null && ref.isValid()) {
-                    refs.add(ref);
-                }
-            }
-        }
-        return refs;
-    }
-
-    private boolean playerHasValidBud(UUID playerId, Store<EntityStore> store) {
-        if (!spawnedBuds.containsKey(playerId)) {
-            return false;
-        }
-        Set<NPCEntity> buds = spawnedBuds.get(playerId);
-        if (buds == null || buds.isEmpty()) {
-            spawnedBuds.remove(playerId);
-            return false;
-        }
-        boolean containsValid = false;
-        for (NPCEntity bud : buds) {
-            Ref<EntityStore> budRef = bud.getReference();
-            if (budRef != null && budRef.isValid()) {
-                spawnedBuds.remove(playerId);
-                containsValid = true;
-                break;
-            }
-            boolean isDead = store.getArchetype(budRef).contains(DeathComponent.getComponentType());
-            if (isDead) {
-                spawnedBuds.remove(playerId);
-            }
-        }
-        return containsValid;
     }
 
     private void printError(Exception e) {

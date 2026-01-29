@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.bud.npcdata.BudFeranData;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -35,6 +36,7 @@ public class NPCSpawner {
     // Required parameters
     private final Store<EntityStore> store;
     private final String npcType;
+    private final String npcRole = BudFeranData.NPC_TYPE_ID;
     private final Vector3d position;
     
     // Optional parameters with defaults
@@ -162,7 +164,7 @@ public class NPCSpawner {
         try {
             // Spawn the NPC
             Pair<Ref<EntityStore>, INonPlayerCharacter> result = 
-                NPCPlugin.get().spawnNPC(store, npcType, npcType, position, rotation);
+                NPCPlugin.get().spawnNPC(store, npcType, npcRole, position, rotation);
             
             if (result == null) {
                 System.out.println("[NPCSpawner] Failed to spawn NPC: " + npcType);
