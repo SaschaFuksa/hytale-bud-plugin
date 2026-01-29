@@ -46,7 +46,7 @@
     }
   ],
   "Particle": {
-    "Texture": "Particles/Textures/Modes/CosmeticMode.png",
+    "Texture": "Particles/Textures/Modes/PassiveMode.png",
     "FrameSize": {
       "Width": 64,
       "Height": 64
@@ -66,7 +66,7 @@
             "Max": 0.8
           }
         },
-        "Color": "#ed2d5a",
+        "Color": "#8aed2d",
         "Rotation": {
           "Z": {
             "Min": 0,
@@ -90,7 +90,7 @@
             "Max": 1
           }
         },
-        "Color": "#e50e26"
+        "Color": "#0e862c"
       }
     },
     "InitialAnimationFrame": {
@@ -107,7 +107,7 @@
         }
       },
       "Opacity": 1,
-      "Color": "#ff3f56",
+      "Color": "#80d790",
       "FrameIndex": {
         "Min": 0,
         "Max": 0

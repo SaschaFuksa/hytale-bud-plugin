@@ -62,11 +62,11 @@
         "Opacity": 1,
         "Scale": {
           "X": {
-            "Min": 0.8,
-            "Max": 0.8
+            "Min": 1.0,
+            "Max": 1.0
           }
         },
-        "Color": "#ead62c",
+        "Color": "#d32222",
         "Rotation": {
           "Z": {
             "Min": 0,
@@ -90,7 +90,7 @@
             "Max": 1
           }
         },
-        "Color": "#ec7f12"
+        "Color": "#f56f1c"
       }
     },
     "InitialAnimationFrame": {
@@ -107,7 +107,7 @@
         }
       },
       "Opacity": 1,
-      "Color": "#ead62c",
+      "Color": "#e35716",
       "FrameIndex": {
         "Min": 0,
         "Max": 0

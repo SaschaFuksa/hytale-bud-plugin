@@ -46,7 +46,7 @@
     }
   ],
   "Particle": {
-    "Texture": "Particles/Textures/Modes/SitAndStayMode.png",
+    "Texture": "Particles/Textures/Modes/IdleMode.png",
     "FrameSize": {
       "Width": 64,
       "Height": 64
