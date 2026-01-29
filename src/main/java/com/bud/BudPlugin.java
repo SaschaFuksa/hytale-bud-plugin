@@ -29,6 +29,7 @@ public class BudPlugin extends JavaPlugin {
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             PlayerRef playerRef = event.getPlayerRef();
             System.err.println("[BUD] Player connected: " + playerRef.getUuid());
+            System.err.println("[BUD] World: " + event.getWorld());
             if (event.getWorld() != null) {
                 CleanUpHandler.removeOwnerBuds(playerRef);
             }

@@ -29,8 +29,8 @@ public class NPCManager {
     }
     
     private static final Set<IBudNPCData> BUDS = Set.of(
-        // new BudFeranData(),
-        // new BudTrorkData(),
+        new BudFeranData(),
+        new BudTrorkData(),
         new BudKweebecData()
     );
 
@@ -91,11 +91,15 @@ public class NPCManager {
     }
 
     public void removeBudForOwner(UUID ownerId) {
+        System.out.println("[BUD] Removing Buds for owner " + ownerId);
         this.stateTracker.untrackBud(ownerId);
         Set<NPCEntity> buds = spawnedBuds.get(ownerId);
+        System.err.println("[BUD] Found " + (buds != null ? buds.size() : 0) + " Buds to remove.");
 
         for (NPCEntity bud : buds) {
             Ref<EntityStore> budRef = bud.getReference();
+            System.err.println("[BUD] Processing Bud with ref: " + budRef);
+
             if (budRef == null) {
                 continue;
             }

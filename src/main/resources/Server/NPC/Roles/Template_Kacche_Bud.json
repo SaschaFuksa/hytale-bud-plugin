@@ -37,11 +37,15 @@
     },
     "AttackDistance": {
       "Value": 2.5,
-      "Description": "Range to begin melee attack."
+      "Description": "Range to begin attack."
     },
-    "MeleeAttack": {
+    "AttackInteraction": {
       "Value": "Root_NPC_Attack_Melee",
       "Description": "The root interaction to use."
+    },
+    "ChaseDistanceRange": {
+      "Value": [ 1.5, 2.5 ],
+      "Description": "Distance (min, max) to maintain when chasing/fighting."
     },
     "AttitudeGroup": {
       "Value": "BudAttitude",
@@ -568,7 +572,7 @@
                     {
                       "Type": "Attack",
                       "Attack": {
-                        "Compute": "MeleeAttack"
+                        "Compute": "AttackInteraction"
                       },
                       "AttackPauseRange": [
                         1,
@@ -599,10 +603,9 @@
                   },
                   "BodyMotion": {
                     "Type": "MaintainDistance",
-                    "DesiredDistanceRange": [
-                      1.5,
-                      2.5
-                    ],
+                    "DesiredDistanceRange": {
+                      "Compute": "ChaseDistanceRange"
+                    },
                     "MoveThreshold": 0.5,
                     "StrafingDurationRange": [
                       0.5,

@@ -13,9 +13,10 @@
       "Void",
       "Skeleton",
       "Zombie",
-      "Beast",
-      "Boss",
-      "Undead"
+      "Bear",
+      "Wolf",
+      "Undead",
+      "Reptile"
     ],
     "Ignore": [
       "Player"
