@@ -361,8 +361,9 @@ public class NPCStateTracker {
         Store<EntityStore> store = ownerRef.getStore();
         World world = store.getExternalData().getWorld();
         BudWorldContext context = getWorldContext(owner, world, store);
-        System.err.println("[BUD] World data extracted: " + context.toString());
+        System.out.println("[BUD] World data extracted: " + context.currentBiome().getName() + ", " + context.currentZone().name() + ", " + context.timeOfDay().name());
 
+        System.out.println("[BUD] Preparing Sound.");
         IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
         if (npcSoundData != null) {
             String soundEventID = npcSoundData.getSoundForState("PetPassive");
@@ -375,6 +376,7 @@ public class NPCStateTracker {
             try {
                 String response = budLLM.callLLM(prompt);
                 String message = npcName + ": " + response;
+                System.out.println("[BUD] LLM response: " + message);
                 this.chatInteraction.sendChatMessage(world, owner, message);
             } catch (Exception e) {
                 System.out.println("[BUD] Random Chat Error: " + e.getMessage());

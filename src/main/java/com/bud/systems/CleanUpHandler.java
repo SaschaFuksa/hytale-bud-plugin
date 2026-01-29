@@ -49,13 +49,13 @@ public class CleanUpHandler {
                     if (ref.getStore().getComponent(ref, NPCEntity.getComponentType()) != null) {
                         NPCEntity npc = ref.getStore().getComponent(ref, NPCEntity.getComponentType());
                         
-                         String typeId = npc.getNPCTypeId();
-                         IBudNPCData prototype = NPCManager.getInstance().getDataForType(typeId);
-                         if (prototype != null) {
-                             System.out.println("[BUD] Restoring session for Bud: " + typeId);
-                             NPCManager.getInstance().getStateTracker().trackBud(player, npc, prototype);
-                         } else {
-                             System.out.println("[BUD] Unknown Bud type " + typeId + " - removing.");
+                        String typeId = npc.getNPCTypeId();
+                        IBudNPCData prototype = NPCManager.getInstance().getDataForType(typeId);
+                        if (prototype != null) {
+                            System.out.println("[BUD] Restoring session for Bud: " + typeId);
+                            NPCManager.getInstance().getStateTracker().trackBud(player, npc, prototype);
+                        } else {
+                            System.out.println("[BUD] Unknown Bud type " + typeId + " - removing.");
                             toRemove.add(budInfo);
                         }
                     }

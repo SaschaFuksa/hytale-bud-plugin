@@ -30,7 +30,9 @@ public class BudLLM {
     }
 
     public String callLLM(String message) throws IOException, InterruptedException {
-        String jsonPayload = "{\"model\":\"" + this.budConfig.getModel() + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + this.systemPrompt.replace("\"", "\\\"") + "\"},{\"role\":\"user\",\"content\":\"" + message + "\"}],\"temperature\":0.8,\"max_tokens\":50}";
+        String escapedSystemPrompt = escapeJson(this.systemPrompt);
+        String escapedMessage = escapeJson(message);
+        String jsonPayload = "{\"model\":\"" + this.budConfig.getModel() + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage + "\"}],\"temperature\":0.8,\"max_tokens\":30}";
 
         System.out.println("[LLM] Sending request to " + budConfig.getUrl());
         
@@ -96,6 +98,19 @@ public class BudLLM {
             System.out.println("[LLM] Parsing error: " + e.getMessage());
             return "Error parsing response: " + e.getMessage();
         }
+    }
+
+    private String escapeJson(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\b", "\\b")
+                    .replace("\f", "\\f")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
     }
 
 }

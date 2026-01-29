@@ -30,6 +30,10 @@ Interaction with buddies:
   - **Passive Mode**: The buddy will only follow you around.
   - **Idle Mode**: The buddy will stay at the current position.
 
+Automatic despawning of buddies:
+- If player disconnects, all of his buddies will despawn.
+- If player login, all of his buddies will despawn. This is needed, if server disconnects while player is online.
+
 ## Quickstart
 
 Move **HytaleBudPlugin-x.x.x.zip** to your global Mods folder. Enable this Mod for a world. Afterwards, edit the HytaleBud.json in your *Saves/worldname/mods/HytaleBudPlugin/* folder to enable LLM.

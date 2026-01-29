@@ -14,6 +14,7 @@ public class LLMWorldInfoMessageManager {
                 You want to say something about the current environment you are in.
                 Next you get detailed information about your environment.
                 After you got information about yourself, what you like or disklike.
+                Don't mention the zone or biome too often.
                 Finally, say something short and related to your current environment and personal world view.
                 """;
         String environment_info = """
