@@ -4,6 +4,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
 import com.bud.budworld.CleanUpHandler;
+import com.bud.systems.BudDamageFilterSystem;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -25,6 +26,9 @@ public class BudPlugin extends JavaPlugin {
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.getCommandRegistry().registerCommand(new LLMCommand());
+
+        // Register Damage Filter System
+        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             PlayerRef playerRef = event.getPlayerRef();

@@ -110,6 +110,19 @@ public class NPCManager {
             System.out.println("[BUD] Removed Bud for player " + ownerId);
         }
         spawnedBuds.remove(ownerId);
-        this.stateTracker.untrackBud(ownerId);
-    }    
+        stateTracker.untrackBud(ownerId);
+    }
+
+    public boolean isBudOwnedBy(UUID playerUUID, Ref<EntityStore> npcRef) {
+        Set<NPCEntity> buds = spawnedBuds.get(playerUUID);
+        if (buds == null || buds.isEmpty()) {
+            return false;
+        }
+        for (NPCEntity npc : buds) {
+            if (npc != null && npc.getReference() != null && npc.getReference().equals(npcRef)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
