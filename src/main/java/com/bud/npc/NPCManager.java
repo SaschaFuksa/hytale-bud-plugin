@@ -22,10 +22,10 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 public class NPCManager {
 
     public static final ConcurrentHashMap<UUID, Set<NPCEntity>> spawnedBuds = new ConcurrentHashMap<>();
-    private static NPCStateTracker stateTracker;
+    private static final NPCStateTracker stateTracker = new NPCStateTracker();
+    private static final NPCManager INSTANCE = new NPCManager();
 
     private NPCManager() {
-        NPCManager.stateTracker = new NPCStateTracker();
     }
     
     private static final Set<IBudNPCData> BUDS = Set.of(
@@ -35,7 +35,7 @@ public class NPCManager {
     );
 
     public static NPCManager getInstance() {
-        return new NPCManager();
+        return INSTANCE;
     }
     
     public static Set<IBudNPCData> getMissingBuds(UUID playerId, Store<EntityStore> store) {

@@ -31,7 +31,9 @@ public class BudPlugin extends JavaPlugin {
             System.err.println("[BUD] Player connected: " + playerRef.getUuid());
             System.err.println("[BUD] World: " + event.getWorld());
             if (event.getWorld() != null) {
-                CleanUpHandler.removeOwnerBuds(playerRef);
+                // Remove orphaned (untracked) buds in the world the player is joining.
+                // This handles cleaning up buds from previous sessions/crashes since they aren't tracked anymore.
+                CleanUpHandler.cleanOrphanedBuds(event.getWorld());
             }
         });
         

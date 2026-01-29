@@ -28,6 +28,18 @@ public class CleanUpHandler {
             TimeUnit.SECONDS
         );
     }
+
+    public static void cleanOrphanedBuds(World world) {
+        NPCManager manager = NPCManager.getInstance();
+        Set<Ref<EntityStore>> refsSnapshot = manager.getTrackedBudRefs();
+        Set<String> typesSnapshot = manager.getTrackedBudTypes();
+
+        HytaleServer.SCHEDULED_EXECUTOR.schedule(
+            () -> cleanupWorld(world, refsSnapshot, typesSnapshot),
+            1L,
+            TimeUnit.SECONDS
+        );
+    }
     
     public static void removeOwnerBuds(PlayerRef playerRef) {
         if (playerRef == null) {
