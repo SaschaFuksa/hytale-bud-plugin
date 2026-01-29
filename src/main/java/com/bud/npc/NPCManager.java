@@ -92,14 +92,15 @@ public class NPCManager {
 
     public void removeBudForOwner(UUID ownerId) {
         System.out.println("[BUD] Removing Buds for owner " + ownerId);
-        this.stateTracker.untrackBud(ownerId);
         Set<NPCEntity> buds = spawnedBuds.get(ownerId);
         System.err.println("[BUD] Found " + (buds != null ? buds.size() : 0) + " Buds to remove.");
-
+        if (buds == null || buds.isEmpty()) {
+            return;
+        }
         for (NPCEntity bud : buds) {
             Ref<EntityStore> budRef = bud.getReference();
             System.err.println("[BUD] Processing Bud with ref: " + budRef);
-
+            
             if (budRef == null) {
                 continue;
             }
@@ -109,5 +110,6 @@ public class NPCManager {
             System.out.println("[BUD] Removed Bud for player " + ownerId);
         }
         spawnedBuds.remove(ownerId);
+        this.stateTracker.untrackBud(ownerId);
     }    
 }

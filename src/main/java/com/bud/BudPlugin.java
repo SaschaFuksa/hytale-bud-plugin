@@ -15,7 +15,7 @@ public class BudPlugin extends JavaPlugin {
         super(init);
         this.config = this.withConfig("Bud", BudConfig.CODEC);
     }
-
+    
     @Override
     protected void setup() {
         super.setup();
