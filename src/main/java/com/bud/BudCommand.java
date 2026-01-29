@@ -79,8 +79,7 @@ public class BudCommand extends AbstractPlayerCommand {
             }
     
             if (npc != null) {
-                budNPCData.setNPC(npc);
-                NPCManager.addSpawnedBud(playerRef, budNPCData);
+                NPCManager.addSpawnedBud(playerRef, budNPCData, npc);
                 printNPCDebugInfo(npc);
             }
         }

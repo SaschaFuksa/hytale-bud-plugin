@@ -1,22 +1,16 @@
 package com.bud.npc;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
-import java.util.HashSet;
 
 import javax.annotation.Nonnull;
 
 import com.bud.systems.BudTimeInformation;
 import com.bud.systems.BudWorldInformation;
 import com.bud.systems.TimeOfDay;
-import com.hypixel.hytale.server.core.universe.world.worldgen.IWorldGen;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
-import com.hypixel.hytale.server.worldgen.chunk.ChunkGenerator;
-import com.hypixel.hytale.server.worldgen.chunk.ZoneBiomeResult;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 import com.bud.interaction.BudChatInteraction;
@@ -45,18 +39,6 @@ import com.hypixel.hytale.server.npc.role.Role;
  */
 public class NPCStateTracker {
     
-    // Map of player UUID to their Bud NPC
-    private final Map<UUID, Set<NPCEntity>> trackedBuds = new ConcurrentHashMap<>();
-    // Map of player UUID to their PlayerRef for sending messages
-    private final Map<UUID, PlayerRef> budOwners = new ConcurrentHashMap<>();
-    // Map of player UUID to last known state (legacy)
-    private final Map<UUID, String> lastKnownStates = new ConcurrentHashMap<>();
-    // Map of NPC Ref to last known state (per Bud)
-    private final Map<Ref<EntityStore>, String> lastKnownStatesByBud = new ConcurrentHashMap<>();
-    // Map of NPC Ref to owner UUID (for reverse lookup on interaction)
-    private final Map<Ref<EntityStore>, UUID> npcToOwner = new ConcurrentHashMap<>();
-    // Map of NPC Ref to LLM Message
-    private final Map<Ref<EntityStore>, IBudNPCData> npcToLLMMessage = new ConcurrentHashMap<>();
     private ScheduledFuture<?> pollingTask;
     
     private final BudLLM budLLM;
@@ -95,13 +77,8 @@ public class NPCStateTracker {
 
         UUID ownerId = owner.getUuid();
         String stateName = getMainStateName(role.getStateSupport().getStateName());
-
-        trackedBuds.computeIfAbsent(ownerId, k -> new HashSet<>()).add(bud);
-        budOwners.put(ownerId, owner);
-        npcToOwner.put(budRef, ownerId);
-        npcToLLMMessage.put(budRef, budNPCData);
-        lastKnownStates.put(ownerId, stateName);
-        lastKnownStatesByBud.put(budRef, stateName);
+        
+        BudRegistry.getInstance().register(owner, bud, budNPCData, stateName);
         System.out.println("[BUD] Now tracking Bud for player " + ownerId + " - Initial state: " + stateName);
 
         // Start polling when at least one Bud is tracked
@@ -112,24 +89,24 @@ public class NPCStateTracker {
      * Stop tracking a Bud.
      */
     public void untrackBud(UUID ownerId) {
-        Set<NPCEntity> buds = trackedBuds.remove(ownerId);
-        budOwners.remove(ownerId);
-        if (buds != null) {
-            for (NPCEntity bud : buds) {
-                Ref<EntityStore> budRef = bud.getReference();
-                if (budRef != null) {
-                    npcToOwner.remove(budRef);
-                    npcToLLMMessage.remove(budRef);
-                    lastKnownStatesByBud.remove(budRef);
-                }
-            }
+        Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
+        Set<BudInstance> copy = Set.copyOf(buds);
+        
+        for (BudInstance bud : copy) {
+             BudRegistry.getInstance().unregister(bud.getEntity());
         }
-        lastKnownStates.remove(ownerId);
         System.out.println("[BUD] Stopped tracking Bud for player " + ownerId);
 
-        if (trackedBuds.isEmpty()) {
+        if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
             stopPolling();
         }
+    }
+    
+    public void untrackBud(BudInstance instance) {
+         BudRegistry.getInstance().unregister(instance.getEntity());
+         if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
+             stopPolling();
+         }
     }
 
     public synchronized void startPolling() {
@@ -149,52 +126,50 @@ public class NPCStateTracker {
     }
     
     private void pollStates() {
-        if (trackedBuds.isEmpty()) {
+        Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
+        if (owners.isEmpty()) {
             return;
         }
 
-        for (Map.Entry<UUID, Set<NPCEntity>> entry : trackedBuds.entrySet()) {
-            UUID ownerId = entry.getKey();
-            Set<NPCEntity> buds = entry.getValue();
+        for (UUID ownerId : owners) {
+            Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
             if (buds.isEmpty()) {
-                untrackBud(ownerId);
                 continue;
             }
-            for (NPCEntity bud : buds) {
-                Ref<EntityStore> ref = bud.getReference();
-                if (ref == null) {
-                    untrackBud(ownerId);
+            
+            for (BudInstance budInstance : buds) {
+                if (budInstance.getEntity() == null || budInstance.getRef() == null) {
                     continue;
                 }
     
-                Store<EntityStore> store = ref.getStore();
-                World world = store.getExternalData().getWorld();
-                world.execute(() -> checkStateChange(ownerId, bud));
+                Store<EntityStore> store = budInstance.getRef().getStore();
+                if (store != null) {
+                    World world = store.getExternalData().getWorld();
+                    if (world != null) {
+                        world.execute(() -> checkStateChange(ownerId, budInstance));
+                    }
+                }
             }
 
         }
     }
 
-    private void checkStateChange(UUID ownerId, NPCEntity bud) {
+    private void checkStateChange(UUID ownerId, BudInstance budInstance) {
+        NPCEntity bud = budInstance.getEntity();
         Role role = bud.getRole();
         if (role == null) {
             return;
         }
 
         String currentState = getMainStateName(role.getStateSupport().getStateName());
-        Ref<EntityStore> budRef = bud.getReference();
-        if (budRef == null) {
-            return;
-        }
-        String lastState = lastKnownStatesByBud.get(budRef);
+        String lastState = budInstance.getLastKnownState();
 
         if (lastState != null && lastState.equals(currentState)) {
             return;
         }
 
-        lastKnownStates.put(ownerId, currentState);
-        lastKnownStatesByBud.put(budRef, currentState);
-        onStateChanged(ownerId, bud, budRef, lastState, currentState);
+        budInstance.setLastKnownState(currentState);
+        onStateChanged(ownerId, budInstance, lastState, currentState);
     }
     
     /**
@@ -212,90 +187,55 @@ public class NPCStateTracker {
      */
     @SuppressWarnings("deprecation")
     public void onPlayerInteraction(@Nonnull PlayerInteractEvent event) {
-        // Debug: Log every interaction event
-        System.out.println("[BUD] PlayerInteractEvent received! ActionType: " + event.getActionType());
-        
         // Only handle F-key (Use) interactions
         if (event.getActionType() != InteractionType.Use) {
-            System.out.println("[BUD] Ignoring non-Use interaction");
             return;
         }
         
         Entity targetEntity = event.getTargetEntity();
-        System.out.println("[BUD] Target entity: " + (targetEntity != null ? targetEntity.getClass().getSimpleName() : "null"));
-        
         if (targetEntity == null || !(targetEntity instanceof NPCEntity)) {
-            System.out.println("[BUD] Target is not an NPC");
             return;
         }
         
         NPCEntity targetNPC = (NPCEntity) targetEntity;
-        System.out.println("[BUD] Target NPC type: " + targetNPC.getNPCTypeId());
         
         Ref<EntityStore> targetRef = event.getTargetRef();
         if (targetRef == null && targetNPC.getReference() != null) {
             targetRef = targetNPC.getReference();
         }
 
-        // Check if this NPC is a tracked Bud
-        UUID ownerId = npcToOwner.get(targetRef);
-        if (ownerId == null && targetNPC.getReference() != null) {
-            ownerId = npcToOwner.get(targetNPC.getReference());
-        }
-        if (ownerId == null) {
-            System.out.println("[BUD] F-key on NPC but not a tracked Bud (NPC: " + targetNPC.getNPCTypeId() + ")");
+        BudInstance instance = BudRegistry.getInstance().get(targetRef);
+        if (instance == null) {
             return;
         }
         
-        // Get the owner's player ref and check if the interacting player is the owner
-        PlayerRef owner = budOwners.get(ownerId);
-        if (owner == null) {
-            return;
-        }
+        UUID ownerId = instance.getOwner().getUuid();
         
-        // Check if the interacting player is the owner
+        // Safety check invoking player
         Ref<EntityStore> playerEntityRef = event.getPlayerRef();
+        if (playerEntityRef == null) return;
+
         Store<EntityStore> playerStore = playerEntityRef.getStore();
         PlayerRef interactingPlayerRef = playerStore.getComponent(playerEntityRef, PlayerRef.getComponentType());
-        if (interactingPlayerRef == null) {
-            System.out.println("[BUD] Could not resolve PlayerRef for interaction");
-            return;
-        }
-        UUID interactingPlayerId = interactingPlayerRef.getUuid();
-        if (!ownerId.equals(interactingPlayerId)) {
-            System.out.println("[BUD] F-key on Bud but not by owner");
+        if (interactingPlayerRef == null) return;
+
+        if (!ownerId.equals(interactingPlayerRef.getUuid())) {
             return;
         }
         
-        System.out.println("[BUD] ========================================");
         System.out.println("[BUD] F-KEY INTERACTION DETECTED!");
-        System.out.println("[BUD] Player: " + interactingPlayerId);
-        System.out.println("[BUD] ========================================");
         
-        // Get current state and trigger message
         Role role = targetNPC.getRole();
         if (role != null) {
             String currentState = getMainStateName(role.getStateSupport().getStateName());
-            Ref<EntityStore> targetNPCRef = targetNPC.getReference();
-            if (targetNPCRef == null) {
-                return;
-            }
-            String lastState = lastKnownStatesByBud.get(targetNPCRef);
+            String lastState = instance.getLastKnownState();
             
-            System.out.println("[BUD] Current state: " + currentState + ", Last state: " + lastState);
-
-            // Only react on actual state changes
             if (lastState != null && lastState.equals(currentState)) {
-                System.out.println("[BUD] State unchanged; no message sent.");
                 return;
             }
 
-            // Update last known state
-            lastKnownStates.put(ownerId, currentState);
-            lastKnownStatesByBud.put(targetNPCRef, currentState);
-
-            // Trigger LLM message (only this Bud)
-            onStateChanged(ownerId, targetNPC, targetNPCRef, lastState, currentState);
+            instance.setLastKnownState(currentState);
+            onStateChanged(ownerId, instance, lastState, currentState);
         }
     }
 
@@ -308,14 +248,12 @@ public class NPCStateTracker {
             return;
         }
 
-        UUID ownerId = npcToOwner.get(targetRef);
-        if (ownerId == null) {
-            System.out.println("[BUD] Use interaction on NPC but not a tracked Bud (NPC: " + targetNPC.getNPCTypeId() + ")");
+        BudInstance instance = BudRegistry.getInstance().get(targetRef);
+        if (instance == null) {
             return;
         }
 
-        if (!ownerId.equals(interactingPlayer.getUuid())) {
-            System.out.println("[BUD] Use interaction on Bud but not by owner");
+        if (!instance.getOwner().getUuid().equals(interactingPlayer.getUuid())) {
             return;
         }
 
@@ -325,64 +263,46 @@ public class NPCStateTracker {
         }
 
         String currentState = getMainStateName(role.getStateSupport().getStateName());
-        String lastState = lastKnownStatesByBud.get(targetRef);
-
-        System.out.println("[BUD] (Interaction) Current state: " + currentState + ", Last state: " + lastState);
+        String lastState = instance.getLastKnownState();
 
         if (lastState != null && lastState.equals(currentState)) {
-            System.out.println("[BUD] (Interaction) State unchanged; no message sent.");
             return;
         }
 
-        lastKnownStates.put(ownerId, currentState);
-        lastKnownStatesByBud.put(targetRef, currentState);
-        onStateChanged(ownerId, targetNPC, targetRef, lastState, currentState);
+        instance.setLastKnownState(currentState);
+        onStateChanged(instance.getOwner().getUuid(), instance, lastState, currentState);
     }
     
     /**
      * Called when a Bud's state changes.
      */
     @SuppressWarnings("TooBroadCatch")
-    private void onStateChanged(UUID ownerId, NPCEntity bud, Ref<EntityStore> budRef, String fromState, String toState) {
-        PlayerRef owner = budOwners.get(ownerId);
-        if (owner == null) return;
-
+    private void onStateChanged(UUID ownerId, BudInstance budInstance, String fromState, String toState) {
+        PlayerRef owner = budInstance.getOwner();
+        NPCEntity bud = budInstance.getEntity();
+        IBudNPCData budNPCData = budInstance.getData();
+        
         System.out.println("[BUD] State changed: " + fromState + " -> " + toState);
-        if (budRef == null) {
-            System.out.println("[BUD] Warning: Bud NPC has no valid reference!");
-            untrackBud(ownerId);
-            return;
-        }
-        IBudNPCData budNPCData = npcToLLMMessage.get(budRef);
-        if (budNPCData == null) {
-            System.out.println("[BUD] Warning: Bud NPC data not found!");
-            return;
-        }
+        
         final Ref<EntityStore> ownerRef = owner.getReference();
         final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
         if (world == null) {
-            System.out.println("[BUD] Warning: Player world not available for sending messages!");
             return;
         }
         
         IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
-        if (npcSoundData == null) {
-            System.out.println("[BUD] Warning: Bud NPC sound data not found!");
-            return;
+        if (npcSoundData != null) {
+             String soundEventID = npcSoundData.getSoundForState(toState);
+             this.soundInteraction.playSound(world, bud, soundEventID);
         }
-        String soundEventID = npcSoundData.getSoundForState(toState);
-        this.soundInteraction.playSound(world, bud, soundEventID);
         
         // Get prompt for the new state
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        if (npcMessage == null) {
-            System.out.println("[BUD] Warning: Bud NPC LLM message data not found!");
-            return;
-        }
+        if (npcMessage == null) return;
+
         String prompt = npcMessage.getPromptForState(toState);
         
         if (budLLM != null && prompt != null && budLLM.isEnabled()) {
-            // Run LLM call async
             Thread.ofVirtual().start(() -> {
                 String message;
                 try {
@@ -395,7 +315,6 @@ public class NPCStateTracker {
                 this.chatInteraction.sendChatMessage(world, owner, message);
             });
         } else {
-            // No LLM configured or no prompt, send fallback
             String fallbackMessage = npcMessage.getFallbackMessage(toState);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }
@@ -407,33 +326,38 @@ public class NPCStateTracker {
         }
         
         // Iterate over all track owners
-        for (UUID ownerId : budOwners.keySet()) {
-            PlayerRef owner = budOwners.get(ownerId);
-            if (owner == null) continue;
+        Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
+        for (UUID ownerId : owners) {
+            // Pick a random bud for this owner from the registry
+            java.util.List<BudInstance> ownerBuds = new java.util.ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
+            if (ownerBuds.isEmpty()) continue;
+            
+            BudInstance randomInstance = ownerBuds.get((int) (Math.random() * ownerBuds.size()));
+            if (randomInstance == null) continue;
 
-            // Pick a random bud for this owner
-            NPCEntity randomBud = NPCManager.getInstance().getRandomBud(ownerId);
-            if (randomBud == null) continue;
-
-            triggerRandomChatForBud(owner, randomBud);
+            triggerRandomChatForBud(randomInstance);
         }
     }
 
-    private void triggerRandomChatForBud(PlayerRef owner, NPCEntity bud) {
-        Ref<EntityStore> budRef = bud.getReference();
-        if (budRef == null) return;
+    private void triggerRandomChatForBud(BudInstance instance) {
+        PlayerRef owner = instance.getOwner();
+        NPCEntity bud = instance.getEntity();
+        IBudNPCData budNPCData = instance.getData();
 
-        IBudNPCData budNPCData = npcToLLMMessage.get(budRef);
         if (budNPCData == null) return;
         
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         String npcName = npcMessage != null ? npcMessage.getNPCName() : "Unknown Bud";
         
         // Get context from World and Position
-        String environmentContext;
         final World world;
         try {
-            Store<EntityStore> store = owner.getReference().getStore();
+             // ... existing context fetching logic ...
+             // We need 'owner' ref to get world/pos
+            Ref<EntityStore> ownerRef = owner.getReference();
+            if (ownerRef == null) return;
+            
+            Store<EntityStore> store = ownerRef.getStore();
             world = store.getExternalData().getWorld();
             Vector3d pos = owner.getTransform().getPosition();
 
@@ -445,7 +369,7 @@ public class NPCStateTracker {
             System.out.println("[BUD] current zone: " + currentZone.name());
             System.out.println("[BUD] current bud: " + bud.getNPCTypeId());
         } catch (Exception e) {
-            environmentContext = "Context Error: " + e.getMessage();
+            System.out.println("[BUD] Context Error: " + e.getMessage());
             return;
         }
 

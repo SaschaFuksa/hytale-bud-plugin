@@ -4,14 +4,12 @@ import com.bud.llmmessages.ILLMBudNPCMessage;
 import com.bud.llmmessages.LLMBudKweebecMessage;
 import com.bud.npcsound.BudKweebecSoundData;
 import com.bud.npcsound.IBudNPCSoundData;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudKweebecData implements IBudNPCData {
 
 	public static final String NPC_TYPE_ID = "Kacche_Bud";
-    private final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudKweebecMessage();
-    private final IBudNPCSoundData budNPCSoundData = new BudKweebecSoundData();
-	private NPCEntity npc;
+    private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudKweebecMessage();
+    private static final IBudNPCSoundData budNPCSoundData = new BudKweebecSoundData();
 
     @Override
     public ILLMBudNPCMessage getLLMBudNPCMessage() {
@@ -36,15 +34,5 @@ public class BudKweebecData implements IBudNPCData {
 	@Override
 	public String getArmorID() {
 		return "Armor_Kweebec_Chest";
-	}
-	
-	@Override
-	public void setNPC(NPCEntity npc) {
-		this.npc = npc;
-	}
-
-	@Override
-	public NPCEntity getNPC() {
-		return this.npc;
 	}
 }
