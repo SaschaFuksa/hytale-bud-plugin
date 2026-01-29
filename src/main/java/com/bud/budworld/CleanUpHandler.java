@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudCommand;
-import com.bud.BudConfig;
 import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -19,9 +17,10 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class CleanUpHandler {
 
-    public static void handlePlayerConnect(World world, Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {
-        Set<Ref<EntityStore>> refsSnapshot = new HashSet<>(trackedBudRefs);
-        Set<String> typesSnapshot = new HashSet<>(trackedBudTypes);
+    public static void removeAllBuds(World world) {
+        NPCManager manager = NPCManager.getInstance();
+        Set<Ref<EntityStore>> refsSnapshot = manager.getTrackedBudRefs();
+        Set<String> typesSnapshot = manager.getTrackedBudTypes();
 
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
             () -> cleanupAllWorlds(refsSnapshot, typesSnapshot),
@@ -30,11 +29,11 @@ public class CleanUpHandler {
         );
     }
     
-    public static void handlePlayerDisconnect(PlayerRef playerRef, NPCManager manager) {
+    public static void removeOwnerBuds(PlayerRef playerRef) {
         if (playerRef == null) {
             return;
         }
-        manager.removeBudForOwner(playerRef.getUuid());
+        NPCManager.getInstance().removeBudForOwner(playerRef.getUuid());
     }
 
     private static void cleanupAllWorlds(Set<Ref<EntityStore>> trackedBudRefs, Set<String> trackedBudTypes) {

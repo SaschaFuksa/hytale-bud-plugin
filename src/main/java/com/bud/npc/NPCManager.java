@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.lang.reflect.Field;
 
-import com.bud.BudConfig;
 import com.bud.npcdata.BudFeranData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
@@ -29,8 +28,8 @@ public class NPCManager {
     public static final ConcurrentHashMap<UUID, Set<NPCEntity>> spawnedBuds = new ConcurrentHashMap<>();
     private static NPCStateTracker stateTracker;
 
-    private NPCManager(BudConfig config) {
-        NPCManager.stateTracker = new NPCStateTracker(config);
+    private NPCManager() {
+        NPCManager.stateTracker = new NPCStateTracker();
     }
     
     private static final Set<IBudNPCData> BUDS = Set.of(
@@ -38,8 +37,8 @@ public class NPCManager {
         new BudTrorkData()
     );
 
-    public static NPCManager getInstance(BudConfig config) {
-        return new NPCManager(config);
+    public static NPCManager getInstance() {
+        return new NPCManager();
     }
     
     public static Set<IBudNPCData> getMissingBuds(UUID playerId, Store<EntityStore> store) {

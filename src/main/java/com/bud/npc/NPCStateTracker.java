@@ -36,7 +36,6 @@ import com.hypixel.hytale.server.npc.role.Role;
  */
 public class NPCStateTracker {
     
-    private final BudConfig config;
     // Map of player UUID to their Bud NPC
     private final Map<UUID, Set<NPCEntity>> trackedBuds = new ConcurrentHashMap<>();
     // Map of player UUID to their PlayerRef for sending messages
@@ -57,9 +56,8 @@ public class NPCStateTracker {
 
     private final BudSoundInteraction soundInteraction = new BudSoundInteraction();
     
-    public NPCStateTracker(BudConfig config) {
-        this.config = config;
-        this.budLLM = new BudLLM(config);
+    public NPCStateTracker() {
+        this.budLLM = new BudLLM();
         System.out.println("[BUD] StateTracker initialized (polling based)");
     }
 
@@ -365,7 +363,7 @@ public class NPCStateTracker {
         }
         String prompt = npcMessage.getPromptForState(toState);
         
-        if (budLLM != null && prompt != null && this.config.isEnableLLM()) {
+        if (budLLM != null && prompt != null && budLLM.isEnabled()) {
             // Run LLM call async
             Thread.ofVirtual().start(() -> {
                 String message;

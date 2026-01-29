@@ -17,14 +17,18 @@ public class BudLLM {
     private final String systemPrompt;
     private final BudConfig budConfig;
 
-    public BudLLM(BudConfig config) {
-        this.budConfig = config;
+    public BudLLM() {
+        this.budConfig = BudConfig.get();
         this.systemPrompt = "Answer short, Keep responses concise and entertaining. Don't ask for follow up questions. Only response with maximum 1 sentences.";
     }
 
-    public BudLLM(BudConfig config, String systemPrompt) {
-        this.budConfig = config;
+    public BudLLM(String systemPrompt) {
+        this.budConfig = BudConfig.get();
         this.systemPrompt = systemPrompt;
+    }
+
+    public boolean isEnabled() {
+        return this.budConfig.isEnableLLM();
     }
 
     public String callLLM(String message) throws IOException, InterruptedException {

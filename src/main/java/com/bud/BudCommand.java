@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
+import com.bud.budworld.CleanUpHandler;
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCSpawner;
 import com.bud.npcdata.IBudNPCData;
@@ -13,6 +14,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -31,8 +34,9 @@ import it.unimi.dsi.fastutil.Pair;
  */
 public class BudCommand extends AbstractPlayerCommand {
 
-    public BudCommand(BudConfig config) {
+    public BudCommand(BudPlugin budPlugin) {
         super("bud", "spawn bud.");
+        this.addUsageVariant(new BudSetVariant());
     }
     
     @Override
@@ -147,6 +151,35 @@ public class BudCommand extends AbstractPlayerCommand {
         }
         
         System.out.println("==================================");
+    }
+
+    private static class BudSetVariant extends AbstractPlayerCommand {
+
+        private final RequiredArg<String> modeArg;
+
+        public BudSetVariant() {
+            super("manage", "Manage Bud NPCs");
+            this.modeArg = this.withRequiredArg("mode", "clean or clean-all", ArgTypes.STRING);
+        }
+
+        @Override
+        protected void execute(@NonNullDecl CommandContext commandContext,
+                @NonNullDecl Store<EntityStore> store,
+                @NonNullDecl Ref<EntityStore> ref,
+                @NonNullDecl PlayerRef playerRef,
+                @NonNullDecl World world) {
+            
+            String inputMode = this.modeArg.get(commandContext);
+
+            if (inputMode.equalsIgnoreCase("clean")) {
+                CleanUpHandler.removeOwnerBuds(playerRef);
+            } else if (inputMode.equalsIgnoreCase("clean-all")) {
+                CleanUpHandler.removeAllBuds(world);
+            } else {
+                System.out.println("Unknown mode: " + inputMode);
+            }
+        }
+
     }
 
 }

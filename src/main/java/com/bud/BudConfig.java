@@ -13,8 +13,9 @@ public class BudConfig {
     private String model = "mistralai/ministral-3-3b";
     private String apiKey = "not_needed";
 
-    public BudConfig() {
-    }
+    private static BudConfig instance;
+
+    public static BudConfig get() { return instance; }
 
     public boolean isEnableLLM() {
         return this.enableLLM;
