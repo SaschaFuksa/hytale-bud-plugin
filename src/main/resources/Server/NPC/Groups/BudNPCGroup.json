@@ -1,0 +1,8 @@
+{
+  "IncludeRoles": [
+    "Feran_Bud",
+    "Trork_Bud",
+    "$player",
+    "$self"
+  ]
+}

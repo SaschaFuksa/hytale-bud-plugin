@@ -1,0 +1,43 @@
+{
+  "Type": "Variant",
+  "Reference": "Template_Feran_Bud",
+  "Modify": {
+    "Appearance": "Feran_Bud",
+    "MaxHealth": 100,
+    "WalkSpeed": 5,
+    "AttitudeGroup": "BudAttitude",
+    "AttackAnimation": "Attack",
+    "AttackDamage": 15,
+    "Particle_Defensive": "Attack",
+    "Particle_Passive": "Passive",
+    "Particle_Sitting": "SitAndStay",
+    "NameTranslationKey": {
+      "Compute": "NameTranslationKey"
+    },
+    "_InteractionVars": {
+      "Melee_Damage": {
+        "Interactions": [
+          {
+            "Parent": "NPC_Attack_Melee_Damage",
+            "DamageCalculator": {
+              "BaseDamage": {
+                "Physical": 20
+              }
+            }
+            
+          }
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "Appearance": {
+      "Value": "Feran_Bud",
+      "Description": "The model to use."
+    },
+    "NameTranslationKey": {
+      "Value": "server.npcRoles.Feran_Bud.name",
+      "Description": "Translation key"
+    }
+  }
+}

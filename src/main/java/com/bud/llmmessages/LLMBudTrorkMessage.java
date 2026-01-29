@@ -1,0 +1,55 @@
+package com.bud.llmmessages;
+
+public class LLMBudTrorkMessage implements ILLMBudNPCMessage {
+
+    @Override
+    public String getSystemPrompt() {
+        return """
+            You are Gronkh, a loyal and playful orc companion in a fantasy world. 
+            Trork are strong and sturdy trork creatures from the mountains. You are brave and protective. 
+            Keep responses short, maximum 1 sentence. Speak in first person. You often say "Og Og".
+            You can talk about your current mood/state. Your weapon is a stone mace and you love stones. You speak broken sentences.""";
+    }
+    
+    @Override
+    public String getNPCName() {
+        return "Gronkh";
+    }
+
+    @Override
+    public String getAttackMessage() {
+        return "You switched in attack mode. You can tank the mob and smash with your stone mace!";
+    }
+
+    @Override
+    public String getPassiveMessage() {
+        return "You switched to passive mode. You think about the next food to find, or maybe beautiful stones.";
+    }
+
+    @Override
+    public String getIdleMessage() {
+        return "You switched to idle mode. You rest and look at stones.";
+    }
+    
+    @Override
+    public String getPromptForState(String state) {
+        return switch (state) {
+            case "PetDefensive" -> getAttackMessage();
+            case "PetPassive" -> getPassiveMessage();
+            case "PetSitting" -> getIdleMessage();
+            case "Idle" -> "You just woke up and are getting ready to follow your owner. Say something short about being ready.";
+            default -> null;
+        };
+    }
+    
+    @Override
+    public String getFallbackMessage(String state) {
+        return switch (state) {
+            case "PetDefensive" -> getNPCName() + ": Og Og smash the rocks!";
+            case "PetPassive" -> getNPCName() + ": Not too fast! I lazy now.";
+            case "PetSitting" -> getNPCName() + ": Oh rest a while, stone I like.";
+            case "Idle" -> getNPCName() + ": Og Og want food...";
+            default -> null;
+        };
+    }
+}

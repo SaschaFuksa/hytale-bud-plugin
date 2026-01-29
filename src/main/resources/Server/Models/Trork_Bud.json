@@ -1,0 +1,27 @@
+{
+  "Parent": "Feran",
+  "Model": "NPC/Intelligent/Trork/Models/Model.blockymodel",
+  "Texture": "NPC/Bud/Trork_Bud/Models/Model_Textures/White.png",
+  "DefaultAttachments": [
+    {
+      "Model": "NPC/Intelligent/Trork/Models/Attachments/Beards/SingleBraided.blockymodel",
+      "Texture": "NPC/Intelligent/Trork/Models/Attachments/Beards/SingleBraided_Textures/BrownDark.png"
+    },
+    {
+      "Model": "NPC/Intelligent/Trork/Models/Attachments/Eyebrows/Eyebrows.blockymodel",
+      "Texture": "NPC/Intelligent/Trork/Models/Attachments/Eyebrows/Eyebrows_Textures/Dark_Grey.png"
+    },
+    {
+      "Model": "NPC/Intelligent/Trork/Models/Attachments/Eyes/Eyes.blockymodel",
+      "Texture": "NPC/Intelligent/Trork/Models/Attachments/Eyes/Eyes_Textures/Blue.png"
+    },
+    {
+      "Model": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Necklace.blockymodel",
+      "Texture": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Necklace_Texture.png"
+    },
+    {
+      "Model": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Loin_Cloth.blockymodel",
+      "Texture": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Loin_Cloth_Texture.png"
+    }
+  ]
+}

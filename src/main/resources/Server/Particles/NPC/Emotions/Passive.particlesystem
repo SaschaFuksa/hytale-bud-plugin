@@ -1,0 +1,19 @@
+{
+  "Spawners": [
+    {
+      "SpawnerId": "Passive",
+      "PositionOffset": {
+        "X": 0,
+        "Y": 0.4,
+        "Z": -0.1
+      },
+      "FixedRotation": false,
+      "InitialVelocity": {
+        "Yaw": {
+          "Max": 0
+        }
+      }
+    }
+  ],
+  "LifeSpan": 2
+}
