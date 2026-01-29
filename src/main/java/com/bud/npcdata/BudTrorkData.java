@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudTrorkData implements IBudNPCData {
 
-	public static final String NPC_TYPE_ID = "Trork_Bud";
+	public static final String NPC_TYPE_ID = "Gronkh_Bud";
     private final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudTrorkMessage();
     private final IBudNPCSoundData budNPCSoundData = new BudTrorkSoundData();
 	private NPCEntity npc;

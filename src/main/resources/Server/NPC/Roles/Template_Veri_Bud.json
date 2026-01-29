@@ -4,7 +4,7 @@
   "DefaultSubState": "Default",
   "Parameters": {
     "Appearance": {
-      "Value": "Feran_Bud",
+      "Value": "Veri_Bud",
       "Description": "The model to use."
     },
     "MaxHealth": {

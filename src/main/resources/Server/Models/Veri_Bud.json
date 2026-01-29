@@ -1,7 +1,7 @@
 {
   "Parent": "Feran",
   "Model": "NPC/Intelligent/Feran/Models/Model.blockymodel",
-  "Texture": "NPC/Bud/Feran_Bud/Models/Model_Textures/Model_White_blue.png",
+  "Texture": "NPC/Bud/Veri_Bud/Models/Model_Textures/Model_White_blue.png",
   "DefaultAttachments": [
     {
       "Model": "NPC/Intelligent/Feran/Models/Attachments/Head/Eyes.blockymodel",

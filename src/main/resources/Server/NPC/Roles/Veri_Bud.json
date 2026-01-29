@@ -1,8 +1,8 @@
 {
   "Type": "Variant",
-  "Reference": "Template_Feran_Bud",
+  "Reference": "Template_Veri_Bud",
   "Modify": {
-    "Appearance": "Feran_Bud",
+    "Appearance": "Veri_Bud",
     "MaxHealth": 100,
     "WalkSpeed": 5,
     "AttitudeGroup": "BudAttitude",
@@ -32,11 +32,11 @@
   },
   "Parameters": {
     "Appearance": {
-      "Value": "Feran_Bud",
+      "Value": "Veri_Bud",
       "Description": "The model to use."
     },
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Feran_Bud.name",
+      "Value": "server.npcRoles.Veri_Bud.name",
       "Description": "Translation key"
     }
   }

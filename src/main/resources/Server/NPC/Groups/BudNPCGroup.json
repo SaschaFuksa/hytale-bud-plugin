@@ -1,7 +1,7 @@
 {
   "IncludeRoles": [
-    "Feran_Bud",
-    "Trork_Bud",
+    "Veri_Bud",
+    "Gronkh_Bud",
     "$player",
     "$self"
   ]

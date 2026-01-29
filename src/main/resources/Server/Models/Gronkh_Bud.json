@@ -1,7 +1,7 @@
 {
   "Parent": "Feran",
   "Model": "NPC/Intelligent/Trork/Models/Model.blockymodel",
-  "Texture": "NPC/Bud/Trork_Bud/Models/Model_Textures/White.png",
+  "Texture": "NPC/Bud/Gronkh_Bud/Models/Model_Textures/White.png",
   "DefaultAttachments": [
     {
       "Model": "NPC/Intelligent/Trork/Models/Attachments/Beards/SingleBraided.blockymodel",

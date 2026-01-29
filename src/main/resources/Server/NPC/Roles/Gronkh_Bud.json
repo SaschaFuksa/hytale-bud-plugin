@@ -1,8 +1,8 @@
 {
   "Type": "Variant",
-  "Reference": "Template_Trork_Bud",
+  "Reference": "Template_Gronkh_Bud",
   "Modify": {
-    "Appearance": "Trork_Bud",
+    "Appearance": "Gronkh_Bud",
     "MaxHealth": 130,
     "WalkSpeed": 4,
     "AttitudeGroup": "BudAttitude",
@@ -32,11 +32,11 @@
   },
   "Parameters": {
     "Appearance": {
-      "Value": "Trork_Bud",
+      "Value": "Gronkh_Bud",
       "Description": "The model to use."
     },
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Trork_Bud.name",
+      "Value": "server.npcRoles.Gronkh_Bud.name",
       "Description": "Translation key"
     }
   }

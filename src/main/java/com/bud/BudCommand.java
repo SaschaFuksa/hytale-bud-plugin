@@ -80,6 +80,7 @@ public class BudCommand extends AbstractPlayerCommand {
                 printNPCDebugInfo(npc);
             }
         }
+        NPCManager.makeAllBudsFriendly(playerRef);
     }
 
     private void printError(Exception e) {

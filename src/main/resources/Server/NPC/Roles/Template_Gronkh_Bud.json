@@ -4,7 +4,7 @@
   "DefaultSubState": "Default",
   "Parameters": {
     "Appearance": {
-      "Value": "Trork_Bud",
+      "Value": "Gronkh_Bud",
       "Description": "The model to use."
     },
     "MaxHealth": {
