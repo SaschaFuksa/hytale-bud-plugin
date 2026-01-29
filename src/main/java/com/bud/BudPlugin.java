@@ -10,10 +10,16 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.bud.npc.NPCManager;
+import com.bud.npcdata.BudPlayerData;
+
 import java.util.concurrent.TimeUnit;
+
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BudPlugin extends JavaPlugin {
     private final Config<BudConfig> config;
+    public static ComponentType<EntityStore, BudPlayerData> BUD_PLAYER_DATA;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -25,6 +31,12 @@ public class BudPlugin extends JavaPlugin {
         super.setup();
         BudConfig.setInstance(this.config.get());
         this.config.save();
+        
+        // Register persistent data
+        BUD_PLAYER_DATA = this.getEntityStoreRegistry().registerComponent(
+            BudPlayerData.class, 
+            BudPlayerData::new
+        );
         
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
@@ -38,9 +50,7 @@ public class BudPlugin extends JavaPlugin {
             System.err.println("[BUD] Player connected: " + playerRef.getUuid());
             System.err.println("[BUD] World: " + event.getWorld());
             if (event.getWorld() != null) {
-                // Remove orphaned (untracked) buds in the world the player is joining.
-                // This handles cleaning up buds from previous sessions/crashes since they aren't tracked anymore.
-                CleanUpHandler.cleanOrphanedBuds(event.getWorld());
+                CleanUpHandler.cleanOrphanedBuds(playerRef, event.getWorld());
             }
         });
         

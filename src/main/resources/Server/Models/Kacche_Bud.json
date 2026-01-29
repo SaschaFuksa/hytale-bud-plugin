@@ -1,5 +1,5 @@
 {
-  "Parent": "Feran",
+  "Parent": "Player",
   "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Model.blockymodel",
   "Texture": "NPC/Bud/Kacche_Bud/Models/Model_Textures/yellow.png",
   "DefaultAttachments": [

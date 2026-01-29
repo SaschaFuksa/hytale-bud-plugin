@@ -13,7 +13,7 @@ public class LLMBudKweebecMessage implements ILLMBudNPCMessage {
     
     @Override
     public String getNPCName() {
-        return "Kacche";
+        return "Kazze";
     }
 
     @Override

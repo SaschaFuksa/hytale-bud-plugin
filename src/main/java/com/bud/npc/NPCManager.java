@@ -5,8 +5,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.bud.BudPlugin;
+import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
+
 import com.bud.npcdata.BudFeranData;
 import com.bud.npcdata.BudKweebecData;
+import com.bud.npcdata.BudPlayerData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
 import com.hypixel.hytale.component.Ref;
@@ -16,7 +21,6 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class NPCManager {
 
@@ -31,6 +35,19 @@ public class NPCManager {
         new BudTrorkData(),
         new BudKweebecData()
     );
+
+    public IBudNPCData getDataForType(String typeId) {
+        for (IBudNPCData data : BUDS) {
+            if (data.getNPCTypeId().equals(typeId)) {
+                // Return a fresh instance if needed, or the prototype if it's stateless.
+                // Our Data classes are stateless configuration objects now, so returning the prototype is fine
+                // BUT we need to clone unique state components if any (LLM message? Sound data?).
+                // They seem stateless.
+                return data;
+            }
+        }
+        return null; // Or unknown
+    }
 
     public static NPCManager getInstance() {
         return INSTANCE;
@@ -59,6 +76,12 @@ public class NPCManager {
 
     public static void addSpawnedBud(PlayerRef playerRef, IBudNPCData npcData, NPCEntity npc) {
         stateTracker.trackBud(playerRef, npc, npcData);
+        System.out.println("[BUD] Persist data for " + playerRef.getUuid());
+        Holder<EntityStore> holder = playerRef.getHolder();
+        if (holder != null) {
+            BudPlayerData data = holder.ensureAndGetComponent(BudPlugin.BUD_PLAYER_DATA);
+            data.addBud(npc.getUuid());
+        }
     }
     
     public Set<String> getTrackedBudTypes() {
@@ -93,6 +116,19 @@ public class NPCManager {
                 }
             }
             stateTracker.untrackBud(instance);
+        }
+        
+        // Remove from persistent data
+        if (!buds.isEmpty()) {
+            PlayerRef ownerRef = buds.iterator().next().getOwner();
+            System.out.println("[BUD] Remove persist data for " + ownerRef.getUuid());
+            Holder<EntityStore> holder = ownerRef.getHolder();
+            if (holder != null && holder.getComponent(BudPlugin.BUD_PLAYER_DATA) != null) {
+                BudPlayerData data = holder.getComponent(BudPlugin.BUD_PLAYER_DATA);
+                for (BudInstance instance : buds) {
+                    data.removeBud(instance.getEntity().getUuid());
+                }
+            }
         }
     }
 

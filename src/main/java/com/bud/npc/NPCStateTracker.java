@@ -348,26 +348,23 @@ public class NPCStateTracker {
         
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         String npcName = npcMessage != null ? npcMessage.getNPCName() : "Unknown Bud";
+        System.out.println("[BUD] current bud: " + bud.getNPCTypeId());
         
-        // Get context from World and Position
         final World world;
         try {
-             // ... existing context fetching logic ...
-             // We need 'owner' ref to get world/pos
+            System.out.println("[BUD] Start extracting world data.");
             Ref<EntityStore> ownerRef = owner.getReference();
             if (ownerRef == null) return;
             
             Store<EntityStore> store = ownerRef.getStore();
             world = store.getExternalData().getWorld();
             Vector3d pos = owner.getTransform().getPosition();
-
             TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
-            Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
-            Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
             System.out.println("[BUD] time of day: " + timeOfDay.name());
+            Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
             System.out.println("[BUD] current biome: " + currentBiome.getName());
+            Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
             System.out.println("[BUD] current zone: " + currentZone.name());
-            System.out.println("[BUD] current bud: " + bud.getNPCTypeId());
         } catch (Exception e) {
             System.out.println("[BUD] Context Error: " + e.getMessage());
             return;
