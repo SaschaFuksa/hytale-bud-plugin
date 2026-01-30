@@ -10,7 +10,7 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.bud.npc.NPCManager;
-import com.bud.npcdata.BudPlayerData;
+import com.bud.npcdata.persistence.BudPlayerData;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,11 +19,14 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BudPlugin extends JavaPlugin {
+
+    private static BudPlugin instance;
     private final Config<BudConfig> config;
-    public static ComponentType<EntityStore, BudPlayerData> BUD_PLAYER_DATA;
+    private ComponentType<EntityStore, BudPlayerData> budPlayerData;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
+        instance = this;
         this.config = this.withConfig("Bud", BudConfig.CODEC);
     }
     
@@ -34,7 +37,7 @@ public class BudPlugin extends JavaPlugin {
         this.config.save();
         
         // Register persistent data
-        BUD_PLAYER_DATA = this.getEntityStoreRegistry().registerComponent(
+        this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
             BudPlayerData.class,
             "BudPlayerData",
             BudPlayerData.CODEC
@@ -72,5 +75,13 @@ public class BudPlugin extends JavaPlugin {
                 result.printResult();
             }, 180L, 180L, TimeUnit.SECONDS);
         }
+    }
+
+    public static BudPlugin instance() {
+        return instance;
+    }
+
+    public ComponentType<EntityStore, BudPlayerData> getBudPlayerDataComponent() {
+        return this.budPlayerData;
     }
 }

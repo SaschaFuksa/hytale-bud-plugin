@@ -5,14 +5,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import com.bud.BudPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import com.bud.npcdata.BudFeranData;
 import com.bud.npcdata.BudKweebecData;
-import com.bud.npcdata.BudPlayerData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
+import com.bud.npcdata.persistence.BudPlayerData;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -21,7 +23,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class NPCManager {
@@ -74,10 +75,10 @@ public class NPCManager {
 
     public static IResult addSpawnedBud(PlayerRef playerRef, IBudNPCData npcData, NPCEntity npc) {
         IResult result = stateTracker.trackBud(playerRef, npc, npcData);
-        if (result.isSuccess()) {
-            return persistData(playerRef, npc);
+        if (!result.isSuccess()) {
+            return result;
         }
-        return result;
+        return persistData(playerRef, npc);
     }
     
     public Set<String> getTrackedBudTypes() {
@@ -123,36 +124,28 @@ public class NPCManager {
     public IResult unpersistData(PlayerRef playerRef, NPCEntity npc) {
         System.out.println("[BUD] Unpersist data for " + playerRef.getUuid());
         try {
-            Holder<EntityStore> holder = playerRef.getHolder();
-            if (holder != null && holder.getComponent(BudPlugin.BUD_PLAYER_DATA) != null) {
-                BudPlayerData data = holder.getComponent(BudPlugin.BUD_PLAYER_DATA);
-                data.removeBud(npc.getUuid());
-                return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
-            } else {
-                return new ErrorResult("No BudPlayerData found for " + playerRef.getUuid());
-            }
+            Ref<EntityStore> ref = playerRef.getReference();
+            Store<EntityStore> store = ref.getStore();
+            BudPlayerData customData = store.ensureAndGetComponent(ref, BudPlugin.instance().getBudPlayerDataComponent());
+            customData.remove(npc.getUuid());
+            store.putComponent(ref, BudPlugin.instance().getBudPlayerDataComponent(), customData);
+            return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
         } catch (Exception e) {
             return new ErrorResult("Not able to unpersist data for " + playerRef.getUuid());
         }
     }
     
     @SuppressWarnings("removal")
-    private static IResult persistData(PlayerRef playerRef, NPCEntity npc) {
+    private static IResult persistData(@Nonnull PlayerRef playerRef, @Nonnull NPCEntity npc) {
         System.out.println("[BUD] Persist data for " + playerRef.getUuid());
-        Ref<EntityStore> ref = playerRef.getReference();
-        if (ref != null && ref.isValid()) {
+        try {
+            Ref<EntityStore> ref = playerRef.getReference();
             Store<EntityStore> store = ref.getStore();
-            // Get existing or create new. Using putComponent to ensure persistence.
-            BudPlayerData data = store.getComponent(ref, BudPlugin.BUD_PLAYER_DATA);
-            if (data == null) {
-                data = new BudPlayerData();
-            }
-            
-            data.addBud(npc.getUuid());
-            
-            // Explicitly put the component back to ensure persistence and updates
-            store.putComponent(ref, BudPlugin.BUD_PLAYER_DATA, data);
+            BudPlayerData customData = store.ensureAndGetComponent(ref, BudPlugin.instance().getBudPlayerDataComponent());
+            customData.add(npc.getUuid());
+            store.putComponent(ref, BudPlugin.instance().getBudPlayerDataComponent(), customData);
             return new SuccessResult("Data persisted for " + playerRef.getUuid() + " via store.putComponent");
+        } catch (Exception e) {
         }
         return new ErrorResult("Not able to persist data for " + playerRef.getUuid());
     }

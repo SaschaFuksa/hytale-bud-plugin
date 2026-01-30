@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCSpawner;
 import com.bud.npcdata.IBudNPCData;
+import com.bud.result.IResult;
 import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -79,7 +80,8 @@ public class BudCommand extends AbstractPlayerCommand {
             }
     
             if (npc != null) {
-                NPCManager.addSpawnedBud(playerRef, budNPCData, npc);
+                IResult spawnResult = NPCManager.addSpawnedBud(playerRef, budNPCData, npc);
+                spawnResult.printResult();
                 printNPCDebugInfo(npc);
             }
         }
@@ -170,9 +172,11 @@ public class BudCommand extends AbstractPlayerCommand {
             String inputMode = this.modeArg.get(commandContext);
 
             if (inputMode.equalsIgnoreCase("clean")) {
-                CleanUpHandler.removeOwnerBuds(playerRef);
+                IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
+                result.printResult();
             } else if (inputMode.equalsIgnoreCase("clean-all")) {
-                CleanUpHandler.removeAllBuds(world);
+                IResult result = CleanUpHandler.removeAllBuds(world);
+                result.printResult();
             } else {
                 System.out.println("Unknown mode: " + inputMode);
             }

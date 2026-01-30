@@ -24,6 +24,9 @@ public class CleanUpHandler {
     public static IResult removeOwnerBuds(PlayerRef playerRef) {
         BudRegistry instance = BudRegistry.getInstance();
         Set<BudInstance> buds = instance.getByOwner(playerRef.getUuid());
+        if (buds.isEmpty()) {
+            return new SuccessResult("No owner buds to remove.");
+        }
         for (BudInstance bud : buds) {
             IResult removeOwnerBudResult = removeOwnerBud(bud, playerRef);
             if (!removeOwnerBudResult.isSuccess()) {
