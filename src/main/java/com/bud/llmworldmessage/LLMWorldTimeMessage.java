@@ -1,7 +1,7 @@
-package com.bud.llmworldmessages;
+package com.bud.llmworldmessage;
 
-import com.bud.systems.BudWorldContext;
-import com.bud.systems.TimeOfDay;
+import com.bud.system.BudWorldContext;
+import com.bud.system.TimeOfDay;
 
 public class LLMWorldTimeMessage implements ILLMWorldInfoMessage {
 

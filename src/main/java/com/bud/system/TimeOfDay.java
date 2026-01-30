@@ -1,4 +1,4 @@
-package com.bud.systems;
+package com.bud.system;
 
 public enum TimeOfDay {
     NIGHT,      // 22:00 - 05:00

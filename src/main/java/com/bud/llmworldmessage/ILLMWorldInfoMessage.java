@@ -1,6 +1,6 @@
-package com.bud.llmworldmessages;
+package com.bud.llmworldmessage;
 
-import com.bud.systems.BudWorldContext;
+import com.bud.system.BudWorldContext;
 
 public interface ILLMWorldInfoMessage {
 

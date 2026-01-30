@@ -1,8 +1,8 @@
-package com.bud.llmworldmessages.bioms;
+package com.bud.llmworldmessage.biom;
 
-import com.bud.llmworldmessages.ILLMWorldInfoMessage;
-import com.bud.llmworldmessages.LLMWorldZoneMessage;
-import com.bud.systems.BudWorldContext;
+import com.bud.llmworldmessage.ILLMWorldInfoMessage;
+import com.bud.llmworldmessage.LLMWorldZoneMessage;
+import com.bud.system.BudWorldContext;
 
 public class LLMWorldBiomeMessage implements ILLMWorldInfoMessage {
 

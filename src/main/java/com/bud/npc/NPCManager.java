@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.bud.BudPlugin;
-import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import com.bud.npcdata.BudFeranData;
@@ -14,8 +13,11 @@ import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudPlayerData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
+import com.bud.result.ErrorResult;
+import com.bud.result.IResult;
+import com.bud.result.SuccessResult;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -39,10 +41,6 @@ public class NPCManager {
     public IBudNPCData getDataForType(String typeId) {
         for (IBudNPCData data : BUDS) {
             if (data.getNPCTypeId().equals(typeId)) {
-                // Return a fresh instance if needed, or the prototype if it's stateless.
-                // Our Data classes are stateless configuration objects now, so returning the prototype is fine
-                // BUT we need to clone unique state components if any (LLM message? Sound data?).
-                // They seem stateless.
                 return data;
             }
         }
@@ -74,14 +72,12 @@ public class NPCManager {
         return missingBuds;
     }
 
-    public static void addSpawnedBud(PlayerRef playerRef, IBudNPCData npcData, NPCEntity npc) {
-        stateTracker.trackBud(playerRef, npc, npcData);
-        System.out.println("[BUD] Persist data for " + playerRef.getUuid());
-        Holder<EntityStore> holder = playerRef.getHolder();
-        if (holder != null) {
-            BudPlayerData data = holder.ensureAndGetComponent(BudPlugin.BUD_PLAYER_DATA);
-            data.addBud(npc.getUuid());
+    public static IResult addSpawnedBud(PlayerRef playerRef, IBudNPCData npcData, NPCEntity npc) {
+        IResult result = stateTracker.trackBud(playerRef, npc, npcData);
+        if (result.isSuccess()) {
+            return persistData(playerRef, npc);
         }
+        return result;
     }
     
     public Set<String> getTrackedBudTypes() {
@@ -95,48 +91,12 @@ public class NPCManager {
     public Set<Ref<EntityStore>> getTrackedBudRefs() {
         return BudRegistry.getInstance().getAllRefs();
     }
-
-    public void removeBudForOwner(UUID ownerId) {
-        System.out.println("[BUD] Removing Buds for owner " + ownerId);
-        Set<BudInstance> buds = new HashSet<>(BudRegistry.getInstance().getByOwner(ownerId));
-        System.err.println("[BUD] Found " + buds.size() + " Buds to remove.");
-        
-        for (BudInstance instance : buds) {
-            Ref<EntityStore> budRef = instance.getRef();
-            System.err.println("[BUD] Processing Bud with ref: " + budRef);
-            
-            if (budRef == null) {
-                continue;
-            }
-            Store<EntityStore> store = budRef.getStore();
-            if (store != null) {
-                World world = store.getExternalData().getWorld();
-                if (world != null) {
-                    world.execute(() -> store.removeEntity(budRef, RemoveReason.REMOVE));
-                }
-            }
-            stateTracker.untrackBud(instance);
-        }
-        
-        // Remove from persistent data
-        if (!buds.isEmpty()) {
-            PlayerRef ownerRef = buds.iterator().next().getOwner();
-            System.out.println("[BUD] Remove persist data for " + ownerRef.getUuid());
-            Holder<EntityStore> holder = ownerRef.getHolder();
-            if (holder != null && holder.getComponent(BudPlugin.BUD_PLAYER_DATA) != null) {
-                BudPlayerData data = holder.getComponent(BudPlugin.BUD_PLAYER_DATA);
-                for (BudInstance instance : buds) {
-                    data.removeBud(instance.getEntity().getUuid());
-                }
-            }
-        }
-    }
-
+    
     public boolean isBudOwnedBy(UUID playerUUID, Ref<EntityStore> npcRef) {
         BudInstance instance = BudRegistry.getInstance().get(npcRef);
         return instance != null && instance.getOwner().getUuid().equals(playerUUID);
     }
-
+    
     public NPCEntity getRandomBud(UUID ownerId) {
         Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
         
@@ -154,8 +114,46 @@ public class NPCManager {
         }
         return null;
     }
-
+    
     public NPCStateTracker getStateTracker() {
         return stateTracker;
+    }
+
+    @SuppressWarnings("removal")
+    public IResult unpersistData(PlayerRef playerRef, NPCEntity npc) {
+        System.out.println("[BUD] Unpersist data for " + playerRef.getUuid());
+        try {
+            Holder<EntityStore> holder = playerRef.getHolder();
+            if (holder != null && holder.getComponent(BudPlugin.BUD_PLAYER_DATA) != null) {
+                BudPlayerData data = holder.getComponent(BudPlugin.BUD_PLAYER_DATA);
+                data.removeBud(npc.getUuid());
+                return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
+            } else {
+                return new ErrorResult("No BudPlayerData found for " + playerRef.getUuid());
+            }
+        } catch (Exception e) {
+            return new ErrorResult("Not able to unpersist data for " + playerRef.getUuid());
+        }
+    }
+    
+    @SuppressWarnings("removal")
+    private static IResult persistData(PlayerRef playerRef, NPCEntity npc) {
+        System.out.println("[BUD] Persist data for " + playerRef.getUuid());
+        Ref<EntityStore> ref = playerRef.getReference();
+        if (ref != null && ref.isValid()) {
+            Store<EntityStore> store = ref.getStore();
+            // Get existing or create new. Using putComponent to ensure persistence.
+            BudPlayerData data = store.getComponent(ref, BudPlugin.BUD_PLAYER_DATA);
+            if (data == null) {
+                data = new BudPlayerData();
+            }
+            
+            data.addBud(npc.getUuid());
+            
+            // Explicitly put the component back to ensure persistence and updates
+            store.putComponent(ref, BudPlugin.BUD_PLAYER_DATA, data);
+            return new SuccessResult("Data persisted for " + playerRef.getUuid() + " via store.putComponent");
+        }
+        return new ErrorResult("Not able to persist data for " + playerRef.getUuid());
     }
 }

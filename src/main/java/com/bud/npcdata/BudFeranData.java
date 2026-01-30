@@ -2,8 +2,8 @@ package com.bud.npcdata;
 
 import com.bud.npcsound.IBudNPCSoundData;
 import com.bud.npcsound.BudFeranSoundData;
-import com.bud.llmmessages.ILLMBudNPCMessage;
-import com.bud.llmmessages.LLMBudFeranMessage;
+import com.bud.llmmessage.ILLMBudNPCMessage;
+import com.bud.llmmessage.LLMBudFeranMessage;
 
 public class BudFeranData implements IBudNPCData {
 

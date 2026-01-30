@@ -1,4 +1,4 @@
-package com.bud.llmmessages;
+package com.bud.llmmessage;
 
 public interface ILLMBudNPCMessage {
 

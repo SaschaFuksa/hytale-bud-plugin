@@ -1,4 +1,4 @@
-package com.bud.systems;
+package com.bud.system;
 
 import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.ArchetypeChunk;

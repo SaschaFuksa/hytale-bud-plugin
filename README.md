@@ -40,6 +40,11 @@ Move **HytaleBudPlugin-x.x.x.zip** to your global Mods folder. Enable this Mod f
 
 **Important**: You need API connection data for your own LLM. In this example, I used *ibm/granite-4-h-tiny* and *mistralai/ministral-3-3b* locally, so no API key was needed. Both worked fine for testing.
 
+## Requirements LLM
+
+- Self Hosting: With ministral-3-3b, I needed at least ~9GB VRAM for smooth operation (Hytale included).
+- External Hosting: You can also use external LLM providers. Make sure to check their pricing and API limits.
+
 ### Bud.json
 
 Values to set:
@@ -71,13 +76,13 @@ start server: .\gradlew runServer
 # ingame: direct connect -> localhost
 # /bud in chat
 ```
-## To-Dos
+## To-Dos 0.1.x
 - Teleport Buds to player if "/buds" is entered again.
 - Automatical "F" binding on spawn.
 - Correct persistent data saving/loading of player -> Bud relations to despawn Buds on player disconnect and login.
-- Command to toggle state for all Buds like "/bud attack"
-- More commands? Like individual Bud spawning "/bud veri" etc.
+- Individual Bud spawning "/bud veri" etc.
 
 ## Roadmap
+- Command to toggle state for all Buds like "/bud attack"
 - PoC for Bud interaction with world via LLM. Like mining or farming?
-- "Do the same as player" -> Buds also start to mine of player do (Could be funny, if they break blocks you standing on)
+- Items instead of commands.

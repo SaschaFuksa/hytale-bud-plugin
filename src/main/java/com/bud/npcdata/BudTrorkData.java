@@ -1,7 +1,7 @@
 package com.bud.npcdata;
 
-import com.bud.llmmessages.ILLMBudNPCMessage;
-import com.bud.llmmessages.LLMBudTrorkMessage;
+import com.bud.llmmessage.ILLMBudNPCMessage;
+import com.bud.llmmessage.LLMBudTrorkMessage;
 import com.bud.npcsound.BudTrorkSoundData;
 import com.bud.npcsound.IBudNPCSoundData;
 

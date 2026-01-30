@@ -9,10 +9,10 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.bud.systems.BudTimeInformation;
-import com.bud.systems.BudWorldContext;
-import com.bud.systems.BudWorldInformation;
-import com.bud.systems.TimeOfDay;
+import com.bud.system.BudTimeInformation;
+import com.bud.system.BudWorldContext;
+import com.bud.system.BudWorldInformation;
+import com.bud.system.TimeOfDay;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
@@ -20,9 +20,12 @@ import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
 import com.bud.npcsound.IBudNPCSoundData;
 import com.bud.llm.BudLLM;
-import com.bud.llmmessages.ILLMBudNPCMessage;
-import com.bud.llmworldmessages.LLMWorldInfoMessageManager;
+import com.bud.llmmessage.ILLMBudNPCMessage;
+import com.bud.llmworldmessage.LLMWorldInfoMessageManager;
 import com.bud.npcdata.IBudNPCData;
+import com.bud.result.ErrorResult;
+import com.bud.result.IResult;
+import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -59,57 +62,35 @@ public class NPCStateTracker {
     /**
      * Start tracking a Bud for state changes.
      */
-    public void trackBud(PlayerRef owner, NPCEntity bud, IBudNPCData budNPCData) {
+    public IResult trackBud(PlayerRef owner, NPCEntity bud, IBudNPCData budNPCData) {
         Ref<EntityStore> budRef = bud.getReference();
         if (budRef == null) {
-            System.out.println("[BUD] Warning: Bud NPC has no valid reference!");
-            return;
+            return new ErrorResult("Bud NPC has no valid reference");
         }
         Role role = bud.getRole();
         if (role == null) {
-            System.out.println("[BUD] Warning: Bud NPC has no valid Role!");
-            return;
-        }
-
-        // Auto-Follow: Set state to PetDefensive immediately
-        try {
-            // role.getStateSupport().setState("PetDefensive");
-            System.out.println("[BUD] Auto-assigned PetDefensive (Follow) state to new Bud.");
-        } catch (Exception e) {
-            System.err.println("[BUD] Failed to set auto-follow state: " + e.getMessage());
+            return new ErrorResult("Bud NPC has no valid Role");
         }
 
         UUID ownerId = owner.getUuid();
         String stateName = getMainStateName(role.getStateSupport().getStateName());
         
         BudRegistry.getInstance().register(owner, bud, budNPCData, stateName);
-        System.out.println("[BUD] Now tracking Bud for player " + ownerId + " - Initial state: " + stateName);
 
         // Start polling when at least one Bud is tracked
         startPolling();
+        return new SuccessResult("Now tracking Bud for player " + ownerId + " - Initial state: " + stateName);
     }
     
-    /**
-     * Stop tracking a Bud.
-     */
-    public void untrackBud(UUID ownerId) {
-        Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
-        Set<BudInstance> copy = Set.copyOf(buds);
-        
-        for (BudInstance bud : copy) {
+    public IResult untrackBud(BudInstance bud) {
+        try {
             BudRegistry.getInstance().unregister(bud.getEntity());
-        }
-        System.out.println("[BUD] Stopped tracking Bud for player " + ownerId);
-
-        if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
-            stopPolling();
-        }
-    }
-    
-    public void untrackBud(BudInstance instance) {
-        BudRegistry.getInstance().unregister(instance.getEntity());
-        if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
-            stopPolling();
+            if (BudRegistry.getInstance().getAllRefs().isEmpty()) {
+                stopPolling();
+            }
+            return new SuccessResult("Stopped tracking Bud for player " + bud.getOwner().getUuid());
+        } catch (Exception e) {
+            return new ErrorResult("Error untracking Bud: " + e.getMessage());
         }
     }
 
@@ -324,11 +305,7 @@ public class NPCStateTracker {
         }
     }
 
-    public void triggerRandomChats() {
-        if (budLLM == null || !budLLM.isEnabled()) {
-            return;
-        }
-        
+    public IResult triggerRandomChats() {        
         // Iterate over all track owners
         Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
         for (UUID ownerId : owners) {
@@ -341,6 +318,7 @@ public class NPCStateTracker {
 
             triggerRandomChatForBud(randomInstance);
         }
+        return new SuccessResult("Triggered random chats for all bud owners.");
     }
 
     private void triggerRandomChatForBud(BudInstance instance) {

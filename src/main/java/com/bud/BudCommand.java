@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCSpawner;
 import com.bud.npcdata.IBudNPCData;
-import com.bud.systems.CleanUpHandler;
+import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;

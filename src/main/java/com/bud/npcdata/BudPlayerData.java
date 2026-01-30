@@ -17,7 +17,7 @@ public class BudPlayerData implements Component<EntityStore> {
             BudPlayerData.class,
             BudPlayerData::new
         )
-        .addField(new KeyedCodec<>("buds", Codec.STRING),
+        .addField(new KeyedCodec<>("Buds", Codec.STRING),
             (data, value) -> data.deserialize(value),
             data -> data.serialize())
         .build();

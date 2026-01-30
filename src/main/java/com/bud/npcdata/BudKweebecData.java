@@ -1,7 +1,7 @@
 package com.bud.npcdata;
 
-import com.bud.llmmessages.ILLMBudNPCMessage;
-import com.bud.llmmessages.LLMBudKweebecMessage;
+import com.bud.llmmessage.ILLMBudNPCMessage;
+import com.bud.llmmessage.LLMBudKweebecMessage;
 import com.bud.npcsound.BudKweebecSoundData;
 import com.bud.npcsound.IBudNPCSoundData;
 

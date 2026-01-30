@@ -1,4 +1,4 @@
-package com.bud.llmmessages;
+package com.bud.llmmessage;
 
 public class LLMBudTrorkMessage implements ILLMBudNPCMessage {
 

@@ -1,4 +1,4 @@
-package com.bud.systems;
+package com.bud.system;
 
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.worldgen.IWorldGen;
