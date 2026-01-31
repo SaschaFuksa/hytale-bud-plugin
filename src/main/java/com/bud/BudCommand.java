@@ -44,7 +44,7 @@ public class BudCommand extends AbstractPlayerCommand {
             @NonNullDecl Ref<EntityStore> ref,
             @NonNullDecl PlayerRef playerRef,
             @NonNullDecl World world) {
-
+        NPCManager.getInstance().teleportBuds(playerRef, store).printResult();
         BudCreation.createBud(store, playerRef).printResult();
     }
 
@@ -68,46 +68,19 @@ public class BudCommand extends AbstractPlayerCommand {
 
             switch (inputMode) {
                 case "clean" -> {
-                    IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                    result.printResult();
+                    CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
                 }
                 case "clean-all" -> {
-                    IResult result = CleanUpHandler.cleanupAllBuds(world);
-                    result.printResult();
+                    CleanUpHandler.cleanupAllBuds(world).printResult();
                 }
                 case BudFeranData.NPC_DISPLAY_NAME -> {
-                    try {
-                        Set<IBudNPCData> missingBuds = Set.of(new BudFeranData());
-                        if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
-                                missingBuds.iterator().next())) {
-                            BudCreation.createBud(store, playerRef, missingBuds).printResult();
-                        }
-                    } catch (Exception e) {
-                        new ErrorResult("Bud of type " + BudFeranData.NPC_TYPE_ID + " cannot be added.").printResult();
-                    }
+                    executeBudAction(playerRef, store, new BudFeranData()).printResult();
                 }
                 case BudTrorkData.NPC_DISPLAY_NAME -> {
-                    try {
-                        Set<IBudNPCData> missingBuds = Set.of(new BudTrorkData());
-                        if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
-                                missingBuds.iterator().next())) {
-                            BudCreation.createBud(store, playerRef, missingBuds).printResult();
-                        }
-                    } catch (Exception e) {
-                        new ErrorResult("Bud of type " + BudTrorkData.NPC_TYPE_ID + " cannot be added.").printResult();
-                    }
+                    executeBudAction(playerRef, store, new BudTrorkData()).printResult();
                 }
                 case BudKweebecData.NPC_DISPLAY_NAME -> {
-                    try {
-                        Set<IBudNPCData> missingBuds = Set.of(new BudKweebecData());
-                        if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
-                                missingBuds.iterator().next())) {
-                            BudCreation.createBud(store, playerRef, missingBuds).printResult();
-                        }
-                    } catch (Exception e) {
-                        new ErrorResult("Bud of type " + BudKweebecData.NPC_TYPE_ID + " cannot be added.")
-                                .printResult();
-                    }
+                    executeBudAction(playerRef, store, new BudKweebecData()).printResult();
                 }
                 case "data" -> {
                     BudPlayerData customData = store.ensureAndGetComponent(ref,
@@ -115,10 +88,26 @@ public class BudCommand extends AbstractPlayerCommand {
                     String uuids = customData.getBuds().stream().map(UUID::toString).collect(Collectors.joining(","));
                     System.out.println("[BUD] Current BudPlayerData for player " + playerRef.getUuid() + ": " + uuids);
                 }
+                case "data-clean" -> {
+                    store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new BudPlayerData());
+                    System.out.println("[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
+                }
                 default -> System.out.println("Unknown mode: " + inputMode);
             }
         }
 
+    }
+
+    public static IResult executeBudAction(PlayerRef playerRef, Store<EntityStore> store,
+            IBudNPCData missingBud) {
+        if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
+                missingBud)) {
+            // Create new Bud
+            return BudCreation.createBud(store, playerRef, Set.of(missingBud));
+        } else {
+            // Teleport existing Buds
+            return NPCManager.getInstance().teleportBud(playerRef, store, missingBud);
+        }
     }
 
 }

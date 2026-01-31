@@ -19,8 +19,8 @@ Currently there are three Buds implemented:
 ## Features
 
 This mod will be controlled via commands:
-- **/bud**: The initial command to spawn all three buddies around you. It also respawns them, if they died and teleports all to you.
-- **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you.
+- **/bud**: The initial command to spawn all three buddies around you. It also respawns them if they died or teleports existing ones to you.
+- **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you or teleports existing one to you.
 - **/bud clear**: Remove all your buddies.
 - **/bud clear-all**: Remove all buddies in the world.
 - **/bud data**: Prints uuids of your current persisted buddies.
@@ -79,7 +79,6 @@ start server: .\gradlew runServer
 # /bud in chat
 ```
 ## To-Dos 0.1.x
-- Teleport Buds to player if "/buds" is entered again.
 - Automatical "F" binding on spawn. // role.getStateSupport().setState("PetDefensive");?
 
 ## Roadmap

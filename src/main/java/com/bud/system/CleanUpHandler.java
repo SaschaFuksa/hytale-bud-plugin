@@ -99,19 +99,11 @@ public class CleanUpHandler {
         System.out.println("[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
         try {
             Store<EntityStore> store = world.getEntityStore().getStore();
-            System.out.println("[BUD] Retrieved entity store for world " + world.getName());
-            System.out.println("[BUD] Store not null " + (store != null));
             world.execute(() -> store.forEachEntityParallel(
                     NPCEntity.getComponentType(),
                     (index, archetypeChunk, commandBuffer) -> {
-                        System.out.println("[BUD] Checking entity at index " + index);
                         NPCEntity npcComponent = archetypeChunk.getComponent(index, NPCEntity.getComponentType());
-                        if (npcComponent == null) {
-                            System.out.println("[BUD] NPC Component is null at index: " + index);
-                            return;
-                        }
-                        System.out.println("[BUD] NPC Component not null with Type: " + npcComponent.getNPCTypeId());
-                        if (!trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
+                        if (npcComponent == null || !trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
                             return;
                         }
                         // Ref<EntityStore> npcRef = archetypeChunk.getReferenceTo(index);

@@ -14,10 +14,14 @@ import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
 import com.bud.result.DataResult;
+import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;
+import com.bud.result.IResult;
+import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -59,6 +63,54 @@ public class NPCManager {
             }
         }
         return missingBuds;
+    }
+
+    public IResult teleportBuds(PlayerRef playerRef, Store<EntityStore> store) {
+        Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
+
+        if (ownedBuds.isEmpty()) {
+            return new SuccessResult("No buds to teleport for player " + playerRef.getUuid());
+        }
+
+        for (NPCEntity bud : ownedBuds) {
+            teleportBud(bud, playerRef, store).printResult();
+        }
+        return new SuccessResult("Teleported Buds for player " + playerRef.getUuid());
+    }
+
+    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudNPCData budData) {
+        Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
+        NPCEntity targetBud = ownedBuds.stream()
+                .filter(bud -> bud.getNPCTypeId().equals(budData.getNPCTypeId()))
+                .findFirst()
+                .orElse(null);
+
+        if (targetBud == null) {
+            return new ErrorResult(
+                    "No bud of type " + budData.getNPCTypeId() + " found for player " + playerRef.getUuid());
+        }
+        return teleportBud(targetBud, playerRef, store);
+    }
+
+    private IResult teleportBud(NPCEntity bud, PlayerRef playerRef, Store<EntityStore> store) {
+        Ref<EntityStore> budRef = bud.getReference();
+        if (budRef == null || !budRef.isValid()) {
+            return new ErrorResult("Invalid Bud reference for teleportation.");
+        }
+        TransformComponent transform = store.getComponent(budRef, TransformComponent.getComponentType());
+        if (transform != null) {
+            transform.setPosition(getPlayerPosition(playerRef));
+            return new SuccessResult("Teleported Bud " + bud.getNPCTypeId() + " successfully.");
+        } else {
+            return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");
+        }
+    }
+
+    private Set<NPCEntity> getOwnedBuds(UUID playerId, Store<EntityStore> store) {
+        Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
+        return playerBuds.stream()
+                .map(BudInstance::getEntity)
+                .collect(Collectors.toSet());
     }
 
     public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudNPCData npcData) {
