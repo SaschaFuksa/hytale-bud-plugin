@@ -14,6 +14,7 @@ import com.bud.npcdata.persistence.BudPlayerData;
 
 import java.util.concurrent.TimeUnit;
 
+import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -51,21 +52,27 @@ public class BudPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
-            PlayerRef playerRef = event.getPlayerRef();
-            System.err.println("[BUD] Player connected: " + playerRef.getUuid());
-            System.err.println("[BUD] World: " + event.getWorld());
-            if (event.getWorld() != null) {
+            try {
+                PlayerRef playerRef = event.getPlayerRef();
+                System.err.println("[BUD] Player connected: " + playerRef.getUuid());
+                System.err.println("[BUD] World: " + event.getWorld());
                 IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
                 result.printResult();
+            } catch (Exception e) {
+                new ErrorResult("Fail during player connect event handling").printResult();
             }
         });
         
 
         this.getEventRegistry().register(PlayerDisconnectEvent.class, event -> {
-            PlayerRef playerRef = event.getPlayerRef();
-            System.err.println("[BUD] Player disconnected: " + playerRef.getUuid());
-            IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
-            result.printResult();
+            try {
+                PlayerRef playerRef = event.getPlayerRef();
+                System.err.println("[BUD] Player disconnected: " + playerRef.getUuid());
+                IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
+                result.printResult();
+            } catch (Exception e) {
+                new ErrorResult("Fail during player disconnect event handling").printResult();
+            }
         });
 
         if (BudConfig.get().isEnableLLM()) {

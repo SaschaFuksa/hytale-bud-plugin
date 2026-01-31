@@ -2,8 +2,6 @@ package com.bud.llmmessage;
 
 public interface ILLMBudNPCMessage {
 
-    String getNPCName();
-    
     String getSystemPrompt();
 
     String getAttackMessage();

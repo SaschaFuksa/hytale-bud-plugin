@@ -14,12 +14,13 @@ This is like a small proof of concept (PoC) to create a Hytale Plugin with integ
 Currently there are three Buds implemented:
 - **Veri**: A Feran buddy. It is a little bit childish, but very curious and friendly. It supports the player with daggers.
 - **Gronkh**: A Trork buddy. He is a little bit grumpy, but very loyal and strong. And yes, we all love his streams. He supports the player with a mace.
-- **Kacche**: A Kweebec buddy. She is very smart, but also a little bit shy. She supports the player with a bow.
+- **Keyleth**: A Kweebec buddy. She is very smart, but also a little bit shy. She supports the player with a bow.
 
 ## Features
 
 This mod will be controlled via commands:
 - **/bud**: The initial command to spawn all three buddies around you. It also respawns them, if they died and teleports all to you.
+- **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you.
 - **/bud clear**: Remove all your buddies.
 - **/bud clear-all**: Remove all buddies in the world.
 
@@ -78,9 +79,7 @@ start server: .\gradlew runServer
 ```
 ## To-Dos 0.1.x
 - Teleport Buds to player if "/buds" is entered again.
-- Automatical "F" binding on spawn.
-- Correct persistent data saving/loading of player -> Bud relations to despawn Buds on player disconnect and login.
-- Individual Bud spawning "/bud veri" etc.
+- Automatical "F" binding on spawn. // role.getStateSupport().setState("PetDefensive");?
 
 ## Roadmap
 - Command to toggle state for all Buds like "/bud attack"

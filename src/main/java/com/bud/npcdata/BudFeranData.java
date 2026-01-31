@@ -8,6 +8,7 @@ import com.bud.llmmessage.LLMBudFeranMessage;
 public class BudFeranData implements IBudNPCData {
 
 	public static final String NPC_TYPE_ID = "Veri_Bud";
+	public static final String NPC_DISPLAY_NAME = "Veri";
     private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudFeranMessage();
     private static final IBudNPCSoundData budNPCSoundData = new BudFeranSoundData();
 
@@ -20,6 +21,16 @@ public class BudFeranData implements IBudNPCData {
     public IBudNPCSoundData getBudNPCSoundData() {
         return budNPCSoundData;
     }
+	
+	@Override
+	public String getWeaponID() {
+		return "Weapon_Daggers_Bone";
+	}
+	
+	@Override
+	public String getArmorID() {
+		return "Debug_Armor_D_Head_Of_Dash_Reduction";
+	}
 
 	@Override
 	public String getNPCTypeId() {
@@ -27,13 +38,8 @@ public class BudFeranData implements IBudNPCData {
 	}
 
 	@Override
-	public String getWeaponID() {
-		return "Weapon_Daggers_Bone";
-	}
-
-	@Override
-	public String getArmorID() {
-		return "Debug_Armor_D_Head_Of_Dash_Reduction";
+	public String getNPCDisplayName() {
+		return NPC_DISPLAY_NAME;
 	}
 
 }

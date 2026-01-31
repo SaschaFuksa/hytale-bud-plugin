@@ -3,6 +3,8 @@ package com.bud.system;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -21,14 +23,17 @@ import com.bud.result.SuccessResult;
 
 public class CleanUpHandler {
     
-    public static IResult removeOwnerBuds(PlayerRef playerRef) {
+    public static IResult removeOwnerBuds(@Nonnull PlayerRef playerRef) {
         BudRegistry instance = BudRegistry.getInstance();
         Set<BudInstance> buds = instance.getByOwner(playerRef.getUuid());
         if (buds.isEmpty()) {
             return new SuccessResult("No owner buds to remove.");
         }
         for (BudInstance bud : buds) {
-            IResult removeOwnerBudResult = removeOwnerBud(bud, playerRef);
+            if (bud == null) {
+                continue;
+            }
+            IResult removeOwnerBudResult = removeOwnerBud(playerRef, bud);
             if (!removeOwnerBudResult.isSuccess()) {
                 return removeOwnerBudResult;
             }
@@ -52,14 +57,14 @@ public class CleanUpHandler {
         return new SuccessResult("Scheduled cleanup for world " + world.getName());
     }
 
-    private static IResult removeOwnerBud(BudInstance bud, PlayerRef playerRef) {
-        IResult untrackResult = NPCManager.getInstance().getStateTracker().untrackBud(bud);
-        if (!untrackResult.isSuccess()) {
-            return untrackResult;
-        }
+    private static IResult removeOwnerBud(@Nonnull PlayerRef playerRef, @Nonnull BudInstance bud) {
         IResult unpersistResult = NPCManager.getInstance().unpersistData(playerRef, bud.getEntity());
         if (!unpersistResult.isSuccess()) {
             return unpersistResult;
+        }
+        IResult untrackResult = NPCManager.getInstance().getStateTracker().untrackBud(bud);
+        if (!untrackResult.isSuccess()) {
+            return untrackResult;
         }
         IResult removeResult = removeEntity(bud.getEntity().getReference());
         if (!removeResult.isSuccess()) {

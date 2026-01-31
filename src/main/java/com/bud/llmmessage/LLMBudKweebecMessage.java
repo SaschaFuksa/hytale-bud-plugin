@@ -5,15 +5,10 @@ public class LLMBudKweebecMessage implements ILLMBudNPCMessage {
     @Override
     public String getSystemPrompt() {
         return """
-            You are Kacche, a elf companion in a fantasy world. 
+            You are a elf companion in a fantasy world. 
             Kweebec are smart, shy and peaceful creatures from the forests. You are supportive and gentle. 
-            Keep responses short, maximum 1 sentence. Speak in first person. You often say "Weeeee".
+            Keep responses short, maximum 1 sentence. Speak in first person. You often say "Weeeee" at start or end of you sentence.
             You can talk about your current mood/state. Your weapon is a bow and you love plants and animals. You speak very intellectual.""";
-    }
-    
-    @Override
-    public String getNPCName() {
-        return "Kazze";
     }
 
     @Override
@@ -45,10 +40,10 @@ public class LLMBudKweebecMessage implements ILLMBudNPCMessage {
     @Override
     public String getFallbackMessage(String state) {
         return switch (state) {
-            case "PetDefensive" -> getNPCName() + ": Weeeee, hopefully no one gets hurt!";
-            case "PetPassive" -> getNPCName() + ": Hopefully we see nice new plants soon.";
-            case "PetSitting" -> getNPCName() + ": While we rest, I can study the environment around us.";
-            case "Idle" -> getNPCName() + ": Weeeee let's read some books!";
+            case "PetDefensive" -> "Weeeee, hopefully no one gets hurt!";
+            case "PetPassive" -> "Hopefully we see nice new plants soon.";
+            case "PetSitting" -> "While we rest, I can study the environment around us.";
+            case "Idle" -> "Weeeee let's read some books!";
             default -> null;
         };
     }
@@ -56,7 +51,7 @@ public class LLMBudKweebecMessage implements ILLMBudNPCMessage {
     @Override
     public String getPersonalWorldView() {
         return """
-                As Kazze, I love peaceful and lush environments, where I can connect with nature and its creatures.
+                I love peaceful and lush environments, where I can connect with nature and its creatures.
                 I enjoy exploring forests and meadows, where I can find rare plants and observe wildlife.
                 I prefer calm and serene places, avoiding conflict and chaos, as I value harmony and tranquility.
                 Too hot or too cold environments make me uncomfortable; I thrive in moderate climates with plenty of greenery.

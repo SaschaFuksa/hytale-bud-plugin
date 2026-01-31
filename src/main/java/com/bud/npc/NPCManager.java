@@ -21,6 +21,7 @@ import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -73,6 +74,12 @@ public class NPCManager {
         return missingBuds;
     }
 
+    public static boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudNPCData npcData) {
+        Set<IBudNPCData> missingBuds = getMissingBuds(playerId, store);
+        return missingBuds.stream()
+                .anyMatch(b -> b.getNPCTypeId().equals(npcData.getNPCTypeId()));
+    }
+
     public static IResult addSpawnedBud(PlayerRef playerRef, IBudNPCData npcData, NPCEntity npc) {
         IResult result = stateTracker.trackBud(playerRef, npc, npcData);
         if (!result.isSuccess()) {
@@ -120,14 +127,22 @@ public class NPCManager {
         return stateTracker;
     }
 
+    public static Vector3d getPlayerPosition(PlayerRef playerRef) {
+        return playerRef.getTransform().getPosition();
+    }
+
     @SuppressWarnings("removal")
-    public IResult unpersistData(PlayerRef playerRef, NPCEntity npc) {
+    public IResult unpersistData(@Nonnull PlayerRef playerRef, NPCEntity npc) {
         System.out.println("[BUD] Unpersist data for " + playerRef.getUuid());
         try {
             Ref<EntityStore> ref = playerRef.getReference();
+            System.out.println("[BUD] Got player ref");
             Store<EntityStore> store = ref.getStore();
+            System.out.println("[BUD] Got store");
             BudPlayerData customData = store.ensureAndGetComponent(ref, BudPlugin.instance().getBudPlayerDataComponent());
+            System.out.println("[BUD] Got custom data");
             customData.remove(npc.getUuid());
+            System.out.println("[BUD] Removed NPC UUID " + npc.getUuid() + " from player " + playerRef.getUuid());
             store.putComponent(ref, BudPlugin.instance().getBudPlayerDataComponent(), customData);
             return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
         } catch (Exception e) {

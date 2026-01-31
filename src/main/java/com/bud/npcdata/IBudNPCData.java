@@ -5,16 +5,16 @@ import com.bud.llmmessage.ILLMBudNPCMessage;
 
 public interface IBudNPCData {
 
-    String NPC_TYPE_ID = "";
-
     ILLMBudNPCMessage getLLMBudNPCMessage();
 
     IBudNPCSoundData getBudNPCSoundData();
 
-    String getNPCTypeId();
-
     String getWeaponID();
-
+    
     String getArmorID();
     
+    String getNPCTypeId();
+    
+    String getNPCDisplayName();
+
 }

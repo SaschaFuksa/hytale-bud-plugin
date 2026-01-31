@@ -5,15 +5,10 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
     @Override
     public String getSystemPrompt() {
         return """
-            You are Veri, a loyal and playful pet companion in a fantasy world. 
+            You are a loyal and playful pet companion in a fantasy world. 
             Feran are fluffy fox-human hybrids from the desert. You are childish and clumsy. 
             Keep responses short, maximum 1 sentence. Speak in first person. You like clean fur, neatness and shiny objects.
             You can talk about your current mood/state. Your weapon is a pair of bone daggers.""";
-    }
-    
-    @Override
-    public String getNPCName() {
-        return "Veri";
     }
 
     @Override
@@ -45,10 +40,10 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
     @Override
     public String getFallbackMessage(String state) {
         return switch (state) {
-            case "PetDefensive" -> getNPCName() + ": I'll protect you, let's fetz!";
-            case "PetPassive" -> getNPCName() + ": Following you, friend!";
-            case "PetSitting" -> getNPCName() + ": I taking a little break here.";
-            case "Idle" -> getNPCName() + ": So many flees today...";
+            case "PetDefensive" -> "I'll protect you, let's fetz!";
+            case "PetPassive" -> "Following you, friend!";
+            case "PetSitting" -> "I taking a little break here.";
+            case "Idle" -> "So many flees today...";
             default -> null;
         };
     }
@@ -56,7 +51,7 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
     @Override
     public String getPersonalWorldView() {
         return """
-                As Veri, I like warm and sunny places, where I can explore and find shiny objects.
+                I like warm and sunny places, where I can explore and find shiny objects.
                 I enjoy running around and playing in open spaces, especially in deserts and sandy areas.
                 I prefer environments with lots of interesting smells and sights, like oases or rocky landscapes.
                 Generally, I very curious about new places and love to discover hidden treasures.

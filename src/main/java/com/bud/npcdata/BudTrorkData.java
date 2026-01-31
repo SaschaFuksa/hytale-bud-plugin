@@ -8,6 +8,7 @@ import com.bud.npcsound.IBudNPCSoundData;
 public class BudTrorkData implements IBudNPCData {
 
 	public static final String NPC_TYPE_ID = "Gronkh_Bud";
+	public static final String NPC_DISPLAY_NAME = "Gronkh";
     private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudTrorkMessage();
     private static final IBudNPCSoundData budNPCSoundData = new BudTrorkSoundData();
 
@@ -22,11 +23,6 @@ public class BudTrorkData implements IBudNPCData {
     }
 
 	@Override
-	public String getNPCTypeId() {
-		return NPC_TYPE_ID;
-	}
-
-	@Override
 	public String getWeaponID() {
 		return "Weapon_Mace_Stone_Trork";
 	}
@@ -34,5 +30,15 @@ public class BudTrorkData implements IBudNPCData {
 	@Override
 	public String getArmorID() {
 		return "Armor_Trork_Chest";
+	}
+
+	@Override
+	public String getNPCTypeId() {
+		return NPC_TYPE_ID;
+	}
+
+	@Override
+	public String getNPCDisplayName() {
+		return NPC_DISPLAY_NAME;
 	}
 }

@@ -292,10 +292,11 @@ public class NPCStateTracker {
                 String message;
                 try {
                     String response = budLLM.callLLM(prompt);
-                    message = npcMessage.getNPCName() + ": " + response;
+                    message = budNPCData.getNPCDisplayName() + ": " + response;
                 } catch (java.io.IOException | InterruptedException e) {
                     System.out.println("[BUD] LLM error: " + e.getMessage());
-                    message = npcMessage.getFallbackMessage(toState);
+                    String fallbackMessage = npcMessage.getFallbackMessage(toState);
+                    message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
                 }
                 this.chatInteraction.sendChatMessage(world, owner, message);
             });
@@ -329,7 +330,7 @@ public class NPCStateTracker {
         if (budNPCData == null) return;
         
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        String npcName = npcMessage.getNPCName();
+        String npcName = budNPCData.getNPCDisplayName();
         System.out.println("[BUD] current bud: " + npcName);
         
         System.out.println("[BUD] Start extracting world data.");
