@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import com.bud.npc.NPCStateTracker;
+import com.bud.npcdata.persistence.PersistenceManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
@@ -28,9 +29,9 @@ import com.bud.result.SuccessResult;
 public class CleanUpHandler {
 
     public static IResult cleanupOwnerBuds(@Nonnull PlayerRef playerRef, @Nonnull World world) {
-        IDataListResult<UUID> persistedBudsResult = NPCManager.getInstance().getPersistedBudUUIDs(playerRef);
+        IDataListResult<UUID> persistedBudsResult = PersistenceManager.getInstance().getPersistedBudUUIDs(playerRef);
+        persistedBudsResult.printResult();
         if (!persistedBudsResult.isSuccess()) {
-            persistedBudsResult.printResult();
             return persistedBudsResult;
         }
         List<UUID> persistedBuds = persistedBudsResult.getDataList();
@@ -60,7 +61,7 @@ public class CleanUpHandler {
                 despawnBud(npcEntity).printResult();
             }
 
-            IResult unpersistResult = NPCManager.getInstance().unpersistData(playerRef, budUUID);
+            IResult unpersistResult = PersistenceManager.getInstance().unpersistData(playerRef, budUUID);
             if (!unpersistResult.isSuccess()) {
                 return unpersistResult;
             }
@@ -71,13 +72,12 @@ public class CleanUpHandler {
     }
 
     public static IResult cleanupAllBuds(World world) {
-        NPCManager manager = NPCManager.getInstance();
-        Set<Ref<EntityStore>> refsSnapshot = manager.getTrackedBudRefs();
-        Set<String> typesSnapshot = manager.getTrackedBudTypes();
-
+        Set<String> typesSnapshot = NPCManager.getInstance().getTrackedBudTypes();
+        System.out
+                .println("[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
                 () -> {
-                    IResult result = cleanupWorld(world, refsSnapshot, typesSnapshot);
+                    IResult result = cleanupWorld(world, typesSnapshot);
                     result.printResult();
                 },
                 1L,
@@ -95,24 +95,27 @@ public class CleanUpHandler {
         }
     }
 
-    private static IResult cleanupWorld(World world, Set<Ref<EntityStore>> trackedBudRefs,
-            Set<String> trackedBudTypes) {
+    private static IResult cleanupWorld(World world, Set<String> trackedBudTypes) {
+        System.out.println("[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
         try {
             Store<EntityStore> store = world.getEntityStore().getStore();
+            System.out.println("[BUD] Retrieved entity store for world " + world.getName());
+            System.out.println("[BUD] Store not null " + (store != null));
             world.execute(() -> store.forEachEntityParallel(
                     NPCEntity.getComponentType(),
                     (index, archetypeChunk, commandBuffer) -> {
+                        System.out.println("[BUD] Checking entity at index " + index);
                         NPCEntity npcComponent = archetypeChunk.getComponent(index, NPCEntity.getComponentType());
                         if (npcComponent == null) {
+                            System.out.println("[BUD] NPC Component is null at index: " + index);
                             return;
                         }
+                        System.out.println("[BUD] NPC Component not null with Type: " + npcComponent.getNPCTypeId());
                         if (!trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
                             return;
                         }
-                        Ref<EntityStore> npcRef = archetypeChunk.getReferenceTo(index);
-                        if (!trackedBudRefs.contains(npcRef)) {
-                            commandBuffer.removeEntity(npcRef, RemoveReason.REMOVE);
-                        }
+                        // Ref<EntityStore> npcRef = archetypeChunk.getReferenceTo(index);
+                        commandBuffer.removeEntity(npcComponent.getReference(), RemoveReason.REMOVE);
                     }));
             return new SuccessResult("Cleaned up world " + world.getName());
         } catch (Exception e) {

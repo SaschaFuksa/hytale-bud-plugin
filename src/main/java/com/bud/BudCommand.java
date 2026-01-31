@@ -114,27 +114,6 @@ public class BudCommand extends AbstractPlayerCommand {
                             BudPlugin.getInstance().getBudPlayerDataComponent());
                     String uuids = customData.getBuds().stream().map(UUID::toString).collect(Collectors.joining(","));
                     System.out.println("[BUD] Current BudPlayerData for player " + playerRef.getUuid() + ": " + uuids);
-                    customData.resetBuds();
-                    customData = store.ensureAndGetComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent());
-                    String uuidsAfterClear = customData.getBuds().stream().map(UUID::toString)
-                            .collect(Collectors.joining(","));
-                    System.out.println(
-                            "[BUD] Current BudPlayerData for player " + playerRef.getUuid() + ": " + uuidsAfterClear);
-                    UUID newUUID = UUID.randomUUID();
-                    customData.add(newUUID);
-                    store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
-                    customData = store.ensureAndGetComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent());
-                    String uuidsAfterAdd = customData.getBuds().stream().map(UUID::toString)
-                            .collect(Collectors.joining(","));
-                    System.out.println("[BUD] BudPlayerData Loaded for player with new data " + playerRef.getUuid()
-                            + ": " + uuidsAfterAdd);
-                    customData.remove(newUUID);
-                    store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
-                    customData = store.ensureAndGetComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent());
-                    String uuidsAfterRemove = customData.getBuds().stream().map(UUID::toString)
-                            .collect(Collectors.joining(","));
-                    System.out.println("[BUD] BudPlayerData Loaded for player with removed data " + playerRef.getUuid()
-                            + ": " + uuidsAfterRemove);
                 }
                 default -> System.out.println("Unknown mode: " + inputMode);
             }

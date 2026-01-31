@@ -7,21 +7,14 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.bud.BudPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import com.bud.npcdata.BudFeranData;
 import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
-import com.bud.npcdata.persistence.BudPlayerData;
-import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
-import com.bud.result.ErrorResult;
-import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
-import com.bud.result.IResult;
-import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -45,15 +38,6 @@ public class NPCManager {
             new BudFeranData(),
             new BudTrorkData(),
             new BudKweebecData());
-
-    public IBudNPCData getDataForType(String typeId) {
-        for (IBudNPCData data : BUDS) {
-            if (data.getNPCTypeId().equals(typeId)) {
-                return data;
-            }
-        }
-        return null; // Or unknown
-    }
 
     public Set<IBudNPCData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
         Set<IBudNPCData> missingBuds = BUDS.stream().collect(Collectors.toSet());
@@ -83,36 +67,6 @@ public class NPCManager {
                 .anyMatch(b -> b.getNPCTypeId().equals(npcData.getNPCTypeId()));
     }
 
-    public IResult persistBud(@Nonnull PlayerRef playerRef, @Nonnull NPCEntity npc) {
-        System.out.println("[BUD] Persist data for " + playerRef.getUuid());
-        try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            Store<EntityStore> store = ref.getStore();
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
-                    BudPlugin.getInstance().getBudPlayerDataComponent());
-            customData.add(npc.getUuid());
-            store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
-            return new SuccessResult("Data persisted for " + playerRef.getUuid() + " via store.putComponent");
-        } catch (Exception e) {
-        }
-        return new ErrorResult("Not able to persist data for " + playerRef.getUuid());
-    }
-
-    public IDataListResult<UUID> getPersistedBudUUIDs(@Nonnull PlayerRef playerRef) {
-        System.out.println("[BUD] Get persisted data for " + playerRef.getUuid());
-        try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            Store<EntityStore> store = ref.getStore();
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
-                    BudPlugin.getInstance().getBudPlayerDataComponent());
-            Set<UUID> budUUIDs = customData.getBuds();
-            return new DataListResult<>(budUUIDs, "Retrieved persisted data for " + playerRef.getUuid());
-        } catch (Exception e) {
-            return new DataListResult<>(new HashSet<>(),
-                    "Exception while retrieving persisted data for " + playerRef.getUuid() + ": " + e.getMessage());
-        }
-    }
-
     public IDataResult<NPCEntity> getNPCEntityByUUID(@Nonnull UUID npcUUID, @Nonnull World world) {
         try {
             EntityStore entityStore = world.getEntityStore();
@@ -131,10 +85,6 @@ public class NPCManager {
             types.add(budData.getNPCTypeId());
         }
         return types;
-    }
-
-    public Set<Ref<EntityStore>> getTrackedBudRefs() {
-        return BudRegistry.getInstance().getAllRefs();
     }
 
     public boolean isBudOwnedBy(UUID playerUUID, Ref<EntityStore> npcRef) {
@@ -162,34 +112,6 @@ public class NPCManager {
 
     public Vector3d getPlayerPosition(PlayerRef playerRef) {
         return playerRef.getTransform().getPosition();
-    }
-
-    public Set<UUID> getOwnedBudUUIDs(UUID ownerId) {
-        Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
-        Set<UUID> budUUIDs = new HashSet<>();
-        for (BudInstance bud : buds) {
-            budUUIDs.add(bud.getEntity().getUuid());
-        }
-        return budUUIDs;
-    }
-
-    public IResult unpersistData(@Nonnull PlayerRef playerRef, UUID uuid) {
-        System.out.println("[BUD] Unpersist data for " + playerRef.getUuid());
-        try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            System.out.println("[BUD] Got player ref");
-            Store<EntityStore> store = ref.getStore();
-            System.out.println("[BUD] Got store");
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
-                    BudPlugin.getInstance().getBudPlayerDataComponent());
-            System.out.println("[BUD] Got custom data");
-            customData.remove(uuid);
-            System.out.println("[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
-            store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
-            return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
-        } catch (Exception e) {
-            return new ErrorResult("Not able to unpersist data for " + playerRef.getUuid());
-        }
     }
 
 }

@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import com.bud.npcdata.IBudNPCData;
+import com.bud.npcdata.persistence.PersistenceManager;
 import com.bud.result.DataResult;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
@@ -46,7 +47,7 @@ public class BudCreation {
                     CleanUpHandler.despawnBud(npc).printResult();
                     return registerResult;
                 }
-                IResult persistResult = NPCManager.getInstance().persistBud(playerRef, npc);
+                IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
                 if (!persistResult.isSuccess()) {
                     CleanUpHandler.despawnBud(npc).printResult();
                     NPCStateTracker.getInstance().unregisterBud(npc).printResult();
