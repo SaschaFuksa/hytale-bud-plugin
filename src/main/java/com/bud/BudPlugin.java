@@ -23,8 +23,6 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import com.hypixel.hytale.server.core.universe.world.events.AllWorldsLoadedEvent;
-
 public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
