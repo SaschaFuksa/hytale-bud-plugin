@@ -14,8 +14,12 @@ public class SuccessResult implements IResult {
     }
 
     @Override
+    public String getMessage() {
+        return this.message;
+    }
+
+    @Override
     public void printResult() {
         System.out.println("[BUD] Success: " + this.message);
     }
-
 }

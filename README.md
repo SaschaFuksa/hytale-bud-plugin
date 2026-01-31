@@ -23,6 +23,7 @@ This mod will be controlled via commands:
 - **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you.
 - **/bud clear**: Remove all your buddies.
 - **/bud clear-all**: Remove all buddies in the world.
+- **/bud data**: Checks custom data of player for debugging. Also clears the storage.
 
 Interaction with buddies:
 - Press "F" to interact with your targeted buddy to bind them to you.

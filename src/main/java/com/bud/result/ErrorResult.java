@@ -14,6 +14,11 @@ public class ErrorResult implements IResult {
     }
 
     @Override
+    public String getMessage() {
+        return this.message;
+    }
+
+    @Override
     public void printResult() {
         System.err.println("[BUD] Error: " + this.message);
     }

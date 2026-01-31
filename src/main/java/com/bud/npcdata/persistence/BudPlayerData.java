@@ -43,6 +43,10 @@ public class BudPlayerData implements Component<EntityStore> {
         this.buds.add(npcUuid);
     }
 
+    public Set<UUID> getBuds() {
+        return this.buds;
+    }
+
     public void remove(UUID npcUuid) {
         if (this.buds.contains(npcUuid)) {
             this.buds.remove(npcUuid);

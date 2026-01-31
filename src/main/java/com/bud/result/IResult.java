@@ -6,4 +6,6 @@ public interface IResult {
 
     void printResult();
 
+    String getMessage();
+
 }

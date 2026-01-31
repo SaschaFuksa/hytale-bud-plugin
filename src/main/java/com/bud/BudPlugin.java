@@ -9,14 +9,17 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.HytaleServer;
-import com.bud.npc.NPCManager;
 import com.bud.npcdata.persistence.BudPlayerData;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.bud.npc.NPCStateTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BudPlugin extends JavaPlugin {
@@ -30,20 +33,19 @@ public class BudPlugin extends JavaPlugin {
         instance = this;
         this.config = this.withConfig("Bud", BudConfig.CODEC);
     }
-    
+
     @Override
     protected void setup() {
         super.setup();
         BudConfig.setInstance(this.config.get());
         this.config.save();
-        
+
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
-            BudPlayerData.class,
-            "BudPlayerData",
-            BudPlayerData.CODEC
-        );
-        
+                BudPlayerData.class,
+                "BudPlayerData",
+                BudPlayerData.CODEC);
+
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.getCommandRegistry().registerCommand(new LLMCommand());
@@ -56,20 +58,25 @@ public class BudPlugin extends JavaPlugin {
                 PlayerRef playerRef = event.getPlayerRef();
                 System.err.println("[BUD] Player connected: " + playerRef.getUuid());
                 System.err.println("[BUD] World: " + event.getWorld());
-                IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
+                IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, event.getWorld());
                 result.printResult();
             } catch (Exception e) {
                 new ErrorResult("Fail during player connect event handling").printResult();
             }
         });
-        
 
         this.getEventRegistry().register(PlayerDisconnectEvent.class, event -> {
             try {
                 PlayerRef playerRef = event.getPlayerRef();
-                System.err.println("[BUD] Player disconnected: " + playerRef.getUuid());
-                IResult result = CleanUpHandler.removeOwnerBuds(playerRef);
-                result.printResult();
+                System.out.println("[BUD] Player disconnected: " + playerRef.getUuid());
+                UUID worldUUID = playerRef.getWorldUuid();
+                if (worldUUID != null) {
+                    World world = Universe.get().getWorld(worldUUID);
+                    if (world != null) {
+                        IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
+                        result.printResult();
+                    }
+                }
             } catch (Exception e) {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
@@ -78,13 +85,13 @@ public class BudPlugin extends JavaPlugin {
         if (BudConfig.get().isEnableLLM()) {
             // Schedule Random Chat Task (every 3 minutes)
             HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-                IResult result = NPCManager.getInstance().getStateTracker().triggerRandomChats();
+                IResult result = NPCStateTracker.getInstance().triggerRandomChats();
                 result.printResult();
             }, 180L, 180L, TimeUnit.SECONDS);
         }
     }
 
-    public static BudPlugin instance() {
+    public static BudPlugin getInstance() {
         return instance;
     }
 
