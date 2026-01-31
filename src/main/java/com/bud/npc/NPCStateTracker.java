@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 import com.bud.system.BudTimeInformation;
 import com.bud.system.BudWorldContext;
 import com.bud.system.BudWorldInformation;
@@ -29,15 +27,13 @@ import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.protocol.InteractionType;
-import com.hypixel.hytale.server.core.entity.Entity;
-import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 
 /**
  * Tracks Bud NPC interactions and sends LLM-generated chat messages when F-key
@@ -76,15 +72,12 @@ public class NPCStateTracker {
         if (role == null) {
             return new ErrorResult("Bud NPC has no valid Role");
         }
-
-        UUID ownerId = owner.getUuid();
-        String stateName = getMainStateName(role.getStateSupport().getStateName());
-
-        BudRegistry.getInstance().register(owner, bud, budNPCData, stateName);
+        BudRegistry.getInstance().register(owner, bud, budNPCData,
+                getMainStateName(role.getStateSupport().getStateName()));
 
         // Start polling when at least one Bud is tracked
         startPolling();
-        return new SuccessResult("Now tracking Bud for player " + ownerId + " - Initial state: " + stateName);
+        return new SuccessResult("Bud registered for tracking for player " + owner.getUuid());
     }
 
     public IResult unregisterBud(NPCEntity bud) {
@@ -161,111 +154,6 @@ public class NPCStateTracker {
 
         budInstance.setLastKnownState(currentState);
         onStateChanged(ownerId, budInstance, lastState, currentState);
-    }
-
-    /**
-     * Extract main state name from full state string (e.g., "PetDefensive.Default"
-     * -> "PetDefensive")
-     */
-    private String getMainStateName(String fullStateName) {
-        if (fullStateName == null)
-            return "Unknown";
-        int dotIndex = fullStateName.indexOf('.');
-        return dotIndex > 0 ? fullStateName.substring(0, dotIndex) : fullStateName;
-    }
-
-    /**
-     * Event handler for F-key interaction (InteractionType.Use).
-     * Called when a player presses F on any entity.
-     */
-    @SuppressWarnings("deprecation")
-    public void onPlayerInteraction(@Nonnull PlayerInteractEvent event) {
-        // Only handle F-key (Use) interactions
-        if (event.getActionType() != InteractionType.Use) {
-            return;
-        }
-
-        Entity targetEntity = event.getTargetEntity();
-        if (targetEntity == null || !(targetEntity instanceof NPCEntity)) {
-            return;
-        }
-
-        NPCEntity targetNPC = (NPCEntity) targetEntity;
-
-        Ref<EntityStore> targetRef = event.getTargetRef();
-        if (targetRef == null && targetNPC.getReference() != null) {
-            targetRef = targetNPC.getReference();
-        }
-
-        BudInstance instance = BudRegistry.getInstance().get(targetRef);
-        if (instance == null) {
-            return;
-        }
-
-        UUID ownerId = instance.getOwner().getUuid();
-
-        // Safety check invoking player
-        Ref<EntityStore> playerEntityRef = event.getPlayerRef();
-        if (playerEntityRef == null)
-            return;
-
-        Store<EntityStore> playerStore = playerEntityRef.getStore();
-        PlayerRef interactingPlayerRef = playerStore.getComponent(playerEntityRef, PlayerRef.getComponentType());
-        if (interactingPlayerRef == null)
-            return;
-
-        if (!ownerId.equals(interactingPlayerRef.getUuid())) {
-            return;
-        }
-
-        System.out.println("[BUD] F-KEY INTERACTION DETECTED!");
-
-        Role role = targetNPC.getRole();
-        if (role != null) {
-            String currentState = getMainStateName(role.getStateSupport().getStateName());
-            String lastState = instance.getLastKnownState();
-
-            if (lastState != null && lastState.equals(currentState)) {
-                return;
-            }
-
-            instance.setLastKnownState(currentState);
-            onStateChanged(ownerId, instance, lastState, currentState);
-        }
-    }
-
-    /**
-     * Interaction-system callback (Use NPC). This is the reliable path for F-key.
-     */
-    public void onNpcUsed(@Nonnull PlayerRef interactingPlayer, @Nonnull NPCEntity targetNPC) {
-        Ref<EntityStore> targetRef = targetNPC.getReference();
-        if (targetRef == null) {
-            return;
-        }
-
-        BudInstance instance = BudRegistry.getInstance().get(targetRef);
-        if (instance == null) {
-            return;
-        }
-
-        if (!instance.getOwner().getUuid().equals(interactingPlayer.getUuid())) {
-            return;
-        }
-
-        Role role = targetNPC.getRole();
-        if (role == null) {
-            return;
-        }
-
-        String currentState = getMainStateName(role.getStateSupport().getStateName());
-        String lastState = instance.getLastKnownState();
-
-        if (lastState != null && lastState.equals(currentState)) {
-            return;
-        }
-
-        instance.setLastKnownState(currentState);
-        onStateChanged(instance.getOwner().getUuid(), instance, lastState, currentState);
     }
 
     /**
@@ -388,5 +276,16 @@ public class NPCStateTracker {
         Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
         System.out.println("[BUD] current zone: " + currentZone.name());
         return new BudWorldContext(timeOfDay, currentZone, currentBiome);
+    }
+
+    /**
+     * Extract main state name from full state string (e.g., "PetDefensive.Default"
+     * -> "PetDefensive")
+     */
+    private String getMainStateName(String fullStateName) {
+        if (fullStateName == null)
+            return "Unknown";
+        int dotIndex = fullStateName.indexOf('.');
+        return dotIndex > 0 ? fullStateName.substring(0, dotIndex) : fullStateName;
     }
 }

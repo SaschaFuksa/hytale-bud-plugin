@@ -28,9 +28,10 @@ This mod will be controlled via commands:
 Interaction with buddies:
 - Press "F" to interact with your targeted buddy to bind them to you.
 - "F" will also switch between three different interaction modes:
-  - **Attack Mode**: The buddy will follow you around and attacks enemies.
-  - **Passive Mode**: The buddy will only follow you around.
-  - **Idle Mode**: The buddy will stay at the current position.
+  - **Pet Defensive Mode**: The buddy will follow you around and attacks enemies.
+  - **Pet Passive Mode**: The buddy will only follow you around.
+  - **Pet Sitting Mode**: The buddy will stay at the current position.
+- Initial status is **Pet Defensive Mode**.
 
 Automatic despawning of buddies:
 - If player disconnects, all of his buddies will despawn.
@@ -78,8 +79,6 @@ start server: .\gradlew runServer
 # ingame: direct connect -> localhost
 # /bud in chat
 ```
-## To-Dos 0.1.x
-- Automatical "F" binding on spawn. // role.getStateSupport().setState("PetDefensive");?
 
 ## Roadmap
 - Command to toggle state for all Buds like "/bud attack"

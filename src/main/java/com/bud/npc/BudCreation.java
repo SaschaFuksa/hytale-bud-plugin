@@ -22,6 +22,8 @@ import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
+import com.hypixel.hytale.server.npc.role.support.StateSupport;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -77,12 +79,44 @@ public class BudCreation {
                     .addArmor(budNPCData.getArmorID())
                     .spawn();
             NPCEntity npc = (NPCEntity) result.second();
+            changeRoleState(npc, playerRef).printResult();
             return new DataResult<>(npc,
                     "Spawned Bud " + budNPCData.getNPCTypeId() + " for player " + playerRef.getUuid());
         } catch (Exception e) {
             return new DataResult<>(null,
                     "Exception while spawning Bud " + budNPCData.getNPCTypeId() + ": " + e.getMessage());
         }
+    }
+
+    private static IResult changeRoleState(NPCEntity bud, PlayerRef owner) {
+        Role role = bud.getRole();
+        bud.getWorld().execute(() -> {
+            StateSupport stateSupport = role.getStateSupport();
+            int attackStateIndex = stateSupport.getStateHelper().getStateIndex("PetDefensive");
+
+            if (attackStateIndex >= 0) {
+                // Use default sub-state for Attack
+                String defaultSubStateName = stateSupport.getStateHelper().getDefaultSubState();
+                int subStateIndex = stateSupport.getStateHelper().getSubStateIndex(attackStateIndex,
+                        defaultSubStateName);
+
+                // Force the state change
+                stateSupport.setState(attackStateIndex, subStateIndex, true, false);
+                System.out.println("[BUD] Force-set state to PetDefensive");
+            } else {
+                System.err.println("[BUD] Could not find state 'PetDefensive' for NPC: " +
+                        bud.getNPCTypeId());
+            }
+
+            // Set Player as LockedTarget (Standard slot for combat targets)
+            MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
+            if (markedSupport != null) {
+                markedSupport.setMarkedEntity("LockedTarget", owner.getReference());
+                System.out.println("[BUD] Set player as LockedTarget");
+            }
+
+        });
+        return new SuccessResult("Changed state to " + bud.getRole().getStateSupport().getStateName());
     }
 
     private static void printNPCDebugInfo(NPCEntity npc) {
