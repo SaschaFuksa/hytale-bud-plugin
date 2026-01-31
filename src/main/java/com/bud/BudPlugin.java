@@ -73,8 +73,10 @@ public class BudPlugin extends JavaPlugin {
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);
                     if (world != null) {
-                        IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                        result.printResult();
+                        world.execute(() -> {
+                            IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
+                            result.printResult();
+                        });
                     }
                 }
             } catch (Exception e) {

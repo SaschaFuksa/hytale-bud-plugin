@@ -29,8 +29,8 @@ public class CleanUpHandler {
 
     public static IResult cleanupOwnerBuds(@Nonnull PlayerRef playerRef, @Nonnull World world) {
         IDataListResult<UUID> persistedBudsResult = NPCManager.getInstance().getPersistedBudUUIDs(playerRef);
-        persistedBudsResult.printResult(); // REMOVE
         if (!persistedBudsResult.isSuccess()) {
+            persistedBudsResult.printResult();
             return persistedBudsResult;
         }
         List<UUID> persistedBuds = persistedBudsResult.getDataList();
