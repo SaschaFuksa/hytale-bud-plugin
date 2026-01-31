@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -19,6 +20,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import com.bud.npc.NPCStateTracker;
+
+import com.bud.npc.BudInstance;
+import com.bud.npc.BudRegistry;
 import com.bud.npcdata.persistence.PersistenceManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataListResult;
@@ -99,16 +103,51 @@ public class CleanUpHandler {
         System.out.println("[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
         try {
             Store<EntityStore> store = world.getEntityStore().getStore();
-            world.execute(() -> store.forEachEntityParallel(
-                    NPCEntity.getComponentType(),
-                    (index, archetypeChunk, commandBuffer) -> {
-                        NPCEntity npcComponent = archetypeChunk.getComponent(index, NPCEntity.getComponentType());
-                        if (npcComponent == null || !trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
-                            return;
+            // Collection to hold tracked buds for safe unregister/unpersist
+            ConcurrentLinkedQueue<BudInstance> trackedBudsToRemove = new ConcurrentLinkedQueue<>();
+
+            world.execute(() -> {
+                store.forEachEntityParallel(
+                        NPCEntity.getComponentType(),
+                        (index, archetypeChunk, commandBuffer) -> {
+                            NPCEntity npcComponent = archetypeChunk.getComponent(index, NPCEntity.getComponentType());
+                            if (npcComponent == null || !trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
+                                return;
+                            }
+
+                            // Check if it's a tracked bud with an owner
+                            BudInstance instance = BudRegistry.getInstance()
+                                    .get(npcComponent.getReference());
+                            if (instance != null) {
+                                trackedBudsToRemove.add(instance);
+                            } else {
+                                // Orphan / Untracked: Remove immediately
+                                commandBuffer.removeEntity(npcComponent.getReference(), RemoveReason.REMOVE);
+                            }
+                        });
+
+                // Process tracked buds sequentially to ensure thread-safety for data
+                // persistence
+                for (BudInstance instance : trackedBudsToRemove) {
+                    try {
+                        NPCEntity npcEntity = instance.getEntity();
+                        PlayerRef owner = instance.getOwner();
+
+                        // Unregister from runtime tracker
+                        NPCStateTracker.getInstance().unregisterBud(npcEntity).printResult();
+
+                        // Despawn entity (removes from world)
+                        despawnBud(npcEntity).printResult();
+
+                        // Unpersist from player data
+                        if (owner != null && npcEntity != null) {
+                            PersistenceManager.getInstance().unpersistData(owner, npcEntity.getUuid()).printResult();
                         }
-                        // Ref<EntityStore> npcRef = archetypeChunk.getReferenceTo(index);
-                        commandBuffer.removeEntity(npcComponent.getReference(), RemoveReason.REMOVE);
-                    }));
+                    } catch (Exception e) {
+                        System.err.println("[BUD] Error cleaning up tracked bud: " + e.getMessage());
+                    }
+                }
+            });
             return new SuccessResult("Cleaned up world " + world.getName());
         } catch (Exception e) {
             return new ErrorResult("Exception during cleanup of world " + world.getName() + ": " + e.getMessage());
