@@ -16,7 +16,7 @@ Currently there are three Buds implemented:
 - **Gronkh**: A Trork buddy. He is a little bit grumpy, but very loyal and strong. And yes, we all love his streams. He supports the player with a mace.
 - **Keyleth**: A Kweebec buddy. She is very smart, but also a little bit shy. She supports the player with a bow.
 
-## Features
+## Features 1.0.0
 
 This mod will be controlled via commands:
 - **/bud**: The initial command to spawn all three buddies around you. It also respawns them if they died or teleports existing ones to you.
@@ -36,6 +36,15 @@ Interaction with buddies:
 Automatic despawning of buddies:
 - If player disconnects, all of his buddies will despawn.
 - If player login, all of his buddies will despawn. This is needed, if server disconnects while player is online.
+
+Custom Chat Interaction (Only with LLM enabled):
+- Your Bud will sends a chat message with current world informations every three minutes.
+- Your Bud will sends a chat message in reference to the last combats you had.
+
+### Update 1.0.1 Bugfixes
+- [Work in progress]
+### Goals 1.1.0 Feature
+- Command to toggle state for all Buds like "/bud attack"
 
 ## Quickstart
 
@@ -81,8 +90,7 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-- Minor memory storage like last killed mobs, last mined blocks, etc. to react better to world.
-- Command to toggle state for all Buds like "/bud attack"
+- Minor memory storage like last mined blocks, etc. to react better to world.
 - PoC for Bud interaction with world via LLM. Like mining or farming?
 - Items instead of commands to spawn bus.
 - No friendly fire, current I found no way to disable that via config or code, even with flock/group/role/DamageFilterSystem.
