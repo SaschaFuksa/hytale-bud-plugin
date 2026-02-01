@@ -10,6 +10,7 @@ public class LLMWorldInfoMessageManager {
         String zoneInfo = new LLMWorldZoneMessage().getMessageForContext(context, "");
         String biomeInfo = new LLMWorldBiomeMessage().getMessageForContext(context, zoneInfo);
         String timeInfo = new LLMWorldTimeMessage().getMessageForContext(context, "");
+        String budInfo = npcMessage.getSystemPrompt();
         String introduction = """
                 You want to say something about the current environment you are in.
                 The following text provides detailed information about your environment.
@@ -24,7 +25,7 @@ public class LLMWorldInfoMessageManager {
                 And the current time of day is: %s
                 """.formatted(zoneInfo, biomeInfo, timeInfo);
         String bud_info = npcMessage.getPersonalWorldView();
-        return introduction + "\n" + environment_info + "\n" + bud_info;
+        return budInfo + "\n" + introduction + "\n" + environment_info + "\n" + bud_info;
 
     }
 
