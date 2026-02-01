@@ -43,6 +43,7 @@ Custom Chat Interaction (Only with LLM enabled):
 
 ### Update 1.0.1 Bugfixes
 - Set token amount to 400 instead of 30 for better answers from LLM.
+- Added offset to spawned and teleported Buds position.
 ### Goals 1.1.0 Feature
 - Command to toggle state for all Buds like "/bud attack"
 

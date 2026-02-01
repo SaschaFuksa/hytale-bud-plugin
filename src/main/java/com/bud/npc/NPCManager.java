@@ -21,6 +21,7 @@ import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -49,6 +50,25 @@ public class NPCManager {
     public Set<IBudNPCData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
         Set<IBudNPCData> missingBuds = BUDS.stream().collect(Collectors.toSet());
         Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
+        
+        // Beispiel für verschiedene Log-Level mit dem Hytale Logger:
+        // {} Platzhalter sind effizienter als String-Verknüpfung mit +
+
+        // INFO: Allgemeine Infos zum Programmfluss
+        LoggerUtil.getLogger().info("Checking missing buds for player: " + playerId);
+
+        // DEBUG: Java Logger nutzt 'fine' für Debug. Check auf isLoggable spart Performance.
+        if (LoggerUtil.getLogger().isLoggable(java.util.logging.Level.FINE)) {
+            LoggerUtil.getLogger().fine("Found " + playerBuds.size() + " existing buds for player");
+        }
+
+        // WARN: Java Logger nutzt 'warning'
+        if (playerBuds.isEmpty()) {
+            LoggerUtil.getLogger().warning("Player " + playerId + " has no buds yet - is this expected?");
+        }
+
+        // ERROR: Kritische Fehler (z.B. in catch-Blöcken)
+        // LoggerUtil.getLogger().error("Failed to load data", exception);
 
         if (playerBuds.isEmpty()) {
             return missingBuds;
@@ -113,7 +133,8 @@ public class NPCManager {
         }
         TransformComponent transform = store.getComponent(budRef, TransformComponent.getComponentType());
         if (transform != null) {
-            transform.setPosition(getPlayerPosition(playerRef));
+            Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
+            transform.setPosition(targetPos);
             return new SuccessResult("Teleported Bud " + bud.getNPCTypeId().split("_")[0] + " successfully.");
         } else {
             return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");
@@ -174,6 +195,14 @@ public class NPCManager {
             i++;
         }
         return null;
+    }
+
+    public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
+        Vector3d targetPos = getPlayerPosition(playerRef);
+        double offsetX = (Math.random() - 0.5) * 3.0; 
+        double offsetY = (Math.random() - 0.5) * 3.0; 
+        double offsetZ = (Math.random() - 0.5) * 2.0;
+        return targetPos.add(offsetX, offsetY, offsetZ);
     }
 
     public Vector3d getPlayerPosition(PlayerRef playerRef) {

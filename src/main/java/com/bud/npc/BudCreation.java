@@ -82,7 +82,7 @@ public class BudCreation {
     private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, PlayerRef playerRef,
             IBudNPCData budNPCData) {
         try {
-            Vector3d position = NPCManager.getInstance().getPlayerPosition(playerRef);
+            Vector3d position = NPCManager.getInstance().getPlayerPositionWithOffset(playerRef);
             Vector3f rotation = new Vector3f(0, 0, 0);
             Pair<Ref<EntityStore>, INonPlayerCharacter> result = NPCSpawner
                     .create(store, budNPCData.getNPCTypeId(), position)
