@@ -14,7 +14,7 @@ public class BudTrorkSoundData implements IBudNPCSoundData {
 
     @Override
     public String getIdleSound() {
-        return "SFX_Trork_Search";
+        return "SFX_Trork_Alerted";
     }
 
     @Override

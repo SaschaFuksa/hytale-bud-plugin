@@ -22,6 +22,8 @@ public class LLMChatCombatContext implements ILLMChatContext {
         if (history.isEmpty()) {
             return new DataResult<>(null, BudLLMRandomChat.NO_COMBAT_STRING);
         }
+        System.out.println("[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
+        System.out.println("[BUD] Generating combat prompt for " + history.size() + " entries.");
 
         IBudNPCData budNPCData = budInstance.getData();
 
@@ -30,21 +32,24 @@ public class LLMChatCombatContext implements ILLMChatContext {
 
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
 
-        String combatHistory = buildCombatPrompt(history);
-        String prompt = LLMCombatMessageManager.createPrompt(combatHistory, npcMessage);
+        OpponentEntry latestEntry = history.getFirst();
+        System.out.println("[BUD] Latest combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
+        String combatHistory = buildCombatPrompt(latestEntry);
+        String prompt = LLMCombatMessageManager.createPrompt(combatHistory, npcMessage, latestEntry.roleName());
+        history.removeFirst();
         return new DataResult<>(prompt, "Prompt generated successfully.");
     }
 
-    private String buildCombatPrompt(LinkedList<OpponentEntry> history) {
+    private String buildCombatPrompt(OpponentEntry latestEntry) {
         StringBuilder promptBuilder = new StringBuilder();
         promptBuilder.append("Recent combat interactions:\n");
-        OpponentEntry latestEntry = history.getFirst();
         String action = switch (latestEntry.state()) {
             case ATTACKED -> "attacked";
             case WAS_ATTACKED -> "run away from";
         };
-        promptBuilder.append("Your Buddy ").append(action).append(" ").append(latestEntry.roleName()).append(".\n");
-        history.removeFirst();
+        String roleName = latestEntry.roleName().replace("Bud_", "");
+        roleName = roleName.replace("_", " ");
+        promptBuilder.append("Your Buddy ").append(action).append(" ").append(roleName).append(".\n");
         return promptBuilder.toString();
     }
 

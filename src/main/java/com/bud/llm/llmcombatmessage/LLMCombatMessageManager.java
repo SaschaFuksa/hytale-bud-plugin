@@ -2,7 +2,6 @@ package com.bud.llm.llmcombatmessage;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 import com.bud.llm.llmmessage.ILLMBudNPCMessage;
 
@@ -33,10 +32,10 @@ public class LLMCombatMessageManager {
 
     private static String getEntityInformations(String targetName) {
         String lowerTargetName = targetName.toLowerCase();
-        for (List<String> keywords : ENTITY_CATEGORY_MAP.keySet()) {
-            for (String keyword : keywords) {
+        for (var entry : ENTITY_CATEGORY_MAP.entrySet()) {
+            for (String keyword : entry.getKey()) {
                 if (lowerTargetName.contains(keyword)) {
-                    String category = ENTITY_CATEGORY_MAP.get(keywords);
+                    String category = entry.getValue();
                     String info = ENTITY_CATEGORY_INFORMATIONS.get(category);
                     return "The enemy you faced belongs to the category: " + category + ". " + info;
                 }
@@ -60,13 +59,13 @@ public class LLMCombatMessageManager {
         entityInfoMap.put("Outlander",
                 "Savage and brutal humanoid warriors from harsh environments. They are considered a high threat. They live in tribes and value strength above all. They are also like a sect and eat victims alive.");
         entityInfoMap.put("Mythic",
-                "Powerful and legendary beings. Often people think, they are rumors and don't exist in real. If you see one, you feel extremly dangerous and facinated at the same time. They are a high threat.");
+                "Powerful and legendary beings. Often people think they are rumors and don't exist. If you see one, you feel extremely dangerous and fascinated at the same time. They are a high threat.");
         entityInfoMap.put("Trork",
                 "Strong and sturdy orc-like creatures from the mountains. They are a medium threat. They live in tribes and value strength. They like stones and minerals.");
         entityInfoMap.put("Undead",
-                "Reanimated corpses. They are a high threat and often attack in groups. They are relentless and don't feel pain. At night, they are even more dangerous. The most dangerous are the white wanderer in icy regions.");
+                "Reanimated corpses. They are a high threat and often attack in groups. They are relentless and don't feel pain. At night, they are even more dangerous. The most dangerous are the white wanderers in icy regions.");
         entityInfoMap.put("Voidspawn",
-                "Dark and twisted creatures born from the void. They are a high threat and often have strange abilities. They corrupt the environment around them. They only apper at night.");
+                "Dark and twisted creatures born from the void. They are a high threat and often have strange abilities. They corrupt the environment around them. They only appear at night.");
         entityInfoMap.put("Livestock",
                 "Domesticated animals living all over the world. They are no threat and often kept for farming. They provide food and materials.");
         entityInfoMap.put("Avian",
@@ -117,7 +116,7 @@ public class LLMCombatMessageManager {
                         "sheep", "lamb", "skrill", "turkey", "warthog"),
                 "Livestock");
         entityCategoryMap.put(
-                List.of("archaeopteryx", "bat", "bluebird", "crow", "duck", "greenfich", "flamingo", "hawk", "owl",
+                List.of("archaeopteryx", "bat", "bluebird", "crow", "duck", "greenfinch", "flamingo", "hawk", "owl",
                         "parrot", "penguin", "pigeon", "pterodactyl", "raven", "sparrow", "terabird", "vulture",
                         "woodpecker"),
                 "Avian");
