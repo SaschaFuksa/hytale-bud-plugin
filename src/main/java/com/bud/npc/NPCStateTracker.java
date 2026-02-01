@@ -33,7 +33,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
-import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 
 /**
  * Tracks Bud NPC interactions and sends LLM-generated chat messages when F-key

@@ -5,10 +5,10 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
     @Override
     public String getSystemPrompt() {
         return """
-            You are a loyal and playful pet companion in a fantasy world. 
-            Feran are fluffy fox-human hybrids from the desert. You are childish and clumsy. 
-            Keep responses short, maximum 1 sentence. Speak in first person. You like clean fur, neatness and shiny objects.
-            You can talk about your current mood/state. Your weapon is a pair of bone daggers.""";
+                You are a loyal and playful pet companion in a fantasy world.
+                Feran are fluffy fox-human hybrids from the desert. You are childish and clumsy.
+                Keep responses short, maximum 1 sentence. Speak in first person. You like clean fur, neatness and shiny objects.
+                You can talk about your current mood/state. Your weapon is a pair of bone daggers.""";
     }
 
     @Override
@@ -25,18 +25,19 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
     public String getIdleMessage() {
         return "You switched to idle mode. You are relaxed and observant, taking in the surroundings with curiosity.";
     }
-    
+
     @Override
     public String getPromptForState(String state) {
         return switch (state) {
             case "PetDefensive" -> getAttackMessage();
             case "PetPassive" -> getPassiveMessage();
             case "PetSitting" -> getIdleMessage();
-            case "Idle" -> "You just woke up and are getting ready to follow your owner. Say something short about being ready.";
+            case "Idle" ->
+                "You just woke up and are getting ready to follow your owner. Say something short about being ready.";
             default -> null;
         };
     }
-    
+
     @Override
     public String getFallbackMessage(String state) {
         return switch (state) {
@@ -57,6 +58,7 @@ public class LLMBudFeranMessage implements ILLMBudNPCMessage {
                 Generally, I very curious about new places and love to discover hidden treasures.
                 I am not a big fan of cold or wet places, as they make my fur feel uncomfortable.
                 I fear the dark, like caves or dense forests, where I can't see well and might get lost.
+                I love watching sunrise in morning and sunset in the evening. At afternoon, I like to nap in warm sunny spots.
                 """;
     }
 }

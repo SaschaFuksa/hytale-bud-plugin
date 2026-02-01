@@ -14,7 +14,6 @@ import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
 import com.bud.npcdata.persistence.BudPlayerData;
-import com.bud.result.DataListResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.system.CleanUpHandler;
