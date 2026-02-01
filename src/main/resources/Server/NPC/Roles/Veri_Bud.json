@@ -26,6 +26,33 @@
             }
           }
         ]
+      },
+      "Melee_Start": {
+        "Interactions": [
+          {
+            "Parent": "NPC_Attack_Melee_Simple",
+            "$Comment": "Sets animations and delay before hit",
+            "Effects": {
+              "ItemAnimationId": "SwingLeft"
+            },
+            "RunTime": 0.167
+          }
+        ]
+      },
+      "Melee_Selector": {
+        "Interactions": [
+          {
+            "Parent": "NPC_Attack_Selector_Left",
+            "RunTime": 0.083,
+            "Selector": {
+              "Id": "Stab",
+              "TestLineOfSight": true,
+              "StartDistance": 0.25,
+              "EndDistance": 2.5,
+              "YawOffset": 0
+            }
+          }
+        ]
       }
     }
   },
