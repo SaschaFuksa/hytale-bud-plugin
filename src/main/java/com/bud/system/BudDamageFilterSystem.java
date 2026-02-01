@@ -1,6 +1,5 @@
-package com.bud.poc;
+package com.bud.system;
 
-import com.bud.system.RecentOpponentCache;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -15,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudDamageFilterSystem extends DamageEventSystem {
@@ -53,7 +53,7 @@ public class BudDamageFilterSystem extends DamageEventSystem {
                         attackerPlayer.getUuid(),
                         targetNPC.getRoleName(),
                         RecentOpponentCache.CombatState.ATTACKED);
-                System.err.println("[BUD] Damage Event: " + attackerPlayer.getUuid() + " attacked NPC "
+                LoggerUtil.getLogger().finer(() -> "[BUD] Damage Event: " + attackerPlayer.getUuid() + " attacked NPC "
                         + targetNPC.getRoleName());
                 return;
             }
@@ -67,15 +67,14 @@ public class BudDamageFilterSystem extends DamageEventSystem {
                         targetPlayer.getUuid(),
                         attackerNPC.getRoleName(),
                         RecentOpponentCache.CombatState.WAS_ATTACKED);
-                System.err.println("[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
+                LoggerUtil.getLogger().finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
                         + targetPlayer.getUuid());
-                return;
             }
 
         } catch (
 
         Exception e) {
-            System.err.println("[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
         }
     }
 }

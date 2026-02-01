@@ -15,6 +15,7 @@ import com.bud.system.BudTimeInformation;
 import com.bud.system.BudWorldContext;
 import com.bud.system.BudWorldInformation;
 import com.bud.system.TimeOfDay;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -36,9 +37,10 @@ public class LLMChatWorldContext implements ILLMChatContext {
 
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         String npcName = budNPCData.getNPCDisplayName();
-        System.out.println("[BUD] current bud: " + npcName);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Generating world prompt for " + instance.getEntity().getNPCTypeId() + ".");
+        LoggerUtil.getLogger().fine(() -> "[BUD] Current bud: " + npcName);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Start extracting world data.");
 
-        System.out.println("[BUD] Start extracting world data.");
         Ref<EntityStore> ownerRef = owner.getReference();
         if (ownerRef == null)
             return new DataResult<>(null, "Owner EntityStore reference is null.");
@@ -46,10 +48,11 @@ public class LLMChatWorldContext implements ILLMChatContext {
         Store<EntityStore> store = ownerRef.getStore();
         World world = store.getExternalData().getWorld();
         BudWorldContext context = getWorldContext(owner, world, store);
-        System.out.println("[BUD] World data extracted: " + context.currentBiome().getName() + ", "
-                + context.currentZone().name() + ", " + context.timeOfDay().name());
 
-        System.out.println("[BUD] Preparing Sound.");
+        LoggerUtil.getLogger().fine(() -> "[BUD] World data extracted: " + context.currentBiome().getName() + ", "
+                + context.currentZone().name() + ", " + context.timeOfDay().name());
+        LoggerUtil.getLogger().fine(() -> "[BUD] Creating prompt.");
+
         String prompt = LLMWorldInfoMessageManager.createPrompt(context, npcMessage);
         return new DataResult<>(prompt, "Prompt generated successfully.");
     }
@@ -66,11 +69,11 @@ public class LLMChatWorldContext implements ILLMChatContext {
     private BudWorldContext getWorldContext(PlayerRef owner, World world, Store<EntityStore> store) {
         Vector3d pos = owner.getTransform().getPosition();
         TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
-        System.out.println("[BUD] time of day: " + timeOfDay.name());
+        LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
         Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
-        System.out.println("[BUD] current biome: " + currentBiome.getName());
+        LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + currentBiome.getName());
         Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
-        System.out.println("[BUD] current zone: " + currentZone.name());
+        LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + currentZone.name());
         return new BudWorldContext(timeOfDay, currentZone, currentBiome);
     }
 

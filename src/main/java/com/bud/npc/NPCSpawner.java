@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -67,10 +68,10 @@ public class NPCSpawner {
      * @return A new NPCSpawner builder
      */
     public static NPCSpawner create(Store<EntityStore> store, String npcType, Vector3d position) {
-        System.out.println("[BUD] ========================================");
-        System.out.println("[BUD] Attempting to spawn custom NPC Type : " + npcType);
-        System.out.println("[BUD] Position: " + position);
-        System.out.println("[BUD] ========================================");
+        LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
+        LoggerUtil.getLogger().fine(() -> "[BUD] Attempting to spawn custom NPC Type : " + npcType);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Position: " + position);
+        LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
         return new NPCSpawner(store, npcType, position);
     }
 
@@ -166,7 +167,7 @@ public class NPCSpawner {
                     position, rotation);
 
             if (result == null) {
-                System.out.println("[NPCSpawner] Failed to spawn NPC: " + npcType);
+                LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Failed to spawn NPC: " + npcType);
                 return null;
             }
 
@@ -177,12 +178,11 @@ public class NPCSpawner {
                 configureInventory();
             }
 
-            System.out.println("[NPCSpawner] Successfully spawned " + npcType + " at " + position);
+            LoggerUtil.getLogger().fine(() -> "[NPCSpawner] Successfully spawned " + npcType + " at " + position);
             return result;
 
         } catch (Exception e) {
-            System.out.println("[NPCSpawner] Error spawning NPC: " + e.getMessage());
-            e.printStackTrace();
+            LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Error spawning NPC: " + e.getMessage());
             return null;
         }
     }
@@ -193,7 +193,7 @@ public class NPCSpawner {
     private void configureInventory() {
         NPCEntity npcComponent = store.getComponent(spawnedNpcRef, NPCEntity.getComponentType());
         if (npcComponent == null) {
-            System.out.println("[NPCSpawner] Cannot configure inventory: NPC component not found");
+            LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure inventory: NPC component not found");
             return;
         }
 
@@ -217,7 +217,7 @@ public class NPCSpawner {
             InventoryHelper.useArmor(inventory.getArmor(), armor.itemId);
         }
 
-        System.out.println("[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size()
+        LoggerUtil.getLogger().fine(() -> "[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size()
                 + " armor pieces");
     }
 

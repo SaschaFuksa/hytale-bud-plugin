@@ -1,5 +1,6 @@
 package com.bud.system;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.worldgen.IWorldGen;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
@@ -23,7 +24,7 @@ public class BudWorldInformation {
                     return result.getZoneResult().getZone();
                 }
             } catch (Exception e) {
-                System.err.println("Error getting zone at position: " + e.getMessage());
+                LoggerUtil.getLogger().severe(() -> "[BUD] Error getting zone at position: " + e.getMessage());
             }
         }
         return null;
@@ -42,7 +43,7 @@ public class BudWorldInformation {
                     return result.getBiome();
                 }
             } catch (Exception e) {
-                System.err.println("Error getting biome at position: " + e.getMessage());
+                LoggerUtil.getLogger().severe(() -> "[BUD] Error getting biome at position: " + e.getMessage());
             }
         }
         return null;

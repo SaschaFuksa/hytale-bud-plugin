@@ -15,6 +15,7 @@ import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 
@@ -85,10 +86,10 @@ public class BudLLMRandomChat {
             try {
                 String response = budLLM.callLLM(prompt);
                 String message = npcName + ": " + response;
-                System.out.println("[BUD] LLM response: " + message);
+                LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
                 this.chatInteraction.sendChatMessage(world, owner, message);
             } catch (Exception e) {
-                System.out.println("[BUD] Random Chat Error: " + e.getMessage());
+                LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
             }
         });
     }

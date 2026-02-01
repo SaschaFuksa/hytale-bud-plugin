@@ -15,6 +15,7 @@ import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.bud.system.RecentOpponentCache;
 import com.bud.system.RecentOpponentCache.OpponentEntry;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public class LLMChatCombatContext implements ILLMChatContext {
@@ -31,9 +32,8 @@ public class LLMChatCombatContext implements ILLMChatContext {
             return new DataResult<>(null, BudLLMRandomChat.NO_COMBAT_STRING);
         }
 
-        System.out.println("[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
-        System.out.println(
-                "[BUD] Processing combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
+        LoggerUtil.getLogger().fine(() -> "[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
+        LoggerUtil.getLogger().fine(() -> "[BUD] Processing combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
 
         IBudNPCData budNPCData = budInstance.getData();
 

@@ -40,7 +40,7 @@ public class BudConfig {
     static {
         CODEC = (BuilderCodec<BudConfig>) BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec("EnableLLM", Codec.BOOLEAN), (config, value, extra) -> {
-                    ((BudConfig)config).enableLLM = (Boolean)value;
+                    ((BudConfig)config).enableLLM = value;
                 }, (config, extra) -> {
                     return ((BudConfig)config).enableLLM;
                 }).add()

@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import com.bud.BudConfig;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class BudLLM {
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -34,7 +35,7 @@ public class BudLLM {
         String escapedMessage = escapeJson(message);
         String jsonPayload = "{\"model\":\"" + this.budConfig.getModel() + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage + "\"}],\"temperature\":0.8,\"max_tokens\":400}";
 
-        System.out.println("[LLM] Sending request to " + budConfig.getUrl());
+        LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + budConfig.getUrl());
         
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(budConfig.getUrl()))
@@ -43,10 +44,10 @@ public class BudLLM {
                 .timeout(Duration.ofSeconds(10))
                 .build();
 
-        System.out.println("[LLM] Waiting for response...");
+        LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         
-        System.out.println("[LLM] Response code: " + response.statusCode());
+        LoggerUtil.getLogger().info(() -> "[LLM] Response code: " + response.statusCode());
         
         if (response.statusCode() != 200) {
             throw new IOException("API Error: " + response.statusCode() + " " + response.body());
@@ -57,7 +58,7 @@ public class BudLLM {
 
     private String getContentFromResponse(String jsonResponse) {
         // Better JSON parsing - find the content field and extract it properly
-        System.out.println("[LLM] Full response: " + jsonResponse);
+        LoggerUtil.getLogger().fine(() -> "[LLM] Full response: " + jsonResponse);
         
         try {
             // Find "content": in the response
@@ -91,11 +92,11 @@ public class BudLLM {
                     .replace("\\\"", "\"")
                     .replace("\\\\", "\\");
             
-            System.out.println("[LLM] Extracted content: " + content);
+            LoggerUtil.getLogger().fine(() -> "[LLM] Extracted content: " + content);
             return content;
             
         } catch (Exception e) {
-            System.out.println("[LLM] Parsing error: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[LLM] Parsing error: " + e.getMessage());
             return "Error parsing response: " + e.getMessage();
         }
     }

@@ -12,7 +12,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import java.util.Set;
+
 import javax.annotation.Nonnull;
+
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class BudCleanupSystem extends RefSystem<EntityStore> {
 
@@ -36,7 +39,7 @@ public class BudCleanupSystem extends RefSystem<EntityStore> {
             if (npc != null) {
                 Set<String> trackedTypes = NPCManager.getInstance().getTrackedBudTypes();
                 if (trackedTypes.contains(npc.getNPCTypeId())) {
-                    System.out.println("[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());
+                    LoggerUtil.getLogger().fine(() -> "[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());
                     commandBuffer.removeEntity(ref, RemoveReason.REMOVE);
                 }
             }

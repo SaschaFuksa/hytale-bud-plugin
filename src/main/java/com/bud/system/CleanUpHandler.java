@@ -29,6 +29,7 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class CleanUpHandler {
 
@@ -39,7 +40,7 @@ public class CleanUpHandler {
             return persistedBudsResult;
         }
         List<UUID> persistedBuds = persistedBudsResult.getDataList();
-        System.out.println("[BUD] Size of persisted buds: " + persistedBuds.size());
+        LoggerUtil.getLogger().fine(() -> "[BUD] Size of persisted buds: " + persistedBuds.size());
         List<String> errors = new ArrayList<>();
         for (UUID budUUID : persistedBuds) {
             IResult result = cleanupBud(playerRef, world, budUUID);
@@ -48,7 +49,8 @@ public class CleanUpHandler {
             }
         }
         persistedBudsResult = PersistenceManager.getInstance().getPersistedBudUUIDs(playerRef);
-        System.out.println("[BUD] Size of persisted buds after cleanup: " + persistedBudsResult.getDataList().size());
+        final int sizeAfterCleanup = persistedBudsResult.getDataList().size();
+        LoggerUtil.getLogger().fine(() -> "[BUD] Size of persisted buds after cleanup: " + sizeAfterCleanup);
         if (!errors.isEmpty()) {
             return new ErrorResult("Errors occurred while removing owner buds: " + String.join(", ", errors));
         }
@@ -60,7 +62,7 @@ public class CleanUpHandler {
             IDataResult<NPCEntity> npcResult = NPCManager.getInstance().getNPCEntityByUUID(budUUID, world);
             npcResult.printResult();
             if (!npcResult.isSuccess()) {
-                System.err.println("[BUD] Maybe Entity already despawned. Try to unregister.");
+                LoggerUtil.getLogger().fine(() -> "[BUD] Maybe Entity already despawned. Try to unregister.");
             } else {
                 NPCEntity npcEntity = npcResult.getData();
                 NPCStateTracker.getInstance().unregisterBud(npcEntity).printResult();
@@ -79,8 +81,7 @@ public class CleanUpHandler {
 
     public static IResult cleanupAllBuds(World world) {
         Set<String> typesSnapshot = NPCManager.getInstance().getTrackedBudTypes();
-        System.out
-                .println("[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
                 () -> {
                     IResult result = cleanupWorld(world, typesSnapshot);
@@ -102,7 +103,7 @@ public class CleanUpHandler {
     }
 
     private static IResult cleanupWorld(World world, Set<String> trackedBudTypes) {
-        System.out.println("[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
         try {
             Store<EntityStore> store = world.getEntityStore().getStore();
             // Collection to hold tracked buds for safe unregister/unpersist
@@ -146,7 +147,7 @@ public class CleanUpHandler {
                             PersistenceManager.getInstance().unpersistData(owner, npcEntity.getUuid()).printResult();
                         }
                     } catch (Exception e) {
-                        System.err.println("[BUD] Error cleaning up tracked bud: " + e.getMessage());
+                        LoggerUtil.getLogger().severe(() -> "[BUD] Error cleaning up tracked bud: " + e.getMessage());
                     }
                 }
             });

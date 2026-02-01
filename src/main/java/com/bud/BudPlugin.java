@@ -17,9 +17,10 @@ import java.util.concurrent.TimeUnit;
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.llmcombatmessage.LLMChatCombatContext;
 import com.bud.llm.llmworldmessage.LLMChatWorldContext;
-import com.bud.poc.BudDamageFilterSystem;
+import com.bud.system.BudDamageFilterSystem;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -71,8 +72,8 @@ public class BudPlugin extends JavaPlugin {
              */
             try {
                 PlayerRef playerRef = event.getPlayerRef();
-                System.err.println("[BUD] Player connected: " + playerRef.getUuid());
-                System.err.println("[BUD] World: " + event.getWorld());
+                LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
+                LoggerUtil.getLogger().fine(() -> "[BUD] World: " + event.getWorld());
                 IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, event.getWorld());
                 result.printResult();
             } catch (Exception e) {
@@ -86,7 +87,7 @@ public class BudPlugin extends JavaPlugin {
              */
             try {
                 PlayerRef playerRef = event.getPlayerRef();
-                System.out.println("[BUD] Player disconnected: " + playerRef.getUuid());
+                LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

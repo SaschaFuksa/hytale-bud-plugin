@@ -14,6 +14,7 @@ import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -86,14 +87,14 @@ public class NPCStateTracker {
         }
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::pollStates, 200L, 200L,
                 TimeUnit.MILLISECONDS);
-        System.out.println("[BUD] Started state polling task");
+        LoggerUtil.getLogger().fine(() -> "[BUD] Started state polling task");
     }
 
     public synchronized void stopPolling() {
         if (pollingTask != null) {
             pollingTask.cancel(false);
             pollingTask = null;
-            System.out.println("[BUD] Stopped state polling task");
+            LoggerUtil.getLogger().fine(() -> "[BUD] Stopped state polling task");
         }
     }
 
@@ -153,7 +154,7 @@ public class NPCStateTracker {
         NPCEntity bud = budInstance.getEntity();
         IBudNPCData budNPCData = budInstance.getData();
 
-        System.out.println("[BUD] State changed: " + fromState + " -> " + toState);
+        LoggerUtil.getLogger().fine(() -> "[BUD] State changed: " + fromState + " -> " + toState);
 
         final Ref<EntityStore> ownerRef = owner.getReference();
         final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
@@ -181,7 +182,7 @@ public class NPCStateTracker {
                     String response = budLLM.callLLM(prompt);
                     message = budNPCData.getNPCDisplayName() + ": " + response;
                 } catch (java.io.IOException | InterruptedException e) {
-                    System.out.println("[BUD] LLM error: " + e.getMessage());
+                    LoggerUtil.getLogger().severe(() -> "[BUD] LLM error: " + e.getMessage());
                     String fallbackMessage = npcMessage.getFallbackMessage(toState);
                     message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
                 }
@@ -189,6 +190,7 @@ public class NPCStateTracker {
             });
         } else {
             String fallbackMessage = npcMessage.getFallbackMessage(toState);
+            LoggerUtil.getLogger().fine(() -> "[BUD] Sending fallback message: " + fallbackMessage);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }
     }

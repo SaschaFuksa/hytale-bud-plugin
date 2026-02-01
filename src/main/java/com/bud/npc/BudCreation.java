@@ -16,6 +16,7 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -115,9 +116,10 @@ public class BudCreation {
 
                 // Force the state change
                 stateSupport.setState(attackStateIndex, subStateIndex, true, false);
-                System.out.println("[BUD] Force-set state to PetDefensive");
+                LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to PetDefensive for NPC: " +
+                        bud.getNPCTypeId());
             } else {
-                System.err.println("[BUD] Could not find state 'PetDefensive' for NPC: " +
+                LoggerUtil.getLogger().severe(() -> "[BUD] Could not find state 'PetDefensive' for NPC: " +
                         bud.getNPCTypeId());
             }
 
@@ -125,7 +127,7 @@ public class BudCreation {
             MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
             if (markedSupport != null) {
                 markedSupport.setMarkedEntity("LockedTarget", owner.getReference());
-                System.out.println("[BUD] Set player as LockedTarget");
+                LoggerUtil.getLogger().fine(() -> "[BUD] Set player as LockedTarget");
             }
 
         });
@@ -133,57 +135,57 @@ public class BudCreation {
     }
 
     private static void printPlayerDebugInfo(PlayerRef playerRef, Store<EntityStore> store) {
-        System.out.println("======= BUD PLAYER DEBUG INFO =======");
-        System.out.println("Player Name: " + playerRef.getUsername());
-        System.out.println("Player UUID: " + playerRef.getUuid());
+        LoggerUtil.getLogger().fine(() -> "======= BUD PLAYER DEBUG INFO =======");
+        LoggerUtil.getLogger().fine(() -> "Player Name: " + playerRef.getUsername());
+        LoggerUtil.getLogger().fine(() -> "Player UUID: " + playerRef.getUuid());
 
         if (store != null) {
-            System.out.println("Store Class: " + store.getClass().getName());
+            LoggerUtil.getLogger().fine(() -> "Store Class: " + store.getClass().getName());
             try {
                 Ref<EntityStore> ref = playerRef.getReference();
                 if (ref != null) {
-                    System.out.println("Player Store Ref: " + ref.toString() + " (Valid: " + ref.isValid() + ")");
+                    LoggerUtil.getLogger().fine(() -> "Player Store Ref: " + ref.toString() + " (Valid: " + ref.isValid() + ")");
 
                     // Try to get EntityGroup
                     EntityGroup group = store.getComponent(ref, EntityGroup.getComponentType());
                     if (group != null) {
-                        System.out.println("Player EntityGroup: Present (Size: " + group.size() + ")");
+                        LoggerUtil.getLogger().fine(() -> "Player EntityGroup: Present (Size: " + group.size() + ")");
                     } else {
-                        System.out.println("Player EntityGroup: NULL");
+                        LoggerUtil.getLogger().warning(() -> "Player EntityGroup: NULL");
                     }
                 } else {
-                    System.out.println("Player Store Ref is NULL");
+                    LoggerUtil.getLogger().warning(() -> "Player Store Ref is NULL");
                 }
             } catch (Exception e) {
-                System.out.println("[BudPlugin] Error identifying player components: " + e.getMessage());
+                LoggerUtil.getLogger().warning(() -> "[BudPlugin] Error identifying player components: " + e.getMessage());
             }
         } else {
-            System.out.println("[BudPlugin] Store is null.");
+            LoggerUtil.getLogger().warning(() -> "[BudPlugin] Store is null.");
         }
-        System.out.println("=====================================");
+        LoggerUtil.getLogger().fine(() -> "=====================================");
     }
 
     private static void printNPCDebugInfo(NPCEntity npc) {
-        System.out.println("======= BUD NPC DEBUG INFO =======");
-        System.out.println("NPC Name: " + npc.getNPCTypeId());
-        System.out.println("Role Name: " + npc.getRoleName());
+        LoggerUtil.getLogger().fine(() -> "======= BUD NPC DEBUG INFO =======");
+        LoggerUtil.getLogger().fine(() -> "NPC Name: " + npc.getNPCTypeId());
+        LoggerUtil.getLogger().fine(() -> "Role Name: " + npc.getRoleName());
         Role role = npc.getRole();
         if (role != null) {
-            System.out.println("--- AI & Behavior ---");
-            System.out.println("Can Lead Flock: " + role.isCanLeadFlock());
-            System.out.println("Is Avoiding Entities: " + role.isAvoidingEntities());
+            LoggerUtil.getLogger().fine(() -> "--- AI & Behavior ---");
+            LoggerUtil.getLogger().fine(() -> "Can Lead Flock: " + role.isCanLeadFlock());
+            LoggerUtil.getLogger().fine(() -> "Is Avoiding Entities: " + role.isAvoidingEntities());
 
             // Attitude Info
-            System.out.println("Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
-            System.out.println("Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
+            LoggerUtil.getLogger().fine(() -> "Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
+            LoggerUtil.getLogger().fine(() -> "Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
 
             // Damage Groups Info
-            System.out.println("--- Damage Settings ---");
+            LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
             var combatSupport = role.getCombatSupport();
             if (combatSupport != null) {
                 int[] disableGroups = combatSupport.getDisableDamageGroups();
                 if (disableGroups != null) {
-                    System.out.println("DisableDamageGroups (Count): " + disableGroups.length);
+                    LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
                     var assetMap = com.hypixel.hytale.server.npc.config.AttitudeGroup.getAssetMap();
 
                     // --- REVERSE LOOKUP DEBUG ---
@@ -207,7 +209,7 @@ public class BudCreation {
                             }
                         }
                     } catch (Exception e) {
-                        System.out.println("Reverse lookup debug error: " + e);
+                        LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
                     }
                     // ----------------------------
 
@@ -216,45 +218,48 @@ public class BudCreation {
                         var groupAsset = assetMap.getAsset(g);
                         if (groupAsset != null) {
                             groupName = groupAsset.getId();
+                            final String logGroupName = groupName;
+                            LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + logGroupName + ")");
                         } else if (reverseMap.containsKey(g)) {
                             groupName = reverseMap.get(g) + " (Mapped)";
+                            final String logGroupName = groupName;
+                            LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + logGroupName + ")");
                         }
-                        System.out.println(" - Group ID: " + g + " (" + groupName + ")");
                     }
                 } else {
-                    System.out.println("DisableDamageGroups is NULL");
+                    LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
                 }
 
-                System.out.println("Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
+                LoggerUtil.getLogger().fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
             }
 
             // Check if it's friendly now
-            System.out.println("--- Current Status ---");
-            System.out.println("Is Backing Away: " + role.isBackingAway());
+            LoggerUtil.getLogger().fine(() -> "--- Current Status ---");
+            LoggerUtil.getLogger().fine(() -> "Is Backing Away: " + role.isBackingAway());
 
             // NEW: Print available states
-            System.out.println("--- Available States ---");
+            LoggerUtil.getLogger().fine(() -> "--- Available States ---");
             try {
                 var stateHelper = role.getStateSupport().getStateHelper();
-                System.out.println("Current State: " + role.getStateSupport().getStateName());
+                LoggerUtil.getLogger().fine(() -> "Current State: " + role.getStateSupport().getStateName());
                 // Try to get state indices for common states
                 int idleIdx = stateHelper.getStateIndex("Idle");
                 int petPassiveIdx = stateHelper.getStateIndex("PetPassive");
                 int petDefensiveIdx = stateHelper.getStateIndex("PetDefensive");
                 int petSittingIdx = stateHelper.getStateIndex("PetSitting");
-                System.out.println("State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
-                System.out.println("State 'PetPassive' index: "
+                LoggerUtil.getLogger().fine(() -> "State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
+                LoggerUtil.getLogger().fine(() -> "State 'PetPassive' index: "
                         + (petPassiveIdx != Integer.MIN_VALUE ? petPassiveIdx : "NOT FOUND"));
-                System.out.println("State 'PetDefensive' index: "
+                LoggerUtil.getLogger().fine(() -> "State 'PetDefensive' index: "
                         + (petDefensiveIdx != Integer.MIN_VALUE ? petDefensiveIdx : "NOT FOUND"));
-                System.out.println("State 'PetSitting' index: "
+                LoggerUtil.getLogger().fine(() -> "State 'PetSitting' index: "
                         + (petSittingIdx != Integer.MIN_VALUE ? petSittingIdx : "NOT FOUND"));
             } catch (Exception e) {
-                System.out.println("Error reading states: " + e.getMessage());
+                LoggerUtil.getLogger().severe(() -> "Error reading states: " + e.getMessage());
             }
         }
 
-        System.out.println("==================================");
+        LoggerUtil.getLogger().fine(() -> "==================================");
     }
 
 }

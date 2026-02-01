@@ -17,6 +17,7 @@ import com.bud.npc.npcdata.persistence.BudPlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.system.CleanUpHandler;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
@@ -110,17 +111,16 @@ public class BudCommand extends AbstractPlayerCommand {
                     BudPlayerData customData = store.ensureAndGetComponent(ref,
                             BudPlugin.getInstance().getBudPlayerDataComponent());
                     String uuids = customData.getBuds().stream().map(UUID::toString).collect(Collectors.joining(","));
-                    System.out.println("[BUD] Current BudPlayerData for player " + playerRef.getUuid() + ": " + uuids);
+                    LoggerUtil.getLogger().info(() -> "[BUD] Current BudPlayer: " + playerRef.getUuid() + " Data: " + uuids);
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "Current BudPlayerData: " + uuids);
                 }
                 case "data-clean" -> {
                     store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new BudPlayerData());
-                    System.out.println("[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
-                    this.chatInteraction.sendChatMessage(world, playerRef,
-                            "Cleared BudPlayerData.");
+                    LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
+                    this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
-                default -> System.out.println("Unknown mode: " + inputMode);
+                default -> LoggerUtil.getLogger().warning(() -> "[BUD] Unknown mode: " + inputMode);
             }
         }
 

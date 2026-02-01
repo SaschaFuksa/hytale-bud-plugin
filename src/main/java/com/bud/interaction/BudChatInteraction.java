@@ -1,5 +1,6 @@
 package com.bud.interaction;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -11,9 +12,9 @@ public class BudChatInteraction {
             world.execute(() -> {
                 owner.sendMessage(Message.raw(message));
             });
-            System.out.println("[BUD] Sent chat: " + message);
+            LoggerUtil.getLogger().finer(() -> "[BUD] Sent chat: " + message);
         } catch (Exception e) {
-            System.out.println("[BUD] Failed to send chat: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Error sending chat: " + message);
         }
     }
     

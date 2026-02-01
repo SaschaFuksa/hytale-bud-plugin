@@ -1,5 +1,6 @@
 package com.bud.interaction;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -23,7 +24,7 @@ public class BudSoundInteraction {
             }
 
             if (soundEventIndex == 0) {
-                System.out.println("[BUD] No sound to play for sound event id: " + soundEventID);
+                LoggerUtil.getLogger().warning(() -> "[BUD] No sound to play for sound event id: " + soundEventID);
                 return;
             }
 
@@ -42,10 +43,9 @@ public class BudSoundInteraction {
                     }
                 }
             });
-
-            System.out.println("[BUD] Played sound for state change.");
+            LoggerUtil.getLogger().finer(() -> "[BUD] Played sound for state change.");
         } catch (Exception e) {
-            System.out.println("[BUD] Failed to play sound: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to play sound: " + e.getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ public class BudSoundInteraction {
 
         int soundEventIndex = SoundEvent.getAssetMap().getIndex(soundEventId);
         if (soundEventIndex == Integer.MIN_VALUE) {
-            System.out.println("[BUD] Invalid sound event id: " + soundEventId);
+            LoggerUtil.getLogger().warning(() -> "[BUD] Invalid sound event id: " + soundEventId);
             return 0;
         }
 
@@ -94,10 +94,9 @@ public class BudSoundInteraction {
             if (count == 0) {
                 builder.append("<none>");
             }
-
-            System.out.println(builder);
+            LoggerUtil.getLogger().info(() -> builder.toString());
         } catch (Exception e) {
-            System.out.println("[BUD] Failed to list SoundEvent IDs: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to list SoundEvent IDs: " + e.getMessage());
         }
     }
     
