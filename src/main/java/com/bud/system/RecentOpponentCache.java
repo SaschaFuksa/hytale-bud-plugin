@@ -1,0 +1,83 @@
+package com.bud.system;
+
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class RecentOpponentCache {
+
+    public enum CombatState {
+        ATTACKED,
+        WAS_ATTACKED
+    }
+
+    public record OpponentEntry(String roleName, CombatState state) {
+    }
+
+    private static final Map<UUID, LinkedList<OpponentEntry>> cache = new ConcurrentHashMap<>();
+    private static final int MAX_HISTORY = 3;
+
+    /**
+     * Adds an opponent to the cache or updates the status.
+     * 
+     * @param playerId Player UUID
+     * @param roleName NPC name (roleName)
+     * @param state    Interaction status
+     */
+    public static void addOpponent(UUID playerId, String roleName, CombatState state) {
+        cache.compute(playerId, (key, list) -> {
+            if (list == null) {
+                list = new LinkedList<>();
+            }
+
+            if (!list.isEmpty()) {
+                OpponentEntry lastEntry = list.getLast();
+
+                if (lastEntry.roleName().equals(roleName)) {
+                    if (state == CombatState.ATTACKED && lastEntry.state() == CombatState.WAS_ATTACKED) {
+                        list.removeLast();
+                        list.addLast(new OpponentEntry(roleName, state));
+                        System.out.println(
+                                "[BUD-Cache] Updated interaction with " + roleName + " to ATTACKED for " + playerId);
+                    }
+                    return list;
+                }
+            }
+
+            list.addLast(new OpponentEntry(roleName, state));
+
+            // Limit size
+            if (list.size() > MAX_HISTORY) {
+                list.removeFirst();
+            }
+
+            // Debug output
+            System.out.println(
+                    "[BUD-Cache] Added " + roleName + " (" + state + ") for " + playerId + ". History: " + list.size());
+            return list;
+        });
+    }
+
+    public static LinkedList<OpponentEntry> getHistory(UUID playerId) {
+        // Return a copy to avoid external modification of the internal list without
+        // using setHistory
+        return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));
+    }
+
+    public static void setHistory(UUID playerId, LinkedList<OpponentEntry> newHistory) {
+        if (newHistory == null) {
+            cache.remove(playerId);
+        } else {
+            // Ensure caching limit is respected even when setting externally
+            while (newHistory.size() > MAX_HISTORY) {
+                newHistory.removeFirst();
+            }
+            cache.put(playerId, newHistory);
+        }
+    }
+
+    public static void clear(UUID playerId) {
+        cache.remove(playerId);
+    }
+}

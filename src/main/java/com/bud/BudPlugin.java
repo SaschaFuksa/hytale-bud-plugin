@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.npc.NPCStateTracker;
+import com.bud.poc.BudDamageFilterSystem;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.component.ComponentType;
@@ -51,7 +52,7 @@ public class BudPlugin extends JavaPlugin {
         this.getCommandRegistry().registerCommand(new LLMCommand());
 
         // Register Damage Filter System
-        // this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
 
         // Register Cleanup System
         /**

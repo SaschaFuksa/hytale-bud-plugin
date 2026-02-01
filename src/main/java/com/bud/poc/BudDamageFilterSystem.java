@@ -1,5 +1,6 @@
 package com.bud.poc;
 
+import com.bud.system.RecentOpponentCache;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -10,15 +11,12 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
-/***
- * TODO: Remove this class in future
- */
-@Deprecated
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
+
 public class BudDamageFilterSystem extends DamageEventSystem {
 
     @Override
@@ -28,9 +26,7 @@ public class BudDamageFilterSystem extends DamageEventSystem {
 
     @Override
     public Query<EntityStore> getQuery() {
-        // Optimized: Only run this system for entities that are Players (have PlayerRef
-        // component)
-        return PlayerRef.getComponentType();
+        return Query.any();
     }
 
     @Override
@@ -47,54 +43,39 @@ public class BudDamageFilterSystem extends DamageEventSystem {
 
             Ref<EntityStore> attackerRef = entitySource.getRef();
 
+            // Resolve Entities
             Player attackerPlayer = store.getComponent(attackerRef, Player.getComponentType());
-            Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
-            System.err.println("[BUD] Damage Event: Attacker="
-                    + (attackerPlayer != null ? attackerPlayer.getDisplayName() : "Non-Player")
-                    + ", Target=" + (targetPlayer != null ? targetPlayer.getDisplayName() : "Non-Player")
-                    + ", Amount=" + damage.getAmount());
+            NPCEntity targetNPC = store.getComponent(targetRef, NPCEntity.getComponentType());
 
-            PlayerRef playerRef = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
-            if (playerRef == null) {
+            // Case 1: Player attacks NPC
+            if (attackerPlayer != null && targetNPC != null) {
+                RecentOpponentCache.addOpponent(
+                        attackerPlayer.getUuid(),
+                        targetNPC.getRoleName(),
+                        RecentOpponentCache.CombatState.ATTACKED);
+                System.err.println("[BUD] Damage Event: " + attackerPlayer.getUuid() + " attacked NPC "
+                        + targetNPC.getRoleName());
                 return;
             }
 
-            if (attackerPlayer == null && targetPlayer != null) {
-                System.out.println(
-                        "[BUD] Filter: Blocked entity attack on Player " + playerRef.getUuid());
-                damage.setAmount(damage.getAmount() * 0.1f);
-                // damage.setSource(null);
-                // damage.setCancelled(true);
+            NPCEntity attackerNPC = store.getComponent(attackerRef, NPCEntity.getComponentType());
+            Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
+
+            // Case 2: NPC attacks Player
+            if (attackerNPC != null && targetPlayer != null) {
+                RecentOpponentCache.addOpponent(
+                        targetPlayer.getUuid(),
+                        attackerNPC.getRoleName(),
+                        RecentOpponentCache.CombatState.WAS_ATTACKED);
+                System.err.println("[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
+                        + targetPlayer.getUuid());
+                return;
             }
-            // TODO
-            // Implement short memory of targets and after some time allow bud chat to talk
-            // about
-            // Damage.Source source = damage.getSource();
-            // if (source instanceof Damage.EntitySource entitySource) {
-            // Ref<?> sourceRefRaw = entitySource.getRef();
 
-            // if (sourceRefRaw != null && sourceRefRaw.isValid()) {
-            // try {
-            // @SuppressWarnings("unchecked")
-            // Ref<EntityStore> attackerRef = (Ref<EntityStore>) sourceRefRaw;
-
-            // // If the attacker is a Bud owned by the victim (player), cancel the damage
-            // if (NPCManager.getInstance().isBudOwnedBy(playerRef.getUuid(), attackerRef))
-            // {
-            // System.out.println(
-            // "[BUD] Filter: Blocked Friendly Fire from Bud to Player " +
-            // playerRef.getUuid());
-            // // damage.setCancelled(true);
-            // }
-            // } catch (ClassCastException ignored) {
-            // // Not an EntityStore ref
-            // }
-            // }
         } catch (
 
         Exception e) {
             System.err.println("[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }
