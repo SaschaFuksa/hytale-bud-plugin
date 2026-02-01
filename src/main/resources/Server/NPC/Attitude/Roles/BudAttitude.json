@@ -3,7 +3,7 @@
     "Friendly": [
       "Self",
       "Passive",
-      "Player"
+      "BudNPCGroup"
     ],
     "Hostile": [
       "Predators",
@@ -16,10 +16,9 @@
       "Zombie",
       "Undead"
     ],
-    "Ignore": [
-      "Player",
-      "$player",
-      "$self"
+    "Ignore": [],
+    "Revered": [
+      "Player"
     ]
   }
 }

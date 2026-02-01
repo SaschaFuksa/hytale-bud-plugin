@@ -84,7 +84,8 @@
   "DefaultPlayerAttitude": "Ignore",
   "DisableDamageGroups": [
     "Self",
-    "Player"
+    "Player",
+    "BudNPCGroup"
   ],
   "Invulnerable": true,
   "MotionControllerList": [
