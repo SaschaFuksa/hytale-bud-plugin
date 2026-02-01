@@ -51,7 +51,6 @@ public class BudPlugin extends JavaPlugin {
 
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
-        this.getCommandRegistry().registerCommand(new LLMCommand());
 
         // Register Damage Filter System
         this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
