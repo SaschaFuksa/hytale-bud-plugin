@@ -55,7 +55,7 @@ public class CleanUpHandler {
         return new SuccessResult("Removed all owner buds.");
     }
 
-    private static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull UUID budUUID) {
+    public static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull UUID budUUID) {
         try {
             IDataResult<NPCEntity> npcResult = NPCManager.getInstance().getNPCEntityByUUID(budUUID, world);
             npcResult.printResult();

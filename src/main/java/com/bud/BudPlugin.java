@@ -109,11 +109,11 @@ public class BudPlugin extends JavaPlugin {
                 IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
                 result.printResult();
             }, 180L, 180L, TimeUnit.SECONDS);
-            // Schedule Random Combat Chat Task (every 20 seconds)
+            // Schedule Random Combat Chat Task (every 10 seconds)
             HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
                 IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatCombatContext());
                 result.printResult();
-            }, 20L, 20L, TimeUnit.SECONDS);
+            }, 10L, 10L, TimeUnit.SECONDS);
         }
     }
 

@@ -20,6 +20,7 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -82,6 +83,7 @@ public class NPCManager {
                 teleportedBuds.add(bud);
             } else {
                 result.printResult();
+                CleanUpHandler.cleanupBud(playerRef, bud.getWorld(), bud.getUuid());
             }
         }
         String joinedNames = teleportedBuds.stream()
