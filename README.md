@@ -42,7 +42,7 @@ Custom Chat Interaction (Only with LLM enabled):
 - Your Bud will sends a chat message in reference to the last combats you had.
 
 ### Update 1.0.1 Bugfixes
-- [Work in progress]
+- Set token amount to 400 instead of 30 for better answers from LLM.
 ### Goals 1.1.0 Feature
 - Command to toggle state for all Buds like "/bud attack"
 
