@@ -85,9 +85,9 @@ public class NPCManager {
             }
         }
         String joinedNames = teleportedBuds.stream()
-                .map(npc -> npc.getNPCTypeId())
+                .map(npc -> npc.getNPCTypeId().split("_")[0])
                 .collect(Collectors.joining(", "));
-        return new DataListResult<>(teleportedBuds, "Teleported cour buds " + joinedNames);
+        return new DataListResult<>(teleportedBuds, "Teleported your buds " + joinedNames);
     }
 
     public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudNPCData budData) {
@@ -112,7 +112,7 @@ public class NPCManager {
         TransformComponent transform = store.getComponent(budRef, TransformComponent.getComponentType());
         if (transform != null) {
             transform.setPosition(getPlayerPosition(playerRef));
-            return new SuccessResult("Teleported Bud " + bud.getNPCTypeId() + " successfully.");
+            return new SuccessResult("Teleported Bud " + bud.getNPCTypeId().split("_")[0] + " successfully.");
         } else {
             return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");
         }

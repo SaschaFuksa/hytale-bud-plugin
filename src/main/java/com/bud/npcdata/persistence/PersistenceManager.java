@@ -64,16 +64,26 @@ public class PersistenceManager {
     public IResult unpersistData(@Nonnull PlayerRef playerRef, UUID uuid) {
         System.out.println("[BUD] Unpersist data for " + playerRef.getUuid());
         try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            System.out.println("[BUD] Got player ref");
-            Store<EntityStore> store = ref.getStore();
-            System.out.println("[BUD] Got store");
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
-                    BudPlugin.getInstance().getBudPlayerDataComponent());
-            System.out.println("[BUD] Got custom data");
-            customData.remove(uuid);
-            System.out.println("[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
-            store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
+            Holder<EntityStore> holder = playerRef.getHolder();
+            if (holder == null) {
+                Ref<EntityStore> ref = playerRef.getReference();
+                System.out.println("[BUD] Got player ref");
+                Store<EntityStore> store = ref.getStore();
+                System.out.println("[BUD] Got store");
+                BudPlayerData customData = store.ensureAndGetComponent(ref,
+                        BudPlugin.getInstance().getBudPlayerDataComponent());
+                System.out.println("[BUD] Got custom data");
+                customData.remove(uuid);
+                System.out.println("[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
+                store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
+            } else {
+                BudPlayerData customData = holder
+                        .ensureAndGetComponent(BudPlugin.getInstance().getBudPlayerDataComponent());
+                System.out.println("[BUD] Got custom data");
+                customData.remove(uuid);
+                System.out.println("[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
+                holder.putComponent(BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
+            }
             return new SuccessResult("Data unpersisted for " + playerRef.getUuid());
         } catch (Exception e) {
             return new ErrorResult("Not able to unpersist data for " + playerRef.getUuid());

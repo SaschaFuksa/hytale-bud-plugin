@@ -39,7 +39,7 @@ public class CleanUpHandler {
             return persistedBudsResult;
         }
         List<UUID> persistedBuds = persistedBudsResult.getDataList();
-        System.out.println("[BUD] size of persisted buds: " + persistedBuds.size());
+        System.out.println("[BUD] Size of persisted buds: " + persistedBuds.size());
         List<String> errors = new ArrayList<>();
         for (UUID budUUID : persistedBuds) {
             IResult result = cleanupBud(playerRef, world, budUUID);
@@ -47,6 +47,8 @@ public class CleanUpHandler {
                 errors.add(result.getMessage());
             }
         }
+        persistedBudsResult = PersistenceManager.getInstance().getPersistedBudUUIDs(playerRef);
+        System.out.println("[BUD] Size of persisted buds after cleanup: " + persistedBudsResult.getDataList().size());
         if (!errors.isEmpty()) {
             return new ErrorResult("Errors occurred while removing owner buds: " + String.join(", ", errors));
         }

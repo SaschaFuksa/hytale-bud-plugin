@@ -74,7 +74,7 @@ public class BudCreation {
 
         }
         String joinedNames = createdBuds.stream()
-                .map(npc -> npc.getNPCTypeId())
+                .map(npc -> npc.getNPCTypeId().split("_")[0])
                 .collect(Collectors.joining(", "));
         return new DataListResult<>(createdBuds, "Created Buds: " + joinedNames);
     }
