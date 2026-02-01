@@ -25,7 +25,7 @@ public class DataListResult<T> implements IDataListResult<T> {
 
     @Override
     public boolean isSuccess() {
-        return this.dataList != null;
+        return this.dataList != null && !this.dataList.isEmpty();
     }
 
     @Override

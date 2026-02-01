@@ -1,16 +1,18 @@
 package com.bud.npc;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
 import com.bud.npcdata.IBudNPCData;
 import com.bud.npcdata.persistence.PersistenceManager;
+import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
-import com.bud.result.ErrorResult;
+import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
@@ -31,44 +33,50 @@ import it.unimi.dsi.fastutil.Pair;
 
 public class BudCreation {
 
-    public static IResult createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
+    public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
         Set<IBudNPCData> missingBuds = NPCManager.getInstance().getMissingBuds(playerRef.getUuid(), store);
         return createBud(store, playerRef, missingBuds);
     }
 
-    public static IResult createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
+    public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             Set<IBudNPCData> missingBuds) {
 
         printPlayerDebugInfo(playerRef, store);
 
-        List<String> createdBuds = new ArrayList<>();
+        List<NPCEntity> createdBuds = new ArrayList<>();
         for (IBudNPCData budNPCData : missingBuds) {
             try {
                 DataResult<NPCEntity> spawnResult = spawnBud(store, playerRef, budNPCData);
                 if (!spawnResult.isSuccess()) {
-                    return spawnResult;
+                    spawnResult.printResult();
+                    continue;
                 }
                 NPCEntity npc = (NPCEntity) spawnResult.getData();
                 IResult registerResult = NPCStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
                 if (!registerResult.isSuccess()) {
                     CleanUpHandler.despawnBud(npc).printResult();
-                    return registerResult;
+                    registerResult.printResult();
+                    continue;
                 }
                 IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
                 if (!persistResult.isSuccess()) {
                     CleanUpHandler.despawnBud(npc).printResult();
                     NPCStateTracker.getInstance().unregisterBud(npc).printResult();
-                    return persistResult;
+                    persistResult.printResult();
+                    continue;
                 }
-                createdBuds.add(budNPCData.getNPCDisplayName());
+                createdBuds.add(npc);
                 printNPCDebugInfo(npc);
             } catch (Exception e) {
-                return new ErrorResult(
+                return new DataListResult<>(new HashSet<>(),
                         "Exception while spawning Bud " + budNPCData.getNPCTypeId() + ": " + e.getMessage());
             }
 
         }
-        return new SuccessResult("Created Buds: " + String.join(", ", createdBuds));
+        String joinedNames = createdBuds.stream()
+                .map(npc -> npc.getNPCTypeId())
+                .collect(Collectors.joining(", "));
+        return new DataListResult<>(createdBuds, "Created Buds: " + joinedNames);
     }
 
     private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, PlayerRef playerRef,

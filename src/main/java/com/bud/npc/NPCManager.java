@@ -13,8 +13,10 @@ import com.bud.npcdata.BudFeranData;
 import com.bud.npcdata.BudKweebecData;
 import com.bud.npcdata.BudTrorkData;
 import com.bud.npcdata.IBudNPCData;
+import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.ErrorResult;
+import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -65,17 +67,27 @@ public class NPCManager {
         return missingBuds;
     }
 
-    public IResult teleportBuds(PlayerRef playerRef, Store<EntityStore> store) {
+    public IDataListResult<NPCEntity> teleportBuds(PlayerRef playerRef, Store<EntityStore> store) {
         Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
 
         if (ownedBuds.isEmpty()) {
-            return new SuccessResult("No buds to teleport for player " + playerRef.getUuid());
+            return new DataListResult<>(ownedBuds, "No buds to teleport for player " + playerRef.getUuid());
         }
 
+        Set<NPCEntity> teleportedBuds = new HashSet<>();
         for (NPCEntity bud : ownedBuds) {
-            teleportBud(bud, playerRef, store).printResult();
+            IResult result = teleportBud(bud, playerRef, store);
+            if (result.isSuccess()) {
+                result.printResult();
+                teleportedBuds.add(bud);
+            } else {
+                result.printResult();
+            }
         }
-        return new SuccessResult("Teleported Buds for player " + playerRef.getUuid());
+        String joinedNames = teleportedBuds.stream()
+                .map(npc -> npc.getNPCTypeId())
+                .collect(Collectors.joining(", "));
+        return new DataListResult<>(teleportedBuds, "Teleported cour buds " + joinedNames);
     }
 
     public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudNPCData budData) {
