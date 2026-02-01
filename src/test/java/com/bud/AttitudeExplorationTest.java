@@ -1,18 +1,15 @@
 package com.bud;
 
-import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class AttitudeExplorationTest {
 
-    @Test
     public void exploreAttitudeClasses() {
         System.out.println("=== ATTITUDE EXPLORATION ===");
 
-        tryFindClass("com.hypixel.hytale.server.core.entity.group.EntityGroup");
-        tryFindClass("com.hypixel.hytale.server.npc.role.Role"); // Re-checking if I missed something or for comparison
+        tryFindClass("com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap");
 
         System.out.println("=== END EXPLORATION ===");
     }

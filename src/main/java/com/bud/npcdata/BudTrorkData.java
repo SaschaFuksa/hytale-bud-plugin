@@ -9,18 +9,18 @@ public class BudTrorkData implements IBudNPCData {
 
 	public static final String NPC_TYPE_ID = "Gronkh_Bud";
 	public static final String NPC_DISPLAY_NAME = "Gronkh";
-    private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudTrorkMessage();
-    private static final IBudNPCSoundData budNPCSoundData = new BudTrorkSoundData();
+	private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudTrorkMessage();
+	private static final IBudNPCSoundData budNPCSoundData = new BudTrorkSoundData();
 
-    @Override
-    public ILLMBudNPCMessage getLLMBudNPCMessage() {
-        return llmBudNPCMessage;
-    }
+	@Override
+	public ILLMBudNPCMessage getLLMBudNPCMessage() {
+		return llmBudNPCMessage;
+	}
 
-    @Override
-    public IBudNPCSoundData getBudNPCSoundData() {
-        return budNPCSoundData;
-    }
+	@Override
+	public IBudNPCSoundData getBudNPCSoundData() {
+		return budNPCSoundData;
+	}
 
 	@Override
 	public String getWeaponID() {

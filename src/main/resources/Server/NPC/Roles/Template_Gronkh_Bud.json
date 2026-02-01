@@ -36,7 +36,7 @@
       "Description": "Range to detect enemies in Defensive mode."
     },
     "AttackDistance": {
-      "Value": 2.5,
+      "Value": 3,
       "Description": "Range to begin melee attack."
     },
     "MeleeAttack": {
@@ -84,7 +84,8 @@
   "DefaultPlayerAttitude": "Ignore",
   "DisableDamageGroups": [
     "Self",
-    "Player"
+    "Player",
+    "BudNPCGroup"
   ],
   "Invulnerable": true,
   "MotionControllerList": [

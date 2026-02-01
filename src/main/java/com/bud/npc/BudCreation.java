@@ -25,6 +25,7 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
+import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -125,28 +126,31 @@ public class BudCreation {
 
     private static void printPlayerDebugInfo(PlayerRef playerRef, Store<EntityStore> store) {
         System.out.println("======= BUD PLAYER DEBUG INFO =======");
-        if (store != null) {
-            // Attempt to retrieve the entity using common lookup methods
-            Object entity = null;
-            try {
-                entity = store.getClass().getMethod("get", Ref.class).invoke(store, playerRef);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        System.out.println("Player Name: " + playerRef.getUsername());
+        System.out.println("Player UUID: " + playerRef.getUuid());
 
-            if (entity != null) {
-                System.out.println("[BudPlugin] Player Entity: " + entity);
-                try {
-                    java.lang.reflect.Method getComponents = entity.getClass().getMethod("getComponents");
-                    Object components = getComponents.invoke(entity);
-                    System.out.println("[BudPlugin] Components: " + components);
-                } catch (Exception ignored) {
-                    // Ignore lookup failure
+        if (store != null) {
+            System.out.println("Store Class: " + store.getClass().getName());
+            try {
+                Ref<EntityStore> ref = playerRef.getReference();
+                if (ref != null) {
+                    System.out.println("Player Store Ref: " + ref.toString() + " (Valid: " + ref.isValid() + ")");
+
+                    // Try to get EntityGroup
+                    EntityGroup group = store.getComponent(ref, EntityGroup.getComponentType());
+                    if (group != null) {
+                        System.out.println("Player EntityGroup: Present (Size: " + group.size() + ")");
+                    } else {
+                        System.out.println("Player EntityGroup: NULL");
+                    }
+                } else {
+                    System.out.println("Player Store Ref is NULL");
                 }
-            } else {
-                System.out.println("[BudPlugin] Player Entity could not be retrieved from Store.");
+            } catch (Exception e) {
+                System.out.println("[BudPlugin] Error identifying player components: " + e.getMessage());
             }
+        } else {
+            System.out.println("[BudPlugin] Store is null.");
         }
         System.out.println("=====================================");
     }
@@ -173,9 +177,40 @@ public class BudCreation {
                 if (disableGroups != null) {
                     System.out.println("DisableDamageGroups (Count): " + disableGroups.length);
                     var assetMap = com.hypixel.hytale.server.npc.config.AttitudeGroup.getAssetMap();
+
+                    // --- REVERSE LOOKUP DEBUG ---
+                    java.util.Map<Integer, String> reverseMap = new java.util.HashMap<>();
+                    try {
+                        java.util.Map<?, ?> rawMap = assetMap.getAssetMap();
+                        if (rawMap != null) {
+                            for (java.util.Map.Entry<?, ?> entry : rawMap.entrySet()) {
+                                Object key = entry.getKey();
+                                Object val = entry.getValue();
+                                if (val instanceof Integer) {
+                                    reverseMap.put((Integer) val, String.valueOf(key));
+                                } else {
+                                    // Try to get index from key
+                                    try {
+                                        int id = assetMap.getIndex((String) key);
+                                        reverseMap.put(id, String.valueOf(key));
+                                    } catch (Exception ignored) {
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Reverse lookup debug error: " + e);
+                    }
+                    // ----------------------------
+
                     for (int g : disableGroups) {
+                        String groupName = "Unknown";
                         var groupAsset = assetMap.getAsset(g);
-                        String groupName = (groupAsset != null) ? groupAsset.getId() : "Unknown";
+                        if (groupAsset != null) {
+                            groupName = groupAsset.getId();
+                        } else if (reverseMap.containsKey(g)) {
+                            groupName = reverseMap.get(g) + " (Mapped)";
+                        }
                         System.out.println(" - Group ID: " + g + " (" + groupName + ")");
                     }
                 } else {
