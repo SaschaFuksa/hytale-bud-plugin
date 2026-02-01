@@ -4,17 +4,17 @@ public class BudFeranSoundData implements IBudNPCSoundData {
 
     @Override
     public String getAttackSound() {
-        return "SFX_Fox_Hurt";
+        return "SFX_Fox_Alerted";
     }
 
     @Override
     public String getPassiveSound() {
-        return "SFX_Fox_Hurt";
+        return "SFX_Fox_Alerted";
     }
 
     @Override
     public String getIdleSound() {
-        return "SFX_Fox_Hurt";
+        return "SFX_Fox_Alerted";
     }
 
     @Override

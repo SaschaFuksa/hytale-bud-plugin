@@ -7,7 +7,7 @@ import com.bud.npc.npcsound.IBudNPCSoundData;
 
 public class BudKweebecData implements IBudNPCData {
 
-	public static final String NPC_TYPE_ID = "Kacche_Bud";
+	public static final String NPC_TYPE_ID = "Keyleth_Bud";
 	public static final String NPC_DISPLAY_NAME = "Keyleth";
 	private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudKweebecMessage();
 	private static final IBudNPCSoundData budNPCSoundData = new BudKweebecSoundData();

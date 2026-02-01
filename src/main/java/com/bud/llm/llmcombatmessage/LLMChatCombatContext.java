@@ -1,11 +1,15 @@
 package com.bud.llm.llmcombatmessage;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.ILLMChatContext;
 import com.bud.llm.llmmessage.ILLMBudNPCMessage;
 import com.bud.npc.BudInstance;
+import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
@@ -18,12 +22,18 @@ public class LLMChatCombatContext implements ILLMChatContext {
     @Override
     public IDataResult<String> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
-        LinkedList<OpponentEntry> history = RecentOpponentCache.getHistory(player.getUuid());
-        if (history.isEmpty()) {
+
+        // Use pollHistory to get and remove the entry atomically
+        // This ensures that only one Bud processes this specific combat event
+        OpponentEntry latestEntry = RecentOpponentCache.pollHistory(player.getUuid());
+
+        if (latestEntry == null) {
             return new DataResult<>(null, BudLLMRandomChat.NO_COMBAT_STRING);
         }
+
         System.out.println("[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
-        System.out.println("[BUD] Generating combat prompt for " + history.size() + " entries.");
+        System.out.println(
+                "[BUD] Processing combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
 
         IBudNPCData budNPCData = budInstance.getData();
 
@@ -32,12 +42,38 @@ public class LLMChatCombatContext implements ILLMChatContext {
 
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
 
-        OpponentEntry latestEntry = history.getFirst();
-        System.out.println("[BUD] Latest combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
         String combatHistory = buildCombatPrompt(latestEntry);
         String prompt = LLMCombatMessageManager.createPrompt(combatHistory, npcMessage, latestEntry.roleName());
-        history.removeFirst();
+
         return new DataResult<>(prompt, "Prompt generated successfully.");
+    }
+
+    @Override
+    public BudInstance getRandomInstanceForOwner(UUID ownerId) {
+        LinkedList<OpponentEntry> history = RecentOpponentCache.getHistory(ownerId);
+        if (history == null || history.isEmpty())
+            return null;
+
+        OpponentEntry latestEntry = history.getFirst();
+        String roleName = latestEntry.roleName();
+
+        List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
+
+        // Filter out the bud that matches the roleName of the opponent (avoid talking
+        // about itself as an opponent)
+        ownerBuds.removeIf(bud -> {
+            String npcTypeId = bud.getEntity().getNPCTypeId();
+            return npcTypeId != null && npcTypeId.equals(roleName);
+        });
+
+        if (ownerBuds.isEmpty()) {
+            // If no other Buds are available, remove the processed entry to avoid
+            // re-processing
+            RecentOpponentCache.pollHistory(ownerId);
+            return null;
+        }
+
+        return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
     }
 
     private String buildCombatPrompt(OpponentEntry latestEntry) {
@@ -47,7 +83,7 @@ public class LLMChatCombatContext implements ILLMChatContext {
             case ATTACKED -> "attacked";
             case WAS_ATTACKED -> "run away from";
         };
-        String roleName = latestEntry.roleName().replace("Bud_", "");
+        String roleName = latestEntry.roleName().replace("_Bud", "");
         roleName = roleName.replace("_", " ");
         promptBuilder.append("Your Buddy ").append(action).append(" ").append(roleName).append(".\n");
         return promptBuilder.toString();

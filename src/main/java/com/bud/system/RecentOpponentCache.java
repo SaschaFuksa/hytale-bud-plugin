@@ -65,6 +65,24 @@ public class RecentOpponentCache {
         return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));
     }
 
+    /**
+     * Retrieves and removes the oldest entry from the history.
+     * Thread-safe operation.
+     * 
+     * @param playerId Player UUID
+     * @return The oldest OpponentEntry or null if history is empty
+     */
+    public static OpponentEntry pollHistory(UUID playerId) {
+        final OpponentEntry[] result = new OpponentEntry[1];
+        cache.computeIfPresent(playerId, (id, list) -> {
+            if (!list.isEmpty()) {
+                result[0] = list.removeFirst();
+            }
+            return list.isEmpty() ? null : list;
+        });
+        return result[0];
+    }
+
     public static void setHistory(UUID playerId, LinkedList<OpponentEntry> newHistory) {
         if (newHistory == null) {
             cache.remove(playerId);

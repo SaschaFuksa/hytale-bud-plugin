@@ -1,8 +1,8 @@
 {
   "Type": "Variant",
-  "Reference": "Template_Kacche_Bud",
+  "Reference": "Template_Keyleth_Bud",
   "Modify": {
-    "Appearance": "Kacche_Bud",
+    "Appearance": "Keyleth_Bud",
     "MaxHealth": 70,
     "WalkSpeed": 6,
     "AttitudeGroup": "BudAttitude",
@@ -23,11 +23,11 @@
   },
   "Parameters": {
     "Appearance": {
-      "Value": "Kacche_Bud",
+      "Value": "Keyleth_Bud",
       "Description": "The model to use."
     },
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Kacche_Bud.name",
+      "Value": "server.npcRoles.Keyleth_Bud.name",
       "Description": "Translation key"
     }
   }

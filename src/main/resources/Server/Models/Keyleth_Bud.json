@@ -1,7 +1,7 @@
 {
   "Parent": "Player",
   "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Model.blockymodel",
-  "Texture": "NPC/Bud/Kacche_Bud/Models/Model_Textures/yellow.png",
+  "Texture": "NPC/Bud/Keyleth_Bud/Models/Model_Textures/yellow.png",
   "DefaultAttachments": [
     {
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Razorleaf/Chest.blockymodel",

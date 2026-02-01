@@ -42,7 +42,7 @@ public class BudLLMRandomChat {
         Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
         Set<String> errors = new HashSet<>();
         for (UUID ownerId : owners) {
-            BudInstance budInstance = getRandomInstanceForOwner(ownerId);
+            BudInstance budInstance = context.getRandomInstanceForOwner(ownerId);
             if (budInstance == null)
                 continue;
             try {
@@ -69,14 +69,6 @@ public class BudLLMRandomChat {
             return new ErrorResult("Triggered random chats with errors: " + String.join("; ", errors));
         }
         return new SuccessResult("Triggered random chats for all bud owners.");
-    }
-
-    private BudInstance getRandomInstanceForOwner(UUID ownerId) {
-        List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
-        if (ownerBuds.isEmpty())
-            return null;
-
-        return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
     }
 
     private void playSound(BudInstance budInstance) {
