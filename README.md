@@ -90,7 +90,13 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-- Minor memory storage like last mined blocks, etc. to react better to world.
-- PoC for Bud interaction with world via LLM. Like mining or farming?
-- Items instead of commands to spawn bus.
-- No friendly fire, current I found no way to disable that via config or code, even with flock/group/role/DamageFilterSystem.
+- 1.1.0: Command to toggle state for all Buds like "/bud attack"
+- 1.2.0: More LLM config options (like token amount, temperature, etc.)
+- 1.3.0: Seperate propmts from code for easier editing.
+- 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
+- 1.5.0: Update of Bud models, add at least one special appearance per Bud.
+- 1.6.0: Add items to spawn Buds instead of commands.
+- 1.7.0: [User feedback feature]
+- 1.8.0: [User feedback feature]
+- 1.9.0: Add magic Bud with spells.
+- 2.0.0: PoC for Bud interaction with world via LLM.
