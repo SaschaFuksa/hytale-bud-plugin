@@ -100,3 +100,9 @@ start server: .\gradlew runServer
 - 1.8.0: [User feedback feature]
 - 1.9.0: Add magic Bud with spells.
 - 2.0.0: PoC for Bud interaction with world via LLM.
+
+## Sidequests
+- Maybe one more state with particles (Idle?).
+- More story telling for Buds.
+- Better combat memory handling.
+- Optimize LLM calls to reduce token usage.
