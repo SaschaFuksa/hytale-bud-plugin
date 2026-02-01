@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.bud.npcdata.IBudNPCData;
-import com.bud.npcdata.persistence.PersistenceManager;
+import com.bud.npc.npcdata.IBudNPCData;
+import com.bud.npc.npcdata.persistence.PersistenceManager;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.IDataListResult;

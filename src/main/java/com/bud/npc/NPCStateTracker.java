@@ -3,30 +3,19 @@ package com.bud.npc;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-
-import com.bud.system.BudTimeInformation;
-import com.bud.system.BudWorldContext;
-import com.bud.system.BudWorldInformation;
-import com.bud.system.TimeOfDay;
-import com.hypixel.hytale.server.worldgen.biome.Biome;
-import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
-import com.bud.npcsound.IBudNPCSoundData;
+import com.bud.npc.npcsound.IBudNPCSoundData;
 import com.bud.llm.BudLLM;
-import com.bud.llmmessage.ILLMBudNPCMessage;
-import com.bud.llmworldmessage.LLMWorldInfoMessageManager;
-import com.bud.npcdata.IBudNPCData;
+import com.bud.llm.llmmessage.ILLMBudNPCMessage;
+import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -202,79 +191,6 @@ public class NPCStateTracker {
             String fallbackMessage = npcMessage.getFallbackMessage(toState);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }
-    }
-
-    public IResult triggerRandomChats() {
-        // Iterate over all track owners
-        Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
-        for (UUID ownerId : owners) {
-            // Pick a random bud for this owner from the registry
-            List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
-            if (ownerBuds.isEmpty())
-                continue;
-
-            BudInstance randomInstance = ownerBuds.get((int) (Math.random() * ownerBuds.size()));
-            if (randomInstance == null)
-                continue;
-
-            triggerRandomChatForBud(randomInstance);
-        }
-        return new SuccessResult("Triggered random chats for all bud owners.");
-    }
-
-    private void triggerRandomChatForBud(BudInstance instance) {
-        PlayerRef owner = instance.getOwner();
-        NPCEntity bud = instance.getEntity();
-        IBudNPCData budNPCData = instance.getData();
-
-        if (budNPCData == null)
-            return;
-
-        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        String npcName = budNPCData.getNPCDisplayName();
-        System.out.println("[BUD] current bud: " + npcName);
-
-        System.out.println("[BUD] Start extracting world data.");
-        Ref<EntityStore> ownerRef = owner.getReference();
-        if (ownerRef == null)
-            return;
-
-        Store<EntityStore> store = ownerRef.getStore();
-        World world = store.getExternalData().getWorld();
-        BudWorldContext context = getWorldContext(owner, world, store);
-        System.out.println("[BUD] World data extracted: " + context.currentBiome().getName() + ", "
-                + context.currentZone().name() + ", " + context.timeOfDay().name());
-
-        System.out.println("[BUD] Preparing Sound.");
-        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
-        if (npcSoundData != null) {
-            String soundEventID = npcSoundData.getSoundForState("PetPassive");
-            this.soundInteraction.playSound(world, bud, soundEventID);
-        }
-
-        String prompt = LLMWorldInfoMessageManager.createPrompt(context, npcMessage);
-
-        Thread.ofVirtual().start(() -> {
-            try {
-                String response = budLLM.callLLM(prompt);
-                String message = npcName + ": " + response;
-                System.out.println("[BUD] LLM response: " + message);
-                this.chatInteraction.sendChatMessage(world, owner, message);
-            } catch (Exception e) {
-                System.out.println("[BUD] Random Chat Error: " + e.getMessage());
-            }
-        });
-    }
-
-    private BudWorldContext getWorldContext(PlayerRef owner, World world, Store<EntityStore> store) {
-        Vector3d pos = owner.getTransform().getPosition();
-        TimeOfDay timeOfDay = BudTimeInformation.getTimeOfDay(store);
-        System.out.println("[BUD] time of day: " + timeOfDay.name());
-        Biome currentBiome = BudWorldInformation.getCurrentBiome(world, pos);
-        System.out.println("[BUD] current biome: " + currentBiome.getName());
-        Zone currentZone = BudWorldInformation.getCurrentZone(world, pos);
-        System.out.println("[BUD] current zone: " + currentZone.name());
-        return new BudWorldContext(timeOfDay, currentZone, currentBiome);
     }
 
     /**

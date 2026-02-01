@@ -1,6 +1,6 @@
 package com.bud.npc;
 
-import com.bud.npcdata.IBudNPCData;
+import com.bud.npc.npcdata.IBudNPCData;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;

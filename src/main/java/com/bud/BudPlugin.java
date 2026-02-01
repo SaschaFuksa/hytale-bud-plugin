@@ -9,12 +9,14 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.HytaleServer;
-import com.bud.npcdata.persistence.BudPlayerData;
+import com.bud.npc.npcdata.persistence.BudPlayerData;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.npc.NPCStateTracker;
+import com.bud.llm.BudLLMRandomChat;
+import com.bud.llm.llmcombatmessage.LLMChatCombatContext;
+import com.bud.llm.llmworldmessage.LLMChatWorldContext;
 import com.bud.poc.BudDamageFilterSystem;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
@@ -102,11 +104,16 @@ public class BudPlugin extends JavaPlugin {
         });
 
         if (BudConfig.get().isEnableLLM()) {
-            // Schedule Random Chat Task (every 3 minutes)
+            // Schedule Random World Chat Task (every 3 minutes)
             HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-                IResult result = NPCStateTracker.getInstance().triggerRandomChats();
+                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
                 result.printResult();
             }, 180L, 180L, TimeUnit.SECONDS);
+            // Schedule Random Combat Chat Task (every 20 seconds)
+            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatCombatContext());
+                result.printResult();
+            }, 20L, 20L, TimeUnit.SECONDS);
         }
     }
 

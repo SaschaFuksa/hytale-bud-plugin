@@ -23,7 +23,7 @@ import com.bud.npc.NPCStateTracker;
 
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
-import com.bud.npcdata.persistence.PersistenceManager;
+import com.bud.npc.npcdata.persistence.PersistenceManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;

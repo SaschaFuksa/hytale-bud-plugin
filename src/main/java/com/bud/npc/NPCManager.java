@@ -9,10 +9,10 @@ import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
-import com.bud.npcdata.BudFeranData;
-import com.bud.npcdata.BudKweebecData;
-import com.bud.npcdata.BudTrorkData;
-import com.bud.npcdata.IBudNPCData;
+import com.bud.npc.npcdata.BudFeranData;
+import com.bud.npc.npcdata.BudKweebecData;
+import com.bud.npc.npcdata.BudTrorkData;
+import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.ErrorResult;
