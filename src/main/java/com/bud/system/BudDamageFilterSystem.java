@@ -1,17 +1,19 @@
 package com.bud.system;
 
-import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.SystemGroup;
 import com.hypixel.hytale.component.query.Query;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.flock.FlockMembership;
+import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 
 import javax.annotation.Nonnull;
 
@@ -28,50 +30,61 @@ public class BudDamageFilterSystem extends DamageEventSystem {
     }
 
     @Override
-    public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull Damage damage) {
-        if (damage.isCancelled()) {
-            return;
-        }
-
-        Ref<EntityStore> victimRef = archetypeChunk.getReferenceTo(index);
-        if (victimRef == null || !victimRef.isValid()) {
-            return;
-        }
-
-        PlayerRef playerRef = null;
+    public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
+            @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
+            @Nonnull Damage damage) {
         try {
-            if (archetypeChunk.getArchetype().contains(PlayerRef.getComponentType())) {
-                playerRef = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
-            }
-        } catch (Exception e) {
-            // Ignore
-        }
+            Ref<EntityStore> victimRef = archetypeChunk.getReferenceTo(index);
 
-        if (playerRef == null) {
-            // Victim is not a player
-            return;
-        }
-
-        Damage.Source source = damage.getSource();
-        if (source instanceof Damage.EntitySource entitySource) {
-            Ref<?> sourceRefRaw = entitySource.getRef();
-            if (sourceRefRaw == null || !sourceRefRaw.isValid()) {
+            Damage.Source source = damage.getSource();
+            if (!(source instanceof Damage.EntitySource entitySource)) {
                 return;
             }
 
-            try {
-                @SuppressWarnings("unchecked")
-                Ref<EntityStore> attackerRef = (Ref<EntityStore>) sourceRefRaw;
-                
-                boolean isOwnBud = NPCManager.getInstance().isBudOwnedBy(playerRef.getUuid(), attackerRef);
-                
-                if (isOwnBud) {
-                    System.out.println("[BUD] Detailed Damage Filter: Blocked Friendly Fire from Bud to Player " + playerRef.getUuid() + " | DmgObj=" + System.identityHashCode(damage));
-                    damage.setCancelled(true);
-                }
-            } catch (ClassCastException e) {
-                // Source wasn't an entity store ref
+            Ref<EntityStore> attackerRef = entitySource.getRef();
+            if (attackerRef == null || !attackerRef.isValid()) {
+                return;
             }
+
+            // 1. Check Flock Membership (Bidirectional)
+            FlockMembership victimFlock = store.getComponent(victimRef, FlockMembership.getComponentType());
+            FlockMembership attackerFlock = store.getComponent(attackerRef, FlockMembership.getComponentType());
+
+            if (victimFlock != null && attackerFlock != null) {
+                Ref<EntityStore> vFlockRef = victimFlock.getFlockRef();
+                Ref<EntityStore> aFlockRef = attackerFlock.getFlockRef();
+
+                if (vFlockRef != null && vFlockRef.isValid() && vFlockRef.equals(aFlockRef)) {
+                    // Prevent friendly fire in same flock
+                    damage.setAmount(0);
+                    return;
+                }
+            }
+
+            // 2. Check EntityGroup (Unidirectional Check)
+            // Note: block commented out until EntityGroup API for containment is confirmed.
+            /*
+             * if (isMemberOfGroup(store, attackerRef, victimRef) || isMemberOfGroup(store,
+             * victimRef, attackerRef)) {
+             * damage.setAmount(0);
+             * return;
+             * }
+             */
+
+        } catch (Exception e) {
+            System.err.println("[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
+            e.printStackTrace();
         }
     }
+
+    // Placeholder until EntityGroup API is known
+    // private boolean isMemberOfGroup(Store<EntityStore> store, Ref<EntityStore>
+    // owner, Ref<EntityStore> member) {
+    // EntityGroup group = store.getComponent(owner,
+    // EntityGroup.getComponentType());
+    // if (group != null) {
+    // return group.contains(member);
+    // }
+    // return false;
+    // }
 }

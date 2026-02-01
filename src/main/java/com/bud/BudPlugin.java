@@ -52,7 +52,8 @@ public class BudPlugin extends JavaPlugin {
         this.getCommandRegistry().registerCommand(new LLMCommand());
 
         // Register Damage Filter System
-        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+        // this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+
         // Register Cleanup System
         /**
          * This Cleanup Stystem is triggered on server start

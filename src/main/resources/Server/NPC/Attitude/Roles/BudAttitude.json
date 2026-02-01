@@ -16,6 +16,10 @@
       "Zombie",
       "Undead"
     ],
-    "Ignore": []
+    "Ignore": [
+      "Player",
+      "$player",
+      "$self"
+    ]
   }
 }

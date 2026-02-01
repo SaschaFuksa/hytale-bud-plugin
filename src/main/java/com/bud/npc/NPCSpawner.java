@@ -22,21 +22,22 @@ import it.unimi.dsi.fastutil.Pair;
  * Builder pattern for spawning and configuring NPCs with fluent API.
  * 
  * Example usage:
+ * 
  * <pre>
  * NPCSpawner.create(store, "Feran_Civilian", position)
- *     .withInventory()
- *     .addWeapon("Weapon_Shortbow_Iron")
- *     .addArmor("Armor_Thorium_Head")
- *     .spawn();
+ *         .withInventory()
+ *         .addWeapon("Weapon_Shortbow_Iron")
+ *         .addArmor("Armor_Thorium_Head")
+ *         .spawn();
  * </pre>
  */
 public class NPCSpawner {
-    
+
     // Required parameters
     private final Store<EntityStore> store;
     private final String npcType;
     private final Vector3d position;
-    
+
     // Optional parameters with defaults
     private Vector3f rotation = new Vector3f(0, 0, 0);
     private boolean withInventory = false;
@@ -44,10 +45,10 @@ public class NPCSpawner {
     private int inventoryColumns = 9;
     private final List<WeaponConfig> weapons = new ArrayList<>();
     private final List<ArmorConfig> armors = new ArrayList<>();
-    
+
     // Result
     private Ref<EntityStore> spawnedNpcRef;
-    
+
     /**
      * Private constructor - use create() factory method
      */
@@ -56,12 +57,12 @@ public class NPCSpawner {
         this.npcType = Objects.requireNonNull(npcType, "npcType cannot be null");
         this.position = Objects.requireNonNull(position, "position cannot be null");
     }
-    
+
     /**
      * Creates a new NPCSpawner builder.
      * 
-     * @param store The entity store
-     * @param npcType The NPC type ID (e.g., "Feran_Civilian")
+     * @param store    The entity store
+     * @param npcType  The NPC type ID (e.g., "Feran_Civilian")
      * @param position The spawn position
      * @return A new NPCSpawner builder
      */
@@ -72,7 +73,7 @@ public class NPCSpawner {
         System.out.println("[BUD] ========================================");
         return new NPCSpawner(store, npcType, position);
     }
-    
+
     /**
      * Sets the spawn rotation.
      * 
@@ -83,7 +84,7 @@ public class NPCSpawner {
         this.rotation = rotation;
         return this;
     }
-    
+
     /**
      * Enables inventory for this NPC with default size (3x9).
      * 
@@ -93,11 +94,11 @@ public class NPCSpawner {
         this.withInventory = true;
         return this;
     }
-    
+
     /**
      * Enables inventory with custom size.
      * 
-     * @param rows Number of rows (typically 3)
+     * @param rows    Number of rows (typically 3)
      * @param columns Number of columns (typically 9)
      * @return This builder for chaining
      */
@@ -107,7 +108,7 @@ public class NPCSpawner {
         this.inventoryColumns = columns;
         return this;
     }
-    
+
     /**
      * Adds a weapon to the NPC's hotbar.
      * 
@@ -117,31 +118,31 @@ public class NPCSpawner {
     public NPCSpawner addWeapon(String weaponType) {
         return addWeapon(weaponType, 1);
     }
-    
+
     /**
      * Adds a weapon with quantity to the NPC's hotbar.
      * 
      * @param weaponType The weapon item ID
-     * @param quantity The quantity
+     * @param quantity   The quantity
      * @return This builder for chaining
      */
     public NPCSpawner addWeapon(String weaponType, int quantity) {
         return addWeapon(weaponType, quantity, (short) 0);
     }
-    
+
     /**
      * Adds a weapon to a specific hotbar slot.
      * 
      * @param weaponType The weapon item ID
-     * @param quantity The quantity
-     * @param slot The hotbar slot (0-8)
+     * @param quantity   The quantity
+     * @param slot       The hotbar slot (0-8)
      * @return This builder for chaining
      */
     public NPCSpawner addWeapon(String weaponType, int quantity, short slot) {
         this.weapons.add(new WeaponConfig(weaponType, quantity, slot));
         return this;
     }
-    
+
     /**
      * Adds armor to the NPC.
      * 
@@ -152,7 +153,7 @@ public class NPCSpawner {
         this.armors.add(new ArmorConfig(armorType));
         return this;
     }
-    
+
     /**
      * Spawns the NPC with all configured settings.
      * 
@@ -161,31 +162,31 @@ public class NPCSpawner {
     public Pair<Ref<EntityStore>, INonPlayerCharacter> spawn() {
         try {
             // Spawn the NPC
-            Pair<Ref<EntityStore>, INonPlayerCharacter> result = 
-                NPCPlugin.get().spawnNPC(store, npcType, npcType, position, rotation);
-            
+            Pair<Ref<EntityStore>, INonPlayerCharacter> result = NPCPlugin.get().spawnNPC(store, npcType, "Player",
+                    position, rotation);
+
             if (result == null) {
                 System.out.println("[NPCSpawner] Failed to spawn NPC: " + npcType);
                 return null;
             }
-            
+
             spawnedNpcRef = result.first();
-            
+
             // Configure inventory if requested
             if (withInventory) {
                 configureInventory();
             }
-            
+
             System.out.println("[NPCSpawner] Successfully spawned " + npcType + " at " + position);
             return result;
-            
+
         } catch (Exception e) {
             System.out.println("[NPCSpawner] Error spawning NPC: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
-    
+
     /**
      * Configures the inventory for the spawned NPC.
      */
@@ -195,30 +196,31 @@ public class NPCSpawner {
             System.out.println("[NPCSpawner] Cannot configure inventory: NPC component not found");
             return;
         }
-        
+
         // Initialize inventory size
         npcComponent.setInventorySize(inventoryRows, inventoryColumns, 0);
         Inventory inventory = npcComponent.getInventory();
-        
+
         // Add weapons to hotbar
         for (WeaponConfig weapon : weapons) {
             ItemStack itemStack = new ItemStack(weapon.itemId, weapon.quantity);
             inventory.getHotbar().addItemStackToSlot(weapon.slot, itemStack);
         }
-        
+
         // Set first weapon as active if any weapons were added
         if (!weapons.isEmpty()) {
             inventory.setActiveHotbarSlot((byte) weapons.get(0).slot);
         }
-        
+
         // Add armor
         for (ArmorConfig armor : armors) {
             InventoryHelper.useArmor(inventory.getArmor(), armor.itemId);
         }
-        
-        System.out.println("[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size() + " armor pieces");
+
+        System.out.println("[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size()
+                + " armor pieces");
     }
-    
+
     /**
      * Gets the reference to the spawned NPC (available after spawn() is called).
      * 
@@ -227,24 +229,24 @@ public class NPCSpawner {
     public Ref<EntityStore> getSpawnedNpc() {
         return spawnedNpcRef;
     }
-    
+
     // ========== Configuration Classes ==========
-    
+
     private static class WeaponConfig {
         final String itemId;
         final int quantity;
         final short slot;
-        
+
         WeaponConfig(String itemId, int quantity, short slot) {
             this.itemId = itemId;
             this.quantity = quantity;
             this.slot = slot;
         }
     }
-    
+
     private static class ArmorConfig {
         final String itemId;
-        
+
         ArmorConfig(String itemId) {
             this.itemId = itemId;
         }
