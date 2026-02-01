@@ -1,5 +1,9 @@
 package com.bud.result;
 
+import java.util.logging.Level;
+
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
 public class DataResult<T> implements IDataResult<T> {
 
     private final T data;
@@ -27,6 +31,10 @@ public class DataResult<T> implements IDataResult<T> {
 
     @Override
     public void printResult() {
-        System.out.println("[BUD] Result: " + this.message);
+        if (isSuccess()) {
+            LoggerUtil.getLogger().log(Level.FINER, "[BUD] Success: ", this.message);
+        } else {
+            LoggerUtil.getLogger().log(Level.WARNING, "[BUD] Error: ", this.message);
+        }
     }
 }

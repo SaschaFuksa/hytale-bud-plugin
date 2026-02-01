@@ -1,5 +1,9 @@
 package com.bud.result;
 
+import java.util.logging.Level;
+
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
 public class ErrorResult implements IResult {
 
     private final String message;
@@ -20,7 +24,7 @@ public class ErrorResult implements IResult {
 
     @Override
     public void printResult() {
-        System.err.println("[BUD] Error: " + this.message);
+        LoggerUtil.getLogger().log(Level.WARNING, "[BUD] Error: ", this.message);
     }
 
 }

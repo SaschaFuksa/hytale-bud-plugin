@@ -1,5 +1,9 @@
 package com.bud.result;
 
+import java.util.logging.Level;
+
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
 public class SuccessResult implements IResult {
 
     private final String message;
@@ -20,6 +24,6 @@ public class SuccessResult implements IResult {
 
     @Override
     public void printResult() {
-        System.out.println("[BUD] Success: " + this.message);
+        LoggerUtil.getLogger().log(Level.FINER, "[BUD] Success: ", this.message);
     }
 }

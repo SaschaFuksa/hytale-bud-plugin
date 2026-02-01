@@ -3,6 +3,10 @@ package com.bud.result;
 import java.util.List;
 import java.util.Set;
 
+import java.util.logging.Level;
+
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
 public class DataListResult<T> implements IDataListResult<T> {
 
     private final List<T> dataList;
@@ -35,6 +39,10 @@ public class DataListResult<T> implements IDataListResult<T> {
 
     @Override
     public void printResult() {
-        System.out.println("[BUD] Result: " + this.message);
+        if (isSuccess()) {
+            LoggerUtil.getLogger().log(Level.FINER, "[BUD] Success: ", this.message);
+        } else {
+            LoggerUtil.getLogger().log(Level.WARNING, "[BUD] Error: ", this.message);
+        }
     }
 }
