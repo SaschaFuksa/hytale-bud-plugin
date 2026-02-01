@@ -3,7 +3,6 @@ package com.bud;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
-import com.bud.system.BudDamageFilterSystem;
 import com.bud.system.BudCleanupSystem;
 import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;

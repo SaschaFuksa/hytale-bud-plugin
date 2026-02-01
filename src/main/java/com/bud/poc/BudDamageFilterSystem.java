@@ -1,4 +1,4 @@
-package com.bud.system;
+package com.bud.poc;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -15,6 +15,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
+/***
+ * TODO: Remove this class in future
+ */
+@Deprecated
 public class BudDamageFilterSystem extends DamageEventSystem {
 
     @Override
