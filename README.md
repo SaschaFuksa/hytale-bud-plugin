@@ -21,12 +21,8 @@ Currently there are three Buds implemented:
 This mod will be controlled via commands:
 - **/bud**: The initial command to spawn all three buddies around you. It also respawns them if they died or teleports existing ones to you.
 - **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you or teleports existing one to you.
-- **/bud [attack|atk]**: Sets all your buddies to Defensive Mode.
-- **/bud [follow|fol]**: Sets all your buddies to Passive Mode.
-- **/bud [chill|stay]**: Sets all your buddies to Sitting Mode.
 - **/bud clean**: Remove all your buddies.
 - **/bud clean-all**: Remove all buddies in the world.
-- **/bud reset**: Remove and respawn all your buddies.
 - **/bud data**: Prints uuids of your current persisted buddies.
 - **/bud data-clean**: Remove all persisted data (Bud UUIDs).
 
@@ -56,7 +52,13 @@ Custom Chat Interaction (Only with LLM enabled):
 - Logger based prints instead of System.out.println for better visibility in server logs.
 - Removed unused LLMCommand class.
 ### 1.1.0 Feature
-- Command to toggle state for all Buds like "/bud attack"
+Goal: Command to toggle state for all Buds like "/bud attack"
+
+New commands:
+- **/bud [attack|atk]**: Sets all your buddies to Defensive Mode.
+- **/bud [follow|fol]**: Sets all your buddies to Passive Mode.
+- **/bud [chill|stay]**: Sets all your buddies to Sitting Mode.
+- **/bud reset**: Remove and respawn all your buddies.
 
 ## Quickstart
 
@@ -102,7 +104,10 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-- 1.2.0: More LLM config options (like token amount, temperature, etc.)
+### 1.2.0: More LLM config options (like token amount, temperature, etc.)
+Goal: More control over LLM behavior via config.
+Also look for Player2 API to make AI-integration more easy.
+
 - 1.3.0: Seperate propmts from code for easier editing.
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
 - 1.5.0: Update of Bud models, add at least one special appearance per Bud.
