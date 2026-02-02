@@ -1,6 +1,7 @@
 plugins {
     `maven-publish`
     id("hytale-mod") version "0.+"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.bud"
@@ -17,6 +18,8 @@ repositories {
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.1")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -66,6 +69,10 @@ tasks.named<ProcessResources>("processResources") {
     }
 
     inputs.properties(replaceProperties)
+}
+
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    archiveClassifier.set("")
 }
 
 tasks.withType<Jar> {

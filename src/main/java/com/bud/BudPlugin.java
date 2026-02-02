@@ -1,30 +1,31 @@
 package com.bud;
 
-import com.hypixel.hytale.server.core.plugin.JavaPlugin;
-import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
-import com.hypixel.hytale.server.core.util.Config;
-import com.bud.system.BudCleanupSystem;
-import com.bud.system.CleanUpHandler;
-import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
-import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.HytaleServer;
-import com.bud.npc.npcdata.persistence.BudPlayerData;
-
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.llmcombatmessage.LLMChatCombatContext;
 import com.bud.llm.llmworldmessage.LLMChatWorldContext;
-import com.bud.system.BudDamageFilterSystem;
+import com.bud.npc.npcdata.persistence.BudPlayerData;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
+import com.bud.system.BudCleanupSystem;
+import com.bud.system.BudDamageFilterSystem;
+import com.bud.system.CleanUpHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.Config;
 
 public class BudPlugin extends JavaPlugin {
 
@@ -63,6 +64,10 @@ public class BudPlugin extends JavaPlugin {
          * up any Bud NPCs
          */
         this.getEntityStoreRegistry().registerSystem(new BudCleanupSystem());
+
+        // TODO: For future implementation of YAML prompt config files
+        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        yamlMapper.hashCode();
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
