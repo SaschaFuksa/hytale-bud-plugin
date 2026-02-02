@@ -21,9 +21,16 @@ Currently there are three Buds implemented:
 This mod will be controlled via commands:
 - **/bud**: The initial command to spawn all three buddies around you. It also respawns them if they died or teleports existing ones to you.
 - **/bud Veri|Gronkh|Keyleth**: Spawn a specific buddy around you or teleports existing one to you.
-- **/bud clear**: Remove all your buddies.
-- **/bud clear-all**: Remove all buddies in the world.
+- **/bud [attack|atk]**: Sets all your buddies to Defensive Mode.
+- **/bud [follow|fol]**: Sets all your buddies to Passive Mode.
+- **/bud [chill|stay]**: Sets all your buddies to Sitting Mode.
+- **/bud clean**: Remove all your buddies.
+- **/bud clean-all**: Remove all buddies in the world.
+- **/bud reset**: Remove and respawn all your buddies.
 - **/bud data**: Prints uuids of your current persisted buddies.
+- **/bud data-clean**: Remove all persisted data (Bud UUIDs).
+
+Hint: Any other word after /bud will print the "help" message. All possible commands will be listed there.
 
 Interaction with buddies:
 - Press "F" to interact with your targeted buddy to bind them to you.
@@ -41,12 +48,14 @@ Custom Chat Interaction (Only with LLM enabled):
 - Your Bud will sends a chat message with current world informations every three minutes.
 - Your Bud will sends a chat message in reference to the last combats you had.
 
-### Update 1.0.1 Bugfixes
+## Changelog
+
+### 1.1.0 Bugfixes
 - Set token amount to 400 instead of 30 for better answers from LLM.
 - Added offset to spawned and teleported Buds position.
 - Logger based prints instead of System.out.println for better visibility in server logs.
 - Removed unused LLMCommand class.
-### Goals 1.1.0 Feature
+### 1.1.0 Feature
 - Command to toggle state for all Buds like "/bud attack"
 
 ## Quickstart
@@ -93,7 +102,6 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-- 1.1.0: Command to toggle state for all Buds like "/bud attack"
 - 1.2.0: More LLM config options (like token amount, temperature, etc.)
 - 1.3.0: Seperate propmts from code for easier editing.
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
@@ -109,3 +117,6 @@ start server: .\gradlew runServer
 - More story telling for Buds.
 - Better combat memory handling.
 - Optimize LLM calls to reduce token usage.
+
+## Known Issues
+- Sometimes after teleport, Buds get stuck and won't teleport. Workaround: Clean-all and respawn them.

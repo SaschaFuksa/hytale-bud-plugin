@@ -16,6 +16,7 @@ import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.npc.npcdata.persistence.BudPlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
+import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -82,16 +83,6 @@ public class BudCommand extends AbstractPlayerCommand {
             String inputMode = this.modeArg.get(commandContext);
 
             switch (inputMode) {
-                case "clean" -> {
-                    IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                    result.printResult();
-                    this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
-                }
-                case "clean-all" -> {
-                    IResult result = CleanUpHandler.cleanupAllBuds(world);
-                    result.printResult();
-                    this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
-                }
                 case BudFeranData.NPC_DISPLAY_NAME -> {
                     IResult result = executeBudAction(playerRef, store, new BudFeranData());
                     result.printResult();
@@ -107,11 +98,51 @@ public class BudCommand extends AbstractPlayerCommand {
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
+                case "attack", "atk" -> {
+                    IResult stateResult = changeState(playerRef, store, "PetDefensive");
+                    if (stateResult.isSuccess()) {
+                        this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
+                    }
+                }
+                case "follow", "fol" -> {
+                    IResult stateResult = changeState(playerRef, store, "PetPassive");
+                    if (stateResult.isSuccess()) {
+                        this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
+                    }
+                }
+                case "chill", "stay" -> {
+                    IResult stateResult = changeState(playerRef, store, "PetSitting");
+                    if (stateResult.isSuccess()) {
+                        this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
+                    }
+                }
+                case "reset" -> {
+                    CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
+                    IDataListResult<NPCEntity> teleportResult = NPCManager.getInstance().teleportBuds(playerRef, store);
+                    if (teleportResult.isSuccess()) {
+                        this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
+                    }
+                    IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
+                    if (creationResult.isSuccess()) {
+                        this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+                    }
+                }
+                case "clean" -> {
+                    IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
+                    result.printResult();
+                    this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
+                }
+                case "clean-all" -> {
+                    IResult result = CleanUpHandler.cleanupAllBuds(world);
+                    result.printResult();
+                    this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
+                }
                 case "data" -> {
                     BudPlayerData customData = store.ensureAndGetComponent(ref,
                             BudPlugin.getInstance().getBudPlayerDataComponent());
                     String uuids = customData.getBuds().stream().map(UUID::toString).collect(Collectors.joining(","));
-                    LoggerUtil.getLogger().info(() -> "[BUD] Current BudPlayer: " + playerRef.getUuid() + " Data: " + uuids);
+                    LoggerUtil.getLogger()
+                            .info(() -> "[BUD] Current BudPlayer: " + playerRef.getUuid() + " Data: " + uuids);
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "Current BudPlayerData: " + uuids);
                 }
@@ -120,7 +151,41 @@ public class BudCommand extends AbstractPlayerCommand {
                     LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
-                default -> LoggerUtil.getLogger().warning(() -> "[BUD] Unknown mode: " + inputMode);
+                default -> {
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "Unknown mode: " + inputMode + ". Valid modes: /bud: Spawn/teleport all buds.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud [Veri|Gronkh|Keyleth]: Spawn/teleport specific buds.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud [atk|attack|fol|follow|chill|stay]: Change current bud behavior");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud clean: Cleanup your buds.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud clean-all: Cleanup all buds in current world.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud reset: Cleanup and recreate all buds.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud data: Show your persisted data.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud data-clean: Clean your persisted data.");
+                }
+            }
+        }
+
+        private IResult changeState(PlayerRef playerRef, Store<EntityStore> store, String petState) {
+            Set<NPCEntity> buds = NPCManager.getInstance().getOwnedBuds(playerRef.getUuid(), store);
+            boolean successed = false;
+            for (NPCEntity bud : buds) {
+                IResult result = BudCreation.changeRoleState(bud, playerRef, petState);
+                if (result.isSuccess()) {
+                    successed = true;
+                }
+            }
+            if (successed) {
+                String state = petState.replace("Pet", "");
+                return new SuccessResult("Changed bud state to " + state + ".");
+            } else {
+                return new SuccessResult("No role changed.");
             }
         }
 

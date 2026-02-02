@@ -21,6 +21,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -28,7 +29,6 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
-import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 
 import it.unimi.dsi.fastutil.Pair;
 
@@ -93,7 +93,7 @@ public class BudCreation {
                     .addArmor(budNPCData.getArmorID())
                     .spawn();
             NPCEntity npc = (NPCEntity) result.second();
-            changeRoleState(npc, playerRef).printResult();
+            changeRoleState(npc, playerRef, "PetDefensive").printResult();
             return new DataResult<>(npc,
                     "Spawned Bud " + budNPCData.getNPCTypeId() + " for player " + playerRef.getUuid());
         } catch (Exception e) {
@@ -102,11 +102,11 @@ public class BudCreation {
         }
     }
 
-    private static IResult changeRoleState(NPCEntity bud, PlayerRef owner) {
+    public static IResult changeRoleState(NPCEntity bud, PlayerRef owner, String stateName) {
         Role role = bud.getRole();
         bud.getWorld().execute(() -> {
             StateSupport stateSupport = role.getStateSupport();
-            int attackStateIndex = stateSupport.getStateHelper().getStateIndex("PetDefensive");
+            int attackStateIndex = stateSupport.getStateHelper().getStateIndex(stateName);
 
             if (attackStateIndex >= 0) {
                 // Use default sub-state for Attack
@@ -144,7 +144,8 @@ public class BudCreation {
             try {
                 Ref<EntityStore> ref = playerRef.getReference();
                 if (ref != null) {
-                    LoggerUtil.getLogger().fine(() -> "Player Store Ref: " + ref.toString() + " (Valid: " + ref.isValid() + ")");
+                    LoggerUtil.getLogger()
+                            .fine(() -> "Player Store Ref: " + ref.toString() + " (Valid: " + ref.isValid() + ")");
 
                     // Try to get EntityGroup
                     EntityGroup group = store.getComponent(ref, EntityGroup.getComponentType());
@@ -157,7 +158,8 @@ public class BudCreation {
                     LoggerUtil.getLogger().warning(() -> "Player Store Ref is NULL");
                 }
             } catch (Exception e) {
-                LoggerUtil.getLogger().warning(() -> "[BudPlugin] Error identifying player components: " + e.getMessage());
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BudPlugin] Error identifying player components: " + e.getMessage());
             }
         } else {
             LoggerUtil.getLogger().warning(() -> "[BudPlugin] Store is null.");
@@ -176,8 +178,10 @@ public class BudCreation {
             LoggerUtil.getLogger().fine(() -> "Is Avoiding Entities: " + role.isAvoidingEntities());
 
             // Attitude Info
-            LoggerUtil.getLogger().fine(() -> "Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
-            LoggerUtil.getLogger().fine(() -> "Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
+            LoggerUtil.getLogger()
+                    .fine(() -> "Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
+            LoggerUtil.getLogger()
+                    .fine(() -> "Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
 
             // Damage Groups Info
             LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
@@ -230,7 +234,8 @@ public class BudCreation {
                     LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
                 }
 
-                LoggerUtil.getLogger().fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
+                LoggerUtil.getLogger()
+                        .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
             }
 
             // Check if it's friendly now
@@ -247,7 +252,8 @@ public class BudCreation {
                 int petPassiveIdx = stateHelper.getStateIndex("PetPassive");
                 int petDefensiveIdx = stateHelper.getStateIndex("PetDefensive");
                 int petSittingIdx = stateHelper.getStateIndex("PetSitting");
-                LoggerUtil.getLogger().fine(() -> "State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
+                LoggerUtil.getLogger()
+                        .fine(() -> "State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
                 LoggerUtil.getLogger().fine(() -> "State 'PetPassive' index: "
                         + (petPassiveIdx != Integer.MIN_VALUE ? petPassiveIdx : "NOT FOUND"));
                 LoggerUtil.getLogger().fine(() -> "State 'PetDefensive' index: "

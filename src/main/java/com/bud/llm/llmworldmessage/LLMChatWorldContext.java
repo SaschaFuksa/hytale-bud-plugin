@@ -37,7 +37,8 @@ public class LLMChatWorldContext implements ILLMChatContext {
 
         ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         String npcName = budNPCData.getNPCDisplayName();
-        LoggerUtil.getLogger().fine(() -> "[BUD] Generating world prompt for " + instance.getEntity().getNPCTypeId() + ".");
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] Generating world prompt for " + instance.getEntity().getNPCTypeId() + ".");
         LoggerUtil.getLogger().fine(() -> "[BUD] Current bud: " + npcName);
         LoggerUtil.getLogger().fine(() -> "[BUD] Start extracting world data.");
 

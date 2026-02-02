@@ -32,8 +32,10 @@ public class LLMChatCombatContext implements ILLMChatContext {
             return new DataResult<>(null, BudLLMRandomChat.NO_COMBAT_STRING);
         }
 
-        LoggerUtil.getLogger().fine(() -> "[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
-        LoggerUtil.getLogger().fine(() -> "[BUD] Processing combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] Generating combat prompt for " + budInstance.getEntity().getNPCTypeId() + ".");
+        LoggerUtil.getLogger().fine(
+                () -> "[BUD] Processing combat entry: " + latestEntry.roleName() + ", state: " + latestEntry.state());
 
         IBudNPCData budNPCData = budInstance.getData();
 

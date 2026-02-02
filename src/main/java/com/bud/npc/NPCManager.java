@@ -106,13 +106,20 @@ public class NPCManager {
         return teleportBud(targetBud, playerRef, store);
     }
 
+    public Set<NPCEntity> getOwnedBuds(UUID playerId, Store<EntityStore> store) {
+        Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
+        return playerBuds.stream()
+                .map(BudInstance::getEntity)
+                .collect(Collectors.toSet());
+    }
+
     private IResult teleportBud(NPCEntity bud, PlayerRef playerRef, Store<EntityStore> store) {
         Ref<EntityStore> budRef = bud.getReference();
         if (budRef == null || !budRef.isValid()) {
             return new ErrorResult("Invalid Bud reference for teleportation.");
         }
         TransformComponent transform = store.getComponent(budRef, TransformComponent.getComponentType());
-        
+
         if (transform != null) {
             Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
             transform.setPosition(targetPos);
@@ -120,13 +127,6 @@ public class NPCManager {
         } else {
             return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");
         }
-    }
-
-    private Set<NPCEntity> getOwnedBuds(UUID playerId, Store<EntityStore> store) {
-        Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
-        return playerBuds.stream()
-                .map(BudInstance::getEntity)
-                .collect(Collectors.toSet());
     }
 
     public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudNPCData npcData) {
@@ -180,7 +180,7 @@ public class NPCManager {
 
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
-        double offsetX = (Math.random() - 0.5) * 3.0; 
+        double offsetX = (Math.random() - 0.5) * 3.0;
         double offsetZ = (Math.random() - 0.5) * 3.0;
         return targetPos.add(offsetX, 0, offsetZ);
     }
