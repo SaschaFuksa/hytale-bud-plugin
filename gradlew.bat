@@ -40,7 +40,7 @@ set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
 @rem Set JAVA_HOME to local JDK if not already set
 if not defined JAVA_HOME (
-    set JAVA_HOME=%APP_HOME%\oracleJdk-25
+    set JAVA_HOME=%APP_HOME%\jdk-25.0.2
 )
 
 @rem Find java.exe
