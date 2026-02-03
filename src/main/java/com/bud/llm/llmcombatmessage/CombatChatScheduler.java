@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudConfig;
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.npc.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -32,7 +31,7 @@ public class CombatChatScheduler {
      * This allows for "debouncing" - multiple hits in quick succession
      * will only result in one chat message.
      */
-    private static final long COMBAT_CHAT_DELAY_SECONDS = 3L;
+    private static final long COMBAT_CHAT_DELAY_SECONDS = 2L;
 
     /**
      * Minimum time between combat chats for the same player (cooldown).
@@ -66,16 +65,6 @@ public class CombatChatScheduler {
      * @param playerId The UUID of the player involved in combat
      */
     public void onCombatRegistered(UUID playerId) {
-        if (!BudConfig.get().isEnableLLM()) {
-            return;
-        }
-
-        // Only trigger combat chat if player has buds
-        if (BudRegistry.getInstance().getByOwner(playerId).isEmpty()) {
-            LoggerUtil.getLogger().finer(() -> "[BUD] No buds for player " + playerId + ", skipping combat chat");
-            return;
-        }
-
         // Check cooldown
         Long lastChat = lastChatTime.get(playerId);
         if (lastChat != null) {

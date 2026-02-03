@@ -9,10 +9,12 @@ public class BudConfig {
     public static final BuilderCodec<BudConfig> CODEC;
 
     private boolean enableLLM = true;
-    private boolean usePlayer2API = true;
+    private boolean usePlayer2API = false;
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b";
     private String apiKey = "not_needed";
+    private int maxTokens = 400;
+    private float temperature = 0.8f;
 
     private static volatile BudConfig instance;
 
@@ -48,6 +50,14 @@ public class BudConfig {
         return this.apiKey;
     }
 
+    public int getMaxTokens() {
+        return this.maxTokens;
+    }
+
+    public float getTemperature() {
+        return this.temperature;
+    }
+
     static {
         CODEC = (BuilderCodec<BudConfig>) BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec("EnableLLM", Codec.BOOLEAN), (config, value, extra) -> {
@@ -74,6 +84,16 @@ public class BudConfig {
                     ((BudConfig) config).apiKey = (String) value;
                 }, (config, extra) -> {
                     return ((BudConfig) config).apiKey;
+                }).add()
+                .append(new KeyedCodec("MaxTokens", Codec.INTEGER), (config, value, extra) -> {
+                    ((BudConfig) config).maxTokens = (int) value;
+                }, (config, extra) -> {
+                    return ((BudConfig) config).maxTokens;
+                }).add()
+                .append(new KeyedCodec("Temperature", Codec.FLOAT), (config, value, extra) -> {
+                    ((BudConfig) config).temperature = (float) value;
+                }, (config, extra) -> {
+                    return ((BudConfig) config).temperature;
                 }).add()
                 .build();
     }

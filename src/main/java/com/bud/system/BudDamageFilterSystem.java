@@ -1,5 +1,7 @@
 package com.bud.system;
 
+import java.util.UUID;
+
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -14,6 +16,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
+import com.bud.npc.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
@@ -48,7 +51,7 @@ public class BudDamageFilterSystem extends DamageEventSystem {
             NPCEntity targetNPC = store.getComponent(targetRef, NPCEntity.getComponentType());
 
             // Case 1: Player attacks NPC
-            if (attackerPlayer != null && targetNPC != null) {
+            if (attackerPlayer != null && targetNPC != null && playerHasBud(attackerPlayer.getUuid())) {
                 RecentOpponentCache.addOpponent(
                         attackerPlayer.getUuid(),
                         targetNPC.getRoleName(),
@@ -62,19 +65,22 @@ public class BudDamageFilterSystem extends DamageEventSystem {
             Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
 
             // Case 2: NPC attacks Player
-            if (attackerNPC != null && targetPlayer != null) {
+            if (attackerNPC != null && targetPlayer != null && playerHasBud(targetPlayer.getUuid())) {
                 RecentOpponentCache.addOpponent(
                         targetPlayer.getUuid(),
                         attackerNPC.getRoleName(),
                         RecentOpponentCache.CombatState.WAS_ATTACKED);
-                LoggerUtil.getLogger().finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
-                        + targetPlayer.getUuid());
+                LoggerUtil.getLogger()
+                        .finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
+                                + targetPlayer.getUuid());
             }
 
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
         }
+    }
+
+    private boolean playerHasBud(UUID playerId) {
+        return !BudRegistry.getInstance().getByOwner(playerId).isEmpty();
     }
 }

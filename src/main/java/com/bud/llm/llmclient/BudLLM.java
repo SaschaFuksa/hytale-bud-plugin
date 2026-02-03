@@ -22,6 +22,8 @@ public class BudLLM implements ILLMClient {
             .build();
     private final String systemPrompt;
     private final BudConfig budConfig = BudConfig.get();
+    private final int DEFAULT_MAX_TOKENS = this.budConfig.getMaxTokens();
+    private final float DEFAULT_TEMPERATURE = this.budConfig.getTemperature();
 
     public BudLLM() {
         this(ILLMClient.DEFAULT_SYSTEM_PROMPT);
@@ -38,7 +40,8 @@ public class BudLLM implements ILLMClient {
         String jsonPayload = "{\"model\":\"" + this.budConfig.getModel()
                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
                 + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
-                + "\"}],\"temperature\":0.8,\"max_tokens\":400}";
+                + "\"}],\"temperature\":" + this.DEFAULT_TEMPERATURE + ",\"max_tokens\":" + this.DEFAULT_MAX_TOKENS
+                + "}";
 
         LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + budConfig.getUrl());
 
