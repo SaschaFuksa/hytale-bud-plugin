@@ -1,4 +1,4 @@
-package com.bud.npc;
+package com.bud.npc.npccreation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,8 +217,9 @@ public class NPCSpawner {
             InventoryHelper.useArmor(inventory.getArmor(), armor.itemId);
         }
 
-        LoggerUtil.getLogger().fine(() -> "[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size()
-                + " armor pieces");
+        LoggerUtil.getLogger()
+                .fine(() -> "[NPCSpawner] Configured inventory: " + weapons.size() + " weapons, " + armors.size()
+                        + " armor pieces");
     }
 
     /**

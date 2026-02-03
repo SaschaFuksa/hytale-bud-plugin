@@ -1,7 +1,7 @@
 package com.bud.npc.npcdata;
 
+import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
 import com.bud.npc.npcsound.IBudNPCSoundData;
-import com.bud.llm.llmmessage.ILLMBudNPCMessage;
 
 public interface IBudNPCData {
 

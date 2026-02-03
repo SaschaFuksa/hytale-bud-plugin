@@ -1,4 +1,4 @@
-package com.bud.npc;
+package com.bud.npc.npccreation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.bud.npc.NPCManager;
+import com.bud.npc.NPCStateTracker;
 import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.npc.npcdata.persistence.PersistenceManager;
 import com.bud.result.DataListResult;
