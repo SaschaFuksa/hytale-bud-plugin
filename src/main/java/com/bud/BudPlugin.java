@@ -4,7 +4,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.llm.BudLLMRandomChat;
-import com.bud.llm.llmcombatmessage.LLMChatCombatContext;
+import com.bud.llm.llmcombatmessage.CombatChatScheduler;
 import com.bud.llm.llmworldmessage.LLMChatWorldContext;
 import com.bud.npc.npcdata.persistence.BudPlayerData;
 import com.bud.result.ErrorResult;
@@ -54,9 +54,6 @@ public class BudPlugin extends JavaPlugin {
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
 
-        // Register Damage Filter System
-        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
-
         // Register Cleanup System
         /**
          * This Cleanup Stystem is triggered on server start
@@ -93,6 +90,10 @@ public class BudPlugin extends JavaPlugin {
             try {
                 PlayerRef playerRef = event.getPlayerRef();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
+
+                // Clear pending combat chat tasks for this player
+                CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);
@@ -109,21 +110,25 @@ public class BudPlugin extends JavaPlugin {
         });
 
         if (BudConfig.get().isEnableLLM()) {
-            // Schedule Random World Chat Task (every 3 minutes)
-            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
-                if (!result.isSuccess()) {
-                    result.printResult();
-                }
-            }, 120L, 120L, TimeUnit.SECONDS);
-            // Schedule Random Combat Chat Task (every 10 seconds)
-            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatCombatContext());
-                if (!result.isSuccess()) {
-                    result.printResult();
-                }
-            }, 10L, 10L, TimeUnit.SECONDS);
+            registerLLMFeatures();
         }
+    }
+
+    private void registerLLMFeatures() {
+        // Register Damage Filter System
+        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+        // Schedule Random World Chat Task (every 2 minutes)
+        // World chats are still polled since they are time-based, not event-driven
+        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
+            if (!result.isSuccess()) {
+                result.printResult();
+            }
+        }, 120L, 120L, TimeUnit.SECONDS);
+
+        // Combat chats are now event-driven via CombatChatScheduler
+        // They are triggered when combat is registered in RecentOpponentCache
+        LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
     }
 
     public static BudPlugin getInstance() {

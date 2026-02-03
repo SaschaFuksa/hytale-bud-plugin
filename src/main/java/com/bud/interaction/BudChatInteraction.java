@@ -7,6 +7,15 @@ import com.hypixel.hytale.server.core.universe.world.World;
 
 public class BudChatInteraction {
 
+    private static final BudChatInteraction INSTANCE = new BudChatInteraction();
+
+    private BudChatInteraction() {
+    }
+
+    public static BudChatInteraction getInstance() {
+        return INSTANCE;
+    }
+
     public void sendChatMessage(World world, PlayerRef owner, String message) {
         try {
             world.execute(() -> {
@@ -17,5 +26,5 @@ public class BudChatInteraction {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error sending chat: " + message);
         }
     }
-    
+
 }

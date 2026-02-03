@@ -46,11 +46,23 @@ Custom Chat Interaction (Only with LLM enabled):
 
 ## Changelog
 
-### 1.1.0 Bugfixes
-- Set token amount to 400 instead of 30 for better answers from LLM.
-- Added offset to spawned and teleported Buds position.
-- Logger based prints instead of System.out.println for better visibility in server logs.
-- Removed unused LLMCommand class.
+### 1.2.0 Bugfixes
+Goal: More control over LLM behavior via config.
+
+New config options:
+- Add MaxTokens config option to limit token usage.
+- Add Temperature config option to control randomness of LLM responses.
+- Add UsePlayer2API config option to switch between normal LLM calls and Player2 API calls.
+Also implemented Player2 API to make AI-integration more easy. But I don't implemented chat reactions to player messages yet. Maybe a future update.
+
+### 1.2.0 Bugfixes:
+- Code improvements, espacially for sync/async methods.
+- Bud sound will now play after message was sent
+- Changed combat chat message system from polling to event-driven:
+  - Removed polling with 10 seconds over all players
+  - Now send message after combat interaction with 2 seconds delay.
+  - Also added cooldown of 3 seconds befor shedule next combat message.
+
 ### 1.1.0 Feature
 Goal: Command to toggle state for all Buds like "/bud attack"
 
@@ -59,6 +71,12 @@ New commands:
 - **/bud [follow|fol]**: Sets all your buddies to Passive Mode.
 - **/bud [chill|stay]**: Sets all your buddies to Sitting Mode.
 - **/bud reset**: Remove and respawn all your buddies.
+
+### 1.1.0 Bugfixes
+- Set token amount to 400 instead of 30 for better answers from LLM.
+- Added offset to spawned and teleported Buds position.
+- Logger based prints instead of System.out.println for better visibility in server logs.
+- Removed unused LLMCommand class.
 
 ## Quickstart
 
@@ -74,10 +92,13 @@ Move **HytaleBudPlugin-x.x.x.zip** to your global Mods folder. Enable this Mod f
 ### Bud.json
 
 Values to set:
-- **EnableLLM**: true/false to enable/disable LLM usage (Default: "false")
+- **EnableLLM**: true/false to enable/disable LLM usage (Default: "true")
+- **UsePlayer2API**: true/false to use Player2 API for LLM calls (Default: "false", needs EnableLLM true)
 - **Url**: The URL to your LLM (E.g. LM Studio: "http://192.168.178.25:1234/v1/chat/completions")
 - **Model**: The model API identifier (E.g. "ibm/granite-4-h-tiny")
 - **ApiKey**: If needed, your external API key (Default: "not_needed")
+- **MaxTokens**: Maximum tokens to use per LLM call (Default: 400)
+- **Temperature**: Temperature for LLM responses (Default: 0.8)
 
 ## Use of this repo in your IDE
 If you for example installed the game in a non-standard location, you will need to tell the project about that.
@@ -104,10 +125,6 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-### 1.2.0: More LLM config options (like token amount, temperature, etc.)
-Goal: More control over LLM behavior via config.
-Also look for Player2 API to make AI-integration more easy.
-
 - 1.3.0: Seperate propmts from code for easier editing.
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
 - 1.5.0: Update of Bud models, add at least one special appearance per Bud.

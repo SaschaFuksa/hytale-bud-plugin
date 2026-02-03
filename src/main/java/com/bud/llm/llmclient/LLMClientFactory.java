@@ -15,8 +15,7 @@ public class LLMClientFactory {
      * @return ILLMClient instance (BudLLM or Player2LLM)
      */
     public static ILLMClient createClient() {
-        return createClient(
-                "Answer short, Keep responses concise and entertaining. Don't ask for follow up questions. Only response with maximum 1 sentences.");
+        return createClient(ILLMClient.DEFAULT_SYSTEM_PROMPT);
     }
 
     /**

@@ -30,9 +30,9 @@ public class BudLLMRandomChat {
 
     private final ILLMClient llmClient = LLMClientFactory.createClient();
 
-    private final BudChatInteraction chatInteraction = new BudChatInteraction();
+    private final BudChatInteraction chatInteraction = BudChatInteraction.getInstance();
 
-    private final BudSoundInteraction soundInteraction = new BudSoundInteraction();
+    private final BudSoundInteraction soundInteraction = BudSoundInteraction.getInstance();
 
     public static BudLLMRandomChat getInstance() {
         return INSTANCE;
@@ -43,33 +43,41 @@ public class BudLLMRandomChat {
         Set<UUID> owners = BudRegistry.getInstance().getAllOwners();
         Set<String> errors = new HashSet<>();
         for (UUID ownerId : owners) {
-            BudInstance budInstance = context.getRandomInstanceForOwner(ownerId);
-            if (budInstance == null)
-                continue;
-            try {
-                IDataResult<String> result = context.generatePrompt(budInstance);
-                if (!result.isSuccess()) {
-                    errors.add("Owner " + ownerId + ": " + result.getMessage());
-                } else {
-                    String prompt = result.getData();
-                    if (prompt.equals(NO_COMBAT_STRING)) {
-                        continue;
-                    }
-                    playSound(budInstance);
-                    sendToChat(
-                            budInstance.getData().getNPCDisplayName(),
-                            prompt,
-                            budInstance.getOwner(),
-                            budInstance.getEntity().getWorld());
-                }
-            } catch (Exception e) {
-                errors.add("Owner " + ownerId + ": Exception " + e.getMessage());
+            IResult result = triggerRandomLLMChats(ownerId, context);
+            if (!result.isSuccess()) {
+                errors.add(result.getMessage());
             }
         }
         if (!errors.isEmpty()) {
             return new ErrorResult("Triggered random chats with errors: " + String.join("; ", errors));
         }
         return new SuccessResult("Triggered random chats for all bud owners.");
+    }
+
+    public IResult triggerRandomLLMChats(UUID ownerId, ILLMChatContext context) {
+        BudInstance budInstance = context.getRandomInstanceForOwner(ownerId);
+        if (budInstance == null) {
+            return new SuccessResult("No bud available for owner " + ownerId);
+        }
+        try {
+            IDataResult<String> result = context.generatePrompt(budInstance);
+            if (!result.isSuccess()) {
+                return new ErrorResult("Owner " + ownerId + ": " + result.getMessage());
+            }
+            String prompt = result.getData();
+            if (prompt == null || prompt.equals(NO_COMBAT_STRING)) {
+                return new SuccessResult("No prompt for owner " + ownerId);
+            }
+            sendToChat(
+                    budInstance.getData().getNPCDisplayName(),
+                    prompt,
+                    budInstance.getOwner(),
+                    budInstance.getEntity().getWorld());
+            playSound(budInstance);
+            return new SuccessResult("Triggered chat for owner " + ownerId);
+        } catch (Exception e) {
+            return new ErrorResult("Owner " + ownerId + ": Exception " + e.getMessage());
+        }
     }
 
     private void playSound(BudInstance budInstance) {

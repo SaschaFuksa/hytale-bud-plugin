@@ -1,5 +1,6 @@
 package com.bud.llm.llmclient;
 
+import com.bud.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -36,8 +37,8 @@ public class Player2LLM implements ILLMClient {
         // Build simple JSON payload
         String jsonPayload = String.format(
                 "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":0.8,\"max_tokens\":400}",
-                escapeJson(this.systemPrompt),
-                escapeJson(message));
+                JsonUtils.escapeJsonWithQuotes(this.systemPrompt),
+                JsonUtils.escapeJsonWithQuotes(message));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/v1/chat/completions"))
@@ -82,25 +83,6 @@ public class Player2LLM implements ILLMClient {
         }
 
         throw new IOException("Could not extract content from Player2 response: " + jsonResponse);
-    }
-
-    /**
-     * Escape string for JSON
-     */
-    private String escapeJson(String input) {
-        if (input == null)
-            return "\"\"";
-
-        String escaped = input
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\b", "\\b")
-                .replace("\f", "\\f")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-
-        return "\"" + escaped + "\"";
     }
 
     /**

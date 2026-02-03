@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bud.llm.llmcombatmessage.CombatChatScheduler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class RecentOpponentCache {
@@ -60,6 +61,9 @@ public class RecentOpponentCache {
                     "[BUD-Cache] Added " + roleName + " (" + state + ") for " + playerId + ". History: " + size);
             return list;
         });
+
+        // Trigger event-driven combat chat scheduler
+        CombatChatScheduler.getInstance().onCombatRegistered(playerId);
     }
 
     public static LinkedList<OpponentEntry> getHistory(UUID playerId) {

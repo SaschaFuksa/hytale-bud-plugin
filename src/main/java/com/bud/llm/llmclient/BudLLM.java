@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import com.bud.BudConfig;
+import com.bud.util.JsonUtils;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -21,9 +22,11 @@ public class BudLLM implements ILLMClient {
             .build();
     private final String systemPrompt;
     private final BudConfig budConfig = BudConfig.get();
+    private final int DEFAULT_MAX_TOKENS = this.budConfig.getMaxTokens();
+    private final float DEFAULT_TEMPERATURE = this.budConfig.getTemperature();
 
     public BudLLM() {
-        this("Answer short, Keep responses concise and entertaining. Don't ask for follow up questions. Only response with maximum 1 sentences.");
+        this(ILLMClient.DEFAULT_SYSTEM_PROMPT);
     }
 
     public BudLLM(String systemPrompt) {
@@ -32,12 +35,13 @@ public class BudLLM implements ILLMClient {
 
     @Override
     public String callLLM(String message) throws IOException, InterruptedException {
-        String escapedSystemPrompt = escapeJson(this.systemPrompt);
-        String escapedMessage = escapeJson(message);
+        String escapedSystemPrompt = JsonUtils.escapeJson(this.systemPrompt);
+        String escapedMessage = JsonUtils.escapeJson(message);
         String jsonPayload = "{\"model\":\"" + this.budConfig.getModel()
                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
                 + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
-                + "\"}],\"temperature\":0.8,\"max_tokens\":400}";
+                + "\"}],\"temperature\":" + this.DEFAULT_TEMPERATURE + ",\"max_tokens\":" + this.DEFAULT_MAX_TOKENS
+                + "}";
 
         LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + budConfig.getUrl());
 
@@ -103,19 +107,6 @@ public class BudLLM implements ILLMClient {
             LoggerUtil.getLogger().severe(() -> "[LLM] Parsing error: " + e.getMessage());
             return "Error parsing response: " + e.getMessage();
         }
-    }
-
-    private String escapeJson(String input) {
-        if (input == null) {
-            return "";
-        }
-        return input.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\b", "\\b")
-                .replace("\f", "\\f")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
     }
 
 }
