@@ -1,11 +1,10 @@
 plugins {
     `maven-publish`
     id("hytale-mod") version "0.+"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.bud"
-version = "1.2.1"
+version = "1.2.2"
 val javaVersion = 25
 
 repositories {
@@ -18,8 +17,6 @@ repositories {
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.1")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -73,6 +70,22 @@ tasks.named<ProcessResources>("processResources") {
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveClassifier.set("")
+    // Only include shadow configuration (Jackson), not all runtime dependencies
+    configurations = listOf(project.configurations.getByName("shadow"))
+    // Merge with the compiled classes
+    from(sourceSets.main.get().output)
+    // Include resources
+    from("src/main/resources")
+}
+
+// Make build task use shadowJar instead of regular jar
+tasks.named("build") {
+    dependsOn(tasks.named("shadowJar"))
+}
+
+// Disable the regular jar task to avoid confusion
+tasks.named<Jar>("jar") {
+    enabled = false
 }
 
 tasks.withType<Jar> {

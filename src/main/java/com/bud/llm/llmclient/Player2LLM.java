@@ -1,8 +1,6 @@
 package com.bud.llm.llmclient;
 
 import com.bud.util.JsonUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 import java.io.IOException;
@@ -19,7 +17,6 @@ import java.time.Duration;
 public class Player2LLM implements ILLMClient {
     private static final String BASE_URL = "http://localhost:4315";
     private static final String GAME_KEY = "hytale-bud";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final HttpClient httpClient;
     private final String systemPrompt;
@@ -59,30 +56,39 @@ public class Player2LLM implements ILLMClient {
     }
 
     /**
-     * Extract content from Player2 API response
+     * Extract content from Player2 API response using manual JSON parsing
      */
     private String extractContent(String jsonResponse) throws IOException {
-        JsonNode rootNode = MAPPER.readTree(jsonResponse);
+        // Try OpenAI-style format: choices[0].message.content
+        int contentIdx = jsonResponse.indexOf("\"content\":");
+        if (contentIdx == -1) {
+            throw new IOException("Could not find content field in response: " + jsonResponse);
+        }
 
-        // Try OpenAI-style format first (choices[0].message.content)
-        if (rootNode.has("choices") && rootNode.get("choices").isArray() && rootNode.get("choices").size() > 0) {
-            JsonNode firstChoice = rootNode.get("choices").get(0);
-            if (firstChoice.has("message") && firstChoice.get("message").has("content")) {
-                return firstChoice.get("message").get("content").asText();
+        // Skip past "content": to find the opening quote
+        int openQuoteIdx = jsonResponse.indexOf("\"", contentIdx + 10);
+        if (openQuoteIdx == -1) {
+            throw new IOException("Could not find opening quote after content field");
+        }
+
+        // Find the closing quote (handling escaped quotes)
+        int closeQuoteIdx = openQuoteIdx + 1;
+        while (closeQuoteIdx < jsonResponse.length()) {
+            if (jsonResponse.charAt(closeQuoteIdx) == '"' &&
+                    jsonResponse.charAt(closeQuoteIdx - 1) != '\\') {
+                break;
             }
+            closeQuoteIdx++;
         }
 
-        // Try direct content field
-        if (rootNode.has("content")) {
-            return rootNode.get("content").asText();
+        if (closeQuoteIdx >= jsonResponse.length()) {
+            throw new IOException("Could not find closing quote for content");
         }
 
-        // Try message field
-        if (rootNode.has("message")) {
-            return rootNode.get("message").asText();
-        }
-
-        throw new IOException("Could not extract content from Player2 response: " + jsonResponse);
+        return jsonResponse.substring(openQuoteIdx + 1, closeQuoteIdx)
+                .replace("\\n", "\n")
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\");
     }
 
     /**

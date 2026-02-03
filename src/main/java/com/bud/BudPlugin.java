@@ -12,8 +12,7 @@ import com.bud.result.IResult;
 import com.bud.system.BudCleanupSystem;
 import com.bud.system.BudDamageFilterSystem;
 import com.bud.system.CleanUpHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -61,10 +60,6 @@ public class BudPlugin extends JavaPlugin {
          * up any Bud NPCs
          */
         this.getEntityStoreRegistry().registerSystem(new BudCleanupSystem());
-
-        // TODO: For future implementation of YAML prompt config files
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        yamlMapper.hashCode();
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
