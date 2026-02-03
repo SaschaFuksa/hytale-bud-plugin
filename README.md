@@ -108,6 +108,11 @@ start server: .\gradlew runServer
 Goal: More control over LLM behavior via config.
 Also look for Player2 API to make AI-integration more easy.
 
+Bugfixes:
+- Code improvements
+- Make Bud sound after message was sent
+- Changed combat chat message: Now not polling all 10 seconds, now send message after combat interaction with 3 seconds delay.
+
 - 1.3.0: Seperate propmts from code for easier editing.
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
 - 1.5.0: Update of Bud models, add at least one special appearance per Bud.
