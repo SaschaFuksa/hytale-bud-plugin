@@ -21,9 +21,10 @@ public class BudLLM implements ILLMClient {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
     private final String systemPrompt;
-    private final BudConfig budConfig = BudConfig.get();
-    private final int DEFAULT_MAX_TOKENS = this.budConfig.getMaxTokens();
-    private final double DEFAULT_TEMPERATURE = this.budConfig.getTemperature();
+
+    private BudConfig getConfig() {
+        return BudConfig.get();
+    }
 
     public BudLLM() {
         this(ILLMClient.DEFAULT_SYSTEM_PROMPT);
@@ -35,18 +36,19 @@ public class BudLLM implements ILLMClient {
 
     @Override
     public String callLLM(String message) throws IOException, InterruptedException {
+        BudConfig config = getConfig();
         String escapedSystemPrompt = JsonUtils.escapeJson(this.systemPrompt);
         String escapedMessage = JsonUtils.escapeJson(message);
-        String jsonPayload = "{\"model\":\"" + this.budConfig.getModel()
+        String jsonPayload = "{\"model\":\"" + config.getModel()
                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
                 + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
-                + "\"}],\"temperature\":" + this.DEFAULT_TEMPERATURE + ",\"max_tokens\":" + this.DEFAULT_MAX_TOKENS
+                + "\"}],\"temperature\":" + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens()
                 + "}";
 
-        LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + budConfig.getUrl());
+        LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + config.getUrl());
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(budConfig.getUrl()))
+                .uri(URI.create(config.getUrl()))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .timeout(Duration.ofSeconds(10))

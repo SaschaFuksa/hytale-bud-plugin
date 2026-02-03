@@ -41,13 +41,22 @@ public class NPCStateTracker {
 
     private volatile ScheduledFuture<?> pollingTask;
 
-    private final ILLMClient llmClient = LLMClientFactory.createClient();
-
-    private final boolean enableLLM = BudConfig.get().isEnableLLM();
+    private ILLMClient llmClient;
 
     private final BudChatInteraction chatInteraction = BudChatInteraction.getInstance();
 
     private final BudSoundInteraction soundInteraction = BudSoundInteraction.getInstance();
+
+    private ILLMClient getLlmClient() {
+        if (llmClient == null) {
+            llmClient = LLMClientFactory.createClient();
+        }
+        return llmClient;
+    }
+
+    private boolean isEnableLLM() {
+        return BudConfig.get().isEnableLLM();
+    }
 
     public static NPCStateTracker getInstance() {
         return INSTANCE;
@@ -174,8 +183,8 @@ public class NPCStateTracker {
 
         String prompt = npcMessage.getPromptForState(toState);
 
-        if (enableLLM && llmClient != null && prompt != null) {
-            llmClient.callLLMAsync(
+        if (isEnableLLM() && getLlmClient() != null && prompt != null) {
+            getLlmClient().callLLMAsync(
                     prompt,
                     response -> {
                         String message = budNPCData.getNPCDisplayName() + ": " + response;

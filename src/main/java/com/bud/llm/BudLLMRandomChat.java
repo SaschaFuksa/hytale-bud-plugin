@@ -28,11 +28,18 @@ public class BudLLMRandomChat {
     private BudLLMRandomChat() {
     }
 
-    private final ILLMClient llmClient = LLMClientFactory.createClient();
+    private ILLMClient llmClient;
 
     private final BudChatInteraction chatInteraction = BudChatInteraction.getInstance();
 
     private final BudSoundInteraction soundInteraction = BudSoundInteraction.getInstance();
+
+    private ILLMClient getLlmClient() {
+        if (llmClient == null) {
+            llmClient = LLMClientFactory.createClient();
+        }
+        return llmClient;
+    }
 
     public static BudLLMRandomChat getInstance() {
         return INSTANCE;
@@ -92,7 +99,7 @@ public class BudLLMRandomChat {
     private void sendToChat(String npcName, String prompt, PlayerRef owner, World world) {
         Thread.ofVirtual().start(() -> {
             try {
-                String response = llmClient.callLLM(prompt);
+                String response = getLlmClient().callLLM(prompt);
                 String message = npcName + ": " + response;
                 LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
                 this.chatInteraction.sendChatMessage(world, owner, message);
