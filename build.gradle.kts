@@ -68,26 +68,6 @@ tasks.named<ProcessResources>("processResources") {
     inputs.properties(replaceProperties)
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
-    // Only include shadow configuration (Jackson), not all runtime dependencies
-    configurations = listOf(project.configurations.getByName("shadow"))
-    // Merge with the compiled classes
-    from(sourceSets.main.get().output)
-    // Include resources
-    from("src/main/resources")
-}
-
-// Make build task use shadowJar instead of regular jar
-tasks.named("build") {
-    dependsOn(tasks.named("shadowJar"))
-}
-
-// Disable the regular jar task to avoid confusion
-tasks.named<Jar>("jar") {
-    enabled = false
-}
-
 tasks.withType<Jar> {
     manifest {
         attributes["Specification-Title"] = rootProject.name

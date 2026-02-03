@@ -45,6 +45,15 @@ public class BudCommand extends AbstractPlayerCommand {
         this.chatInteraction = BudChatInteraction.getInstance();
     }
 
+    /**
+     * Disable automatic permission generation so the command is available to all
+     * players.
+     */
+    @Override
+    protected boolean canGeneratePermission() {
+        return false;
+    }
+
     @Override
     protected void execute(@NonNullDecl CommandContext commandContext,
             @NonNullDecl Store<EntityStore> store,
@@ -71,6 +80,11 @@ public class BudCommand extends AbstractPlayerCommand {
             super("Manage Bud NPCs");
             this.modeArg = this.withRequiredArg("mode", "clean or clean-all", ArgTypes.STRING);
             this.chatInteraction = BudChatInteraction.getInstance();
+        }
+
+        @Override
+        protected boolean canGeneratePermission() {
+            return false;
         }
 
         @Override

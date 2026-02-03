@@ -46,6 +46,10 @@ Custom Chat Interaction (Only with LLM enabled):
 
 ## Changelog
 
+### 1.2.2 Hot Bugfixes
+- Fixed issue with shadow jar build where Jackson classes were not found at runtime.
+- Also fixed issue with permissions, I accidentally removed a needed override method. Now, also non admin players can use the /bud commands.
+
 ### 1.2.0 Features
 Goal: More control over LLM behavior via config.
 
