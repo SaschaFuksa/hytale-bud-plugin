@@ -42,7 +42,7 @@ public class BudCommand extends AbstractPlayerCommand {
     public BudCommand(BudPlugin budPlugin) {
         super("bud", "spawn bud.");
         this.addUsageVariant(new BudSetVariant());
-        this.chatInteraction = new BudChatInteraction();
+        this.chatInteraction = BudChatInteraction.getInstance();
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BudCommand extends AbstractPlayerCommand {
         public BudSetVariant() {
             super("Manage Bud NPCs");
             this.modeArg = this.withRequiredArg("mode", "clean or clean-all", ArgTypes.STRING);
-            this.chatInteraction = new BudChatInteraction();
+            this.chatInteraction = BudChatInteraction.getInstance();
         }
 
         @Override

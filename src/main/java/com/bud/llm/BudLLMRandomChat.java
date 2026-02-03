@@ -30,9 +30,9 @@ public class BudLLMRandomChat {
 
     private final ILLMClient llmClient = LLMClientFactory.createClient();
 
-    private final BudChatInteraction chatInteraction = new BudChatInteraction();
+    private final BudChatInteraction chatInteraction = BudChatInteraction.getInstance();
 
-    private final BudSoundInteraction soundInteraction = new BudSoundInteraction();
+    private final BudSoundInteraction soundInteraction = BudSoundInteraction.getInstance();
 
     public static BudLLMRandomChat getInstance() {
         return INSTANCE;

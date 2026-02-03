@@ -29,7 +29,7 @@ public class BudRegistry {
         return INSTANCE;
     }
 
-    public void register(PlayerRef owner, NPCEntity entity, IBudNPCData data, String initialState) {
+    public synchronized void register(PlayerRef owner, NPCEntity entity, IBudNPCData data, String initialState) {
         Ref<EntityStore> ref = entity.getReference();
         if (ref == null)
             return;
@@ -40,7 +40,7 @@ public class BudRegistry {
         byOwner.computeIfAbsent(owner.getUuid(), k -> ConcurrentHashMap.newKeySet()).add(instance);
     }
 
-    public void unregister(NPCEntity entity) {
+    public synchronized void unregister(NPCEntity entity) {
         Ref<EntityStore> ref = entity.getReference();
         if (ref == null)
             return;

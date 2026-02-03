@@ -12,8 +12,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudSoundInteraction {
+    private static final BudSoundInteraction INSTANCE = new BudSoundInteraction();
     private static final String SOUND_EVENT_HINT = null;
     private static final int SOUND_EVENT_LOG_LIMIT = 50;
+
+    private BudSoundInteraction() {
+    }
+
+    public static BudSoundInteraction getInstance() {
+        return INSTANCE;
+    }
 
     public void playSound(World world, NPCEntity bud, String soundEventID) {
         try {
@@ -34,10 +42,12 @@ public class BudSoundInteraction {
                     if (budRef != null) {
                         Store<EntityStore> store = budRef.getStore();
                         if (store.isInThread()) {
-                            TransformComponent transformComponent = store.getComponent(budRef, TransformComponent.getComponentType());
+                            TransformComponent transformComponent = store.getComponent(budRef,
+                                    TransformComponent.getComponentType());
                             Vector3d position = transformComponent != null ? transformComponent.getPosition() : null;
                             if (position != null) {
-                                SoundUtil.playSoundEvent3d(budRef, soundEventIndex, position.getX(), position.getY(), position.getZ(), false, store);
+                                SoundUtil.playSoundEvent3d(budRef, soundEventIndex, position.getX(), position.getY(),
+                                        position.getZ(), false, store);
                             }
                         }
                     }
@@ -99,5 +109,5 @@ public class BudSoundInteraction {
             LoggerUtil.getLogger().severe(() -> "[BUD] Failed to list SoundEvent IDs: " + e.getMessage());
         }
     }
-    
+
 }

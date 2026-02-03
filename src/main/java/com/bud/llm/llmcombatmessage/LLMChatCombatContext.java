@@ -52,6 +52,7 @@ public class LLMChatCombatContext implements ILLMChatContext {
 
     @Override
     public BudInstance getRandomInstanceForOwner(UUID ownerId) {
+        // Peek at history without removing - generatePrompt will do the atomic poll
         LinkedList<OpponentEntry> history = RecentOpponentCache.getHistory(ownerId);
         if (history == null || history.isEmpty())
             return null;
@@ -69,9 +70,8 @@ public class LLMChatCombatContext implements ILLMChatContext {
         });
 
         if (ownerBuds.isEmpty()) {
-            // If no other Buds are available, remove the processed entry to avoid
-            // re-processing
-            RecentOpponentCache.pollHistory(ownerId);
+            // No suitable Buds available - let generatePrompt handle cleanup
+            // Don't poll here to avoid race condition with generatePrompt
             return null;
         }
 

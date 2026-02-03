@@ -14,14 +14,18 @@ public class BudConfig {
     private String model = "mistralai/ministral-3-3b";
     private String apiKey = "not_needed";
 
-    private static BudConfig instance;
+    private static volatile BudConfig instance;
 
     public static void setInstance(BudConfig config) {
         instance = config;
     }
 
     public static BudConfig get() {
-        return instance;
+        BudConfig config = instance;
+        if (config == null) {
+            throw new IllegalStateException("BudConfig not yet initialized. Ensure BudPlugin.setup() has been called.");
+        }
+        return config;
     }
 
     public boolean isEnableLLM() {

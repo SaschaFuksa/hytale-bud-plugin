@@ -13,6 +13,11 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 public interface ILLMClient {
 
     /**
+     * Default system prompt used for LLM interactions.
+     */
+    String DEFAULT_SYSTEM_PROMPT = "Answer short, Keep responses concise and entertaining. Don't ask for follow up questions. Only response with maximum 1 sentences.";
+
+    /**
      * Call the LLM with a message
      * 
      * @param message User message to send to LLM
