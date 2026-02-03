@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import com.bud.npc.NPCManager;
+import com.bud.npc.NPCStateTracker;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -18,9 +19,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-
-import com.bud.npc.NPCStateTracker;
-
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.persistence.PersistenceManager;
@@ -81,7 +79,8 @@ public class CleanUpHandler {
 
     public static IResult cleanupAllBuds(World world) {
         Set<String> typesSnapshot = NPCManager.getInstance().getTrackedBudTypes();
-        LoggerUtil.getLogger().fine(() -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
+        LoggerUtil.getLogger().fine(
+                () -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
                 () -> {
                     IResult result = cleanupWorld(world, typesSnapshot);
@@ -103,7 +102,8 @@ public class CleanUpHandler {
     }
 
     private static IResult cleanupWorld(World world, Set<String> trackedBudTypes) {
-        LoggerUtil.getLogger().fine(() -> "[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
         try {
             Store<EntityStore> store = world.getEntityStore().getStore();
             // Collection to hold tracked buds for safe unregister/unpersist

@@ -3,7 +3,7 @@ package com.bud.llm.llmcombatmessage;
 import java.util.HashMap;
 import java.util.List;
 
-import com.bud.llm.llmmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
 import com.bud.npc.npcdata.BudFeranData;
 import com.bud.npc.npcdata.BudKweebecData;
 import com.bud.npc.npcdata.BudTrorkData;

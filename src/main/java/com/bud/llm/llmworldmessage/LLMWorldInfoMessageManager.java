@@ -1,6 +1,6 @@
 package com.bud.llm.llmworldmessage;
 
-import com.bud.llm.llmmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
 import com.bud.llm.llmworldmessage.biom.LLMWorldBiomeMessage;
 import com.bud.system.BudWorldContext;
 

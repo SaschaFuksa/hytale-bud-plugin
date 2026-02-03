@@ -5,12 +5,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
 
+import com.bud.BudConfig;
 import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
-import com.bud.npc.npcsound.IBudNPCSoundData;
-import com.bud.llm.BudLLM;
-import com.bud.llm.llmmessage.ILLMBudNPCMessage;
 import com.bud.npc.npcdata.IBudNPCData;
+import com.bud.npc.npcsound.IBudNPCSoundData;
+import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmclient.ILLMClient;
+import com.bud.llm.llmclient.LLMClientFactory;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -39,7 +41,9 @@ public class NPCStateTracker {
 
     private ScheduledFuture<?> pollingTask;
 
-    private final BudLLM budLLM = new BudLLM();
+    private final ILLMClient llmClient = LLMClientFactory.createClient();
+
+    private final boolean enableLLM = BudConfig.get().isEnableLLM();
 
     private final BudChatInteraction chatInteraction = new BudChatInteraction();
 
@@ -156,16 +160,11 @@ public class NPCStateTracker {
 
         LoggerUtil.getLogger().fine(() -> "[BUD] State changed: " + fromState + " -> " + toState);
 
-        final Ref<EntityStore> ownerRef = owner.getReference();
+        final Ref<EntityStore> ownerRef;
+        ownerRef = owner.getReference();
         final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
         if (world == null) {
             return;
-        }
-
-        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
-        if (npcSoundData != null) {
-            String soundEventID = npcSoundData.getSoundForState(toState);
-            this.soundInteraction.playSound(world, bud, soundEventID);
         }
 
         // Get prompt for the new state
@@ -175,23 +174,28 @@ public class NPCStateTracker {
 
         String prompt = npcMessage.getPromptForState(toState);
 
-        if (budLLM != null && prompt != null && budLLM.isEnabled()) {
-            Thread.ofVirtual().start(() -> {
-                String message;
-                try {
-                    String response = budLLM.callLLM(prompt);
-                    message = budNPCData.getNPCDisplayName() + ": " + response;
-                } catch (java.io.IOException | InterruptedException e) {
-                    LoggerUtil.getLogger().severe(() -> "[BUD] LLM error: " + e.getMessage());
-                    String fallbackMessage = npcMessage.getFallbackMessage(toState);
-                    message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
-                }
-                this.chatInteraction.sendChatMessage(world, owner, message);
-            });
+        if (enableLLM && llmClient != null && prompt != null) {
+            llmClient.callLLMAsync(
+                    prompt,
+                    response -> {
+                        String message = budNPCData.getNPCDisplayName() + ": " + response;
+                        this.chatInteraction.sendChatMessage(world, owner, message);
+                    },
+                    error -> {
+                        String fallbackMessage = npcMessage.getFallbackMessage(toState);
+                        String message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
+                        this.chatInteraction.sendChatMessage(world, owner, message);
+                    });
         } else {
             String fallbackMessage = npcMessage.getFallbackMessage(toState);
             LoggerUtil.getLogger().fine(() -> "[BUD] Sending fallback message: " + fallbackMessage);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
+        }
+
+        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
+        if (npcSoundData != null) {
+            String soundEventID = npcSoundData.getSoundForState(toState);
+            this.soundInteraction.playSound(world, bud, soundEventID);
         }
     }
 

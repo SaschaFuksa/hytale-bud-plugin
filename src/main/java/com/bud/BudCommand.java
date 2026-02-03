@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import com.bud.interaction.BudChatInteraction;
-import com.bud.npc.BudCreation;
 import com.bud.npc.NPCManager;
+import com.bud.npc.npccreation.BudCreation;
 import com.bud.npc.npcdata.BudFeranData;
 import com.bud.npc.npcdata.BudKweebecData;
 import com.bud.npc.npcdata.BudTrorkData;

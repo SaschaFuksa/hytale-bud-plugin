@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatContext;
-import com.bud.llm.llmmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;

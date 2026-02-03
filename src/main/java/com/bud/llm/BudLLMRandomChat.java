@@ -1,13 +1,13 @@
 package com.bud.llm;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
+import com.bud.llm.llmclient.ILLMClient;
+import com.bud.llm.llmclient.LLMClientFactory;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcsound.IBudNPCSoundData;
@@ -28,7 +28,7 @@ public class BudLLMRandomChat {
     private BudLLMRandomChat() {
     }
 
-    private final BudLLM budLLM = new BudLLM();
+    private final ILLMClient llmClient = LLMClientFactory.createClient();
 
     private final BudChatInteraction chatInteraction = new BudChatInteraction();
 
@@ -84,7 +84,7 @@ public class BudLLMRandomChat {
     private void sendToChat(String npcName, String prompt, PlayerRef owner, World world) {
         Thread.ofVirtual().start(() -> {
             try {
-                String response = budLLM.callLLM(prompt);
+                String response = llmClient.callLLM(prompt);
                 String message = npcName + ": " + response;
                 LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
                 this.chatInteraction.sendChatMessage(world, owner, message);
