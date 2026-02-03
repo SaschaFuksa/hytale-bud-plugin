@@ -46,7 +46,7 @@ Custom Chat Interaction (Only with LLM enabled):
 
 ## Changelog
 
-### 1.2.0 Bugfixes
+### 1.2.0 Features
 Goal: More control over LLM behavior via config.
 
 New config options:
