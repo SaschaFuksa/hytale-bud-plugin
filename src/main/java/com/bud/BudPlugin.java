@@ -110,25 +110,22 @@ public class BudPlugin extends JavaPlugin {
         });
 
         if (BudConfig.get().isEnableLLM()) {
+            // Register Damage Filter System
+            this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+            // Schedule Random World Chat Task (every 2 minutes)
+            // World chats are still polled since they are time-based, not event-driven
+            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
+                if (!result.isSuccess()) {
+                    result.printResult();
+                }
+            }, 120L, 120L, TimeUnit.SECONDS);
+            LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
             registerLLMFeatures();
         }
     }
 
     private void registerLLMFeatures() {
-        // Register Damage Filter System
-        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
-        // Schedule Random World Chat Task (every 2 minutes)
-        // World chats are still polled since they are time-based, not event-driven
-        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
-            if (!result.isSuccess()) {
-                result.printResult();
-            }
-        }, 120L, 120L, TimeUnit.SECONDS);
-
-        // Combat chats are now event-driven via CombatChatScheduler
-        // They are triggered when combat is registered in RecentOpponentCache
-        LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
     }
 
     public static BudPlugin getInstance() {

@@ -23,7 +23,7 @@ public class BudLLM implements ILLMClient {
     private final String systemPrompt;
     private final BudConfig budConfig = BudConfig.get();
     private final int DEFAULT_MAX_TOKENS = this.budConfig.getMaxTokens();
-    private final float DEFAULT_TEMPERATURE = this.budConfig.getTemperature();
+    private final double DEFAULT_TEMPERATURE = this.budConfig.getTemperature();
 
     public BudLLM() {
         this(ILLMClient.DEFAULT_SYSTEM_PROMPT);

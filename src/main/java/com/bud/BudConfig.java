@@ -4,7 +4,6 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 
-@SuppressWarnings({ "unchecked", "rawtypes" })
 public class BudConfig {
     public static final BuilderCodec<BudConfig> CODEC;
 
@@ -14,7 +13,7 @@ public class BudConfig {
     private String model = "mistralai/ministral-3-3b";
     private String apiKey = "not_needed";
     private int maxTokens = 400;
-    private float temperature = 0.8f;
+    private double temperature = 0.8;
 
     private static volatile BudConfig instance;
 
@@ -54,47 +53,40 @@ public class BudConfig {
         return this.maxTokens;
     }
 
-    public float getTemperature() {
+    public double getTemperature() {
         return this.temperature;
     }
 
     static {
-        CODEC = (BuilderCodec<BudConfig>) BuilderCodec.builder(BudConfig.class, BudConfig::new)
-                .append(new KeyedCodec("EnableLLM", Codec.BOOLEAN), (config, value, extra) -> {
-                    ((BudConfig) config).enableLLM = value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).enableLLM;
-                }).add()
-                .append(new KeyedCodec("UsePlayer2API", Codec.BOOLEAN), (config, value, extra) -> {
-                    ((BudConfig) config).usePlayer2API = (boolean) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).usePlayer2API;
-                }).add()
-                .append(new KeyedCodec("Url", Codec.STRING), (config, value, extra) -> {
-                    ((BudConfig) config).url = (String) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).url;
-                }).add()
-                .append(new KeyedCodec("Model", Codec.STRING), (config, value, extra) -> {
-                    ((BudConfig) config).model = (String) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).model;
-                }).add()
-                .append(new KeyedCodec("ApiKey", Codec.STRING), (config, value, extra) -> {
-                    ((BudConfig) config).apiKey = (String) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).apiKey;
-                }).add()
-                .append(new KeyedCodec("MaxTokens", Codec.INTEGER), (config, value, extra) -> {
-                    ((BudConfig) config).maxTokens = (int) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).maxTokens;
-                }).add()
-                .append(new KeyedCodec("Temperature", Codec.FLOAT), (config, value, extra) -> {
-                    ((BudConfig) config).temperature = (float) value;
-                }, (config, extra) -> {
-                    return ((BudConfig) config).temperature;
-                }).add()
+        CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
+                .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
+                        (config, value) -> config.enableLLM = value,
+                        config -> config.enableLLM)
+                .add()
+                .append(new KeyedCodec<>("UsePlayer2API", Codec.BOOLEAN),
+                        (config, value) -> config.usePlayer2API = value,
+                        config -> config.usePlayer2API)
+                .add()
+                .append(new KeyedCodec<>("Url", Codec.STRING),
+                        (config, value) -> config.url = value,
+                        config -> config.url)
+                .add()
+                .append(new KeyedCodec<>("Model", Codec.STRING),
+                        (config, value) -> config.model = value,
+                        config -> config.model)
+                .add()
+                .append(new KeyedCodec<>("ApiKey", Codec.STRING),
+                        (config, value) -> config.apiKey = value,
+                        config -> config.apiKey)
+                .add()
+                .append(new KeyedCodec<>("MaxTokens", Codec.INTEGER),
+                        (config, value) -> config.maxTokens = value,
+                        config -> config.maxTokens)
+                .add()
+                .append(new KeyedCodec<>("Temperature", Codec.DOUBLE),
+                        (config, value) -> config.temperature = value,
+                        config -> config.temperature)
+                .add()
                 .build();
     }
 }
