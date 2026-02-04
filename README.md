@@ -129,7 +129,9 @@ start server: .\gradlew runServer
 ```
 
 ## Roadmap
-- 1.3.0: Seperate propmts from code for easier editing.
+- 1.3.0: Seperate prompts from code for easier editing.
+Look for a solution.
+
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
 - 1.5.0: Update of Bud models, add at least one special appearance per Bud.
 - 1.6.0: Add items to spawn Buds instead of commands.
