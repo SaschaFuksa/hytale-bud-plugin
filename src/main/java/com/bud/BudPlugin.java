@@ -2,6 +2,9 @@ package com.bud;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.llmcombatmessage.CombatChatScheduler;
@@ -26,11 +29,14 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 
+import org.yaml.snakeyaml.Yaml;
+
 public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
     private final Config<BudConfig> config;
     private ComponentType<EntityStore, BudPlayerData> budPlayerData;
+    private PromptModel promptModel;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -43,6 +49,8 @@ public class BudPlugin extends JavaPlugin {
         super.setup();
         BudConfig.setInstance(this.config.get());
         this.config.save();
+
+        this.loadPrompts();
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -125,6 +133,35 @@ public class BudPlugin extends JavaPlugin {
 
     public static BudPlugin getInstance() {
         return instance;
+    }
+
+    private void loadPrompts() {
+        Path promptPath = this.getDataDirectory().resolve("prompt.yml");
+        if (!Files.exists(promptPath)) {
+            try (InputStream in = getClass().getResourceAsStream("/prompt.yml")) {
+                if (in != null) {
+                    Files.createDirectories(promptPath.getParent());
+                    Files.copy(in, promptPath);
+                    LoggerUtil.getLogger().info(() -> "[BUD] prompt.yml created in " + promptPath);
+                }
+            } catch (Exception e) {
+                LoggerUtil.getLogger().severe(() -> "[BUD] Failed to create prompt.yml: " + e.getMessage());
+            }
+        }
+
+        if (Files.exists(promptPath)) {
+            try (InputStream in = Files.newInputStream(promptPath)) {
+                Yaml yaml = new Yaml();
+                this.promptModel = yaml.loadAs(in, PromptModel.class);
+                LoggerUtil.getLogger().info(() -> "[BUD] Successfully loaded prompt.yml (SnakeYAML): " + promptModel);
+            } catch (Exception e) {
+                LoggerUtil.getLogger().severe(() -> "[BUD] Failed to load prompt.yml: " + e.getMessage());
+            }
+        }
+    }
+
+    public PromptModel getPromptModel() {
+        return promptModel;
     }
 
     public ComponentType<EntityStore, BudPlayerData> getBudPlayerDataComponent() {

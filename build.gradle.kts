@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.bud"
-version = "1.2.2"
+version = "1.2.3"
 val javaVersion = 25
 
 repositories {
@@ -17,9 +17,18 @@ repositories {
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
+    implementation(libs.snakeyaml)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    val fatJarFiles = provider {
+        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
+    }
+    from(fatJarFiles)
 }
 
 tasks.test {
