@@ -7,6 +7,9 @@ group = "com.bud"
 version = "1.2.3"
 val javaVersion = 25
 
+val shade: Configuration by configurations.creating
+configurations.implementation.get().extendsFrom(shade)
+
 repositories {
     mavenCentral()
     maven("https://maven.hytale-modding.info/releases") {
@@ -17,7 +20,7 @@ repositories {
 dependencies {
     compileOnly(libs.jetbrains.annotations)
     compileOnly(libs.jspecify)
-    implementation(libs.snakeyaml)
+    shade(libs.snakeyaml)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -26,7 +29,7 @@ dependencies {
 tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     val fatJarFiles = provider {
-        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
+        shade.map { if (it.isDirectory) it else zipTree(it) }
     }
     from(fatJarFiles)
 }
