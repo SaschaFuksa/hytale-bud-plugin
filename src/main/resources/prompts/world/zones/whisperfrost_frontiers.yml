@@ -1,0 +1,36 @@
+zone: >
+  Current zone: Whisperfrost Frontiers: This zone is harsh and challenging. 
+  It's cold with frequent snowstorms. Tundra, glaciers, icy caves and frozen lakes are present. 
+  This zone is more harsh because of the white wanderers undead.
+biomes:
+  tundra: >
+    Biome: Tundra: This biome features vast, treeless plains covered in snow and ice. 
+    It is home to hardy creatures adapted to the cold, such as snowy owls and elks. 
+    The tundra can be a challenging environment, with limited resources and extreme weather conditions.
+  boreal: >
+    Biome: Boreal Forest: This biome is characterized by dense coniferous forests with tall pine and spruce trees. 
+    It provides shelter and resources but can also harbor hidden dangers. 
+    Navigating through the boreal forest requires caution and awareness, as wolves are common predators.
+  everfrost: >
+    Biome: Everfrost Forest: This biome is centered around a large, frozen lake surrounded by frost-covered trees. 
+    The trees are dense and at night, the Voidspawn lurk in the shadows, waiting for unsuspecting prey.
+  mountain: >
+    Biome: Mountain: This biome consists of towering peaks and rocky cliffs covered in snow. 
+    It is home to mountain goats and eagles, as well as dangerous predators like snow wolfes. 
+    But there are also rumorsa about the mythical Yeti living in the higher altitudes.
+    The mountainous terrain can be treacherous, with steep slopes and icy paths.
+    Some rare minerals can be found here, including gold and cobalt.
+  ice: >
+    Biome: Icebergs: This biome features large floating ice formations in frigid waters. 
+    It is inhabited by penguins, walruses, and polar bears.
+  glacier: >
+    Biome: Glacier: This biome consists of massive ice formations and frozen landscapes. 
+    It is home to specialized cold-adapted species like polar bears and penguins. 
+    The glacier environment is harsh and unforgiving, with limited vegetation and extreme cold temperatures.
+    Also the white wanderers undead roam these areas, making it even more dangerous.
+  cave: >
+    Biome: Cave: This biome consists of underground tunnels and chambers. 
+    Here are also icy caves and underground lakes with misterious creatures.
+    It is dark and cool, often housing bats and other nocturnal creatures. 
+    Exploring caves can lead to valuable resources: Copper, Iron and Cobalt ore are common here.
+    Also shiny gold and silver veins can be found deep within.

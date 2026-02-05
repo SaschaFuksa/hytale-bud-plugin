@@ -1,0 +1,10 @@
+zone: >
+  Current zone: Dungeons: This zone is filled with dark, labyrinthine structures teeming with danger and mystery. 
+  Ancient stone walls, flickering torches, and eerie silence define the atmosphere. 
+  This zone is home to various traps, puzzles, and hostile creatures lurking in the shadows.
+biomes:
+  default: >
+    Biome: Dungeon Halls: This biome features long, winding corridors and small chambers. 
+    The air is damp and musty, and the walls are adorned with ancient carvings and symbols. 
+    Hostile creatures such as goblins, skeletons, and zombies roam these halls.
+    Treasure chests and hidden passages can be found throughout.

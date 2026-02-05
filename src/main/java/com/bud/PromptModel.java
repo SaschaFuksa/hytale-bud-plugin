@@ -2,6 +2,7 @@ package com.bud;
 
 import java.util.Map;
 
+//TODO: REMOVE!
 public class PromptModel {
     private Map<String, String> prompts;
 
