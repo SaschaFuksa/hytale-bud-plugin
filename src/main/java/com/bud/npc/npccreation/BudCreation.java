@@ -31,6 +31,7 @@ import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.asset.builder.StateMappingHelper;
 import com.hypixel.hytale.server.npc.config.AttitudeGroup;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
@@ -226,7 +227,7 @@ public class BudCreation {
 
                     for (int g : disableGroups) {
                         String groupName = "Unknown";
-                        var groupAsset = assetMap.getAsset(g);
+                        AttitudeGroup groupAsset = assetMap.getAsset(g);
                         if (groupAsset != null) {
                             groupName = groupAsset.getId();
                             final String logGroupName = groupName;
@@ -252,7 +253,7 @@ public class BudCreation {
             // NEW: Print available states
             LoggerUtil.getLogger().fine(() -> "--- Available States ---");
             try {
-                var stateHelper = role.getStateSupport().getStateHelper();
+                StateMappingHelper stateHelper = role.getStateSupport().getStateHelper();
                 LoggerUtil.getLogger().fine(() -> "Current State: " + role.getStateSupport().getStateName());
                 // Try to get state indices for common states
                 int idleIdx = stateHelper.getStateIndex("Idle");

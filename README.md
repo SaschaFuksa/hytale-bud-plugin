@@ -132,6 +132,7 @@ start server: .\gradlew runServer
 - 1.3.0: Seperate prompts from code for easier editing.
 Look for a solution.
 -> SnakeYaml seems to be a good option, I cann add it to the plugin and the size increase is minimal.
+-> Added prompt reload command: /bud prompt-reload
 Bug Fixes:
 - Current mods folder now renamed to "BudPlugin" instead og "Bud_  BudPLugin"
 - Max token size reduced to max. 200 for better performance and less token usage.

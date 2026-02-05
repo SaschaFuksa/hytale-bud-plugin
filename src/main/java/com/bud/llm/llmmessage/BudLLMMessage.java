@@ -16,17 +16,35 @@ public class BudLLMMessage extends AbstractYamlMessage {
     }
 
     public String getState(String state) {
-        if (states != null) {
-            String value = states.get(state.toLowerCase());
-            if (value != null) {
-                return value;
-            }
-        }
-        return getFallback("state");
+        if (states == null)
+            return getFallback("default");
+
+        String cleanState = state.toLowerCase().replace("pet", "").replace("sitting", "stay");
+        String value = states.get(cleanState);
+        if (value != null)
+            return value;
+
+        value = states.get(state.toLowerCase());
+        if (value != null)
+            return value;
+
+        return getFallback("default");
     }
 
     public String getFallback(String key) {
-        return fallbacks != null ? fallbacks.get(key) : null;
+        if (fallbacks == null)
+            return "Og Og!";
+
+        String cleanKey = key.toLowerCase().replace("pet", "").replace("sitting", "stay");
+        String value = fallbacks.get(cleanKey);
+        if (value != null)
+            return value;
+
+        value = fallbacks.get(key.toLowerCase());
+        if (value != null)
+            return value;
+
+        return fallbacks.getOrDefault("default", "...");
     }
 
     public String getSystemPrompt() {

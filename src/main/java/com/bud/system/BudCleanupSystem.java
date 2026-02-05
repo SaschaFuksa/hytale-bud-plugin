@@ -3,6 +3,7 @@ package com.bud.system;
 import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -30,7 +31,7 @@ public class BudCleanupSystem extends RefSystem<EntityStore> {
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         if (reason == AddReason.LOAD) {
-            var npcType = NPCEntity.getComponentType();
+            ComponentType<EntityStore, NPCEntity> npcType = NPCEntity.getComponentType();
             if (npcType == null) {
                 return;
             }
@@ -39,7 +40,8 @@ public class BudCleanupSystem extends RefSystem<EntityStore> {
             if (npc != null) {
                 Set<String> trackedTypes = NPCManager.getInstance().getTrackedBudTypes();
                 if (trackedTypes.contains(npc.getNPCTypeId())) {
-                    LoggerUtil.getLogger().fine(() -> "[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());
+                    LoggerUtil.getLogger()
+                            .fine(() -> "[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());
                     commandBuffer.removeEntity(ref, RemoveReason.REMOVE);
                 }
             }

@@ -8,10 +8,15 @@ import com.bud.llm.llmmessage.TimeLLMMessage;
 import com.bud.llm.llmmessage.WorldInfoTemplateMessage;
 import com.bud.llm.llmmessage.ZoneLLMMessage;
 import com.bud.system.BudWorldContext;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class LLMWorldInfoMessageManager {
 
     public static String createPrompt(BudWorldContext context, BudLLMMessage npcMessage) {
+        if (npcMessage == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] npcMessage is null in createPrompt!");
+            return "No NPC message available.";
+        }
         BudLLMPromptManager manager = BudLLMPromptManager.getInstance();
         WorldInfoTemplateMessage template = manager.getWorldInfoTemplate();
 

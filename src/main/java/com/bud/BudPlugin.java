@@ -3,6 +3,8 @@ package com.bud;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.llmmessage.llmcombatmessage.CombatChatScheduler;
 import com.bud.llm.llmmessage.BudLLMPromptManager;
@@ -42,10 +44,16 @@ public class BudPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         super.setup();
+
+        // Force log levels to ALL for debugging
+        java.util.logging.Logger logger = LoggerUtil.getLogger();
+        logger.setLevel(java.util.logging.Level.ALL);
+        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
+
         BudConfig.setInstance(this.config.get());
         this.config.save();
 
-        BudLLMPromptManager.getInstance().reload();
+        BudLLMPromptManager.init();
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -71,10 +79,12 @@ public class BudPlugin extends JavaPlugin {
              * not despawned by the disconnect event
              */
             try {
-                PlayerRef playerRef = event.getPlayerRef();
+                @Nonnull PlayerRef playerRef = event.getPlayerRef();
+                @Nonnull World world = event.getWorld();
+
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
-                LoggerUtil.getLogger().fine(() -> "[BUD] World: " + event.getWorld());
-                IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, event.getWorld());
+                LoggerUtil.getLogger().fine(() -> "[BUD] World: " + world.getName());
+                IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
                 result.printResult();
             } catch (Exception e) {
                 new ErrorResult("Fail during player connect event handling").printResult();
@@ -86,7 +96,7 @@ public class BudPlugin extends JavaPlugin {
              * On player disconnect, we need to clean up any Bud NPCs owned by the player
              */
             try {
-                PlayerRef playerRef = event.getPlayerRef();
+                @Nonnull PlayerRef playerRef = event.getPlayerRef();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
 
                 // Clear pending combat chat tasks for this player
@@ -94,13 +104,11 @@ public class BudPlugin extends JavaPlugin {
 
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
-                    World world = Universe.get().getWorld(worldUUID);
-                    if (world != null) {
-                        world.execute(() -> {
-                            IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                            result.printResult();
-                        });
-                    }
+                    @Nonnull World world = Universe.get().getWorld(worldUUID);
+                    world.execute(() -> {
+                        IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
+                        result.printResult();
+                    });
                 }
             } catch (Exception e) {
                 new ErrorResult("Fail during player disconnect event handling").printResult();

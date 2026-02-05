@@ -58,6 +58,11 @@ public abstract class AbstractLLMClient implements ILLMClient {
             throw new IOException("Could not find closing quote for content");
         }
 
+        final int finalOpenQuoteIdx = openQuoteIdx;
+        final int finalCloseQuoteIdx = closeQuoteIdx;
+        LoggerUtil.getLogger()
+                .fine(() -> "Extracted content: " + jsonResponse.substring(finalOpenQuoteIdx + 1, finalCloseQuoteIdx));
+
         return jsonResponse.substring(openQuoteIdx + 1, closeQuoteIdx)
                 .replace("\\n", "\n")
                 .replace("\\\"", "\"")

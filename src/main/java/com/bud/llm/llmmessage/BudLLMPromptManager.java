@@ -30,7 +30,16 @@ public class BudLLMPromptManager {
         return instance;
     }
 
-    public void reload() {
+    /**
+     * Recreates the manager instance and performs a fresh reload of all prompts.
+     * Should be called during plugin setup to ensure a clean state.
+     */
+    public static void init() {
+        instance = new BudLLMPromptManager();
+        instance.reload();
+    }
+
+    private void reload() {
         Path dataDir = BudPlugin.getInstance().getDataDirectory().resolve("prompts");
 
         // Ensure directory structure and copy defaults
@@ -38,7 +47,7 @@ public class BudLLMPromptManager {
 
         // Load all prompts
         loadBuds(dataDir.resolve("buds"));
-        this.worldInfoTemplate = WorldInfoTemplateMessage.load(dataDir.resolve("world/info_template.yml"));
+        this.worldInfoTemplate = WorldInfoTemplateMessage.load(dataDir.resolve("world/world_system_info.yml"));
         this.timeMessage = TimeLLMMessage.load(dataDir.resolve("world/time.yml"));
         loadZones(dataDir.resolve("world/zones"));
         this.combatInfoTemplate = CombatInfoTemplateMessage.load(dataDir.resolve("interaction/combat_system_info.yml"));
@@ -50,7 +59,7 @@ public class BudLLMPromptManager {
     private void copyDefaults(Path dataDir) {
         String[] resources = {
                 "buds/gronkh.yml", "buds/keyleth.yml", "buds/veri.yml",
-                "world/info_template.yml", "world/time.yml",
+                "world/world_system_info.yml", "world/time.yml",
                 "world/zones/devasted_lands.yml", "world/zones/dungeons.yml", "world/zones/emerald_grove.yml",
                 "world/zones/howling_sands.yml", "world/zones/ocean.yml", "world/zones/whisperfrost_frontiers.yml",
                 "interaction/entities.yml", "interaction/combat_system_info.yml"
@@ -65,6 +74,9 @@ public class BudLLMPromptManager {
                         if (in != null) {
                             Files.copy(in, target);
                             LoggerUtil.getLogger().info(() -> "[BUD] Prompt resource created: " + target);
+                        } else {
+                            LoggerUtil.getLogger()
+                                    .severe(() -> "[BUD] Default prompt resource not found in JAR: /prompts/" + res);
                         }
                     }
                 } catch (Exception e) {
@@ -93,7 +105,12 @@ public class BudLLMPromptManager {
     }
 
     public BudLLMMessage getBudMessage(String budName) {
-        return budMessages.get(budName.toLowerCase());
+        BudLLMMessage message = budMessages.get(budName.toLowerCase());
+        if (message == null) {
+            LoggerUtil.getLogger().warning(
+                    () -> "[BUD] No message found for bud: " + budName + " (Keys: " + budMessages.keySet() + ")");
+        }
+        return message;
     }
 
     public WorldInfoTemplateMessage getWorldInfoTemplate() {
