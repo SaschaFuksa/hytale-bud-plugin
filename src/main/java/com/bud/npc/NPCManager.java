@@ -180,8 +180,8 @@ public class NPCManager {
 
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
-        double offsetX = (Math.random() - 0.5) * 3.0;
-        double offsetZ = (Math.random() - 0.5) * 3.0;
+        double offsetX = (Math.random() * 0.5 + 1.0) * (Math.random() > 0.5 ? 1.0 : -1.0);
+        double offsetZ = (Math.random() * 0.5 + 1.0) * (Math.random() > 0.5 ? 1.0 : -1.0);
         return targetPos.add(offsetX, 0, offsetZ);
     }
 
