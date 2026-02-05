@@ -34,3 +34,4 @@ biomes:
     It is dark and cool, often housing bats and other nocturnal creatures. 
     Exploring caves can lead to valuable resources: Copper, Iron and Cobalt ore are common here.
     Also shiny gold and silver veins can be found deep within.
+  default: It's very dangerous here.

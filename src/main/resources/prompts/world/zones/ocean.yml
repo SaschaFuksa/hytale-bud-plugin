@@ -3,6 +3,6 @@ zone: >
   It's moderate and separates continents. Deep ocean, ocean shelf and volcanic islands are present. 
   This zone is more expansive because of the large water bodies.
 biomes:
-  deep_ocean: >
+  default: >
     Biome: Deep Ocean: This biome features vast underwater landscapes with towering coral reefs, deep trenches, and diverse marine life. 
     It is home to various species of fish, sharks, and other sea creatures.

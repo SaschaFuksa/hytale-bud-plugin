@@ -27,3 +27,4 @@ biomes:
     Biome: Cave: This biome consists of underground tunnels and chambers. 
     It is dark and cool, often housing bats and other nocturnal creatures. 
     Exploring caves can lead to valuable resources: Copper and Iron ore are common here.
+  default: It's peaceful here.
