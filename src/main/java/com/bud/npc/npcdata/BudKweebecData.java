@@ -1,24 +1,23 @@
 package com.bud.npc.npcdata;
 
-import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
-import com.bud.llm.llmbudmessage.LLMBudKweebecMessage;
+import com.bud.llm.llmmessage.BudLLMMessage;
+import com.bud.llm.llmmessage.BudLLMPromptManager;
 import com.bud.npc.npcsound.BudKweebecSoundData;
 import com.bud.npc.npcsound.IBudNPCSoundData;
 
 public class BudKweebecData implements IBudNPCData {
 
-	public static final String NPC_TYPE_ID = "Keyleth_Bud";
-	public static final String NPC_DISPLAY_NAME = "Keyleth";
-	private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudKweebecMessage();
-	private static final IBudNPCSoundData budNPCSoundData = new BudKweebecSoundData();
+    public static final String NPC_TYPE_ID = "Keyleth_Bud";
+    public static final String NPC_DISPLAY_NAME = "Keyleth";
+    private static final IBudNPCSoundData budNPCSoundData = new BudKweebecSoundData();
 
-	@Override
-	public ILLMBudNPCMessage getLLMBudNPCMessage() {
-		return llmBudNPCMessage;
-	}
+    @Override
+    public BudLLMMessage getLLMBudNPCMessage() {
+        return BudLLMPromptManager.getInstance().getBudMessage(NPC_DISPLAY_NAME);
+    }
 
-	@Override
-	public IBudNPCSoundData getBudNPCSoundData() {
+    @Override
+    public IBudNPCSoundData getBudNPCSoundData() {
 		return budNPCSoundData;
 	}
 

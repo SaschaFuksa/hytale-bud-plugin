@@ -1,4 +1,4 @@
-package com.bud.llm.llmcombatmessage;
+package com.bud.llm.llmmessage.llmcombatmessage;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.ILLMChatContext;
-import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmmessage.BudLLMMessage;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;
@@ -42,7 +42,7 @@ public class LLMChatCombatContext implements ILLMChatContext {
         if (budNPCData == null)
             return new DataResult<>(null, "No NPC data available.");
 
-        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+        BudLLMMessage npcMessage = budNPCData.getLLMBudNPCMessage();
 
         String combatHistory = buildCombatPrompt(latestEntry);
         String prompt = LLMCombatMessageManager.createPrompt(combatHistory, npcMessage, latestEntry.roleName());

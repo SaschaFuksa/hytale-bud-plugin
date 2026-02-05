@@ -1,5 +1,6 @@
 package com.bud.llm.llmmessage;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 public class BudLLMMessage extends AbstractYamlMessage {
@@ -15,22 +16,32 @@ public class BudLLMMessage extends AbstractYamlMessage {
     }
 
     public String getState(String state) {
-        return states != null ? states.get(state) : null;
+        if (states != null) {
+            String value = states.get(state.toLowerCase());
+            if (value != null) {
+                return value;
+            }
+        }
+        return getFallback("state");
     }
 
-    public String getFallback(String state) {
-        return fallbacks != null ? fallbacks.get(state) : null;
+    public String getFallback(String key) {
+        return fallbacks != null ? fallbacks.get(key) : null;
     }
 
-    public String getWorldView() {
+    public String getSystemPrompt() {
+        return characteristics;
+    }
+
+    public String getPersonalWorldView() {
         return worldView;
     }
 
-    public String getCombatView() {
+    public String getPersonalCombatView() {
         return combatView;
     }
 
-    public static BudLLMMessage load(String path) {
-        return loadFromResource(BudLLMMessage.class, path);
+    public static BudLLMMessage load(Path path) {
+        return loadFromFile(BudLLMMessage.class, path);
     }
 }

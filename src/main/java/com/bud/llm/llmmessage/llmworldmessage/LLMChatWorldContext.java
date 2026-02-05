@@ -1,11 +1,11 @@
-package com.bud.llm.llmworldmessage;
+package com.bud.llm.llmmessage.llmworldmessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatContext;
-import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmmessage.BudLLMMessage;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;
@@ -35,7 +35,7 @@ public class LLMChatWorldContext implements ILLMChatContext {
         if (budNPCData == null)
             return new DataResult<>(null, "No NPC data available.");
 
-        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+        BudLLMMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         String npcName = budNPCData.getNPCDisplayName();
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Generating world prompt for " + instance.getEntity().getNPCTypeId() + ".");

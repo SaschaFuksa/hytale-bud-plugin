@@ -1,8 +1,11 @@
 package com.bud.npc.npccreation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,6 +21,7 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
+import com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -27,6 +31,7 @@ import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.config.AttitudeGroup;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
@@ -187,19 +192,19 @@ public class BudCreation {
 
             // Damage Groups Info
             LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
-            var combatSupport = role.getCombatSupport();
+            com.hypixel.hytale.server.npc.role.support.CombatSupport combatSupport = role.getCombatSupport();
             if (combatSupport != null) {
                 int[] disableGroups = combatSupport.getDisableDamageGroups();
                 if (disableGroups != null) {
                     LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
-                    var assetMap = com.hypixel.hytale.server.npc.config.AttitudeGroup.getAssetMap();
+                    IndexedLookupTableAssetMap<String, AttitudeGroup> assetMap = AttitudeGroup.getAssetMap();
 
                     // --- REVERSE LOOKUP DEBUG ---
-                    java.util.Map<Integer, String> reverseMap = new java.util.HashMap<>();
+                    Map<Integer, String> reverseMap = new HashMap<>();
                     try {
-                        java.util.Map<?, ?> rawMap = assetMap.getAssetMap();
+                        Map<?, ?> rawMap = assetMap.getAssetMap();
                         if (rawMap != null) {
-                            for (java.util.Map.Entry<?, ?> entry : rawMap.entrySet()) {
+                            for (Entry<?, ?> entry : rawMap.entrySet()) {
                                 Object key = entry.getKey();
                                 Object val = entry.getValue();
                                 if (val instanceof Integer) {

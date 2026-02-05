@@ -1,5 +1,9 @@
 package com.bud.llm.llmmessage;
 
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
 public class TimeLLMMessage extends AbstractYamlMessage {
 
     private String morning;
@@ -28,7 +32,17 @@ public class TimeLLMMessage extends AbstractYamlMessage {
         return night;
     }
 
-    public static TimeLLMMessage load(String path) {
-        return loadFromResource(TimeLLMMessage.class, path);
+    public Map<String, String> getTimes() {
+        Map<String, String> times = new HashMap<>();
+        times.put("morning", morning);
+        times.put("day", day);
+        times.put("afternoon", afternoon);
+        times.put("evening", evening);
+        times.put("night", night);
+        return times;
+    }
+
+    public static TimeLLMMessage load(Path path) {
+        return loadFromFile(TimeLLMMessage.class, path);
     }
 }

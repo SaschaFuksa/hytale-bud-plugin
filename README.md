@@ -134,6 +134,9 @@ Look for a solution.
 -> SnakeYaml seems to be a good option, I cann add it to the plugin and the size increase is minimal.
 Bug Fixes:
 - Current mods folder now renamed to "BudPlugin" instead og "Bud_  BudPLugin"
+- Max token size reduced to max. 200 for better performance and less token usage.
+- Also add now config data (max tokens and temperature) to Player2 call
+- Now log consumed tokens
 
 - 1.4.0: Minor memory storage like last mined blocks, etc. to react better to world (similar like current combat memory).
 - 1.5.0: Update of Bud models, add at least one special appearance per Bud.
