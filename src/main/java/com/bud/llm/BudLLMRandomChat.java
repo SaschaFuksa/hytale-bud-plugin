@@ -75,12 +75,7 @@ public class BudLLMRandomChat {
             if (prompt == null || prompt.equals(NO_COMBAT_STRING)) {
                 return new SuccessResult("No prompt for owner " + ownerId);
             }
-            sendToChat(
-                    budInstance.getData().getNPCDisplayName(),
-                    prompt,
-                    budInstance.getOwner(),
-                    budInstance.getEntity().getWorld());
-            playSound(budInstance);
+            interact(budInstance, prompt);
             return new SuccessResult("Triggered chat for owner " + ownerId);
         } catch (Exception e) {
             return new ErrorResult("Owner " + ownerId + ": Exception " + e.getMessage());
@@ -96,13 +91,15 @@ public class BudLLMRandomChat {
         }
     }
 
-    private void sendToChat(String npcName, String prompt, PlayerRef owner, World world) {
+    private void interact(BudInstance budInstance, String prompt) {
         Thread.ofVirtual().start(() -> {
             try {
                 String response = getLlmClient().callLLM(prompt);
-                String message = npcName + ": " + response;
+                String message = budInstance.getData().getNPCDisplayName() + ": " + response;
                 LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
-                this.chatInteraction.sendChatMessage(world, owner, message);
+                this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
+                        message);
+                playSound(budInstance);
             } catch (Exception e) {
                 LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
             }

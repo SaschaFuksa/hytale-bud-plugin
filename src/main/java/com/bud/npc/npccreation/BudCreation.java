@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -19,6 +20,7 @@ import com.bud.npc.NPCManager;
 import com.bud.npc.NPCStateTracker;
 import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.npc.npcdata.persistence.PersistenceManager;
+import com.bud.result.AsyncDataListResult;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.IDataListResult;
@@ -79,6 +81,8 @@ public class BudCreation {
             World world = store.getExternalData().getWorld();
             world.execute(() -> {
                 DataResult<NPCEntity> result = internalSpawnAndRegister(store, playerRef, nextData);
+                LoggerUtil.getLogger().info(
+                        () -> "[BUD] Spawn attempt for " + nextData.getNPCDisplayName() + ": " + result.getMessage());
                 if (result.isSuccess() && result.getData() != null) {
                     NPCEntity npc = result.getData();
                     spawnedBuds.add(npc);
@@ -88,12 +92,15 @@ public class BudCreation {
                 } else {
                     result.printResult();
                     BudChatInteraction.getInstance().sendChatMessage(world, playerRef,
-                            "Failed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
+                            "[BUD] §cFailed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
                 }
             });
-        }, 0L, 250L, TimeUnit.MILLISECONDS));
+        }, 0L, 300L, TimeUnit.MILLISECONDS));
+        String budNames = missingBuds.stream()
+                .map(IBudNPCData::getNPCDisplayName)
+                .collect(Collectors.joining(", "));
 
-        return new DataListResult<>(spawnedBuds, "Started spawning " + missingBuds.size() + " bud(s).");
+        return new AsyncDataListResult<>(spawnedBuds, "Spawning " + budNames + ".");
     }
 
     private static DataResult<NPCEntity> internalSpawnAndRegister(Store<EntityStore> store, PlayerRef playerRef,

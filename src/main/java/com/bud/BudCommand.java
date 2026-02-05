@@ -67,7 +67,7 @@ public class BudCommand extends AbstractPlayerCommand {
         }
         IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
         if (creationResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+            this.chatInteraction.sendChatMessage(world, playerRef, "[BUD] " + creationResult.getMessage());
         }
     }
 
@@ -139,7 +139,8 @@ public class BudCommand extends AbstractPlayerCommand {
                     }
                     IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
                     if (creationResult.isSuccess()) {
-                        this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+                        this.chatInteraction.sendChatMessage(world, playerRef,
+                                "[BUD] " + creationResult.getMessage());
                     }
                 }
                 case "clean" -> {
