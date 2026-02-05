@@ -1,35 +1,11 @@
-zone: >
-  Current zone: Devastated Lands: This zone is dangerous and volcanic. 
-  It's very hot with lava flows and ash clouds. Volcanic plains, magma rivers, obsidian formations and charred forests are present. 
-  This zone is more dangerous because of fire-based creatures and home of the dark forces.
+zone: "Devastated Lands: volcanic, extreme heat, lava flows, ash clouds, highly dangerous."
 biomes:
-  charred: >
-    Biome: Charred lands: is filled with burnt trees and smoldering ground. 
-    The air is thick with ash and the sky is often darkened by smoke. Dark, gloomy, swampy and burnt places everywhere. Watch out for undead monsters.
-  volcano: >
-    Biome: Volcanoes: This biome features active volcanoes spewing lava and ash into the air. 
-    The ground is hot and unstable, with rivers of molten rock flowing through the landscape. 
-    Fire-based creatures inhabit this dangerous environment.
-  everburn: >
-    Biome: Everburning Forest: This biome is characterized by trees and plants that are perpetually on fire, 
-    yet remain unharmed by the flames. The forest is filled with glowing embers and the air is warm. 
-  ash: >
-    Biome: Ash Plains: This biome consists of vast, flat plains covered in a thick layer of volcanic ash. 
-    The ground is barren and lifeless, with little vegetation. The air is filled with fine ash particles, making it difficult to breathe.
-  mushroom: >
-    Biome: Mushroom Forest: This biome features bioluminescent mushrooms that emit a soft glow. 
-    The forest is dense and humid.
-  desolated: >
-    Biome: Desolated Wasteland: This biome is a barren and rocky landscape, with little vegetation or wildlife. 
-    The ground is cracked and dry, and the air is hot and arid. It is a harsh environment, with extreme temperatures and limited resources.
-  tropical: >
-    Biome: Tropical Jungle: This biome is located underground and features dense vegetation, towering trees, and a humid climate. 
-    It is home to a variety of exotic plants and animals, including dinosaurs.
-    Above the jungle, on the ceiling of the cave, glowing crystal formations can be seen, illuminating the area with a mystical light.
-  cave: >
-    Biome: Cave:This biome consists of underground tunnels and chambers. 
-    Here are also magma caves and underground magma lakes with mysterious fiery creatures.
-    It is dark and cool, often housing bats and other nocturnal creatures. 
-    Exploring caves can lead to valuable resources: Copper, Iron, Cobalt and Adamantite ore are common here.
-    Also shiny gold and silver veins can be found deep within.
-  default: It's very dangerous here.
+  charred: "Charred Lands: burnt trees, smoldering ground, thick ash, undead monsters."
+  volcano: "Volcanoes: active lava spewing, unstable ground, fire-based creatures."
+  everburn: "Everburning Forest: perpetual flames, glowing embers, warm, magical flora."
+  ash: "Ash Plains: barren volcanic ash, difficult breathing, lifeless expanse."
+  mushroom: "Mushroom Forest: bioluminescent glow, dense, humid, fungal growth."
+  desolated: "Desolated Wasteland: barren rocky landscape, dry, harsh, extreme heat."
+  tropical: "Tropical Jungle: underground, dinosaurs, humid, glowing crystals."
+  cave: "Caves: magma lakes, fiery creatures, rich ores (Copper, Iron, Cobalt, Adamantite, Gold, Silver)."
+  default: "Danger level: extreme."

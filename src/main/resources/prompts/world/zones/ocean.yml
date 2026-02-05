@@ -1,8 +1,3 @@
-zone: >
-  Current zone: Ocean: This zone is vast and watery. 
-  It's moderate and separates continents. Deep ocean, ocean shelf and volcanic islands are present. 
-  This zone is more expansive because of the large water bodies.
+zone: "Ocean: vast, watery, moderate climate, continental barrier."
 biomes:
-  default: >
-    Biome: Deep Ocean: This biome features vast underwater landscapes with towering coral reefs, deep trenches, and diverse marine life. 
-    It is home to various species of fish, sharks, and other sea creatures.
+  default: "Deep Ocean: coral reefs, deep trenches, sharks, diverse marine life."

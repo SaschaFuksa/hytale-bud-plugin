@@ -1,5 +1,5 @@
-morning: Current time: Morning. In the morning, the world is quiet and full of potential.
-day: Current time: Day. At midday, the sun is high and energy is abundant.
-afternoon: Current time: Afternoon. In the afternoon, the day begins to wind down, and it's a good time to reflect.
-evening: Current time: Evening. In the evening, the sun sets and the world prepares for rest.
-night: Current time: Night. At night, stay alert and keep watch for any dangers lurking in the dark.
+morning: "Morning: quiet, fresh start, golden light."
+day: "Midday: bright sun, high energy, active world."
+afternoon: "Afternoon: soft light, cooling down, winding down."
+evening: "Evening: sunset, shadows, world prepares for rest."
+night: "Night: dark, high danger, predators active, stay alert."

@@ -1,30 +1,9 @@
-zone: >
-  Current zone: Emerald Grove: This zone is safe and calm. 
-  It's moderate and sometimes rainy. Plains, forest, swamps and caves are present. 
-  This zone is more peaceful because of more friendly creatures.
+zone: "Emerald Grove: safe, calm, moderate rain, peaceful, friendly creatures."
 biomes:
-  plains: >
-    Biome: Plains: This biome features open grassy fields with gentle hills. 
-    It is home to herbivorous creatures, small predators. 
-    The environment is ideal for foraging and spotting distant threats.
-  forest: >
-    Biome: Forest: This biome is dense with tall trees and abundant wildlife. 
-    It provides ample cover and resources but can also harbor hidden dangers. 
-    Navigating through the forest requires caution and awareness, spiders and grizzly bears are looking for new territory.
-  azure: >
-    Biome: Azure Forest: This biome is centered around a large, serene lake with crystal-clear blue water. 
-    It is surrounded by blue vegetation and is home to various magical vegetation.
-    Here you can find the rare Azure Kelp flower, a mystical plant known for its shimmering blue leaves.
-  autumn: >
-    Biome: Autumn Forest: This biome is characterized by trees with vibrant fall foliage. 
-    The ground is often covered in a carpet of fallen leaves, creating a picturesque landscape. 
-    here are many mushrooms, including the rare mystical Bloodcap Mushroom.
-  swamp: >
-    Biome: Swamp: This biome is characterized by wet, marshy land with thick vegetation. 
-    It is inhabited by amphibious creatures: The Fen stalkers. 
-    The swamp can be treacherous, with hidden pitfalls and murky waters.
-  cave: >
-    Biome: Cave: This biome consists of underground tunnels and chambers. 
-    It is dark and cool, often housing bats and other nocturnal creatures. 
-    Exploring caves can lead to valuable resources: Copper and Iron ore are common here.
-  default: It's peaceful here.
+  plains: "Plains: open grassy fields, gentle hills, foraging, herbivores."
+  forest: "Forest: tall trees, abundant wildlife, spiders, grizzly bears, dense cover."
+  azure: "Azure Forest: serene lake, blue vegetation, magical Azure Kelp."
+  autumn: "Autumn Forest: vibrant foliage, fallen leaves, mushrooms, rare Bloodcaps."
+  swamp: "Swamp: marshy, wet, Fen stalkers, treacherous terrain."
+  cave: "Caves: underground tunnels, bats, Copper and Iron ore."
+  default: "Atmosphere: peaceful."

@@ -1,28 +1,8 @@
-zone: >
-  Current zone: Howling Sands: This zone is adventurous with toxic enemies. 
-  It's hot and sandstorms can appear. Desert, badlands, steppes, oasis and canyons are present. 
-  This zone is more challenging because of toxic Scaraks.
+zone: "Howling Sands: adventurous, hot, sandstorms, toxic Scaraks."
 biomes:
-  badlands: >
-    Biome: Badlands: This biome features rugged terrain with steep cliffs and deep ravines. 
-    The soil is dry and cracked, with sparse vegetation. 
-    It is home to hardy creatures adapted to the harsh conditions, including the aggressive Scaraks.
-  savanna: >
-    Biome: Savanna: This biome is characterized by open grasslands with scattered trees and shrubs. 
-    It experiences seasonal rainfall, leading to periods of lush growth followed by dry spells. 
-    The savanna is inhabited by a variety of herbivores and their predators, like lions and hyenas.
-  desert: >
-    Biome: Desert: This biome is dominated by vast stretches of sand dunes and rocky outcrops. 
-    It is extremely hot during the day and cold at night. Bone sculptures are scattered throughout, remnants of ancient creatures that once roamed the area.
-    Water sources are scarce, making survival a challenge for both flora and fauna.
-    The rare Storm Sapling can be found here, known for its ability to thrive in arid conditions.
-  oasis: >
-    Biome: Oasis: This biome is a lush, green area surrounded by the arid desert. 
-    It features a water source, such as a spring or pond, which supports a variety of plant and animal life. 
-    The oasis is a vital refuge for travelers and wildlife alike.
-  cave: >
-    Biome: Cave: This biome consists of underground tunnels and chambers. 
-    It is dark and cool, often housing bats and other nocturnal creatures. 
-    Exploring caves can lead to valuable resources: Copper and Iron ore are common here.
-    Also shiny gold and silver veins can be found deep within.
-  default: It's dangerous here.
+  badlands: "Badlands: rugged canyons, cliffs, dry, aggressive Scaraks."
+  savanna: "Savanna: grasslands, seasonal rain, lions, hyenas."
+  desert: "Desert: vast dunes, bone sculptures, scarce water, Storm Saplings."
+  oasis: "Oasis: lush refuge, water source, vital spring, abundant life."
+  cave: "Caves: underground tunnels, bats, Copper, Iron, Gold, Silver."
+  default: "Danger level: moderate."
