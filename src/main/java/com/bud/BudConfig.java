@@ -12,7 +12,7 @@ public class BudConfig {
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b";
     private String apiKey = "not_needed";
-    private int maxTokens = 400;
+    private int maxTokens = 200;
     private double temperature = 0.8;
 
     private static volatile BudConfig instance;

@@ -1,5 +1,6 @@
 package com.bud.llm.llmclient;
 
+import com.bud.BudConfig;
 import com.bud.util.JsonUtils;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -14,7 +15,7 @@ import java.time.Duration;
  * Player2 API LLM client implementation.
  * Simple, stateless LLM calls to Player2 API.
  */
-public class Player2LLM implements ILLMClient {
+public class Player2LLM extends AbstractLLMClient {
     private static final String BASE_URL = "http://localhost:4315";
     private static final String GAME_KEY = "hytale-bud";
 
@@ -31,9 +32,11 @@ public class Player2LLM implements ILLMClient {
 
     @Override
     public String callLLM(String message) throws IOException, InterruptedException {
+        BudConfig config = getConfig();
         // Build simple JSON payload
         String jsonPayload = String.format(
-                "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":0.8,\"max_tokens\":400}",
+                "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":"
+                        + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens() + "}",
                 JsonUtils.escapeJsonWithQuotes(this.systemPrompt),
                 JsonUtils.escapeJsonWithQuotes(message));
 
@@ -52,43 +55,9 @@ public class Player2LLM implements ILLMClient {
             throw new IOException("Player2 API Error: " + response.statusCode() + " " + response.body());
         }
 
-        return extractContent(response.body());
-    }
-
-    /**
-     * Extract content from Player2 API response using manual JSON parsing
-     */
-    private String extractContent(String jsonResponse) throws IOException {
-        // Try OpenAI-style format: choices[0].message.content
-        int contentIdx = jsonResponse.indexOf("\"content\":");
-        if (contentIdx == -1) {
-            throw new IOException("Could not find content field in response: " + jsonResponse);
-        }
-
-        // Skip past "content": to find the opening quote
-        int openQuoteIdx = jsonResponse.indexOf("\"", contentIdx + 10);
-        if (openQuoteIdx == -1) {
-            throw new IOException("Could not find opening quote after content field");
-        }
-
-        // Find the closing quote (handling escaped quotes)
-        int closeQuoteIdx = openQuoteIdx + 1;
-        while (closeQuoteIdx < jsonResponse.length()) {
-            if (jsonResponse.charAt(closeQuoteIdx) == '"' &&
-                    jsonResponse.charAt(closeQuoteIdx - 1) != '\\') {
-                break;
-            }
-            closeQuoteIdx++;
-        }
-
-        if (closeQuoteIdx >= jsonResponse.length()) {
-            throw new IOException("Could not find closing quote for content");
-        }
-
-        return jsonResponse.substring(openQuoteIdx + 1, closeQuoteIdx)
-                .replace("\\n", "\n")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\");
+        String responseBody = response.body();
+        logUsage("Player2", responseBody);
+        return extractContent(responseBody);
     }
 
     /**
@@ -109,5 +78,9 @@ public class Player2LLM implements ILLMClient {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private BudConfig getConfig() {
+        return BudConfig.get();
     }
 }

@@ -1,0 +1,8 @@
+zone: "Howling Sands: adventurous, hot, sandstorms, toxic Scaraks."
+biomes:
+  badlands: "Badlands: rugged canyons, cliffs, dry, aggressive Scaraks."
+  savanna: "Savanna: grasslands, seasonal rain, lions, hyenas."
+  desert: "Desert: vast dunes, bone sculptures, scarce water, Storm Saplings."
+  oasis: "Oasis: lush refuge, water source, vital spring, abundant life."
+  cave: "Caves: underground tunnels, bats, Copper, Iron, Gold, Silver."
+  default: "Danger level: moderate."

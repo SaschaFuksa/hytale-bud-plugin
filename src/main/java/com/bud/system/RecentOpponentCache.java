@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.bud.llm.llmcombatmessage.CombatChatScheduler;
+import com.bud.llm.llmmessage.llmcombatmessage.CombatChatScheduler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class RecentOpponentCache {
@@ -41,8 +41,8 @@ public class RecentOpponentCache {
                     if (state == CombatState.ATTACKED && lastEntry.state() == CombatState.WAS_ATTACKED) {
                         list.removeLast();
                         list.addLast(new OpponentEntry(roleName, state));
-                        LoggerUtil.getLogger().fine(() ->
-                                "[BUD-Cache] Updated interaction with " + roleName + " to ATTACKED for " + playerId);
+                        LoggerUtil.getLogger().fine(() -> "[BUD-Cache] Updated interaction with " + roleName
+                                + " to ATTACKED for " + playerId);
                     }
                     return list;
                 }
@@ -57,8 +57,8 @@ public class RecentOpponentCache {
             }
 
             // Debug output
-            LoggerUtil.getLogger().fine(() ->
-                    "[BUD-Cache] Added " + roleName + " (" + state + ") for " + playerId + ". History: " + size);
+            LoggerUtil.getLogger().fine(
+                    () -> "[BUD-Cache] Added " + roleName + " (" + state + ") for " + playerId + ". History: " + size);
             return list;
         });
 

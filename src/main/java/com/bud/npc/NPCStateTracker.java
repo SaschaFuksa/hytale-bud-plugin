@@ -10,7 +10,7 @@ import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
 import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.npc.npcsound.IBudNPCSoundData;
-import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
+import com.bud.llm.llmmessage.BudLLMMessage;
 import com.bud.llm.llmclient.ILLMClient;
 import com.bud.llm.llmclient.LLMClientFactory;
 import com.bud.result.ErrorResult;
@@ -177,11 +177,11 @@ public class NPCStateTracker {
         }
 
         // Get prompt for the new state
-        ILLMBudNPCMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+        BudLLMMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         if (npcMessage == null)
             return;
 
-        String prompt = npcMessage.getPromptForState(toState);
+        String prompt = npcMessage.getState(toState);
 
         if (isEnableLLM() && getLlmClient() != null && prompt != null) {
             getLlmClient().callLLMAsync(
@@ -191,12 +191,12 @@ public class NPCStateTracker {
                         this.chatInteraction.sendChatMessage(world, owner, message);
                     },
                     error -> {
-                        String fallbackMessage = npcMessage.getFallbackMessage(toState);
+                        String fallbackMessage = npcMessage.getFallback(toState);
                         String message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
                         this.chatInteraction.sendChatMessage(world, owner, message);
                     });
         } else {
-            String fallbackMessage = npcMessage.getFallbackMessage(toState);
+            String fallbackMessage = npcMessage.getFallback(toState);
             LoggerUtil.getLogger().fine(() -> "[BUD] Sending fallback message: " + fallbackMessage);
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }

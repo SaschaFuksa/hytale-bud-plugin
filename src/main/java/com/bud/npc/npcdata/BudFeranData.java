@@ -1,24 +1,23 @@
 package com.bud.npc.npcdata;
 
+import com.bud.llm.llmmessage.BudLLMMessage;
+import com.bud.llm.llmmessage.BudLLMPromptManager;
 import com.bud.npc.npcsound.IBudNPCSoundData;
-import com.bud.llm.llmbudmessage.ILLMBudNPCMessage;
-import com.bud.llm.llmbudmessage.LLMBudFeranMessage;
 import com.bud.npc.npcsound.BudFeranSoundData;
 
 public class BudFeranData implements IBudNPCData {
 
-	public static final String NPC_TYPE_ID = "Veri_Bud";
-	public static final String NPC_DISPLAY_NAME = "Veri";
-	private static final ILLMBudNPCMessage llmBudNPCMessage = new LLMBudFeranMessage();
-	private static final IBudNPCSoundData budNPCSoundData = new BudFeranSoundData();
+    public static final String NPC_TYPE_ID = "Veri_Bud";
+    public static final String NPC_DISPLAY_NAME = "Veri";
+    private static final IBudNPCSoundData budNPCSoundData = new BudFeranSoundData();
 
-	@Override
-	public ILLMBudNPCMessage getLLMBudNPCMessage() {
-		return llmBudNPCMessage;
-	}
+    @Override
+    public BudLLMMessage getLLMBudNPCMessage() {
+        return BudLLMPromptManager.getInstance().getBudMessage(NPC_DISPLAY_NAME);
+    }
 
-	@Override
-	public IBudNPCSoundData getBudNPCSoundData() {
+    @Override
+    public IBudNPCSoundData getBudNPCSoundData() {
 		return budNPCSoundData;
 	}
 

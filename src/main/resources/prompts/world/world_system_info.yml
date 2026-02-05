@@ -1,0 +1,10 @@
+introduction: |
+  You shall say something about the current environment.
+  The following text provides information about your environment.
+  After the environment information, you get information about yourself: what you like or dislike.
+  Finally, say something short and related to your environment and personal view.
+environmentInfo: |
+  The current environment details are as follows:
+  You are in the following zone: %s
+  In this zone, the current biome is described as: %s
+  Here are information about the current time of day: %s

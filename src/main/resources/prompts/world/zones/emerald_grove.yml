@@ -1,0 +1,9 @@
+zone: "Emerald Grove: safe, calm, moderate rain, peaceful, friendly creatures."
+biomes:
+  plains: "Plains: open grassy fields, gentle hills, foraging, herbivores."
+  forest: "Forest: tall trees, abundant wildlife, spiders, grizzly bears, dense cover."
+  azure: "Azure Forest: serene lake, blue vegetation, magical Azure Kelp."
+  autumn: "Autumn Forest: vibrant foliage, fallen leaves, mushrooms, rare Bloodcaps."
+  swamp: "Swamp: marshy, wet, Fen stalkers, treacherous terrain."
+  cave: "Caves: underground tunnels, bats, Copper and Iron ore."
+  default: "Atmosphere: peaceful."

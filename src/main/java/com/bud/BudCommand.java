@@ -4,9 +4,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
+import javax.annotation.Nonnull;
 
 import com.bud.interaction.BudChatInteraction;
+import com.bud.llm.llmmessage.BudLLMPromptManager;
 import com.bud.npc.NPCManager;
 import com.bud.npc.npccreation.BudCreation;
 import com.bud.npc.npcdata.BudFeranData;
@@ -55,18 +56,18 @@ public class BudCommand extends AbstractPlayerCommand {
     }
 
     @Override
-    protected void execute(@NonNullDecl CommandContext commandContext,
-            @NonNullDecl Store<EntityStore> store,
-            @NonNullDecl Ref<EntityStore> ref,
-            @NonNullDecl PlayerRef playerRef,
-            @NonNullDecl World world) {
+    protected void execute(@Nonnull CommandContext commandContext,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull PlayerRef playerRef,
+            @Nonnull World world) {
         IDataListResult<NPCEntity> teleportResult = NPCManager.getInstance().teleportBuds(playerRef, store);
         if (teleportResult.isSuccess()) {
             this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
         }
         IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
         if (creationResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+            this.chatInteraction.sendChatMessage(world, playerRef, "[BUD] " + creationResult.getMessage());
         }
     }
 
@@ -88,11 +89,11 @@ public class BudCommand extends AbstractPlayerCommand {
         }
 
         @Override
-        protected void execute(@NonNullDecl CommandContext commandContext,
-                @NonNullDecl Store<EntityStore> store,
-                @NonNullDecl Ref<EntityStore> ref,
-                @NonNullDecl PlayerRef playerRef,
-                @NonNullDecl World world) {
+        protected void execute(@Nonnull CommandContext commandContext,
+                @Nonnull Store<EntityStore> store,
+                @Nonnull Ref<EntityStore> ref,
+                @Nonnull PlayerRef playerRef,
+                @Nonnull World world) {
 
             String inputMode = this.modeArg.get(commandContext);
 
@@ -138,7 +139,8 @@ public class BudCommand extends AbstractPlayerCommand {
                     }
                     IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
                     if (creationResult.isSuccess()) {
-                        this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+                        this.chatInteraction.sendChatMessage(world, playerRef,
+                                "[BUD] " + creationResult.getMessage());
                     }
                 }
                 case "clean" -> {
@@ -164,6 +166,11 @@ public class BudCommand extends AbstractPlayerCommand {
                     store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new BudPlayerData());
                     LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
+                }
+                case "prompt-reload" -> {
+                    BudLLMPromptManager.init();
+                    LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
+                    this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
                 }
                 default -> {
                     this.chatInteraction.sendChatMessage(world, playerRef,

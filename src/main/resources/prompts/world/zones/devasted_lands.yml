@@ -1,0 +1,11 @@
+zone: "Devastated Lands: volcanic, extreme heat, lava flows, ash clouds, highly dangerous."
+biomes:
+  charred: "Charred Lands: burnt trees, smoldering ground, thick ash, undead monsters."
+  volcano: "Volcanoes: active lava spewing, unstable ground, fire-based creatures."
+  everburn: "Everburning Forest: perpetual flames, glowing embers, warm, magical flora."
+  ash: "Ash Plains: barren volcanic ash, difficult breathing, lifeless expanse."
+  mushroom: "Mushroom Forest: bioluminescent glow, dense, humid, fungal growth."
+  desolated: "Desolated Wasteland: barren rocky landscape, dry, harsh, extreme heat."
+  tropical: "Tropical Jungle: underground, dinosaurs, humid, glowing crystals."
+  cave: "Caves: magma lakes, fiery creatures, rich ores (Copper, Iron, Cobalt, Adamantite, Gold, Silver)."
+  default: "Danger level: extreme."

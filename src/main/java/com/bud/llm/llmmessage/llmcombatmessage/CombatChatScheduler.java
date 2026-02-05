@@ -1,4 +1,4 @@
-package com.bud.llm.llmcombatmessage;
+package com.bud.llm.llmmessage.llmcombatmessage;
 
 import java.util.Map;
 import java.util.UUID;

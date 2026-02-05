@@ -1,0 +1,193 @@
+categories:
+  abyssal:
+    info: "Abyssal: deep ocean, shadowy, mysterious, medium threat."
+    entities:
+      eel: "Eel: slippery, deep predator, shocking ambush."
+      shark: "Shark: apex ocean predator, many teeth, persistent hunter."
+      shellfish: "Shellfish: hard-shelled, coastal/seabed dwellers, passive."
+      trilobite: "Trilobite: ancient, multi-legged, darkness dweller."
+      whale: "Whale: majestic giant, singing, peaceful, deep ocean."
+
+  freshwater:
+    info: "Freshwater: lakes/rivers, mostly harmless, prey for predators."
+    entities:
+      bluegill: "Bluegill: small, colorful, darts through lake reeds."
+      catfish: "Catfish: whiskered bottom-feeder, muddy river depths."
+      clownfish: "Clownfish: bright pattern, hides in underwater plants."
+      crab: "Crab: pincered scavenger, scurries on riverbeds."
+      frostgill: "Frostgill: cold-adapted, thrives in freezing mountain lakes."
+      jellyfish: "Jellyfish: drifting, pulsating, river-bound floater."
+      man of war: "Man of War: dangerous stinging floater, avoid."
+      lobster: "Lobster: armored crustacean, rocky crevice dweller."
+      minnow: "Minnow: tiny, silver, schooling fish."
+      pike: "Pike: long, aggressive, sudden speed bursts."
+      piranha: "Piranha: sharp teeth, aggressive in large groups."
+      pufferfish: "Pufferfish: defensive, inflates into spiky ball."
+      salmon: "Salmon: strong swimmer, journeys upstream."
+      snapjaw: "Snapjaw: turtle-like, powerful bite, grumpy."
+      tang: "Tang: vibrant color, beautiful freshwater fish."
+      rainbow trout: "Rainbow Trout: prized, beautiful color spectrum."
+
+  feran:
+    info: "Feran: desert fox-hybrids, peaceful if unprovoked, tribal, loves shiny objects."
+    entities:
+      feran: "Feran: cunning, resourceful, community-focused."
+
+  kweebec:
+    info: "Kweebec: forest plant humanoids, peaceful, smart, guardians of nature."
+    entities:
+      kweebec: "Kweebec: gentle wood spirit, grows into a tree."
+
+  goblin:
+    info: "Goblin: mischievous trouble-makers, cave/camp dwellers, steals items."
+    entities:
+      goblin: "Goblin: nasty thief, crude traps, sneaky."
+
+  outlander:
+    info: "Outlander: savage warriors, bone masks, brutal, high threat."
+    entities:
+      outlander: "Outlander: ruthless, no mercy, tribe-based cult."
+
+  mythic:
+    info: "Mythic: legendary, high threat, fascinating but deadly."
+    entities:
+      dragon: "Dragon: apex apex, elemental power, hoard guardian."
+      emberwulf: "Emberwulf: flame-born wolf, leaves scorched earth."
+      wraith: "Wraith: spectral horror, drains life force."
+      yeti: "Yeti: massive snow beast, mountain guardian."
+      shadow knight: "Shadow Knight: corrupted armored warrior, cursed."
+
+  trork:
+    info: "Trork: sturdy mountain orcs, values strength and stones, medium threat."
+    entities:
+      trork: "Trork: beastly mountain warrior, heavy clubs."
+
+  undead:
+    info: "Undead: reanimated, relentless, high threat, night-active."
+    entities:
+      undead: "Undead: risen corpse, hunger for the living."
+      ghoul: "Ghoul: ravenous scavenger, haunts graveyards."
+      skeleton: "Skeleton: animated bones, tomb guardian, dark magic."
+      zombie: "Zombie: slow rotting corpse, persistent."
+      werewolf: "Werewolf: savage moon-beast transformation."
+
+  voidspawn:
+    info: "Voidspawn: dark, twisted, high threat, night-only, corrupts environment."
+    entities:
+      void: "Void: core essence of nothingness, consumer."
+      hedera: "Hedera: void-infected vine, life-choker."
+
+  livestock:
+    info: "Livestock: domesticated, farm-raised, food/material source, no threat."
+    entities:
+      antelope: "Antelope: graceful plains runner, high leap."
+      armadillo: "Armadillo: armored, rolls into protective ball."
+      bison: "Bison: massive woolly grazer, thundering herds."
+      boar: "Boar: tough wild pig, stubborn, dangerous tusks."
+      bunny: "Bunny: soft, hopping, quick, cute."
+      camel: "Camel: resilient desert traveler, water-efficient."
+      chick: "Chick: fluffy chicken offspring, chirping."
+      cow: "Cow: gentle milk-producing farm grazer."
+      calf: "Calf: young, energetic meadow frolicker."
+      doe: "Doe: female deer, keen senses, gentle."
+      stag: "Stag: antlered male deer, forest guardian."
+      goat: "Goat: sure-footed climber, curious eater."
+      kid: "Kid: young, playful, jumping goat."
+      horse: "Horse: noble companion, fast land traveler."
+      foal: "Foal: young horse, eager runner."
+      bull: "Bull: powerful protective male cow."
+      mosshorn: "Mosshorn: sturdy forest beast, camouflaged."
+      mouflon: "Mouflon: wild mountain sheep, curved horns."
+      pig: "Pig: smart social animal, mud-lover."
+      piglet: "Piglet: tiny pink bundle of energy."
+      rabbit: "Rabbit: burrowing long-eared speedster."
+      ram: "Ram: male sheep, tough head-butter."
+      sheep: "Sheep: woolly grazer, soft fleece, social."
+      lamb: "Lamb: young innocent gambolling sheep."
+      skrill: "Skrill: unique livestock companion."
+      turkey: "Turkey: large fan-tailed bird, gobbling."
+      warthog: "Warthog: brutal desert pig, tough hide."
+
+  avian:
+    info: "Avian: sky-soaring birds, beautiful, no threat."
+    entities:
+      archaeopteryx: "Archaeopteryx: ancient feathered lizard-bird link."
+      bat: "Bat: nocturnal flyer, cave dweller, sonar."
+      bluebird: "Bluebird: cheerful songbird, bright flash of color."
+      crow: "Crow: intelligent, black flyer, problem-solver."
+      duck: "Duck: water-loving pond swimmer/flyer."
+      greenfinch: "Greenfinch: songbird, olive-green plumage."
+      flamingo: "Flamingo: pink, long-legged, shrimp eater."
+      hawk: "Hawk: sharp-eyed aerial predator."
+      owl: "Owl: silent night hunter, large eyes."
+      parrot: "Parrot: colorful, social, mimics sounds."
+      penguin: "Penguin: flightless swimmer, freezing ocean expert."
+      pigeon: "Pigeon: common urban flyer, homing instincts."
+      pterodactyl: "Pterodactyl: massive wingspan prehistoric flyer."
+      raven: "Raven: large dark bird, mystery/omens."
+      sparrow: "Sparrow: busy small nester, everywhere."
+      terabird: "Terabird: large ground-dweller, powerful beak."
+      vulture: "Vulture: patient aerial scavenger."
+      woodpecker: "Woodpecker: forest drummer, finds insects in bark."
+
+  critter:
+    info: "Critter: small, nimble, some poisonous, prey for larger animals."
+    entities:
+      cactee: "Cactee: hopping desert plant-critter."
+      frog: "Frog: hopping amphibian, insect-catcher."
+      gecko: "Gecko: sticky-footed climbing master."
+      larva: "Larva: squishy crawler, feeding stage."
+      meerkat: "Meerkat: social, alert colony guard."
+      molerat: "Molerat: wrinkly underground tunneler."
+      mouse: "Mouse: tiny skittish scavenger."
+      rat: "Rat: clever urban/wild survivor."
+      scorpion: "Scorpion: stinging tail, desert dweller, pincers."
+      slug: "Slug: slow, slimy, leaves trail."
+      snail: "Snail: carries home on back, patient."
+      cobra: "Cobra: hooded, stinging strike, venomous."
+      snake: "Snake: legless, silent gliding reptile."
+      rattlesnake: "Rattlesnake: desert warning-giver, rattler."
+      spider: "Spider: eight-legged web architect."
+      squirrel: "Squirrel: energetic tree acrobat, search for nuts."
+
+  reptile:
+    info: "Reptile: cold-blooded, some large and medium threat."
+    entities:
+      crocodile: "Crocodile: armored underwater lurker, powerful predator."
+      fen stalker: "Fen Stalker: misty swamp hunter, silent."
+      lizard: "Lizard: sun-loving rock basker."
+      raptor: "Raptor: fast, intelligent, sharp claws."
+      rex: "Rex: king of reptiles, massive apex predator."
+      snapdragon: "Snapdragon: reptilian beast, fierce bite."
+      toad: "Toad: bumpy forest floor amphibian."
+      tortoise: "Tortoise: slow-moving, heavy shell, long-lived."
+      trillodon: "Trillodon: prehistoric, sturdy build."
+
+  scarak:
+    info: "Scarak: insectoid hive mind, swarming, toxic, high threat."
+    entities:
+      scarak: "Scarak: chitinous horror, absolute hive devotion."
+
+  predators:
+    info: "Predators: fierce hunters, top of food chain, high threat."
+    entities:
+      bear: "Bear: powerful woodland beast, protective."
+      fox: "Fox: clever aglie hunter, beautiful coat."
+      hyena: "Hyena: social hunter, bone-crushing bite."
+      leopard: "Leopard: spotted stealth master."
+      tiger: "Tiger: majestic striped hunter, strong."
+      wolf: "Wolf: loyal pack hunter, enduring."
+
+  elemental:
+    info: "Elemental: nature-based beings, medium threat, sacred guardians."
+    entities:
+      golem: "Golem: massive rock guardian, bound protector."
+      spark: "Spark: flickering electric manifestation, fast."
+      spirit: "Spirit: ethereal nature being, tethered."
+
+  player allies:
+    info: "Player Allies: Buds, no threat, loyal companions."
+    entities:
+      gronkh: "Gronkh: loyal Trork, values strength and stones."
+      keyleth: "Keyleth: wise Kweebec, nature/ancient secrets expert."
+      veri: "Veri: playful desert Feran, finds shiny objects."

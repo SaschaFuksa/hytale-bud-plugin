@@ -1,32 +1,46 @@
 package com.bud.npc.npccreation;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.bud.interaction.BudChatInteraction;
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCStateTracker;
 import com.bud.npc.npcdata.IBudNPCData;
 import com.bud.npc.npcdata.persistence.PersistenceManager;
+import com.bud.result.AsyncDataListResult;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.bud.system.CleanUpHandler;
+import com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.entity.group.EntityGroup;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.asset.builder.StateMappingHelper;
+import com.hypixel.hytale.server.npc.config.AttitudeGroup;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
@@ -46,40 +60,76 @@ public class BudCreation {
 
         printPlayerDebugInfo(playerRef, store);
 
-        List<NPCEntity> createdBuds = new ArrayList<>();
-        for (IBudNPCData budNPCData : missingBuds) {
-            try {
-                DataResult<NPCEntity> spawnResult = spawnBud(store, playerRef, budNPCData);
-                if (!spawnResult.isSuccess()) {
-                    spawnResult.printResult();
-                    continue;
+        if (missingBuds.isEmpty()) {
+            return new DataListResult<>(new ArrayList<>(), "All Buds already present.");
+        }
+
+        List<NPCEntity> spawnedBuds = Collections.synchronizedList(new ArrayList<>());
+        Iterator<IBudNPCData> iterator = missingBuds.iterator();
+        AtomicReference<ScheduledFuture<?>> futureRef = new AtomicReference<>();
+
+        futureRef.set(HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            if (!iterator.hasNext()) {
+                ScheduledFuture<?> future = futureRef.get();
+                if (future != null) {
+                    future.cancel(false);
                 }
-                NPCEntity npc = (NPCEntity) spawnResult.getData();
-                IResult registerResult = NPCStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
-                if (!registerResult.isSuccess()) {
-                    CleanUpHandler.despawnBud(npc).printResult();
-                    registerResult.printResult();
-                    continue;
-                }
-                IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
-                if (!persistResult.isSuccess()) {
-                    CleanUpHandler.despawnBud(npc).printResult();
-                    NPCStateTracker.getInstance().unregisterBud(npc).printResult();
-                    persistResult.printResult();
-                    continue;
-                }
-                createdBuds.add(npc);
-                printNPCDebugInfo(npc);
-            } catch (Exception e) {
-                return new DataListResult<>(new HashSet<>(),
-                        "Exception while spawning Bud " + budNPCData.getNPCTypeId() + ": " + e.getMessage());
+                return;
             }
 
-        }
-        String joinedNames = createdBuds.stream()
-                .map(npc -> npc.getNPCTypeId().split("_")[0])
+            IBudNPCData nextData = iterator.next();
+            World world = store.getExternalData().getWorld();
+            world.execute(() -> {
+                DataResult<NPCEntity> result = internalSpawnAndRegister(store, playerRef, nextData);
+                LoggerUtil.getLogger().info(
+                        () -> "[BUD] Spawn attempt for " + nextData.getNPCDisplayName() + ": " + result.getMessage());
+                if (result.isSuccess() && result.getData() != null) {
+                    NPCEntity npc = result.getData();
+                    spawnedBuds.add(npc);
+                    printNPCDebugInfo(npc);
+                    LoggerUtil.getLogger()
+                            .info(() -> "[BUD] Spawning complete for: " + nextData.getNPCDisplayName());
+                } else {
+                    result.printResult();
+                    BudChatInteraction.getInstance().sendChatMessage(world, playerRef,
+                            "[BUD] §cFailed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
+                }
+            });
+        }, 0L, 300L, TimeUnit.MILLISECONDS));
+        String budNames = missingBuds.stream()
+                .map(IBudNPCData::getNPCDisplayName)
                 .collect(Collectors.joining(", "));
-        return new DataListResult<>(createdBuds, "Created Buds: " + joinedNames);
+
+        return new AsyncDataListResult<>(spawnedBuds, "Spawning " + budNames + ".");
+    }
+
+    private static DataResult<NPCEntity> internalSpawnAndRegister(Store<EntityStore> store, PlayerRef playerRef,
+            IBudNPCData budNPCData) {
+        try {
+            DataResult<NPCEntity> spawnResult = spawnBud(store, playerRef, budNPCData);
+            if (!spawnResult.isSuccess()) {
+                return spawnResult;
+            }
+            NPCEntity npc = spawnResult.getData();
+            if (npc == null) {
+                return new DataResult<>(null, "Spawn result data is null");
+            }
+            IResult registerResult = NPCStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
+            if (!registerResult.isSuccess()) {
+                CleanUpHandler.despawnBud(npc).printResult();
+                return new DataResult<>(null, registerResult.getMessage());
+            }
+            IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
+            if (!persistResult.isSuccess()) {
+                CleanUpHandler.despawnBud(npc).printResult();
+                NPCStateTracker.getInstance().unregisterBud(npc).printResult();
+                return new DataResult<>(null, persistResult.getMessage());
+            }
+            return spawnResult;
+        } catch (Exception e) {
+            return new DataResult<>(null,
+                    "Exception while spawning Bud " + budNPCData.getNPCTypeId() + ": " + e.getMessage());
+        }
     }
 
     private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, PlayerRef playerRef,
@@ -106,7 +156,13 @@ public class BudCreation {
 
     public static IResult changeRoleState(NPCEntity bud, PlayerRef owner, String stateName) {
         Role role = bud.getRole();
-        bud.getWorld().execute(() -> {
+        World world = bud.getWorld();
+
+        if (role == null || world == null) {
+            return new SuccessResult("No role or world available.");
+        }
+
+        world.execute(() -> {
             StateSupport stateSupport = role.getStateSupport();
             int attackStateIndex = stateSupport.getStateHelper().getStateIndex(stateName);
 
@@ -118,22 +174,20 @@ public class BudCreation {
 
                 // Force the state change
                 stateSupport.setState(attackStateIndex, subStateIndex, true, false);
-                LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to PetDefensive for NPC: " +
+                LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to " + stateName + " for NPC: " +
                         bud.getNPCTypeId());
             } else {
-                LoggerUtil.getLogger().severe(() -> "[BUD] Could not find state 'PetDefensive' for NPC: " +
+                LoggerUtil.getLogger().severe(() -> "[BUD] Could not find state '" + stateName + "' for NPC: " +
                         bud.getNPCTypeId());
             }
 
             // Set Player as LockedTarget (Standard slot for combat targets)
             MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
-            if (markedSupport != null) {
-                markedSupport.setMarkedEntity("LockedTarget", owner.getReference());
-                LoggerUtil.getLogger().fine(() -> "[BUD] Set player as LockedTarget");
-            }
+            markedSupport.setMarkedEntity("LockedTarget", owner.getReference());
+            LoggerUtil.getLogger().fine(() -> "[BUD] Set player as LockedTarget");
 
         });
-        return new SuccessResult("Changed state to " + bud.getRole().getStateSupport().getStateName());
+        return new SuccessResult("Changed state order sent.");
     }
 
     private static void printPlayerDebugInfo(PlayerRef playerRef, Store<EntityStore> store) {
@@ -187,58 +241,54 @@ public class BudCreation {
 
             // Damage Groups Info
             LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
-            var combatSupport = role.getCombatSupport();
-            if (combatSupport != null) {
-                int[] disableGroups = combatSupport.getDisableDamageGroups();
-                if (disableGroups != null) {
-                    LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
-                    var assetMap = com.hypixel.hytale.server.npc.config.AttitudeGroup.getAssetMap();
+            com.hypixel.hytale.server.npc.role.support.CombatSupport combatSupport = role.getCombatSupport();
+            int[] disableGroups = combatSupport.getDisableDamageGroups();
+            if (disableGroups != null) {
+                LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
+                IndexedLookupTableAssetMap<String, AttitudeGroup> assetMap = AttitudeGroup.getAssetMap();
 
-                    // --- REVERSE LOOKUP DEBUG ---
-                    java.util.Map<Integer, String> reverseMap = new java.util.HashMap<>();
-                    try {
-                        java.util.Map<?, ?> rawMap = assetMap.getAssetMap();
-                        if (rawMap != null) {
-                            for (java.util.Map.Entry<?, ?> entry : rawMap.entrySet()) {
-                                Object key = entry.getKey();
-                                Object val = entry.getValue();
-                                if (val instanceof Integer) {
-                                    reverseMap.put((Integer) val, String.valueOf(key));
-                                } else {
-                                    // Try to get index from key
-                                    try {
-                                        int id = assetMap.getIndex((String) key);
-                                        reverseMap.put(id, String.valueOf(key));
-                                    } catch (Exception ignored) {
-                                    }
-                                }
+                // --- REVERSE LOOKUP DEBUG ---
+                Map<Integer, String> reverseMap = new HashMap<>();
+                try {
+                    Map<?, ?> rawMap = assetMap.getAssetMap();
+                    for (Entry<?, ?> entry : rawMap.entrySet()) {
+                        Object key = entry.getKey();
+                        Object val = entry.getValue();
+                        if (val instanceof Integer intVal) {
+                            reverseMap.put(intVal, String.valueOf(key));
+                        } else {
+                            // Try to get index from key
+                            try {
+                                int id = assetMap.getIndex((String) key);
+                                reverseMap.put(id, String.valueOf(key));
+                            } catch (Exception ignored) {
                             }
                         }
-                    } catch (Exception e) {
-                        LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
                     }
-                    // ----------------------------
-
-                    for (int g : disableGroups) {
-                        String groupName = "Unknown";
-                        var groupAsset = assetMap.getAsset(g);
-                        if (groupAsset != null) {
-                            groupName = groupAsset.getId();
-                            final String logGroupName = groupName;
-                            LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + logGroupName + ")");
-                        } else if (reverseMap.containsKey(g)) {
-                            groupName = reverseMap.get(g) + " (Mapped)";
-                            final String logGroupName = groupName;
-                            LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + logGroupName + ")");
-                        }
-                    }
-                } else {
-                    LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
                 }
+                // ----------------------------
 
-                LoggerUtil.getLogger()
-                        .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
+                for (int g : disableGroups) {
+                    String logGroupName;
+                    AttitudeGroup groupAsset = assetMap.getAsset(g);
+                    if (groupAsset != null) {
+                        logGroupName = groupAsset.getId();
+                        final String finalLogGroupName = logGroupName;
+                        LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
+                    } else if (reverseMap.containsKey(g)) {
+                        logGroupName = reverseMap.get(g) + " (Mapped)";
+                        final String finalLogGroupName = logGroupName;
+                        LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
+                    }
+                }
+            } else {
+                LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
             }
+
+            LoggerUtil.getLogger()
+                    .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
 
             // Check if it's friendly now
             LoggerUtil.getLogger().fine(() -> "--- Current Status ---");
@@ -247,7 +297,7 @@ public class BudCreation {
             // NEW: Print available states
             LoggerUtil.getLogger().fine(() -> "--- Available States ---");
             try {
-                var stateHelper = role.getStateSupport().getStateHelper();
+                StateMappingHelper stateHelper = role.getStateSupport().getStateHelper();
                 LoggerUtil.getLogger().fine(() -> "Current State: " + role.getStateSupport().getStateName());
                 // Try to get state indices for common states
                 int idleIdx = stateHelper.getStateIndex("Idle");

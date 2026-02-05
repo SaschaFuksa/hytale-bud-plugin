@@ -1,0 +1,10 @@
+zone: "Whisperfrost Frontiers: harsh, freezing, snowstorms, white wanderers undead."
+biomes:
+  tundra: "Tundra: treeless plains, snow, ice, owls, elks, challenging resources."
+  boreal: "Boreal Forest: dense conifers, pines, spruce, stalking wolves."
+  everfrost: "Everfrost Forest: frozen lake, frost-covered trees, Voidspawn at night."
+  mountain: "Mountains: snowy peaks, cliffs, snow wolves, Yeti, Gold, Cobalt."
+  ice: "Icebergs: floating ice, frigid water, penguins, walruses, polar bears."
+  glacier: "Glacier: massive ice formations, polar bears, penguins, white wanderers."
+  cave: "Caves: icy tunnels, bats, Copper, Iron, Cobalt, Gold, Silver."
+  default: "Danger level: high."
