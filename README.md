@@ -11,6 +11,11 @@
 
 This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles.
 
+## New in 1.3.0
+- Separated prompts from code (YAML).
+- Add chat reactions for non LLM usage (Only generic one for each interaction).
+(See more changes in GitHub Repository in the **CHANGELOG.md**
+
 ### Meet your Buddies
 
 <table>
@@ -70,13 +75,19 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | Setting | Description | Default |
 |:--- |:--- |:--- |
 | `EnableLLM` | Toggle LLM features | `true` |`
-| `UsePlayer2API` | Toggle to use Player2 API for LLM (EnableLLM must be true) | `false` |
+| `UsePlayer2API` | Toggle to use Player2 API for LLM <br>(EnableLLM must be true) | `false` |
 | `Url` | Your LLM API Endpoint | `v1/chat/completions` |
 | `Model` | The AI model identifier | `ibm/granite-4-h-tiny` |
 | `ApiKey` | The API key for your LLM service | `not_needed` |
 | `MaxTokens` | Limit the length of AI responses | `200` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
 
+### 🧠 Prompt Management
+The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
+
+First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
+
+**Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
 <br>
 
 ## 🛠️ Development
@@ -90,8 +101,7 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 
 ## 🗺️ Roadmap
 
-- [x] **1.3.0** (Current): Separated prompts from code (YAML), reduced token usage (max 200), implemented staggered spawning (0.5s interval). Add chat reactions for non LLM usage (Only generic one for each interaction).
-- [ ] **1.4.0**: Memory storage for environment events (e.g., "You just mined 20 blocks of iron ore!").
+- [x] **1.4.0**: Memory storage for environment events (e.g., "You just mined 20 blocks of iron ore!").
 - [ ] **1.5.0**: Add "days" in environment event and try to get events like rainy, snow, sandstorm... 
 - [ ] **1.6.0**: Try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)
 - [ ] **1.7.0**: ...
