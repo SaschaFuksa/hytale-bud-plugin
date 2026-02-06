@@ -90,12 +90,13 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 
 ## 🗺️ Roadmap
 
-- [x] **1.3.0** (Current): Separated prompts from code (YAML), reduced token usage (max 200), implemented staggered spawning (0.5s interval).
+- [x] **1.3.0** (Current): Separated prompts from code (YAML), reduced token usage (max 200), implemented staggered spawning (0.5s interval). Add chat reactions for non LLM usage (Only generic one for each interaction).
 - [ ] **1.4.0**: Memory storage for environment events (e.g., "You just mined 20 blocks of iron ore!").
 - [ ] **1.5.0**: Add "days" in environment event and try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)
-- [ ] **1.6.0**: Add chat reactions for non LLM usage (Only generic one for each interaction)
+- [ ] **1.6.0**: ...
+- [ ] **1.7.0**: ...
 - [ ] **1.8.0**: Visual updates & special models for Buds?
-- [ ] **1.9.0**: Item-based spawning instead of commands.
+- [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Fully interactive world manipulation via LLM?
 <br>
 
