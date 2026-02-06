@@ -15,21 +15,21 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 <table>
   <tr>
-    <td width="200"><img src="https://fuksa.de/hytale/Veri.png" alt="Veri"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Veri.png" alt="Veri"></td>
     <td>
       <h3>🦊 Veri</h3>
       <p>A Feran buddy who is a little childish, but extremely curious and friendly. Veri is agile and supports you in combat using <b>daggers</b>.</p>
     </td>
   </tr>
   <tr>
-    <td width="200"><img src="https://fuksa.de/hytale/Gronkh.png" alt="Gronkh"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Gronkh.png" alt="Gronkh"></td>
     <td>
       <h3>👹 Gronkh</h3>
       <p>A Trork buddy who might seem grumpy at first, but is fiercely loyal and strong. He's a powerhouse who supports you with a heavy <b>mace</b>.</p>
     </td>
   </tr>
   <tr>
-    <td width="200"><img src="https://fuksa.de/hytale/Keyleth.png" alt="Keyleth"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Keyleth.png" alt="Keyleth"></td>
     <td>
       <h3>🍃 Keyleth</h3>
       <p>A Kweebec buddy who is highly intelligent but a bit shy. She prefers to keep her distance and supports you from afar with a <b>bow</b>.</p>
