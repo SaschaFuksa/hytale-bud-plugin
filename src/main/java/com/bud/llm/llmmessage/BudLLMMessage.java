@@ -37,12 +37,18 @@ public class BudLLMMessage extends AbstractYamlMessage {
         if (fallbacks == null)
             return "...";
 
-        String cleanKey = key.toLowerCase().replace("pet", "").replace("sitting", "stay");
-        LoggerUtil.getLogger().info(() -> "[BUD] Getting fallback for key: " + key + ", cleanKey: " + cleanKey);
-        String value = fallbacks.get(cleanKey);
+        // 1. Try exact match (e.g. "worldView")
+        String value = fallbacks.get(key);
         if (value != null)
             return value;
 
+        // 2. Try cleaned/lowercase match (e.g. "worldview" or "stay")
+        String cleanKey = key.toLowerCase().replace("pet", "").replace("sitting", "stay");
+        value = fallbacks.get(cleanKey);
+        if (value != null)
+            return value;
+
+        // 3. Try pure lowercase
         value = fallbacks.get(key.toLowerCase());
         if (value != null)
             return value;

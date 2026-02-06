@@ -62,7 +62,7 @@
       "Description": "The model to use."
     },
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Veri_Bud.name",
+      "Value": "Veri",
       "Description": "Translation key"
     }
   }

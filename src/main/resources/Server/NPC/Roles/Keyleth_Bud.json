@@ -27,7 +27,7 @@
       "Description": "The model to use."
     },
     "NameTranslationKey": {
-      "Value": "server.npcRoles.Keyleth_Bud.name",
+      "Value": "Keyleth",
       "Description": "Translation key"
     }
   }
