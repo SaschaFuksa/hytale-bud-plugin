@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.bud.llm.ILLMChatContext;
 import com.bud.llm.llmmessage.BudLLMMessage;
+import com.bud.llm.llmmessage.BudLLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;
@@ -65,6 +66,13 @@ public class LLMChatWorldContext implements ILLMChatContext {
             return null;
 
         return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
+    }
+
+    @Override
+    public String getFallbackMessage(BudInstance budInstance) {
+        BudLLMPromptManager manager = BudLLMPromptManager.getInstance();
+        String budName = budInstance.getData().getNPCDisplayName();
+        return manager.getBudMessage(budName.toLowerCase()).getFallback("worldView");
     }
 
     private BudWorldContext getWorldContext(PlayerRef owner, World world, Store<EntityStore> store) {

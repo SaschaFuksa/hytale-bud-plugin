@@ -53,7 +53,7 @@ public class BudPlugin extends JavaPlugin {
         BudConfig.setInstance(this.config.get());
         this.config.save();
 
-        BudLLMPromptManager.init();
+        BudLLMPromptManager.getInstance().reload(false);
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -79,8 +79,10 @@ public class BudPlugin extends JavaPlugin {
              * not despawned by the disconnect event
              */
             try {
-                @Nonnull PlayerRef playerRef = event.getPlayerRef();
-                @Nonnull World world = event.getWorld();
+                @Nonnull
+                PlayerRef playerRef = event.getPlayerRef();
+                @Nonnull
+                World world = event.getWorld();
 
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
                 LoggerUtil.getLogger().fine(() -> "[BUD] World: " + world.getName());
@@ -96,7 +98,8 @@ public class BudPlugin extends JavaPlugin {
              * On player disconnect, we need to clean up any Bud NPCs owned by the player
              */
             try {
-                @Nonnull PlayerRef playerRef = event.getPlayerRef();
+                @Nonnull
+                PlayerRef playerRef = event.getPlayerRef();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
 
                 // Clear pending combat chat tasks for this player
@@ -104,7 +107,8 @@ public class BudPlugin extends JavaPlugin {
 
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
-                    @Nonnull World world = Universe.get().getWorld(worldUUID);
+                    @Nonnull
+                    World world = Universe.get().getWorld(worldUUID);
                     world.execute(() -> {
                         IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
                         result.printResult();
@@ -115,20 +119,18 @@ public class BudPlugin extends JavaPlugin {
             }
         });
 
-        if (BudConfig.get().isEnableLLM()) {
-            // Register Damage Filter System
-            this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
-            // Schedule Random World Chat Task (every 2 minutes)
-            // World chats are still polled since they are time-based, not event-driven
-            HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-                IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
-                if (!result.isSuccess()) {
-                    result.printResult();
-                }
-            }, 120L, 120L, TimeUnit.SECONDS);
-            LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
-            registerLLMFeatures();
-        }
+        // Register Damage Filter System
+        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+        // Schedule Random World Chat Task (every 2 minutes)
+        // World chats are still polled since they are time-based, not event-driven
+        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
+            if (!result.isSuccess()) {
+                result.printResult();
+            }
+        }, 120L, 120L, TimeUnit.SECONDS);
+        LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
+        registerLLMFeatures();
     }
 
     private void registerLLMFeatures() {

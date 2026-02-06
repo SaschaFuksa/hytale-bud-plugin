@@ -46,16 +46,20 @@ The plugin is primarily controlled via simple chat commands:
 
 *   **`/bud`** - The main command. Spawns all three buddies, teleports them to you, or respawns them if they died.
 *   **`/bud [Veri|Gronkh|Keyleth]`** - Target a specific buddy for spawning or teleportation.
-*   **`/bud [attack|atk|follow|fol|chill|stay]`** - Change the behavior mode for all active Buds.
-*   **`/bud clean`** - Removes your personal buddies from the world.
+*   **`/bud [attack|atk]`** - Change the behavior mode for all active Buds to Defensive.
+*   **`/bud [follow|fol]`** - Change the behavior mode for all active Buds to Passive.
+*   **`/bud [chill|stay]`** - Change the behavior mode for all active Buds to Sitting.
 *   **`/bud reset`** - Quickly cleanup and recreate all your buddies.
+*   **`/bud clean`** - Removes your personal buddies from the world.
+*   **`/bud clean-all`** - Removes all buddies from the world.
+*   **`/bud data`** - Displays persisted data (Reference Player UUID to NPC UUID).
+*   **`/bud data-clean`** - Clears all persisted buddy data (useful for debugging).
 *   **`/bud prompt-reload`** - Hot-reload the LLM prompt configurations without restarting the server.
 
 ### 🤖 Intelligent Interaction
 *   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
 *   **World Awareness**: Buds send chat messages about current world information every few minutes.
 *   **Combat Memory**: Your companions react to your recent fights with context-aware dialogue.
-*   **Persistence**: Your companions are saved and will reappear when you reconnect.
 
 <br>
 
@@ -65,21 +69,17 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 
 | Setting | Description | Default |
 |:--- |:--- |:--- |
-| `EnableLLM` | Toggle LLM features | `true` |
-| `Url` | Your LLM API Endpoint | *v1/chat/completions* |
+| `EnableLLM` | Toggle LLM features | `true` |`
+| `UsePlayer2API` | Toggle to use Player2 API for LLM (EnableLLM must be true) | `false` |
+| `Url` | Your LLM API Endpoint | `v1/chat/completions` |
 | `Model` | The AI model identifier | `ibm/granite-4-h-tiny` |
+| `ApiKey` | The API key for your LLM service | `not_needed` |
 | `MaxTokens` | Limit the length of AI responses | `200` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
 
 <br>
 
 ## 🛠️ Development
-
-If you're building this yourself, ensure your `gradle.properties` points to your Hytale installation:
-
-```properties
-hytale.install_dir=C:/Path/To/Hytale
-```
 
 ### Dev Workflow
 1.  **Initial Setup**: `.\gradlew decompileServer`

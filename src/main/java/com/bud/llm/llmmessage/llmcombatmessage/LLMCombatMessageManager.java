@@ -16,6 +16,9 @@ public class LLMCombatMessageManager {
                 String budInfo = npcMessage.getSystemPrompt();
                 String introduction = template.getIntroduction();
                 String entityInformations = getEntityInformations(targetName);
+                if (entityInformations == null) {
+                        return null;
+                }
                 String combat_info = template.getCombatInfo().formatted(combatPrompt);
                 String combatView = npcMessage.getPersonalCombatView();
 
@@ -29,7 +32,7 @@ public class LLMCombatMessageManager {
                 CombatInfoTemplateMessage template = manager.getCombatInfoTemplate();
 
                 if (entityData == null || entityData.getCategories() == null) {
-                        return template != null ? template.getNoInfoAvailable() : "No information available.";
+                        return null;
                 }
 
                 String lowerTargetName = targetName.toLowerCase();
@@ -58,6 +61,6 @@ public class LLMCombatMessageManager {
                                 }
                         }
                 }
-                return template.getNoInfoAvailable();
+                return null;
         }
 }

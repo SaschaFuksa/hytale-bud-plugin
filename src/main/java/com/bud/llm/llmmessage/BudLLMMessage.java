@@ -3,6 +3,8 @@ package com.bud.llm.llmmessage;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
 public class BudLLMMessage extends AbstractYamlMessage {
 
     private String characteristics;
@@ -33,9 +35,10 @@ public class BudLLMMessage extends AbstractYamlMessage {
 
     public String getFallback(String key) {
         if (fallbacks == null)
-            return "Og Og!";
+            return "...";
 
         String cleanKey = key.toLowerCase().replace("pet", "").replace("sitting", "stay");
+        LoggerUtil.getLogger().info(() -> "[BUD] Getting fallback for key: " + key + ", cleanKey: " + cleanKey);
         String value = fallbacks.get(cleanKey);
         if (value != null)
             return value;

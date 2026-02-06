@@ -30,20 +30,12 @@ public class BudLLMPromptManager {
         return instance;
     }
 
-    /**
-     * Recreates the manager instance and performs a fresh reload of all prompts.
-     * Should be called during plugin setup to ensure a clean state.
-     */
-    public static void init() {
-        instance = new BudLLMPromptManager();
-        instance.reload();
-    }
-
-    private void reload() {
+    public void reload(boolean overwriteDefaults) {
         Path dataDir = BudPlugin.getInstance().getDataDirectory().resolve("prompts");
 
-        // Ensure directory structure and copy defaults
-        copyDefaults(dataDir);
+        // Ensure directory structure and copy defaults (always override on explicit
+        // init/reload)
+        copyDefaults(dataDir, overwriteDefaults);
 
         // Load all prompts
         loadBuds(dataDir.resolve("buds"));
@@ -56,7 +48,7 @@ public class BudLLMPromptManager {
         debugLog();
     }
 
-    private void copyDefaults(Path dataDir) {
+    private void copyDefaults(Path dataDir, boolean overwrite) {
         String[] resources = {
                 "buds/gronkh.yml", "buds/keyleth.yml", "buds/veri.yml",
                 "world/world_system_info.yml", "world/time.yml",
@@ -67,13 +59,18 @@ public class BudLLMPromptManager {
 
         for (String res : resources) {
             Path target = dataDir.resolve(res);
-            if (!Files.exists(target)) {
+            if (overwrite || !Files.exists(target)) {
                 try {
                     Files.createDirectories(target.getParent());
                     try (InputStream in = BudPlugin.class.getResourceAsStream("/prompts/" + res)) {
                         if (in != null) {
-                            Files.copy(in, target);
-                            LoggerUtil.getLogger().info(() -> "[BUD] Prompt resource created: " + target);
+                            if (overwrite) {
+                                Files.copy(in, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                LoggerUtil.getLogger().info(() -> "[BUD] Prompt resource updated: " + target);
+                            } else {
+                                Files.copy(in, target);
+                                LoggerUtil.getLogger().info(() -> "[BUD] Prompt resource created: " + target);
+                            }
                         } else {
                             LoggerUtil.getLogger()
                                     .severe(() -> "[BUD] Default prompt resource not found in JAR: /prompts/" + res);

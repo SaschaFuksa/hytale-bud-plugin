@@ -11,4 +11,6 @@ public interface ILLMChatContext {
 
     BudInstance getRandomInstanceForOwner(UUID ownerId);
 
+    String getFallbackMessage(BudInstance budInstance);
+
 }

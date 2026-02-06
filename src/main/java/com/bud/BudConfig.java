@@ -21,12 +21,12 @@ public class BudConfig {
         instance = config;
     }
 
-    public static BudConfig get() {
+    public static BudConfig getInstance() {
         BudConfig config = instance;
         if (config == null) {
-            throw new IllegalStateException("BudConfig not yet initialized. Ensure BudPlugin.setup() has been called.");
+            instance = new BudConfig();
         }
-        return config;
+        return instance;
     }
 
     public boolean isEnableLLM() {

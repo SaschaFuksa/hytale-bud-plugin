@@ -25,7 +25,7 @@ public class LLMClientFactory {
      * @return ILLMClient instance (BudLLM or Player2LLM)
      */
     public static ILLMClient createClient(String systemPrompt) {
-        BudConfig config = BudConfig.get();
+        BudConfig config = BudConfig.getInstance();
 
         if (config.isUsePlayer2API()) {
             LoggerUtil.getLogger().info(() -> "[LLM] Using Player2 LLM");

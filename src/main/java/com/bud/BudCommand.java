@@ -67,7 +67,7 @@ public class BudCommand extends AbstractPlayerCommand {
         }
         IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
         if (creationResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef, "[BUD] " + creationResult.getMessage());
+            this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
         }
     }
 
@@ -168,7 +168,7 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
                 case "prompt-reload" -> {
-                    BudLLMPromptManager.init();
+                    BudLLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
                 }

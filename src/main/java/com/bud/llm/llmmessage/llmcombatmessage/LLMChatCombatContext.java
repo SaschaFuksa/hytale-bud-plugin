@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.bud.llm.BudLLMRandomChat;
 import com.bud.llm.ILLMChatContext;
 import com.bud.llm.llmmessage.BudLLMMessage;
+import com.bud.llm.llmmessage.BudLLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.npcdata.IBudNPCData;
@@ -46,7 +47,9 @@ public class LLMChatCombatContext implements ILLMChatContext {
 
         String combatHistory = buildCombatPrompt(latestEntry);
         String prompt = LLMCombatMessageManager.createPrompt(combatHistory, npcMessage, latestEntry.roleName());
-
+        if (prompt == null) {
+            return new DataResult<>(null, "Fallback message.");
+        }
         return new DataResult<>(prompt, "Prompt generated successfully.");
     }
 
@@ -76,6 +79,13 @@ public class LLMChatCombatContext implements ILLMChatContext {
         }
 
         return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
+    }
+
+    @Override
+    public String getFallbackMessage(BudInstance budInstance) {
+        BudLLMPromptManager manager = BudLLMPromptManager.getInstance();
+        String budName = budInstance.getData().getNPCDisplayName();
+        return manager.getBudMessage(budName.toLowerCase()).getFallback("combatView");
     }
 
     private String buildCombatPrompt(OpponentEntry latestEntry) {

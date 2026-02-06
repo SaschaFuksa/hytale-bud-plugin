@@ -55,7 +55,7 @@ public class NPCStateTracker {
     }
 
     private boolean isEnableLLM() {
-        return BudConfig.get().isEnableLLM();
+        return BudConfig.getInstance().isEnableLLM();
     }
 
     public static NPCStateTracker getInstance() {

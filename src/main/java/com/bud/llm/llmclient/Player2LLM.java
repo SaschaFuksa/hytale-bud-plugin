@@ -81,6 +81,6 @@ public class Player2LLM extends AbstractLLMClient {
     }
 
     private BudConfig getConfig() {
-        return BudConfig.get();
+        return BudConfig.getInstance();
     }
 }

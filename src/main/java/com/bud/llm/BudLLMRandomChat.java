@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.bud.BudConfig;
 import com.bud.interaction.BudChatInteraction;
 import com.bud.interaction.BudSoundInteraction;
 import com.bud.llm.llmclient.ILLMClient;
@@ -67,18 +68,53 @@ public class BudLLMRandomChat {
             return new SuccessResult("No bud available for owner " + ownerId);
         }
         try {
-            IDataResult<String> result = context.generatePrompt(budInstance);
-            if (!result.isSuccess()) {
-                return new ErrorResult("Owner " + ownerId + ": " + result.getMessage());
-            }
-            String prompt = result.getData();
-            if (prompt == null || prompt.equals(NO_COMBAT_STRING)) {
+            BudConfig config = BudConfig.getInstance();
+            String prompt = getPrompt(context, budInstance, config);
+            if (prompt == null) {
+                return new ErrorResult("No prompt for owner " + ownerId);
+            } else if (prompt.equals(NO_COMBAT_STRING)) {
                 return new SuccessResult("No prompt for owner " + ownerId);
             }
-            interact(budInstance, prompt);
+            interact(budInstance, prompt, config);
             return new SuccessResult("Triggered chat for owner " + ownerId);
         } catch (Exception e) {
             return new ErrorResult("Owner " + ownerId + ": Exception " + e.getMessage());
+        }
+    }
+
+    private String getPrompt(ILLMChatContext context, BudInstance budInstance, BudConfig config) {
+        IDataResult<String> result;
+        if (config.isEnableLLM()) {
+            result = context.generatePrompt(budInstance);
+        } else {
+            return context.getFallbackMessage(budInstance);
+        }
+        if (!result.isSuccess()) {
+            return context.getFallbackMessage(budInstance);
+        }
+        return result.getData();
+    }
+
+    private void interact(BudInstance budInstance, String prompt, BudConfig config) {
+        if (config.isEnableLLM()) {
+            Thread.ofVirtual().start(() -> {
+                try {
+                    String response = getLlmClient().callLLM(prompt);
+                    String message = budInstance.getData().getNPCDisplayName() + ": " + response;
+                    LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
+                    this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
+                            message);
+                    playSound(budInstance);
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
+                }
+            });
+        } else {
+            String message = budInstance.getData().getNPCDisplayName() + ": " + prompt;
+            LoggerUtil.getLogger().info(() -> "[BUD] Fallback response: " + message);
+            this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
+                    message);
+            playSound(budInstance);
         }
     }
 
@@ -89,21 +125,6 @@ public class BudLLMRandomChat {
             this.soundInteraction.playSound(budInstance.getEntity().getWorld(), budInstance.getEntity(),
                     soundEventID);
         }
-    }
-
-    private void interact(BudInstance budInstance, String prompt) {
-        Thread.ofVirtual().start(() -> {
-            try {
-                String response = getLlmClient().callLLM(prompt);
-                String message = budInstance.getData().getNPCDisplayName() + ": " + response;
-                LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
-                this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
-                        message);
-                playSound(budInstance);
-            } catch (Exception e) {
-                LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
-            }
-        });
     }
 
 }
