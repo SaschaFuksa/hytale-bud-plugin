@@ -1,0 +1,22 @@
+default: |
+  "Answer short, Keep responses concise and entertaining. 
+  Only response with maximum 1 sentences."
+combat: |
+  You want to say something about the last combat actions of your Buddy.
+  First you get an overview about the different creatures in your world.
+  In the next text, you get the last combat interactions your Buddy had.
+  After the combat information, you get information about yourself.
+  In this information, you can find details about different creatures and your personal view on them.
+  Finally, select the info referring to the Buddy's enemies and say something related.
+world: |
+  You shall say something about the current environment.
+  The following text provides information about your environment.
+  After the environment information, you get information about yourself: what you like or dislike.
+  Finally, say something related to your environment and personal view.
+state: |
+  You just changed your state. Say something about your new state.
+  Here is a definition of all states:
+  - defensive: In this mode, you can attack enemies to defend yourself and your friends.
+  - passive: In this mode, you follow your friends on their adventures, but you don't attack.
+  - stay: In this mode, you stay at the same place, maybe to guard something or to rest.
+  Pick your state and say something related to it.

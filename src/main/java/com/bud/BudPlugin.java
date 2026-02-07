@@ -5,11 +5,12 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.bud.llm.BudLLMRandomChat;
-import com.bud.llm.llmmessage.llmcombatmessage.CombatChatScheduler;
-import com.bud.llm.llmmessage.BudLLMPromptManager;
-import com.bud.llm.llmmessage.llmworldmessage.LLMChatWorldContext;
-import com.bud.npc.npcdata.persistence.BudPlayerData;
+import com.bud.interaction.InteractionManager;
+import com.bud.system.CombatChatScheduler;
+import com.bud.llm.message.world.LLMWorldManager;
+import com.bud.npc.BudRegistry;
+import com.bud.npc.persistence.BudPlayerData;
+import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.system.BudCleanupSystem;
@@ -53,7 +54,7 @@ public class BudPlugin extends JavaPlugin {
         BudConfig.setInstance(this.config.get());
         this.config.save();
 
-        BudLLMPromptManager.getInstance().reload(false);
+        LLMPromptManager.getInstance().reload(false);
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -124,7 +125,8 @@ public class BudPlugin extends JavaPlugin {
         // Schedule Random World Chat Task (every 2 minutes)
         // World chats are still polled since they are time-based, not event-driven
         HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            IResult result = BudLLMRandomChat.getInstance().triggerRandomLLMChats(new LLMChatWorldContext());
+            IResult result = InteractionManager.getInstance()
+                    .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
             if (!result.isSuccess()) {
                 result.printResult();
             }

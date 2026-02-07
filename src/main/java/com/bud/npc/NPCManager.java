@@ -8,11 +8,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-
-import com.bud.npc.npcdata.BudFeranData;
-import com.bud.npc.npcdata.BudKweebecData;
-import com.bud.npc.npcdata.BudTrorkData;
-import com.bud.npc.npcdata.IBudNPCData;
+import com.bud.npc.buds.GronkhData;
+import com.bud.npc.buds.IBudData;
+import com.bud.npc.buds.KeylethData;
+import com.bud.npc.buds.VeriData;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.ErrorResult;
@@ -41,13 +40,13 @@ public class NPCManager {
         return INSTANCE;
     }
 
-    private static final Set<IBudNPCData> BUDS = Set.of(
-            new BudFeranData(),
-            new BudTrorkData(),
-            new BudKweebecData());
+    private static final Set<IBudData> BUDS = Set.of(
+            new VeriData(),
+            new GronkhData(),
+            new KeylethData());
 
-    public Set<IBudNPCData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
-        Set<IBudNPCData> missingBuds = BUDS.stream().collect(Collectors.toSet());
+    public Set<IBudData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
+        Set<IBudData> missingBuds = BUDS.stream().collect(Collectors.toSet());
         Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
 
         if (playerBuds.isEmpty()) {
@@ -92,7 +91,7 @@ public class NPCManager {
         return new DataListResult<>(teleportedBuds, "Teleported your buds " + joinedNames);
     }
 
-    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudNPCData budData) {
+    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudData budData) {
         Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
         NPCEntity targetBud = ownedBuds.stream()
                 .filter(bud -> bud.getNPCTypeId().equals(budData.getNPCTypeId()))
@@ -129,8 +128,8 @@ public class NPCManager {
         }
     }
 
-    public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudNPCData npcData) {
-        Set<IBudNPCData> missingBuds = getMissingBuds(playerId, store);
+    public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudData npcData) {
+        Set<IBudData> missingBuds = getMissingBuds(playerId, store);
         return missingBuds.stream()
                 .anyMatch(b -> b.getNPCTypeId().equals(npcData.getNPCTypeId()));
     }
@@ -149,7 +148,7 @@ public class NPCManager {
 
     public Set<String> getTrackedBudTypes() {
         Set<String> types = new HashSet<>();
-        for (IBudNPCData budData : BUDS) {
+        for (IBudData budData : BUDS) {
             types.add(budData.getNPCTypeId());
         }
         return types;

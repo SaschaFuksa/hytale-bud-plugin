@@ -10,7 +10,7 @@ public class BudConfig {
     private boolean enableLLM = true;
     private boolean usePlayer2API = false;
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
-    private String model = "mistralai/ministral-3-3b";
+    private String model = "qwen/qwen3-1.7b"; // "mistralai/ministral-3-3b"
     private String apiKey = "not_needed";
     private int maxTokens = 200;
     private double temperature = 0.8;

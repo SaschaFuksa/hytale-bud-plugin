@@ -6,13 +6,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.Set;
 
 import com.bud.BudConfig;
-import com.bud.interaction.BudChatInteraction;
-import com.bud.interaction.BudSoundInteraction;
-import com.bud.npc.npcdata.IBudNPCData;
-import com.bud.npc.npcsound.IBudNPCSoundData;
-import com.bud.llm.llmmessage.BudLLMMessage;
-import com.bud.llm.llmclient.ILLMClient;
-import com.bud.llm.llmclient.LLMClientFactory;
+import com.bud.interaction.ChatInteraction;
+import com.bud.interaction.SoundInteraction;
+import com.bud.npc.buds.IBudData;
+import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.llm.client.ILLMClient;
+import com.bud.llm.client.LLMClientFactory;
+import com.bud.llm.message.prompt.BudMessage;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -43,9 +43,9 @@ public class NPCStateTracker {
 
     private ILLMClient llmClient;
 
-    private final BudChatInteraction chatInteraction = BudChatInteraction.getInstance();
+    private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
-    private final BudSoundInteraction soundInteraction = BudSoundInteraction.getInstance();
+    private final SoundInteraction soundInteraction = SoundInteraction.getInstance();
 
     private ILLMClient getLlmClient() {
         if (llmClient == null) {
@@ -65,7 +65,7 @@ public class NPCStateTracker {
     /**
      * Start tracking a Bud for state changes.
      */
-    public IResult registerBud(PlayerRef owner, NPCEntity bud, IBudNPCData budNPCData) {
+    public IResult registerBud(PlayerRef owner, NPCEntity bud, IBudData budNPCData) {
         Ref<EntityStore> budRef = bud.getReference();
         if (budRef == null) {
             return new ErrorResult("Bud NPC has no valid reference");
@@ -165,7 +165,7 @@ public class NPCStateTracker {
     private void onStateChanged(UUID ownerId, BudInstance budInstance, String fromState, String toState) {
         PlayerRef owner = budInstance.getOwner();
         NPCEntity bud = budInstance.getEntity();
-        IBudNPCData budNPCData = budInstance.getData();
+        IBudData budNPCData = budInstance.getData();
 
         LoggerUtil.getLogger().fine(() -> "[BUD] State changed: " + fromState + " -> " + toState);
 
@@ -177,7 +177,7 @@ public class NPCStateTracker {
         }
 
         // Get prompt for the new state
-        BudLLMMessage npcMessage = budNPCData.getLLMBudNPCMessage();
+        BudMessage npcMessage = budNPCData.getLLMBudNPCMessage();
         if (npcMessage == null)
             return;
 
@@ -201,7 +201,7 @@ public class NPCStateTracker {
             this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
         }
 
-        IBudNPCSoundData npcSoundData = budNPCData.getBudNPCSoundData();
+        IBudSoundData npcSoundData = budNPCData.getBudNPCSoundData();
         if (npcSoundData != null) {
             String soundEventID = npcSoundData.getSoundForState(toState);
             this.soundInteraction.playSound(world, bud, soundEventID);

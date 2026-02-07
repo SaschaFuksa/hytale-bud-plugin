@@ -6,11 +6,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bud.npc.buds.IBudData;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.bud.npc.npcdata.IBudNPCData;
 
 public class BudRegistry {
 
@@ -29,7 +29,7 @@ public class BudRegistry {
         return INSTANCE;
     }
 
-    public synchronized void register(PlayerRef owner, NPCEntity entity, IBudNPCData data, String initialState) {
+    public synchronized void register(PlayerRef owner, NPCEntity entity, IBudData data, String initialState) {
         Ref<EntityStore> ref = entity.getReference();
         if (ref == null)
             return;

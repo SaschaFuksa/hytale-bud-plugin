@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0]
+### Added
+- **Block Interaction**: 
+
+### Fixed
+- **Thinking model**: Disable thinking for models that support it (e.g. Qwen) to prevent long response times and ensure concise answers.
+
+---
+
 ## [1.3.0]
 ### Added
 - **YAML Prompt Management**: Refactored logic to use external `prompt.yml` files for easier editing of NPC personalities.

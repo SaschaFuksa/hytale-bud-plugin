@@ -6,15 +6,15 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.bud.interaction.BudChatInteraction;
-import com.bud.llm.llmmessage.BudLLMPromptManager;
+import com.bud.interaction.ChatInteraction;
+import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.NPCManager;
-import com.bud.npc.npccreation.BudCreation;
-import com.bud.npc.npcdata.BudFeranData;
-import com.bud.npc.npcdata.BudKweebecData;
-import com.bud.npc.npcdata.BudTrorkData;
-import com.bud.npc.npcdata.IBudNPCData;
-import com.bud.npc.npcdata.persistence.BudPlayerData;
+import com.bud.npc.buds.GronkhData;
+import com.bud.npc.buds.IBudData;
+import com.bud.npc.buds.KeylethData;
+import com.bud.npc.buds.VeriData;
+import com.bud.npc.creation.BudCreation;
+import com.bud.npc.persistence.BudPlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -38,12 +38,12 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
  */
 public class BudCommand extends AbstractPlayerCommand {
 
-    private final BudChatInteraction chatInteraction;
+    private final ChatInteraction chatInteraction;
 
     public BudCommand(BudPlugin budPlugin) {
         super("bud", "spawn bud.");
         this.addUsageVariant(new BudSetVariant());
-        this.chatInteraction = BudChatInteraction.getInstance();
+        this.chatInteraction = ChatInteraction.getInstance();
     }
 
     /**
@@ -75,12 +75,12 @@ public class BudCommand extends AbstractPlayerCommand {
 
         private final RequiredArg<String> modeArg;
 
-        private final BudChatInteraction chatInteraction;
+        private final ChatInteraction chatInteraction;
 
         public BudSetVariant() {
             super("Manage Bud NPCs");
             this.modeArg = this.withRequiredArg("mode", "clean or clean-all", ArgTypes.STRING);
-            this.chatInteraction = BudChatInteraction.getInstance();
+            this.chatInteraction = ChatInteraction.getInstance();
         }
 
         @Override
@@ -98,18 +98,18 @@ public class BudCommand extends AbstractPlayerCommand {
             String inputMode = this.modeArg.get(commandContext);
 
             switch (inputMode) {
-                case BudFeranData.NPC_DISPLAY_NAME -> {
-                    IResult result = executeBudAction(playerRef, store, new BudFeranData());
+                case VeriData.NPC_DISPLAY_NAME -> {
+                    IResult result = executeBudAction(playerRef, store, new VeriData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
-                case BudTrorkData.NPC_DISPLAY_NAME -> {
-                    IResult result = executeBudAction(playerRef, store, new BudTrorkData());
+                case GronkhData.NPC_DISPLAY_NAME -> {
+                    IResult result = executeBudAction(playerRef, store, new GronkhData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
-                case BudKweebecData.NPC_DISPLAY_NAME -> {
-                    IResult result = executeBudAction(playerRef, store, new BudKweebecData());
+                case KeylethData.NPC_DISPLAY_NAME -> {
+                    IResult result = executeBudAction(playerRef, store, new KeylethData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
@@ -168,7 +168,7 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
                 case "prompt-reload" -> {
-                    BudLLMPromptManager.getInstance().reload(true);
+                    LLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
                 }
@@ -213,7 +213,7 @@ public class BudCommand extends AbstractPlayerCommand {
     }
 
     public static IResult executeBudAction(PlayerRef playerRef, Store<EntityStore> store,
-            IBudNPCData missingBud) {
+            IBudData missingBud) {
         if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
                 missingBud)) {
             // Create new Bud

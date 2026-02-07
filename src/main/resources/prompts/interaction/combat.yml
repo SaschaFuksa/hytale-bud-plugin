@@ -1,0 +1,6 @@
+combatInfo: |
+  The current combat information from your Buddy is as follows:
+  Your Buddy had following interaction: %s
+targetInfoTemplate: "The target you faced belongs to the category: %s. %s"
+allyInfoTemplate: "The friend you faced belongs to the category: %s. %s. %s"
+noInfoAvailable: "No specific information available for the encountered entity."

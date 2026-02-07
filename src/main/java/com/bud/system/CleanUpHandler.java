@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCStateTracker;
+import com.bud.npc.persistence.PersistenceManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
@@ -21,7 +22,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.npcdata.persistence.PersistenceManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
