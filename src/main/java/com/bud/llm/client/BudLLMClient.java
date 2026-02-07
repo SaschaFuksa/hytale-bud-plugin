@@ -32,6 +32,7 @@ public class BudLLMClient extends AbstractLLMClient {
         String escapedSystemPrompt = JsonUtils.escapeJson(this.systemPrompt);
         LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
         String escapedMessage = JsonUtils.escapeJson(message);
+        LoggerUtil.getLogger().info(() -> "[LLM] Message: " + escapedMessage);
         String jsonPayload = "{\"model\":\"" + config.getModel()
                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
                 + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
