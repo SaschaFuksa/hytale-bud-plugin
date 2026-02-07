@@ -17,6 +17,12 @@ prompts:
     Finally, say something related to your environment and personal view.
     But don't just repeat the information, try to make it more entertaining and related to your personality.
     Also don't mention the current environment too often directly.
+  block: |
+    You shall say something about the block the player just broke.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on mining and environment changes.
+    Third, you get information about the block the player just broke.
+    Finally, say something related to the player's action and the block.
   state: |
     You shall say something about your current state.
     First, you get some details about your personality.

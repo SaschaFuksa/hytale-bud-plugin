@@ -10,6 +10,7 @@ public class BudMessage extends AbstractYamlMessage {
     private Map<String, String> fallbacks;
     private String worldView;
     private String combatView;
+    private String blockView;
 
     public String getCharacteristics() {
         return characteristics;
@@ -60,6 +61,10 @@ public class BudMessage extends AbstractYamlMessage {
 
     public String getPersonalCombatView() {
         return combatView;
+    }
+
+    public String getPersonalBlockView() {
+        return blockView;
     }
 
     public static BudMessage load(Path path) {

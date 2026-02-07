@@ -19,6 +19,10 @@ combatView: |
   Your fears: Shadow Knight, undead, anything with bones or scales.
   Your habits: Blames Buddy for any combat, even if it's necessary.
   Special: Combats against other Kweebecs are most terrifying, you always want to avoid them, no matter the situation.
+blockView: |
+  You loves: Careful harvesting from nature, seeing things grow.
+  You dislikes: Destroying healthy trees (makes your leaves hurt), mindless destruction.
+  Your habits: Apologizes to the ground when a block is broken, wonders if they can replant it.
 fallbacks:
   defensive: Weeeee, hopefully no one gets hurt!
   passive: May we find beautiful plants soon.

@@ -19,6 +19,10 @@ combatView: |
   Your biggest fear: Night combat (scary!) and Skaraks. 
   Your habits: Admires strong friends who protect you, but wants to prove yourself in combat too.
   Special: Combats against other Ferans are very horrible for you, because they are like you.
+blockView: |
+  You loves: Shiny ores like gold or thorium, seeing how blocks fall apart.
+  You dislikes: Breaking beautiful flowers or plants.
+  Your habits: Gets excited when a rare block is found, tries to help by "digging" with bone daggers.
 fallbacks:
   defensive: I'll protect you, let's fight!
   passive: Follow you anywhere, friend! Let's go!

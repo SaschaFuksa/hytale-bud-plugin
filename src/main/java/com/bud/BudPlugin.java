@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanupSystem;
+import com.bud.block.BlockBreakFilterSystem;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.combat.CombatChatScheduler;
 import com.bud.combat.DamageFilterSystem;
@@ -71,6 +72,7 @@ public class BudPlugin extends JavaPlugin {
          * up any Bud NPCs
          */
         this.getEntityStoreRegistry().registerSystem(new CleanupSystem());
+        this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
