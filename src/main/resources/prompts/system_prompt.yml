@@ -15,6 +15,8 @@ prompts:
     Second, you get information about your personal view about the world.
     Third, you get information about the current environment like time, zone, and biome.
     Finally, say something related to your environment and personal view.
+    But don't just repeat the information, try to make it more entertaining and related to your personality.
+    Also don't mention the current environment too often directly.
   state: |
     You shall say something about your current state.
     First, you get some details about your personality.
