@@ -1,7 +1,6 @@
 package com.bud.llm.client;
 
 import com.bud.BudConfig;
-import com.bud.llm.message.prompt.LLMPromptManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -11,30 +10,20 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 public class LLMClientFactory {
 
     /**
-     * Create an LLM client with default system prompt.
+     * Create an LLM client
      * 
      * @return ILLMClient instance (BudLLM or Player2LLM)
      */
     public static ILLMClient createClient() {
-        return createClient(LLMPromptManager.getInstance().getSystemPrompt("default"));
-    }
-
-    /**
-     * Create an LLM client with custom system prompt.
-     * 
-     * @param systemPrompt Custom system prompt
-     * @return ILLMClient instance (BudLLM or Player2LLM)
-     */
-    public static ILLMClient createClient(String systemPrompt) {
         BudConfig config = BudConfig.getInstance();
 
         if (config.isUsePlayer2API()) {
             LoggerUtil.getLogger().info(() -> "[LLM] Using Player2 LLM");
-            return new Player2LLMClient(systemPrompt);
+            return new Player2LLMClient();
         } else {
             // Use legacy LLM
             LoggerUtil.getLogger().info(() -> "[LLM] Using legacy LLM");
-            return new BudLLMClient(systemPrompt);
+            return new BudLLMClient();
         }
     }
 }

@@ -32,7 +32,8 @@ public class LLMCombatManager implements ILLMChatManager {
         PlayerRef player = budInstance.getOwner();
         OpponentEntry latestEntry = getLastEntryInCombatHistory(player.getUuid());
         if (latestEntry == null) {
-            return new DataResult<>(null, NO_COMBAT_STRING);
+            Prompt noCombatPrompt = new Prompt("", NO_COMBAT_STRING);
+            return new DataResult<>(noCombatPrompt, NO_COMBAT_STRING);
         }
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());

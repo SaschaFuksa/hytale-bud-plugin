@@ -57,16 +57,16 @@ public class InteractionManager {
         Set<BudInstance> errors = Collections.emptySet();
         for (BudInstance budInstance : budInstances) {
             try {
-                String prompt = getPrompt(context, budInstance);
+                Prompt prompt = getPrompt(context, budInstance);
                 if (prompt == null) {
                     errors.add(budInstance);
                     LoggerUtil.getLogger().warning(() -> "[BUD] No prompt generated for owner " + ownerId);
-                } else if (prompt.equals(LLMCombatManager.NO_COMBAT_STRING)) {
+                } else if (prompt.userPrompt().equals(LLMCombatManager.NO_COMBAT_STRING)) {
                     LoggerUtil.getLogger().info(() -> "[BUD] No combat prompt generated for owner " + ownerId);
                     continue;
                 }
 
-                sendToChat(budInstance, prompt);
+                sendToChat(budInstance, prompt, context);
                 return new SuccessResult("Triggered chat for owner " + ownerId);
             } catch (Exception e) {
                 errors.add(budInstance);
@@ -80,20 +80,17 @@ public class InteractionManager {
         return new SuccessResult("Processed interactions for owner " + ownerId);
     }
 
-    private String getPrompt(ILLMChatManager context, BudInstance budInstance) {
+    private Prompt getPrompt(ILLMChatManager context, BudInstance budInstance) {
         if (this.config.isEnableLLM()) {
             IDataResult<Prompt> promptResult = context.generatePrompt(budInstance);
             if (promptResult.isSuccess()) {
-                return promptResult.getData().toString();
-            } else {
-                return context.getFallbackMessage(budInstance);
+                return promptResult.getData();
             }
-        } else {
-            return context.getFallbackMessage(budInstance);
         }
+        return null;
     }
 
-    private void sendToChat(BudInstance budInstance, String prompt) {
+    private void sendToChat(BudInstance budInstance, Prompt prompt, ILLMChatManager context) {
         if (config.isEnableLLM()) {
             Thread.ofVirtual().start(() -> {
                 try {
@@ -108,7 +105,7 @@ public class InteractionManager {
                 }
             });
         } else {
-            String message = budInstance.getData().getNPCDisplayName() + ": " + prompt;
+            String message = budInstance.getData().getNPCDisplayName() + ": " + context.getFallbackMessage(budInstance);
             LoggerUtil.getLogger().info(() -> "[BUD] Fallback response: " + message);
             this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
                     message);

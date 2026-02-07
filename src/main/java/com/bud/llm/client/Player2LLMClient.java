@@ -12,6 +12,8 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
+import com.bud.llm.message.creation.Prompt;
+
 /**
  * Player2 API LLM client implementation.
  * Simple, stateless LLM calls to Player2 API.
@@ -21,10 +23,8 @@ public class Player2LLMClient extends AbstractLLMClient {
     private static final String GAME_KEY = "hytale-bud";
 
     private final HttpClient httpClient;
-    private final String systemPrompt;
 
-    public Player2LLMClient(String systemPrompt) {
-        this.systemPrompt = systemPrompt;
+    public Player2LLMClient() {
         this.httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(10))
@@ -32,14 +32,14 @@ public class Player2LLMClient extends AbstractLLMClient {
     }
 
     @Override
-    public String callLLM(String message) throws IOException, InterruptedException {
+    public String callLLM(Prompt prompt) throws IOException, InterruptedException {
         BudConfig config = getConfig();
         // Build simple JSON payload
         String jsonPayload = String.format(
                 "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":"
                         + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens() + "}",
-                JsonUtils.escapeJsonWithQuotes(this.systemPrompt),
-                JsonUtils.escapeJsonWithQuotes(message));
+                JsonUtils.escapeJsonWithQuotes(prompt.systemPrompt()),
+                JsonUtils.escapeJsonWithQuotes(prompt.userPrompt()));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/v1/chat/completions"))

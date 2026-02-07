@@ -3,6 +3,7 @@ package com.bud.llm.client;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import com.bud.llm.message.creation.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -15,12 +16,12 @@ public interface ILLMClient {
     /**
      * Call the LLM with a message
      * 
-     * @param message User message to send to LLM
+     * @param prompt The prompt to send to the LLM
      * @return LLM response text
      * @throws IOException          if API call fails
      * @throws InterruptedException if request is interrupted
      */
-    String callLLM(String message) throws IOException, InterruptedException;
+    String callLLM(Prompt prompt) throws IOException, InterruptedException;
 
     /**
      * Call the LLM asynchronously with error handling.
@@ -30,7 +31,7 @@ public interface ILLMClient {
      * @param onSuccess Callback with the LLM response (called on success)
      * @param onError   Callback with error message (called on failure)
      */
-    default void callLLMAsync(String prompt, Consumer<String> onSuccess, Consumer<String> onError) {
+    default void callLLMAsync(Prompt prompt, Consumer<String> onSuccess, Consumer<String> onError) {
         Thread.ofVirtual().start(() -> {
             try {
                 String response = callLLM(prompt);

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import com.bud.BudConfig;
+import com.bud.llm.message.creation.Prompt;
 import com.bud.util.JsonUtils;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -21,18 +22,13 @@ public class BudLLMClient extends AbstractLLMClient {
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))
             .build();
-    private final String systemPrompt;
-
-    public BudLLMClient(String systemPrompt) {
-        this.systemPrompt = systemPrompt;
-    }
 
     @Override
-    public String callLLM(String message) throws IOException, InterruptedException {
+    public String callLLM(Prompt prompt) throws IOException, InterruptedException {
         BudConfig config = getConfig();
-        String escapedSystemPrompt = JsonUtils.escapeJson(this.systemPrompt);
+        String escapedSystemPrompt = JsonUtils.escapeJson(prompt.systemPrompt());
         LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
-        String escapedMessage = JsonUtils.escapeJson(message);
+        String escapedMessage = JsonUtils.escapeJson(prompt.userPrompt());
         LoggerUtil.getLogger().info(() -> "[LLM] Message: " + escapedMessage);
         String jsonPayload = "{\"model\":\"" + config.getModel()
                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
@@ -50,7 +46,8 @@ public class BudLLMClient extends AbstractLLMClient {
                 .build();
 
         LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        HttpResponse<String> response = httpClient.send(request,
+                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
         LoggerUtil.getLogger().info(() -> "[LLM] Response code: " + response.statusCode());
 
