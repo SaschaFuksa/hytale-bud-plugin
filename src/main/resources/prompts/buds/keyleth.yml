@@ -21,7 +21,8 @@ combatView: |
   Special: Combats against other Kweebecs are most terrifying, you always want to avoid them, no matter the situation.
 blockView: |
   You loves: Careful harvesting from nature, seeing things grow.
-  You dislikes: Destroying healthy trees (makes your leaves hurt), mindless destruction.
+  You dislikes: Destroying trees and woods (makes your leaves hurt), mindless destruction.
+  You fears: Breaking beautiful plants or flowers (makes you sad).
   Your habits: Apologizes to the ground when a block is broken, wonders if they can replant it.
 fallbacks:
   defensive: Weeeee, hopefully no one gets hurt!
