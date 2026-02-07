@@ -36,8 +36,8 @@ public class LLMBlockManager implements ILLMChatManager {
         if (latestEntry == null) {
             return new DataResult<>(new Prompt("", NO_BLOCK_STRING), NO_BLOCK_STRING);
         }
-
-        LLMBlockContext context = new LLMBlockContext(latestEntry.blockName(), budInstance.getOwner());
+        String blockName = latestEntry.blockName().replace("_", " ");
+        LLMBlockContext context = new LLMBlockContext(blockName, budInstance.getOwner());
         Prompt prompt = this.llmCreation.createPrompt(context, budInstance.getData().getBudMessage());
         return new DataResult<>(prompt, "Block prompt generation.");
     }
