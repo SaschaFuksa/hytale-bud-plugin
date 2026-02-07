@@ -88,6 +88,14 @@ The LLM prompts are now stored in external `YAML` files located in the mod folde
 First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
 
 **Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
+
+### ⚠️ LLM Performance Note (Reasoning Models)
+
+If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
+*   **Disable "Thinking":** These models generate many `<think>` tokens which can cause delays or cut-off messages. It is recommended to use models without a "thinking" phase or to disable it in your API provider's settings.
+*   **Token Limit:** If messages are cut off, increase `MaxTokens` in your config to at least `500`.
+*   **Filter:** The plugin automatically tries to filter `<think>` tags, but native "No-Thinking" models provide the best experience.
+
 <br>
 
 ## 🛠️ Development

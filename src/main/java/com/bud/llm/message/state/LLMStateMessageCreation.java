@@ -15,13 +15,13 @@ public class LLMStateMessageCreation implements ILLMMessageCreation {
         }
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
-        String budInfo = npcMessage.getSystemPrompt();
+        String budInfo = npcMessage.getCharacteristics();
         String stateInfo = stateContext.getStateInformation();
         String stateView = npcMessage.getState(stateContext.state());
 
         String systemPrompt = manager.getSystemPrompt("state") + "\n" + manager.getSystemPrompt("default") + "\n"
                 + budInfo;
-        String message = stateView + "\n" + stateInfo;
+        String message = stateView + "\n" + stateInfo + "\n" + manager.getSystemPrompt("final");
 
         return new Prompt(systemPrompt, message);
     }

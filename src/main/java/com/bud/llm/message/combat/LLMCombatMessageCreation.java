@@ -21,12 +21,13 @@ public class LLMCombatMessageCreation implements ILLMMessageCreation {
                 String entityInfo = combatContext.getEntityInformation();
                 String contextInfo = combatContext.combatContext();
                 String combatInfo = template.getCombatInfo().formatted(contextInfo);
-                String budInfo = npcMessage.getSystemPrompt();
+                String budInfo = npcMessage.getCharacteristics();
                 String combatView = npcMessage.getPersonalCombatView();
 
                 String systemPrompt = manager.getSystemPrompt("combat") + "\n"
-                                + manager.getSystemPrompt("default") + "\n" + budInfo;
-                String message = entityInfo + "\n" + combatInfo + "\n" + combatView;
+                                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n"
+                                + combatView;
+                String message = combatInfo + "\n" + entityInfo + "\n" + manager.getSystemPrompt("final");
                 return new Prompt(systemPrompt, message);
         }
 

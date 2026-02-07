@@ -172,7 +172,7 @@ categories:
     info: "Predators: fierce hunters, top of food chain, high threat."
     entities:
       bear: "Bear: powerful woodland beast, protective."
-      fox: "Fox: clever aglie hunter, beautiful coat."
+      fox: "Fox: clever agile hunter, beautiful coat."
       hyena: "Hyena: social hunter, bone-crushing bite."
       leopard: "Leopard: spotted stealth master."
       tiger: "Tiger: majestic striped hunter, strong."
@@ -185,8 +185,8 @@ categories:
       spark: "Spark: flickering electric manifestation, fast."
       spirit: "Spirit: ethereal nature being, tethered."
 
-  player allies:
-    info: "Player Allies: Buds, no threat, loyal companions."
+  playerallies:
+    info: "Player Allies: Buddies, no threat, loyal companions."
     entities:
       gronkh: "Gronkh: loyal Trork, values strength and stones."
       keyleth: "Keyleth: wise Kweebec, nature/ancient secrets expert."

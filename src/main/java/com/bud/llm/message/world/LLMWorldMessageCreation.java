@@ -22,13 +22,13 @@ public class LLMWorldMessageCreation implements ILLMMessageCreation {
         String zoneInfo = zoneMessage != null ? zoneMessage.getZone() : "Unknown Zone";
         String biomeInfo = zoneMessage != null ? worldContext.getBiomeInfo(zoneMessage) : "Unknown Biome";
         String timeInfo = worldContext.getTimeInfo(manager.getTimeMessage());
-        String budInfo = npcMessage.getSystemPrompt();
+        String budInfo = npcMessage.getCharacteristics();
         String environmentInfo = template.getEnvironmentInfo().formatted(zoneInfo, biomeInfo, timeInfo);
         String personalView = npcMessage.getPersonalWorldView();
 
         String systemPrompt = manager.getSystemPrompt("world") + "\n"
-                + manager.getSystemPrompt("default") + "\n" + budInfo;
-        String message = environmentInfo + "\n" + personalView;
+                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n" + personalView;
+        String message = environmentInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);
     }
 

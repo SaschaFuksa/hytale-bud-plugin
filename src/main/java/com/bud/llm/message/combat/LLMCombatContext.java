@@ -21,12 +21,12 @@ public record LLMCombatContext(String combatContext, String targetName) implemen
     }
 
     public static LLMCombatContext from(OpponentEntry entry) {
+        String cleanName = entry.roleName().replace("_Bud", "").replace("_", " ");
         String combatContext = switch (entry.state()) {
-            case ATTACKED -> "Your Buddy attacked " + entry.roleName() + ".";
-            case WAS_ATTACKED -> "Your Buddy was attacked by " + entry.roleName() + ".";
+            case ATTACKED -> "Your Buddy attacked " + cleanName + ".";
+            case WAS_ATTACKED -> "Your Buddy was attacked by " + cleanName + ".";
         };
-        String targetName = entry.roleName().replace("_Bud", "").replace("_", " ");
-        return new LLMCombatContext(combatContext, targetName);
+        return new LLMCombatContext(combatContext, cleanName);
     }
 
     public String getEntityInformation() {
@@ -82,7 +82,7 @@ public record LLMCombatContext(String combatContext, String targetName) implemen
         if (template == null)
             return null;
 
-        if (category.equalsIgnoreCase("Player Allies")) {
+        if (category.equalsIgnoreCase("playerallies")) {
             return template.getAllyInfoTemplate().formatted(category, catInfo, specInfo);
         }
         return template.getTargetInfoTemplate().formatted(category, catInfo + " " + specInfo);

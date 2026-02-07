@@ -54,10 +54,6 @@ public class BudMessage extends AbstractYamlMessage {
         return fallbacks.getOrDefault("default", "...");
     }
 
-    public String getSystemPrompt() {
-        return characteristics;
-    }
-
     public String getPersonalWorldView() {
         return worldView;
     }

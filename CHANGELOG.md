@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Thinking model**: Disable thinking for models that support it (e.g. Qwen) to prevent long response times and ensure concise answers.
+- **Zone Fallback**: Added fallback zone message for when no specific zone info is available, preventing null pointer exceptions and providing a default response.
+- **Code structure**: Improved code structure and organization for better readability and maintainability, including separating concerns and improving method naming.
 
 ---
 
