@@ -1,13 +1,14 @@
 package com.bud.llm.message.world;
 
 import java.util.Map.Entry;
+
+import com.bud.data.TimeOfDay;
 import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.TimeMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
-import com.bud.system.BudTimeInformation;
-import com.bud.system.BudWorldInformation;
-import com.bud.system.TimeOfDay;
+import com.bud.util.TimeInformationUtil;
+import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -33,11 +34,11 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
 
     public static LLMWorldContext from(PlayerRef owner, World world, Store<EntityStore> store) {
         Vector3d pos = owner.getTransform().getPosition();
-        TimeOfDay tod = BudTimeInformation.getTimeOfDay(store);
+        TimeOfDay tod = TimeInformationUtil.getTimeOfDay(store);
         LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + tod.name());
-        Biome biome = BudWorldInformation.getCurrentBiome(world, pos);
+        Biome biome = WorldInformationUtil.getCurrentBiome(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
-        Zone zone = BudWorldInformation.getCurrentZone(world, pos);
+        Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
         return new LLMWorldContext(tod, zone, biome);
     }

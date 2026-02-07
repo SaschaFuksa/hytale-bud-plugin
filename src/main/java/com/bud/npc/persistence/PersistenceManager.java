@@ -35,7 +35,7 @@ public class PersistenceManager {
         try {
             Ref<EntityStore> ref = playerRef.getReference();
             Store<EntityStore> store = ref.getStore();
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
+            PlayerData customData = store.ensureAndGetComponent(ref,
                     BudPlugin.getInstance().getBudPlayerDataComponent());
             customData.add(npc.getUuid());
             store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
@@ -54,7 +54,7 @@ public class PersistenceManager {
             if (holder == null) {
                 return getRefPersistedBudUUIDs(playerRef);
             }
-            BudPlayerData customData = holder
+            PlayerData customData = holder
                     .ensureAndGetComponent(BudPlugin.getInstance().getBudPlayerDataComponent());
             return new DataListResult<>(customData.getBuds(), "Retrieved persisted data for " +
                     playerRef.getUuid());
@@ -73,7 +73,7 @@ public class PersistenceManager {
                 LoggerUtil.getLogger().fine(() -> "[BUD] Got player ref");
                 Store<EntityStore> store = ref.getStore();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Got store");
-                BudPlayerData customData = store.ensureAndGetComponent(ref,
+                PlayerData customData = store.ensureAndGetComponent(ref,
                         BudPlugin.getInstance().getBudPlayerDataComponent());
                 LoggerUtil.getLogger().fine(() -> "[BUD] Got custom data");
                 customData.remove(uuid);
@@ -81,7 +81,7 @@ public class PersistenceManager {
                         .fine(() -> "[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
                 store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
             } else {
-                BudPlayerData customData = holder
+                PlayerData customData = holder
                         .ensureAndGetComponent(BudPlugin.getInstance().getBudPlayerDataComponent());
                 LoggerUtil.getLogger().fine(() -> "[BUD] Got custom data");
                 customData.remove(uuid);
@@ -100,7 +100,7 @@ public class PersistenceManager {
         try {
             Ref<EntityStore> ref = playerRef.getReference();
             Store<EntityStore> store = ref.getStore();
-            BudPlayerData customData = store.ensureAndGetComponent(ref,
+            PlayerData customData = store.ensureAndGetComponent(ref,
                     BudPlugin.getInstance().getBudPlayerDataComponent());
             return new DataListResult<>(customData.getBuds(), "Retrieved persisted data for " +
                     playerRef.getUuid() + " via ref");

@@ -5,10 +5,10 @@ import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.llm.message.prompt.WorldInfoTemplateMessage;
+import com.bud.llm.message.prompt.WorldMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
 
-public class LLMWorldInfoMessageCreation implements ILLMMessageCreation {
+public class LLMWorldMessageCreation implements ILLMMessageCreation {
 
     @Override
     public Prompt createPrompt(IPromptContext context, BudMessage npcMessage) {
@@ -16,7 +16,7 @@ public class LLMWorldInfoMessageCreation implements ILLMMessageCreation {
             throw new IllegalArgumentException("Context must be of type LLMWorldContext");
         }
         LLMPromptManager manager = LLMPromptManager.getInstance();
-        WorldInfoTemplateMessage template = manager.getWorldInfoTemplate();
+        WorldMessage template = manager.getWorldInfoTemplate();
 
         ZoneMessage zoneMessage = worldContext.getZoneInfo(manager);
         String zoneInfo = zoneMessage.getZone();

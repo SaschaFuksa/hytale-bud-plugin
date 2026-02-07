@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.NPCManager;
@@ -14,11 +15,10 @@ import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
 import com.bud.npc.buds.VeriData;
 import com.bud.npc.creation.BudCreation;
-import com.bud.npc.persistence.BudPlayerData;
+import com.bud.npc.persistence.PlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -154,7 +154,7 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
                 case "data" -> {
-                    BudPlayerData customData = store.ensureAndGetComponent(ref,
+                    PlayerData customData = store.ensureAndGetComponent(ref,
                             BudPlugin.getInstance().getBudPlayerDataComponent());
                     String uuids = customData.getBuds().stream().map(UUID::toString).collect(Collectors.joining(","));
                     LoggerUtil.getLogger()
@@ -163,7 +163,7 @@ public class BudCommand extends AbstractPlayerCommand {
                             "Current BudPlayerData: " + uuids);
                 }
                 case "data-clean" -> {
-                    store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new BudPlayerData());
+                    store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new PlayerData());
                     LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.NPCManager;
 import com.bud.npc.NPCStateTracker;
@@ -26,7 +27,6 @@ import com.bud.result.DataResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;

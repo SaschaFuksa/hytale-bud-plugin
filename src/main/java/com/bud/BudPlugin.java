@@ -5,18 +5,17 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
+import com.bud.cleanup.CleanupSystem;
+import com.bud.cleanup.CleanUpHandler;
+import com.bud.combat.CombatChatScheduler;
+import com.bud.combat.DamageFilterSystem;
 import com.bud.interaction.InteractionManager;
-import com.bud.system.CombatChatScheduler;
 import com.bud.llm.message.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.persistence.BudPlayerData;
+import com.bud.npc.persistence.PlayerData;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
-import com.bud.system.BudCleanupSystem;
-import com.bud.system.BudDamageFilterSystem;
-import com.bud.system.CleanUpHandler;
-
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -34,7 +33,7 @@ public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
     private final Config<BudConfig> config;
-    private ComponentType<EntityStore, BudPlayerData> budPlayerData;
+    private ComponentType<EntityStore, PlayerData> budPlayerData;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -58,9 +57,9 @@ public class BudPlugin extends JavaPlugin {
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
-                BudPlayerData.class,
+                PlayerData.class,
                 "BudPlayerData",
-                BudPlayerData.CODEC);
+                PlayerData.CODEC);
 
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
@@ -71,7 +70,7 @@ public class BudPlugin extends JavaPlugin {
          * At server start, the unpersisted data are lost. Therefore, we need to clean
          * up any Bud NPCs
          */
-        this.getEntityStoreRegistry().registerSystem(new BudCleanupSystem());
+        this.getEntityStoreRegistry().registerSystem(new CleanupSystem());
 
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
@@ -121,7 +120,7 @@ public class BudPlugin extends JavaPlugin {
         });
 
         // Register Damage Filter System
-        this.getEntityStoreRegistry().registerSystem(new BudDamageFilterSystem());
+        this.getEntityStoreRegistry().registerSystem(new DamageFilterSystem());
         // Schedule Random World Chat Task (every 2 minutes)
         // World chats are still polled since they are time-based, not event-driven
         HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
@@ -142,7 +141,7 @@ public class BudPlugin extends JavaPlugin {
         return instance;
     }
 
-    public ComponentType<EntityStore, BudPlayerData> getBudPlayerDataComponent() {
+    public ComponentType<EntityStore, PlayerData> getBudPlayerDataComponent() {
         return this.budPlayerData;
     }
 }

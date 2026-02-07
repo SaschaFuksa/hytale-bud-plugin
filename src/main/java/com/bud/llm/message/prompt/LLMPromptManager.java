@@ -14,10 +14,10 @@ public class LLMPromptManager {
     private static LLMPromptManager instance;
 
     private final Map<String, BudMessage> budMessages = new HashMap<>();
-    private WorldInfoTemplateMessage worldInfoTemplate;
+    private WorldMessage worldInfoTemplate;
     private TimeMessage timeMessage;
     private final Map<String, ZoneMessage> zoneMessages = new HashMap<>();
-    private CombatInfoTemplateMessage combatInfoTemplate;
+    private CombatMessage combatInfoTemplate;
     private EntityCategoriesMessage entityCategories;
     private Map<String, String> systemPrompts = new HashMap<>();
 
@@ -40,10 +40,10 @@ public class LLMPromptManager {
 
         // Load all prompts
         loadBuds(dataDir.resolve("buds"));
-        this.worldInfoTemplate = WorldInfoTemplateMessage.load(dataDir.resolve("world/world_system_info.yml"));
+        this.worldInfoTemplate = WorldMessage.load(dataDir.resolve("world/world_system_info.yml"));
         this.timeMessage = TimeMessage.load(dataDir.resolve("world/time.yml"));
         loadZones(dataDir.resolve("world/zones"));
-        this.combatInfoTemplate = CombatInfoTemplateMessage.load(dataDir.resolve("interaction/combat.yml"));
+        this.combatInfoTemplate = CombatMessage.load(dataDir.resolve("interaction/combat.yml"));
         this.entityCategories = EntityCategoriesMessage.load(dataDir.resolve("interaction/entities.yml"));
         this.systemPrompts = SystemPromptMessage.load(dataDir.resolve("system_prompt.yml")).getPrompts();
 
@@ -112,7 +112,7 @@ public class LLMPromptManager {
         return message;
     }
 
-    public WorldInfoTemplateMessage getWorldInfoTemplate() {
+    public WorldMessage getWorldInfoTemplate() {
         return worldInfoTemplate;
     }
 
@@ -124,7 +124,7 @@ public class LLMPromptManager {
         return zoneMessages.get(zoneName.toLowerCase());
     }
 
-    public CombatInfoTemplateMessage getCombatInfoTemplate() {
+    public CombatMessage getCombatInfoTemplate() {
         return combatInfoTemplate;
     }
 

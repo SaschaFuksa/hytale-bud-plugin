@@ -2,6 +2,7 @@ package com.bud.llm.message.world;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatManager;
@@ -21,10 +22,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class LLMWorldManager implements ILLMChatManager {
 
-    private final LLMWorldInfoMessageCreation llmCreation;
+    private final LLMWorldMessageCreation llmCreation;
 
     public LLMWorldManager() {
-        this.llmCreation = new LLMWorldInfoMessageCreation();
+        this.llmCreation = new LLMWorldMessageCreation();
     }
 
     @Override
@@ -39,12 +40,12 @@ public class LLMWorldManager implements ILLMChatManager {
     }
 
     @Override
-    public BudInstance getBudInstance(UUID ownerId) {
+    public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
         List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
         if (ownerBuds.isEmpty())
             return null;
 
-        return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
+        return Set.of(ownerBuds.get((int) (Math.random() * ownerBuds.size())));
     }
 
     @Override

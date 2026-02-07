@@ -1,5 +1,6 @@
 package com.bud.llm;
 
+import java.util.Set;
 import java.util.UUID;
 
 import com.bud.llm.message.creation.Prompt;
@@ -10,7 +11,7 @@ public interface ILLMChatManager {
 
     IDataResult<Prompt> generatePrompt(BudInstance budInstance);
 
-    BudInstance getBudInstance(UUID ownerId);
+    Set<BudInstance> getRelevantBudInstances(UUID ownerId);
 
     String getFallbackMessage(BudInstance budInstance);
 

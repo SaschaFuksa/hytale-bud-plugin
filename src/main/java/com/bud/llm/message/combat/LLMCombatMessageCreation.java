@@ -4,7 +4,7 @@ import com.bud.llm.message.creation.ILLMMessageCreation;
 import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
-import com.bud.llm.message.prompt.CombatInfoTemplateMessage;
+import com.bud.llm.message.prompt.CombatMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 
 public class LLMCombatMessageCreation implements ILLMMessageCreation {
@@ -16,7 +16,7 @@ public class LLMCombatMessageCreation implements ILLMMessageCreation {
                 }
 
                 LLMPromptManager manager = LLMPromptManager.getInstance();
-                CombatInfoTemplateMessage template = manager.getCombatInfoTemplate();
+                CombatMessage template = manager.getCombatInfoTemplate();
 
                 String entityInfo = combatContext.getEntityInformation();
                 String contextInfo = combatContext.combatContext();

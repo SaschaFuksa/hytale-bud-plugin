@@ -1,4 +1,4 @@
-package com.bud.system;
+package com.bud.combat;
 
 import java.util.Map;
 import java.util.Set;

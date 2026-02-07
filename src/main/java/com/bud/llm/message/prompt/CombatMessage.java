@@ -1,6 +1,6 @@
 package com.bud.llm.message.prompt;
 
-public class CombatInfoTemplateMessage extends AbstractYamlMessage {
+public class CombatMessage extends AbstractYamlMessage {
 
     private String combatInfo;
     private String targetInfoTemplate;
@@ -23,7 +23,7 @@ public class CombatInfoTemplateMessage extends AbstractYamlMessage {
         return noInfoAvailable;
     }
 
-    public static CombatInfoTemplateMessage load(java.nio.file.Path path) {
-        return loadFromFile(CombatInfoTemplateMessage.class, path);
+    public static CombatMessage load(java.nio.file.Path path) {
+        return loadFromFile(CombatMessage.class, path);
     }
 }

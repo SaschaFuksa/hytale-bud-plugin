@@ -12,24 +12,24 @@ import java.util.UUID;
 
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
 
-public class BudPlayerData implements Component<EntityStore> {
+public class PlayerData implements Component<EntityStore> {
 
     private Set<UUID> buds;
 
-    public static final BuilderCodec<BudPlayerData> CODEC = BuilderCodec.builder(
-            BudPlayerData.class,
-            BudPlayerData::new)
+    public static final BuilderCodec<PlayerData> CODEC = BuilderCodec.builder(
+            PlayerData.class,
+            PlayerData::new)
             .append(new KeyedCodec<>("BudUUIDs", new SetCodec<>(Codec.UUID_STRING, HashSet::new, false)),
                     (data, value) -> data.buds = value,
                     data -> data.buds)
             .add()
             .build();
 
-    public BudPlayerData() {
+    public PlayerData() {
         this.buds = new HashSet<>();
     }
 
-    public BudPlayerData(BudPlayerData clone) {
+    public PlayerData(PlayerData clone) {
         this.buds = clone.buds;
     }
 
@@ -53,6 +53,6 @@ public class BudPlayerData implements Component<EntityStore> {
 
     @Override
     public Component<EntityStore> clone() {
-        return new BudPlayerData(this);
+        return new PlayerData(this);
     }
 }

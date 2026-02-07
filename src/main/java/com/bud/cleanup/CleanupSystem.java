@@ -1,4 +1,4 @@
-package com.bud.system;
+package com.bud.cleanup;
 
 import com.bud.npc.NPCManager;
 import com.hypixel.hytale.component.AddReason;
@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-public class BudCleanupSystem extends RefSystem<EntityStore> {
+public class CleanupSystem extends RefSystem<EntityStore> {
 
     @Nonnull
     @Override

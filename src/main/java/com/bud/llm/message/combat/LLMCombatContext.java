@@ -1,11 +1,12 @@
 package com.bud.llm.message.combat;
 
 import java.util.Map.Entry;
+
+import com.bud.combat.RecentOpponentCache.OpponentEntry;
 import com.bud.llm.message.creation.IPromptContext;
-import com.bud.llm.message.prompt.CombatInfoTemplateMessage;
+import com.bud.llm.message.prompt.CombatMessage;
 import com.bud.llm.message.prompt.EntityCategoriesMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.system.RecentOpponentCache.OpponentEntry;
 
 public record LLMCombatContext(String combatContext, String targetName) implements IPromptContext {
 
@@ -31,39 +32,59 @@ public record LLMCombatContext(String combatContext, String targetName) implemen
     public String getEntityInformation() {
         LLMPromptManager manager = LLMPromptManager.getInstance();
         EntityCategoriesMessage entityData = manager.getEntityCategories();
-        CombatInfoTemplateMessage template = manager.getCombatInfoTemplate();
 
         if (entityData == null || entityData.getCategories() == null) {
             return null;
         }
 
-        String lowerTargetName = this.targetName.toLowerCase();
+        return findAndFormatMatch(entityData, manager.getCombatInfoTemplate());
+    }
 
-        for (Entry<String, EntityCategoriesMessage.CategoryData> categoryEntry : entityData
-                .getCategories()
+    /**
+     * Iterates through categories to find a matching entity and formats the result.
+     */
+    private String findAndFormatMatch(EntityCategoriesMessage entityData, CombatMessage template) {
+        String lowerTarget = this.targetName.toLowerCase();
+
+        for (Entry<String, EntityCategoriesMessage.CategoryData> categoryEntry : entityData.getCategories()
                 .entrySet()) {
             String categoryName = categoryEntry.getKey();
             EntityCategoriesMessage.CategoryData data = categoryEntry.getValue();
 
-            if (data.getEntities() != null) {
-                for (Entry<String, String> entityEntry : data.getEntities().entrySet()) {
-                    String keyword = entityEntry.getKey().toLowerCase();
-                    if (lowerTargetName.contains(keyword)) {
-                        String categoryInfo = data.getInfo();
-                        String entitySpecificInfo = entityEntry.getValue();
-
-                        if (categoryName.equalsIgnoreCase("Player Allies")) {
-                            return template.getAllyInfoTemplate().formatted(categoryName,
-                                    categoryInfo,
-                                    entitySpecificInfo);
-                        }
-                        return template.getTargetInfoTemplate().formatted(categoryName,
-                                categoryInfo + " " + entitySpecificInfo);
-                    }
-                }
+            String entitySpecificInfo = findSpecificInfo(data, lowerTarget);
+            if (entitySpecificInfo != null) {
+                return formatOutput(template, categoryName, data.getInfo(), entitySpecificInfo);
             }
         }
         return null;
     }
 
+    /**
+     * Checks if any entity keyword in the category matches the target name.
+     */
+    private String findSpecificInfo(EntityCategoriesMessage.CategoryData data, String lowerTarget) {
+        if (data.getEntities() == null) {
+            return null;
+        }
+
+        for (Entry<String, String> entityEntry : data.getEntities().entrySet()) {
+            if (lowerTarget.contains(entityEntry.getKey().toLowerCase())) {
+                return entityEntry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Formats the final string based on the category type.
+     */
+    private String formatOutput(CombatMessage template, String category, String catInfo, String specInfo) {
+        if (template == null)
+            return null;
+
+        if (category.equalsIgnoreCase("Player Allies")) {
+            return template.getAllyInfoTemplate().formatted(category, catInfo, specInfo);
+        }
+        return template.getTargetInfoTemplate().formatted(category, catInfo + " " + specInfo);
+    }
 }

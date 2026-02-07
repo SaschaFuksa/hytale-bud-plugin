@@ -3,8 +3,11 @@ package com.bud.llm.message.combat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import com.bud.combat.RecentOpponentCache;
+import com.bud.combat.RecentOpponentCache.OpponentEntry;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
@@ -12,8 +15,6 @@ import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
-import com.bud.system.RecentOpponentCache;
-import com.bud.system.RecentOpponentCache.OpponentEntry;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public class LLMCombatManager implements ILLMChatManager {
@@ -39,7 +40,7 @@ public class LLMCombatManager implements ILLMChatManager {
     }
 
     @Override
-    public BudInstance getBudInstance(UUID ownerId) {
+    public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
         // Peek at history without removing - generatePrompt will do the atomic poll
         LinkedList<OpponentEntry> history = RecentOpponentCache.getHistory(ownerId);
         if (history == null || history.isEmpty())
@@ -63,7 +64,7 @@ public class LLMCombatManager implements ILLMChatManager {
             return null;
         }
 
-        return ownerBuds.get((int) (Math.random() * ownerBuds.size()));
+        return Set.of(ownerBuds.get((int) (Math.random() * ownerBuds.size())));
     }
 
     @Override

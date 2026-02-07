@@ -1,4 +1,4 @@
-package com.bud.system;
+package com.bud.util;
 
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -9,7 +9,7 @@ import com.hypixel.hytale.server.worldgen.chunk.ZoneBiomeResult;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 import com.hypixel.hytale.math.vector.Vector3d;
 
-public class BudWorldInformation {
+public class WorldInformationUtil {
 
     public static Zone getCurrentZone(World world, Vector3d pos) {
         IWorldGen worldGen = world.getChunkStore().getGenerator();
@@ -17,7 +17,7 @@ public class BudWorldInformation {
             int seed = (int) world.getWorldConfig().getSeed();
             int x = (int) pos.getX();
             int z = (int) pos.getZ();
-                
+
             try {
                 ZoneBiomeResult result = generator.getZoneBiomeResultAt(seed, x, z);
                 if (result != null) {
@@ -36,7 +36,7 @@ public class BudWorldInformation {
             int seed = (int) world.getWorldConfig().getSeed();
             int x = (int) pos.getX();
             int z = (int) pos.getZ();
-                
+
             try {
                 ZoneBiomeResult result = generator.getZoneBiomeResultAt(seed, x, z);
                 if (result != null) {
@@ -48,5 +48,5 @@ public class BudWorldInformation {
         }
         return null;
     }
-    
+
 }

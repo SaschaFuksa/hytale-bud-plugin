@@ -1,4 +1,4 @@
-package com.bud.system;
+package com.bud.combat;
 
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ import com.bud.npc.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
-public class BudDamageFilterSystem extends DamageEventSystem {
+public class DamageFilterSystem extends DamageEventSystem {
 
     @Override
     public SystemGroup<EntityStore> getGroup() {

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.bud.cleanup.CleanUpHandler;
 import com.bud.npc.buds.GronkhData;
 import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
@@ -19,7 +20,6 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.system.CleanUpHandler;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;

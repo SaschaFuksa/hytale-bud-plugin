@@ -5,23 +5,17 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
 
-import com.bud.BudConfig;
-import com.bud.interaction.ChatInteraction;
-import com.bud.interaction.SoundInteraction;
+import com.bud.interaction.InteractionManager;
 import com.bud.npc.buds.IBudData;
-import com.bud.npc.buds.sound.IBudSoundData;
-import com.bud.llm.client.ILLMClient;
-import com.bud.llm.client.LLMClientFactory;
-import com.bud.llm.message.prompt.BudMessage;
+import com.bud.llm.message.state.LLMStateManager;
+import com.bud.llm.message.state.LLMStateMessageCreation;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
@@ -36,27 +30,12 @@ public class NPCStateTracker {
 
     private static final NPCStateTracker INSTANCE = new NPCStateTracker();
 
+    private final InteractionManager interactionManager = InteractionManager.getInstance();
+
     private NPCStateTracker() {
     }
 
     private volatile ScheduledFuture<?> pollingTask;
-
-    private ILLMClient llmClient;
-
-    private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
-
-    private final SoundInteraction soundInteraction = SoundInteraction.getInstance();
-
-    private ILLMClient getLlmClient() {
-        if (llmClient == null) {
-            llmClient = LLMClientFactory.createClient();
-        }
-        return llmClient;
-    }
-
-    private boolean isEnableLLM() {
-        return BudConfig.getInstance().isEnableLLM();
-    }
 
     public static NPCStateTracker getInstance() {
         return INSTANCE;
@@ -74,8 +53,9 @@ public class NPCStateTracker {
         if (role == null) {
             return new ErrorResult("Bud NPC has no valid Role");
         }
+        String mainStateName = LLMStateManager.getMainStateName(role.getStateSupport().getStateName());
         BudRegistry.getInstance().register(owner, bud, budNPCData,
-                getMainStateName(role.getStateSupport().getStateName()));
+                mainStateName);
 
         // Start polling when at least one Bud is tracked
         startPolling();
@@ -116,106 +96,7 @@ public class NPCStateTracker {
         if (owners.isEmpty()) {
             return;
         }
-
-        for (UUID ownerId : owners) {
-            Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
-            if (buds.isEmpty()) {
-                continue;
-            }
-
-            for (BudInstance budInstance : buds) {
-                if (budInstance.getEntity() == null || budInstance.getRef() == null) {
-                    continue;
-                }
-
-                Store<EntityStore> store = budInstance.getRef().getStore();
-                if (store != null) {
-                    World world = store.getExternalData().getWorld();
-                    if (world != null) {
-                        world.execute(() -> checkStateChange(ownerId, budInstance));
-                    }
-                }
-            }
-
-        }
+        interactionManager.processInteraction(owners, new LLMStateManager());
     }
 
-    private void checkStateChange(UUID ownerId, BudInstance budInstance) {
-        NPCEntity bud = budInstance.getEntity();
-        Role role = bud.getRole();
-        if (role == null) {
-            return;
-        }
-
-        String currentState = getMainStateName(role.getStateSupport().getStateName());
-        String lastState = budInstance.getLastKnownState();
-
-        if (lastState != null && lastState.equals(currentState)) {
-            return;
-        }
-
-        budInstance.setLastKnownState(currentState);
-        onStateChanged(ownerId, budInstance, lastState, currentState);
-    }
-
-    /**
-     * Called when a Bud's state changes.
-     */
-    @SuppressWarnings("TooBroadCatch")
-    private void onStateChanged(UUID ownerId, BudInstance budInstance, String fromState, String toState) {
-        PlayerRef owner = budInstance.getOwner();
-        NPCEntity bud = budInstance.getEntity();
-        IBudData budNPCData = budInstance.getData();
-
-        LoggerUtil.getLogger().fine(() -> "[BUD] State changed: " + fromState + " -> " + toState);
-
-        final Ref<EntityStore> ownerRef;
-        ownerRef = owner.getReference();
-        final World world = ownerRef != null ? ownerRef.getStore().getExternalData().getWorld() : null;
-        if (world == null) {
-            return;
-        }
-
-        // Get prompt for the new state
-        BudMessage npcMessage = budNPCData.getLLMBudNPCMessage();
-        if (npcMessage == null)
-            return;
-
-        String prompt = npcMessage.getState(toState);
-
-        if (isEnableLLM() && getLlmClient() != null && prompt != null) {
-            getLlmClient().callLLMAsync(
-                    prompt,
-                    response -> {
-                        String message = budNPCData.getNPCDisplayName() + ": " + response;
-                        this.chatInteraction.sendChatMessage(world, owner, message);
-                    },
-                    error -> {
-                        String fallbackMessage = npcMessage.getFallback(toState);
-                        String message = budNPCData.getNPCDisplayName() + ": " + fallbackMessage;
-                        this.chatInteraction.sendChatMessage(world, owner, message);
-                    });
-        } else {
-            String fallbackMessage = npcMessage.getFallback(toState);
-            LoggerUtil.getLogger().fine(() -> "[BUD] Sending fallback message: " + fallbackMessage);
-            this.chatInteraction.sendChatMessage(world, owner, fallbackMessage);
-        }
-
-        IBudSoundData npcSoundData = budNPCData.getBudNPCSoundData();
-        if (npcSoundData != null) {
-            String soundEventID = npcSoundData.getSoundForState(toState);
-            this.soundInteraction.playSound(world, bud, soundEventID);
-        }
-    }
-
-    /**
-     * Extract main state name from full state string (e.g., "PetDefensive.Default"
-     * -> "PetDefensive")
-     */
-    private String getMainStateName(String fullStateName) {
-        if (fullStateName == null)
-            return "Unknown";
-        int dotIndex = fullStateName.indexOf('.');
-        return dotIndex > 0 ? fullStateName.substring(0, dotIndex) : fullStateName;
-    }
 }
