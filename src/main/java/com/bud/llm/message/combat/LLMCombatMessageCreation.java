@@ -19,6 +19,9 @@ public class LLMCombatMessageCreation implements ILLMMessageCreation {
                 CombatMessage template = manager.getCombatInfoTemplate();
 
                 String entityInfo = combatContext.getEntityInformation();
+                String playerName = combatContext.player().getUsername();
+                entityInfo = entityInfo.replace("$player$", playerName);
+
                 String contextInfo = combatContext.combatContext();
                 String combatInfo = template.getCombatInfo().formatted(contextInfo);
                 String budInfo = npcMessage.getCharacteristics();

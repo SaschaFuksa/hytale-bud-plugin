@@ -56,8 +56,9 @@ public class DamageFilterSystem extends DamageEventSystem {
                         attackerPlayer.getUuid(),
                         targetNPC.getRoleName(),
                         RecentOpponentCache.CombatState.ATTACKED);
-                LoggerUtil.getLogger().finer(() -> "[BUD] Damage Event: " + attackerPlayer.getUuid() + " attacked NPC "
-                        + targetNPC.getRoleName());
+                LoggerUtil.getLogger()
+                        .finer(() -> "[BUD] Damage Event: " + attackerPlayer.getDisplayName() + " attacked NPC "
+                                + targetNPC.getRoleName());
                 return;
             }
 
@@ -72,7 +73,7 @@ public class DamageFilterSystem extends DamageEventSystem {
                         RecentOpponentCache.CombatState.WAS_ATTACKED);
                 LoggerUtil.getLogger()
                         .finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
-                                + targetPlayer.getUuid());
+                                + targetPlayer.getDisplayName());
             }
 
         } catch (Exception e) {

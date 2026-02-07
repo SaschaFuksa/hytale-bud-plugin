@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import com.bud.BudConfig;
@@ -49,7 +50,7 @@ public class BudLLMClient extends AbstractLLMClient {
                 .build();
 
         LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
         LoggerUtil.getLogger().info(() -> "[LLM] Response code: " + response.statusCode());
 

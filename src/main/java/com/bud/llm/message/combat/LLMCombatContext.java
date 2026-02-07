@@ -7,8 +7,9 @@ import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.prompt.CombatMessage;
 import com.bud.llm.message.prompt.EntityCategoriesMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 
-public record LLMCombatContext(String combatContext, String targetName) implements IPromptContext {
+public record LLMCombatContext(String combatContext, String targetName, PlayerRef player) implements IPromptContext {
 
     @Override
     public String getContextById(String contextId) {
@@ -16,17 +17,21 @@ public record LLMCombatContext(String combatContext, String targetName) implemen
         return switch (contextId) {
             case "combatContext" -> this.combatContext;
             case "targetName" -> this.targetName;
+            case "player" -> this.player.getUsername();
             default -> null;
         };
     }
 
-    public static LLMCombatContext from(OpponentEntry entry) {
+    public static LLMCombatContext from(OpponentEntry entry, PlayerRef player) {
         String cleanName = entry.roleName().replace("_Bud", "").replace("_", " ");
+        if (cleanName.equalsIgnoreCase(player.getUsername())) {
+            cleanName = "player";
+        }
         String combatContext = switch (entry.state()) {
-            case ATTACKED -> "Your Buddy attacked " + cleanName + ".";
+            case ATTACKED -> "Your Buddy has attacked " + cleanName + ".";
             case WAS_ATTACKED -> "Your Buddy was attacked by " + cleanName + ".";
         };
-        return new LLMCombatContext(combatContext, cleanName);
+        return new LLMCombatContext(combatContext, cleanName, player);
     }
 
     public String getEntityInformation() {

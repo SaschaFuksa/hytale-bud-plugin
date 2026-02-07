@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 /**
@@ -49,7 +50,8 @@ public class Player2LLMClient extends AbstractLLMClient {
                 .build();
 
         LoggerUtil.getLogger().fine(() -> "[Player2] Sending request...");
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request,
+                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
         if (response.statusCode() != 200) {
             throw new IOException("Player2 API Error: " + response.statusCode() + " " + response.body());

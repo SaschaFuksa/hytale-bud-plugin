@@ -68,6 +68,13 @@ public abstract class AbstractLLMClient implements ILLMClient {
                 .replace("\\\"", "\"")
                 .replace("\\\\", "\\")
                 .replaceAll("(?s)<think>.*?</think>", "")
+                .replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "") // Remove Emojis
+                .replace("\u2013", "-") // En dash to normal dash
+                .replace("\u2014", "-") // Em dash to normal dash
+                .replace("\u2018", "'") // Smart quotes
+                .replace("\u2019", "'")
+                .replace("\u201C", "\"")
+                .replace("\u201D", "\"")
                 .trim();
     }
 }
