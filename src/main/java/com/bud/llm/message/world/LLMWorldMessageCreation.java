@@ -19,8 +19,8 @@ public class LLMWorldMessageCreation implements ILLMMessageCreation {
         WorldMessage template = manager.getWorldInfoTemplate();
 
         ZoneMessage zoneMessage = worldContext.getZoneInfo(manager);
-        String zoneInfo = zoneMessage.getZone();
-        String biomeInfo = worldContext.getBiomeInfo(zoneMessage);
+        String zoneInfo = zoneMessage != null ? zoneMessage.getZone() : "Unknown Zone";
+        String biomeInfo = zoneMessage != null ? worldContext.getBiomeInfo(zoneMessage) : "Unknown Biome";
         String timeInfo = worldContext.getTimeInfo(manager.getTimeMessage());
         String budInfo = npcMessage.getSystemPrompt();
         String environmentInfo = template.getEnvironmentInfo().formatted(zoneInfo, biomeInfo, timeInfo);

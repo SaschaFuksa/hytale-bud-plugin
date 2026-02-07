@@ -56,6 +56,7 @@ public class LLMPromptManager {
                 "world/world_system_info.yml", "world/time.yml",
                 "world/zones/devasted_lands.yml", "world/zones/dungeons.yml", "world/zones/emerald_grove.yml",
                 "world/zones/howling_sands.yml", "world/zones/ocean.yml", "world/zones/whisperfrost_frontiers.yml",
+                "world/zones/fallback.yml",
                 "interaction/entities.yml", "interaction/combat.yml", "system_prompt.yml"
         };
 
@@ -97,7 +98,7 @@ public class LLMPromptManager {
     private void loadZones(Path zonesDir) {
         zoneMessages.clear();
         String[] zones = { "devasted_lands", "dungeons", "emerald_grove", "howling_sands", "ocean",
-                "whisperfrost_frontiers" };
+                "whisperfrost_frontiers", "fallback" };
         for (String zone : zones) {
             zoneMessages.put(zone, ZoneMessage.load(zonesDir.resolve(zone + ".yml")));
         }
