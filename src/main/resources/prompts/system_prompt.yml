@@ -1,7 +1,9 @@
 prompts:
   default: |
-    "Answer short, Keep responses concise and entertaining. Avoid setting the response in quotes like " " or * *.
-    Only response with maximum 1 sentences."
+    "Answer short, Keep responses concise and entertaining.
+    Avoid setting the response in quotes like " " or * *.
+    Avoid highlighting information, we don't support bold or italic text.
+    Always respond in a single sentence, even if the information provided is more complex.
   combat: |
     You want to say something about the last combat actions of your Buddy.
     First, you get some details about your personality.
@@ -28,4 +30,4 @@ prompts:
     First, you get some details about your personality.
     Second, you get information about your current state.
   final: |
-    "Now you have all information. Answer short, Keep responses concise and entertaining."
+    "Now you have all information. Answer short, Keep responses concise and entertaining and do not highlight information.
