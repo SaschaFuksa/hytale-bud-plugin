@@ -1,5 +1,6 @@
 package com.bud.interaction;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -68,7 +69,7 @@ public class InteractionManager {
                     continue;
                 }
 
-                sendToChat(budInstance, prompt, context);
+                sendToChat(budInstance, prompt);
                 return new SuccessResult("Triggered chat for owner " + ownerId);
             } catch (Exception e) {
                 errors.add(budInstance);
@@ -93,8 +94,8 @@ public class InteractionManager {
         return new Prompt(fallback, fallback);
     }
 
-    private void sendToChat(BudInstance budInstance, Prompt prompt, ILLMChatManager context) {
-        World world = WorldInformationUtil.resolveWorld(budInstance);
+    private void sendToChat(BudInstance budInstance, Prompt prompt) {
+        World world = WorldInformationUtil.resolveWorld(budInstance.getOwner());
         if (world == null) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Could not resolve world for bud " + budInstance.getData().getNPCDisplayName());
@@ -110,7 +111,7 @@ public class InteractionManager {
                     this.chatInteraction.sendChatMessage(world, budInstance.getOwner(),
                             message);
                     playSound(budInstance, world);
-                } catch (Exception e) {
+                } catch (IOException | InterruptedException e) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
                 }
             });

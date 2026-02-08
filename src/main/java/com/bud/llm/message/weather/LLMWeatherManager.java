@@ -26,7 +26,7 @@ public class LLMWeatherManager implements ILLMChatManager {
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        Weather weather = WorldInformationUtil.getCurrentWeather(budInstance);
+        Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
         if (weather == null) {
             return new DataResult<>(null, "No weather found for bud instance.");
         }

@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import com.bud.RegistryManager;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
-import com.bud.npc.BudStateTracker;
 import com.bud.npc.buds.IBudData;
 import com.bud.player.persistence.PersistenceManager;
 import com.bud.result.AsyncDataListResult;
@@ -103,7 +103,8 @@ public class BudCreation {
         return new AsyncDataListResult<>(spawnedBuds, "Spawning " + budNames + ".");
     }
 
-    private static DataResult<NPCEntity> internalSpawnAndRegister(Store<EntityStore> store, PlayerRef playerRef,
+    private static DataResult<NPCEntity> internalSpawnAndRegister(Store<EntityStore> store,
+            @Nonnull PlayerRef playerRef,
             IBudData budNPCData) {
         try {
             DataResult<NPCEntity> spawnResult = spawnBud(store, playerRef, budNPCData);
@@ -114,15 +115,17 @@ public class BudCreation {
             if (npc == null) {
                 return new DataResult<>(null, "Spawn result data is null");
             }
-            IResult registerResult = BudStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
+            IResult registerResult = RegistryManager.getInstance().register(playerRef, npc, budNPCData);
+
             if (!registerResult.isSuccess()) {
                 CleanUpHandler.despawnBud(npc).printResult();
+                RegistryManager.getInstance().unregister(npc, playerRef).printResult();
                 return new DataResult<>(null, registerResult.getMessage());
             }
             IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
             if (!persistResult.isSuccess()) {
                 CleanUpHandler.despawnBud(npc).printResult();
-                BudStateTracker.getInstance().unregisterBud(npc).printResult();
+                RegistryManager.getInstance().unregister(npc, playerRef).printResult();
                 return new DataResult<>(null, persistResult.getMessage());
             }
             return spawnResult;
@@ -132,7 +135,7 @@ public class BudCreation {
         }
     }
 
-    private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, PlayerRef playerRef,
+    private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             IBudData budNPCData) {
         try {
             Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
@@ -154,7 +157,7 @@ public class BudCreation {
         }
     }
 
-    public static IResult changeRoleState(NPCEntity bud, PlayerRef owner, String stateName) {
+    public static IResult changeRoleState(NPCEntity bud, @Nonnull PlayerRef owner, String stateName) {
         Role role = bud.getRole();
         World world = bud.getWorld();
 

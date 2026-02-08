@@ -1,11 +1,9 @@
 package com.bud.util;
 
-import com.bud.npc.BudInstance;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.builtin.weather.components.WeatherTracker;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -57,29 +55,18 @@ public class WorldInformationUtil {
         return null;
     }
 
-    public static World resolveWorld(BudInstance budInstance) {
+    public static World resolveWorld(PlayerRef owner) {
         // Try entity world
-        World world = budInstance.getEntity().getWorld();
-        if (world != null) {
-            return world;
+        Ref<EntityStore> ownerRef = owner.getReference();
+        if (ownerRef != null) {
+            return ownerRef.getStore().getExternalData().getWorld();
         }
-
-        // Try owner world
-        PlayerRef owner = budInstance.getOwner();
-        if (owner != null) {
-            Ref<EntityStore> ownerRef = owner.getReference();
-            if (ownerRef != null) {
-                Store<EntityStore> store = ownerRef.getStore();
-                return store.getExternalData().getWorld();
-            }
-        }
-
         return null;
     }
 
-    public static Weather getCurrentWeather(BudInstance budInstance) {
-        World world = resolveWorld(budInstance);
-        Ref<EntityStore> ownerRef = budInstance.getOwner().getReference();
+    public static Weather getCurrentWeather(PlayerRef owner) {
+        World world = resolveWorld(owner);
+        Ref<EntityStore> ownerRef = owner.getReference();
         ComponentType<EntityStore, WeatherTracker> componentType = WeatherTracker.getComponentType();
         if (world == null || ownerRef == null || componentType == null) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Unable to resolve world or owner for BudInstance.");

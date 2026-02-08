@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
+import com.bud.RegistryManager;
 import com.bud.npc.BudManager;
-import com.bud.npc.BudStateTracker;
 import com.bud.player.persistence.PersistenceManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -63,7 +63,7 @@ public class CleanUpHandler {
                 LoggerUtil.getLogger().fine(() -> "[BUD] Maybe Entity already despawned. Try to unregister.");
             } else {
                 NPCEntity npcEntity = npcResult.getData();
-                BudStateTracker.getInstance().unregisterBud(npcEntity).printResult();
+                RegistryManager.getInstance().unregister(npcEntity, playerRef).printResult();
                 despawnBud(npcEntity).printResult();
             }
 
@@ -137,7 +137,7 @@ public class CleanUpHandler {
                         PlayerRef owner = instance.getOwner();
 
                         // Unregister from runtime tracker
-                        BudStateTracker.getInstance().unregisterBud(npcEntity).printResult();
+                        RegistryManager.getInstance().unregister(npcEntity, owner).printResult();
 
                         // Despawn entity (removes from world)
                         despawnBud(npcEntity).printResult();

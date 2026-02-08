@@ -26,7 +26,7 @@ public class WeatherTracker {
         return INSTANCE;
     }
 
-    public synchronized void start() {
+    public synchronized void startPolling() {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
