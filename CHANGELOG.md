@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [1.4.0]
 ### Added
+- **Weather Interaction**: Buds will now respond to weather changes.
+- **Week System**: Added week system, so the current day will also enable reactions.
+
+### Fixed
+- 
+
+---
+
+## [1.4.0]
+### Added
 - **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
 - **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
 

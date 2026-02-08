@@ -120,7 +120,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 ## 🗺️ Roadmap
 
 - [x] **1.5.0**: Interaction to weather events and add "days"
-- [ ] **1.6.0**: Memory storage: Keep memories of player and buds interacttions. Also remove current caching of the last combat action and use the memory storage instead.
+- [ ] **1.6.0**: Memory storage: Keep memories of player and buds interactions. (Also remove current caching of the last combat action and use the memory storage instead?)
 - [ ] **1.7.0**: ?
 - [ ] **1.8.0**: Visual updates & special models for Buds?
 - [ ] **1.9.0**: Item-based spawning instead of commands?
