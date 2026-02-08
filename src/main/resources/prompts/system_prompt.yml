@@ -4,6 +4,8 @@ prompts:
     Avoid setting the response in quotes like " " or * *.
     Avoid highlighting information, we don't support bold or italic text.
     Always respond in a single sentence, even if the information provided is more complex.
+    Focus on exactly one piece of information or one thought.
+    Important: Keep it short.
   combat: |
     You want to say something about the last combat actions of your Buddy.
     First, you get some details about your personality.
