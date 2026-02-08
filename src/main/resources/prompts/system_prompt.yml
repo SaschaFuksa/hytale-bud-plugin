@@ -1,6 +1,6 @@
 prompts:
   default: |
-    "Answer short, Keep responses concise and entertaining. 
+    "Answer short, Keep responses concise and entertaining. Avoid setting the response in quotes like " " or * *.
     Only response with maximum 1 sentences."
   combat: |
     You want to say something about the last combat actions of your Buddy.
