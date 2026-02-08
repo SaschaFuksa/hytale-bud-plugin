@@ -14,6 +14,7 @@ import com.bud.player.PlayerRegistry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.bud.util.WorldInformationUtil;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 
 public class LLMWeatherManager implements ILLMChatManager {
@@ -52,11 +53,23 @@ public class LLMWeatherManager implements ILLMChatManager {
 
     @Override
     public String getFallbackMessage(BudInstance budInstance) {
+        Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
+        if (weather == null) {
+            return null;
+        }
+        PlayerInstance playerInstance = PlayerRegistry.getInstance().getByOwner(budInstance.getOwner().getUuid());
+        if (!this.hasWeatherChanged(weather, playerInstance)) {
+            return null;
+        } else {
+            playerInstance.setLastKnownWeather(weather.getId());
+        }
         return budInstance.getData().getBudMessage().getFallback("weather");
     }
 
     private boolean hasWeatherChanged(Weather currentWeather, PlayerInstance playerInstance) {
         String lastKnownWeatherId = playerInstance.getLastKnownWeather();
+        LoggerUtil.getLogger().fine(() -> "[BUD] Last known weather ID: " + lastKnownWeatherId);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Current weather ID: " + currentWeather.getId());
         return !lastKnownWeatherId.equals(currentWeather.getId());
     }
 

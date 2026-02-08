@@ -64,6 +64,7 @@ public class InteractionManager {
                 if (prompt == null) {
                     errors.add(budInstance);
                     LoggerUtil.getLogger().warning(() -> "[BUD] No prompt generated for owner " + ownerId);
+                    continue;
                 } else if (prompt.userPrompt().equals(LLMCombatManager.NO_COMBAT_STRING)) {
                     LoggerUtil.getLogger().info(() -> "[BUD] No combat prompt generated for owner " + ownerId);
                     continue;
@@ -91,6 +92,9 @@ public class InteractionManager {
             }
         }
         String fallback = context.getFallbackMessage(budInstance);
+        if (fallback == null) {
+            return null;
+        }
         return new Prompt(fallback, fallback);
     }
 
