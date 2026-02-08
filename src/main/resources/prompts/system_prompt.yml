@@ -16,9 +16,9 @@ prompts:
     First, you get some details about your personality.
     Second, you get information about your personal view about the world.
     Third, you get information about the current environment like time, zone, and biome.
-    Finally, say something related to your environment and personal view.
+    Finally, say something related to your environment and personal view. Select one relevant information you find most interesting.
     But don't just repeat the information, try to make it more entertaining and related to your personality.
-    Also don't mention the current environment too often directly.
+    Also don't mention the current environment name too often directly.
   block: |
     You shall say something about the block the player interacted with.
     First, you get some details about your personality.

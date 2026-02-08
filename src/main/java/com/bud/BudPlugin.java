@@ -158,7 +158,7 @@ public class BudPlugin extends JavaPlugin {
             if (!result.isSuccess()) {
                 result.printResult();
             }
-        }, 90L, 90L, TimeUnit.SECONDS);
+        }, 60L, 60L, TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
     }
 
