@@ -32,7 +32,7 @@ import it.unimi.dsi.fastutil.Pair;
  *         .spawn();
  * </pre>
  */
-public class NPCSpawner {
+public class BudSpawner {
 
     // Required parameters
     private final Store<EntityStore> store;
@@ -53,7 +53,7 @@ public class NPCSpawner {
     /**
      * Private constructor - use create() factory method
      */
-    private NPCSpawner(Store<EntityStore> store, String npcType, Vector3d position) {
+    private BudSpawner(Store<EntityStore> store, String npcType, Vector3d position) {
         this.store = Objects.requireNonNull(store, "store cannot be null");
         this.npcType = Objects.requireNonNull(npcType, "npcType cannot be null");
         this.position = Objects.requireNonNull(position, "position cannot be null");
@@ -67,12 +67,12 @@ public class NPCSpawner {
      * @param position The spawn position
      * @return A new NPCSpawner builder
      */
-    public static NPCSpawner create(Store<EntityStore> store, String npcType, Vector3d position) {
+    public static BudSpawner create(Store<EntityStore> store, String npcType, Vector3d position) {
         LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
         LoggerUtil.getLogger().fine(() -> "[BUD] Attempting to spawn custom NPC Type : " + npcType);
         LoggerUtil.getLogger().fine(() -> "[BUD] Position: " + position);
         LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
-        return new NPCSpawner(store, npcType, position);
+        return new BudSpawner(store, npcType, position);
     }
 
     /**
@@ -81,7 +81,7 @@ public class NPCSpawner {
      * @param rotation The rotation vector
      * @return This builder for chaining
      */
-    public NPCSpawner withRotation(Vector3f rotation) {
+    public BudSpawner withRotation(Vector3f rotation) {
         this.rotation = rotation;
         return this;
     }
@@ -91,7 +91,7 @@ public class NPCSpawner {
      * 
      * @return This builder for chaining
      */
-    public NPCSpawner withInventory() {
+    public BudSpawner withInventory() {
         this.withInventory = true;
         return this;
     }
@@ -103,7 +103,7 @@ public class NPCSpawner {
      * @param columns Number of columns (typically 9)
      * @return This builder for chaining
      */
-    public NPCSpawner withInventory(int rows, int columns) {
+    public BudSpawner withInventory(int rows, int columns) {
         this.withInventory = true;
         this.inventoryRows = rows;
         this.inventoryColumns = columns;
@@ -116,7 +116,7 @@ public class NPCSpawner {
      * @param weaponType The weapon item ID (e.g., "Weapon_Shortbow_Iron")
      * @return This builder for chaining
      */
-    public NPCSpawner addWeapon(String weaponType) {
+    public BudSpawner addWeapon(String weaponType) {
         return addWeapon(weaponType, 1);
     }
 
@@ -127,7 +127,7 @@ public class NPCSpawner {
      * @param quantity   The quantity
      * @return This builder for chaining
      */
-    public NPCSpawner addWeapon(String weaponType, int quantity) {
+    public BudSpawner addWeapon(String weaponType, int quantity) {
         return addWeapon(weaponType, quantity, (short) 0);
     }
 
@@ -139,7 +139,7 @@ public class NPCSpawner {
      * @param slot       The hotbar slot (0-8)
      * @return This builder for chaining
      */
-    public NPCSpawner addWeapon(String weaponType, int quantity, short slot) {
+    public BudSpawner addWeapon(String weaponType, int quantity, short slot) {
         this.weapons.add(new WeaponConfig(weaponType, quantity, slot));
         return this;
     }
@@ -150,7 +150,7 @@ public class NPCSpawner {
      * @param armorType The armor item ID (e.g., "Armor_Thorium_Head")
      * @return This builder for chaining
      */
-    public NPCSpawner addArmor(String armorType) {
+    public BudSpawner addArmor(String armorType) {
         this.armors.add(new ArmorConfig(armorType));
         return this;
     }

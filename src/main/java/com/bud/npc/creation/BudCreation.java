@@ -17,8 +17,8 @@ import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
-import com.bud.npc.NPCManager;
-import com.bud.npc.NPCStateTracker;
+import com.bud.npc.BudManager;
+import com.bud.npc.BudStateTracker;
 import com.bud.npc.buds.IBudData;
 import com.bud.npc.persistence.PersistenceManager;
 import com.bud.result.AsyncDataListResult;
@@ -51,7 +51,7 @@ import it.unimi.dsi.fastutil.Pair;
 public class BudCreation {
 
     public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
-        Set<IBudData> missingBuds = NPCManager.getInstance().getMissingBuds(playerRef.getUuid(), store);
+        Set<IBudData> missingBuds = BudManager.getInstance().getMissingBuds(playerRef.getUuid(), store);
         return createBud(store, playerRef, missingBuds);
     }
 
@@ -114,7 +114,7 @@ public class BudCreation {
             if (npc == null) {
                 return new DataResult<>(null, "Spawn result data is null");
             }
-            IResult registerResult = NPCStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
+            IResult registerResult = BudStateTracker.getInstance().registerBud(playerRef, npc, budNPCData);
             if (!registerResult.isSuccess()) {
                 CleanUpHandler.despawnBud(npc).printResult();
                 return new DataResult<>(null, registerResult.getMessage());
@@ -122,7 +122,7 @@ public class BudCreation {
             IResult persistResult = PersistenceManager.getInstance().persistBud(playerRef, npc);
             if (!persistResult.isSuccess()) {
                 CleanUpHandler.despawnBud(npc).printResult();
-                NPCStateTracker.getInstance().unregisterBud(npc).printResult();
+                BudStateTracker.getInstance().unregisterBud(npc).printResult();
                 return new DataResult<>(null, persistResult.getMessage());
             }
             return spawnResult;
@@ -135,9 +135,9 @@ public class BudCreation {
     private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, PlayerRef playerRef,
             IBudData budNPCData) {
         try {
-            Vector3d position = NPCManager.getInstance().getPlayerPositionWithOffset(playerRef);
+            Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
             Vector3f rotation = new Vector3f(0, 0, 0);
-            Pair<Ref<EntityStore>, INonPlayerCharacter> result = NPCSpawner
+            Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
                     .create(store, budNPCData.getNPCTypeId(), position)
                     .withRotation(rotation)
                     .withInventory()

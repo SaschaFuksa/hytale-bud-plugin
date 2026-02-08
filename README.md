@@ -112,10 +112,10 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 - [x] **1.4.0**: Interaction to block events (e.g., "You just mined 20 blocks of iron ore!").
 - [ ] **1.5.0**: Interaction to weather events and add "days"
 - [ ] **1.6.0**: Memory storage: Keep memories of player and buds interacttions.
-- [ ] **1.7.0**: Try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)
+- [ ] **1.7.0**: ?
 - [ ] **1.8.0**: Visual updates & special models for Buds?
 - [ ] **1.9.0**: Item-based spawning instead of commands?
-- [ ] **2.0.0**: Fully interactive world manipulation via LLM?
+- [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>
 
 ## 📜 History

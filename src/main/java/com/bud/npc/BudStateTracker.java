@@ -26,18 +26,18 @@ import com.hypixel.hytale.server.npc.role.Role;
  * Listens to PlayerInteractEvent with InteractionType.Use (F-key).
  * States: PetDefensive, PetPassive, PetSitting
  */
-public class NPCStateTracker {
+public class BudStateTracker {
 
-    private static final NPCStateTracker INSTANCE = new NPCStateTracker();
+    private static final BudStateTracker INSTANCE = new BudStateTracker();
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
-    private NPCStateTracker() {
+    private BudStateTracker() {
     }
 
     private volatile ScheduledFuture<?> pollingTask;
 
-    public static NPCStateTracker getInstance() {
+    public static BudStateTracker getInstance() {
         return INSTANCE;
     }
 

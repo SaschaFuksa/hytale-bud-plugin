@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.npc.NPCManager;
+import com.bud.npc.BudManager;
 import com.bud.npc.buds.GronkhData;
 import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
@@ -61,7 +61,7 @@ public class BudCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref,
             @Nonnull PlayerRef playerRef,
             @Nonnull World world) {
-        IDataListResult<NPCEntity> teleportResult = NPCManager.getInstance().teleportBuds(playerRef, store);
+        IDataListResult<NPCEntity> teleportResult = BudManager.getInstance().teleportBuds(playerRef, store);
         if (teleportResult.isSuccess()) {
             this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
         }
@@ -133,7 +133,7 @@ public class BudCommand extends AbstractPlayerCommand {
                 }
                 case "reset" -> {
                     CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
-                    IDataListResult<NPCEntity> teleportResult = NPCManager.getInstance().teleportBuds(playerRef, store);
+                    IDataListResult<NPCEntity> teleportResult = BudManager.getInstance().teleportBuds(playerRef, store);
                     if (teleportResult.isSuccess()) {
                         this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
                     }
@@ -194,7 +194,7 @@ public class BudCommand extends AbstractPlayerCommand {
         }
 
         private IResult changeState(PlayerRef playerRef, Store<EntityStore> store, String petState) {
-            Set<NPCEntity> buds = NPCManager.getInstance().getOwnedBuds(playerRef.getUuid(), store);
+            Set<NPCEntity> buds = BudManager.getInstance().getOwnedBuds(playerRef.getUuid(), store);
             boolean successed = false;
             for (NPCEntity bud : buds) {
                 IResult result = BudCreation.changeRoleState(bud, playerRef, petState);
@@ -214,13 +214,13 @@ public class BudCommand extends AbstractPlayerCommand {
 
     public static IResult executeBudAction(PlayerRef playerRef, Store<EntityStore> store,
             IBudData missingBud) {
-        if (NPCManager.getInstance().canBeAdded(playerRef.getUuid(), store,
+        if (BudManager.getInstance().canBeAdded(playerRef.getUuid(), store,
                 missingBud)) {
             // Create new Bud
             return BudCreation.createBud(store, playerRef, Set.of(missingBud));
         } else {
             // Teleport existing Buds
-            return NPCManager.getInstance().teleportBud(playerRef, store, missingBud);
+            return BudManager.getInstance().teleportBud(playerRef, store, missingBud);
         }
     }
 

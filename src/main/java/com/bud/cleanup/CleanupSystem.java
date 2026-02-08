@@ -1,6 +1,6 @@
 package com.bud.cleanup;
 
-import com.bud.npc.NPCManager;
+import com.bud.npc.BudManager;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -38,7 +38,7 @@ public class CleanupSystem extends RefSystem<EntityStore> {
 
             NPCEntity npc = store.getComponent(ref, npcType);
             if (npc != null) {
-                Set<String> trackedTypes = NPCManager.getInstance().getTrackedBudTypes();
+                Set<String> trackedTypes = BudManager.getInstance().getTrackedBudTypes();
                 if (trackedTypes.contains(npc.getNPCTypeId())) {
                     LoggerUtil.getLogger()
                             .fine(() -> "[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());

@@ -29,14 +29,14 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-public class NPCManager {
+public class BudManager {
 
-    private static final NPCManager INSTANCE = new NPCManager();
+    private static final BudManager INSTANCE = new BudManager();
 
-    private NPCManager() {
+    private BudManager() {
     }
 
-    public static NPCManager getInstance() {
+    public static BudManager getInstance() {
         return INSTANCE;
     }
 

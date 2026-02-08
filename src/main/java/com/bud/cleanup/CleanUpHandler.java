@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.bud.npc.NPCManager;
-import com.bud.npc.NPCStateTracker;
+import com.bud.npc.BudManager;
+import com.bud.npc.BudStateTracker;
 import com.bud.npc.persistence.PersistenceManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -57,13 +57,13 @@ public class CleanUpHandler {
 
     public static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull UUID budUUID) {
         try {
-            IDataResult<NPCEntity> npcResult = NPCManager.getInstance().getNPCEntityByUUID(budUUID, world);
+            IDataResult<NPCEntity> npcResult = BudManager.getInstance().getNPCEntityByUUID(budUUID, world);
             npcResult.printResult();
             if (!npcResult.isSuccess()) {
                 LoggerUtil.getLogger().fine(() -> "[BUD] Maybe Entity already despawned. Try to unregister.");
             } else {
                 NPCEntity npcEntity = npcResult.getData();
-                NPCStateTracker.getInstance().unregisterBud(npcEntity).printResult();
+                BudStateTracker.getInstance().unregisterBud(npcEntity).printResult();
                 despawnBud(npcEntity).printResult();
             }
 
@@ -78,7 +78,7 @@ public class CleanUpHandler {
     }
 
     public static IResult cleanupAllBuds(World world) {
-        Set<String> typesSnapshot = NPCManager.getInstance().getTrackedBudTypes();
+        Set<String> typesSnapshot = BudManager.getInstance().getTrackedBudTypes();
         LoggerUtil.getLogger().fine(
                 () -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
@@ -137,7 +137,7 @@ public class CleanUpHandler {
                         PlayerRef owner = instance.getOwner();
 
                         // Unregister from runtime tracker
-                        NPCStateTracker.getInstance().unregisterBud(npcEntity).printResult();
+                        BudStateTracker.getInstance().unregisterBud(npcEntity).printResult();
 
                         // Despawn entity (removes from world)
                         despawnBud(npcEntity).printResult();
