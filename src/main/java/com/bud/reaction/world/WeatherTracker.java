@@ -1,4 +1,4 @@
-package com.bud.reaction.weather;
+package com.bud.reaction.world;
 
 import java.util.Set;
 import java.util.UUID;

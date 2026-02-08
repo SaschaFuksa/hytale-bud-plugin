@@ -1,4 +1,4 @@
-package com.bud.data;
+package com.bud.reaction.world.time;
 
 public enum TimeOfDay {
     NIGHT, // 22:00 - 05:00

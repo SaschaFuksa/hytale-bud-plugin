@@ -1,9 +1,8 @@
-package com.bud.util;
+package com.bud.reaction.world.time;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.bud.data.TimeOfDay;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;

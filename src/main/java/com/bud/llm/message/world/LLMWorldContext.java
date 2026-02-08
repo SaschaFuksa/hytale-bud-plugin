@@ -2,13 +2,13 @@ package com.bud.llm.message.world;
 
 import java.util.Map.Entry;
 
-import com.bud.data.TimeOfDay;
 import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.TimeMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
-import com.bud.util.TimeInformationUtil;
-import com.bud.util.WorldInformationUtil;
+import com.bud.reaction.world.WorldInformationUtil;
+import com.bud.reaction.world.time.TimeInformationUtil;
+import com.bud.reaction.world.time.TimeOfDay;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;

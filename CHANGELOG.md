@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.4.0]
+## [1.5.0]
 ### Added
 - **Weather Interaction**: Buds will now respond to weather changes. Added enablement option for weather interactions in the config and a configurable reaction period.
 - **Week System**: Added week system, so the current day will also enable reactions. Here is the idea to trigger mods on days.

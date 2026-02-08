@@ -13,11 +13,11 @@ import com.bud.llm.message.combat.LLMCombatManager;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 

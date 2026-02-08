@@ -13,9 +13,9 @@ import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerInstance;
 import com.bud.player.PlayerRegistry;
+import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
-import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -86,6 +86,8 @@ public class LLMWeatherManager implements ILLMChatManager {
                 if (!this.hasWeatherChanged(weather, playerInstance)) {
                     return null;
                 } else {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Weather changed to " + weather.getId() + " for player "
+                            + budInstance.getOwner().getUsername());
                     playerInstance.setLastKnownWeather(weather.getId());
                 }
                 return budInstance.getData().getBudMessage().getFallback("weather");
@@ -101,8 +103,6 @@ public class LLMWeatherManager implements ILLMChatManager {
         if (lastKnownWeatherId == null) {
             return true;
         }
-        LoggerUtil.getLogger().fine(() -> "[BUD] Last known weather ID: " + lastKnownWeatherId);
-        LoggerUtil.getLogger().fine(() -> "[BUD] Current weather ID: " + currentWeather.getId());
         return !lastKnownWeatherId.equals(currentWeather.getId());
     }
 
