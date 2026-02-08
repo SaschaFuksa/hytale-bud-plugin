@@ -31,5 +31,11 @@ prompts:
     You shall say something about your current state.
     First, you get some details about your personality.
     Second, you get information about your current state.
+  weather: |
+    You shall say something about the weather change.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on weather.
+    Third, you get the new weather type.
+    Finally, say something very short and reactive to this specific weather.
   final: |
     "Now you have all information. Answer short, Keep responses concise and entertaining and do not highlight information.

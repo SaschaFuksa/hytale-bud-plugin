@@ -16,6 +16,7 @@ import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.weather.WeatherTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -67,6 +68,8 @@ public class BudPlugin extends JavaPlugin {
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.registerEvents();
 
+        // Start Weather Tracking
+        WeatherTracker.getInstance().start();
     }
 
     private void registerEvents() {
@@ -135,7 +138,7 @@ public class BudPlugin extends JavaPlugin {
 
                 // Clear pending combat chat tasks for this player
                 CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-
+                WeatherTracker.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     @Nonnull

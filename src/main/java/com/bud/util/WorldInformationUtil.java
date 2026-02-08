@@ -2,9 +2,12 @@ package com.bud.util;
 
 import com.bud.npc.BudInstance;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.builtin.weather.components.WeatherTracker;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -72,6 +75,22 @@ public class WorldInformationUtil {
         }
 
         return null;
+    }
+
+    public static Weather getCurrentWeather(BudInstance budInstance) {
+        World world = resolveWorld(budInstance);
+        Ref<EntityStore> ownerRef = budInstance.getOwner().getReference();
+        ComponentType<EntityStore, WeatherTracker> componentType = WeatherTracker.getComponentType();
+        if (world == null || ownerRef == null || componentType == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] Unable to resolve world or owner for BudInstance.");
+            return null;
+        }
+        WeatherTracker tracker = world.getEntityStore().getStore().getComponent(ownerRef,
+                componentType);
+        int index = tracker.getWeatherIndex();
+        Weather weather = Weather.getAssetMap().getAsset(index);
+        LoggerUtil.getLogger().info(() -> "[BUD] Current weather: " + weather);
+        return weather;
     }
 
 }
