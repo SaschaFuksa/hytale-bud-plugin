@@ -1,6 +1,6 @@
 package com.bud.interaction;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -56,7 +56,7 @@ public class InteractionManager {
         if (budInstances == null || budInstances.isEmpty()) {
             return new SuccessResult("No bud available for owner " + ownerId);
         }
-        Set<BudInstance> errors = Collections.emptySet();
+        Set<BudInstance> errors = new HashSet<>();
         for (BudInstance budInstance : budInstances) {
             try {
                 Prompt prompt = getPrompt(context, budInstance);
@@ -89,7 +89,8 @@ public class InteractionManager {
                 return promptResult.getData();
             }
         }
-        return null;
+        String fallback = context.getFallbackMessage(budInstance);
+        return new Prompt(fallback, fallback);
     }
 
     private void sendToChat(BudInstance budInstance, Prompt prompt, ILLMChatManager context) {
@@ -114,7 +115,7 @@ public class InteractionManager {
                 }
             });
         } else {
-            String message = budInstance.getData().getNPCDisplayName() + ": " + context.getFallbackMessage(budInstance);
+            String message = budInstance.getData().getNPCDisplayName() + ": " + prompt.userPrompt();
             LoggerUtil.getLogger().info(() -> "[BUD] Fallback response: " + message);
             this.chatInteraction.sendChatMessage(world, budInstance.getOwner(),
                     message);

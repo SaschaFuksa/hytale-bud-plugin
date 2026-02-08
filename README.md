@@ -28,6 +28,7 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
     <td>
       <h3>🦊 Veri</h3>
       <p>A Feran buddy who is a little childish, but extremely curious and friendly. Veri is agile and supports you in combat using <b>daggers</b>.</p>
+      <p>Veri travels with you to find the rare antidote for his sick Feran clan infected by strange disease from the toxic Skaraks.</p>
     </td>
   </tr>
   <tr>
@@ -35,6 +36,7 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
     <td>
       <h3>👹 Gronkh</h3>
       <p>A Trork buddy who might seem grumpy at first, but is fiercely loyal and strong. He's a powerhouse who supports you with a heavy <b>mace</b>.</p>
+      <p>Gronkh is on a mission to protect the northern tribe from the icy 'white wanderers' and is training to crush the undead forces threatening their lands.</p>
     </td>
   </tr>
   <tr>
@@ -42,6 +44,7 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
     <td>
       <h3>🍃 Keyleth</h3>
       <p>A Kweebec buddy who is highly intelligent but a bit shy. She prefers to keep her distance and supports you from afar with a <b>bow</b>.</p>
+      <p>Keyleth is on a quest to uncover ancient knowledge in lost temples. She wants to balance by connecting old temples to defeat Shadow Knight and the dark army.</p>
     </td>
   </tr>
 </table>
