@@ -11,9 +11,13 @@
 
 This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles.
 
-## New in 1.3.0
-- Separated prompts from code (YAML).
-- Add chat reactions for non LLM usage (Only generic one for each interaction).
+## Update information:
+
+If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
+
+## New in 1.4.0
+- **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
+- **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
 (See more changes in GitHub Repository in the **CHANGELOG.md**
 
 ### Meet your Buddies
@@ -81,6 +85,9 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `ApiKey` | The API key for your LLM service | `not_needed` |
 | `MaxTokens` | Limit the length of AI responses | `200` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
+| `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
+| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
+| `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
@@ -109,8 +116,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.4.0**: Interaction to block events (e.g., "You just mined 20 blocks of iron ore!").
-- [ ] **1.5.0**: Interaction to weather events and add "days"
+- [x] **1.5.0**: Interaction to weather events and add "days"
 - [ ] **1.6.0**: Memory storage: Keep memories of player and buds interacttions. Also remove current caching of the last combat action and use the memory storage instead.
 - [ ] **1.7.0**: ?
 - [ ] **1.8.0**: Visual updates & special models for Buds?

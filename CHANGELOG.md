@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [1.4.0]
 ### Added
 - **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
-- **Event Registration control**: Added enable/disable options for combat, world, and block interactions in the config.
+- **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
 
 ### Fixed
 - Disable thinking for models that support it (e.g. Qwen) to prevent long response times and ensure concise answers.
