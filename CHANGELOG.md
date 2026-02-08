@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [1.4.0]
 ### Added
-- **Block Interaction**: 
+- **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
+- **Event Registration control**: Added enable/disable options for combat, world, and block interactions in the config.
 
 ### Fixed
 - Disable thinking for models that support it (e.g. Qwen) to prevent long response times and ensure concise answers.
+- Try to avoid quotes in responses by instructing the LLM to not use them.
 - Added fallback zone message for when no specific zone info is available, preventing null pointer exceptions and providing a default response.
 - Improved code structure and organization for better readability and maintainability, including separating concerns and improving method naming.
 - Now set system prompt correctly.
