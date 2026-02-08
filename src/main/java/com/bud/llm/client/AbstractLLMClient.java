@@ -1,6 +1,7 @@
 package com.bud.llm.client;
 
 import java.io.IOException;
+
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -64,7 +65,9 @@ public abstract class AbstractLLMClient implements ILLMClient {
                 .fine(() -> "Extracted content: " + jsonResponse.substring(finalOpenQuoteIdx + 1, finalCloseQuoteIdx));
 
         return jsonResponse.substring(openQuoteIdx + 1, closeQuoteIdx)
-                .replace("\\n", "\n")
+                .replace("\\n", " ")
+                .replace("\n", " ")
+                .replace("\r", " ")
                 .replace("\\\"", "\"")
                 .replace("\\\\", "\\")
                 .replaceAll("(?s)<think>.*?</think>", "")
