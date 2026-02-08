@@ -9,6 +9,8 @@ import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.player.PlayerInstance;
+import com.bud.player.PlayerRegistry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.bud.util.WorldInformationUtil;
@@ -28,6 +30,12 @@ public class LLMWeatherManager implements ILLMChatManager {
         if (weather == null) {
             return new DataResult<>(null, "No weather found for bud instance.");
         }
+        PlayerInstance playerInstance = PlayerRegistry.getInstance().getByOwner(budInstance.getOwner().getUuid());
+        if (!this.hasWeatherChanged(weather, playerInstance)) {
+            return new DataResult<>(null, "Weather has not changed since last check.");
+        } else {
+            playerInstance.setLastKnownWeather(weather.getId());
+        }
         LLMWeatherContext contextResult = LLMWeatherContext.from(weather.getId());
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
         return new DataResult<>(prompt, "Weather prompt generation.");
@@ -46,4 +54,10 @@ public class LLMWeatherManager implements ILLMChatManager {
     public String getFallbackMessage(BudInstance budInstance) {
         return budInstance.getData().getBudMessage().getFallback("weather");
     }
+
+    private boolean hasWeatherChanged(Weather currentWeather, PlayerInstance playerInstance) {
+        String lastKnownWeatherId = playerInstance.getLastKnownWeather();
+        return !lastKnownWeatherId.equals(currentWeather.getId());
+    }
+
 }

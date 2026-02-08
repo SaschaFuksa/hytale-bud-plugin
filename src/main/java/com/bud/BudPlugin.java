@@ -11,12 +11,11 @@ import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.persistence.PlayerData;
+import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
-import com.bud.reaction.weather.WeatherTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -67,9 +66,6 @@ public class BudPlugin extends JavaPlugin {
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.registerEvents();
-
-        // Start Weather Tracking
-        WeatherTracker.getInstance().start();
     }
 
     private void registerEvents() {
@@ -111,10 +107,17 @@ public class BudPlugin extends JavaPlugin {
              * not despawned by the disconnect event
              */
             try {
-                @Nonnull
                 PlayerRef playerRef = event.getPlayerRef();
-                @Nonnull
                 World world = event.getWorld();
+                if (world == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] World is null on player connect for player: "
+                            + playerRef.getUuid());
+                    return;
+                }
+                if (playerRef == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] PlayerRef is null on player connect event");
+                    return;
+                }
 
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
                 LoggerUtil.getLogger().fine(() -> "[BUD] World: " + world.getName());
@@ -138,11 +141,13 @@ public class BudPlugin extends JavaPlugin {
 
                 // Clear pending combat chat tasks for this player
                 CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-                WeatherTracker.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
-                    @Nonnull
                     World world = Universe.get().getWorld(worldUUID);
+                    if (world == null) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] World not found for UUID: " + worldUUID);
+                        return;
+                    }
                     world.execute(() -> {
                         IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
                         result.printResult();

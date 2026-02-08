@@ -20,7 +20,7 @@ import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
 import com.bud.npc.BudStateTracker;
 import com.bud.npc.buds.IBudData;
-import com.bud.npc.persistence.PersistenceManager;
+import com.bud.player.persistence.PersistenceManager;
 import com.bud.result.AsyncDataListResult;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;

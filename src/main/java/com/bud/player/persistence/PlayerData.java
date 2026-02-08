@@ -1,16 +1,15 @@
-package com.bud.npc.persistence;
-
-import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.component.Component;
-import com.hypixel.hytale.codec.KeyedCodec;
-import com.hypixel.hytale.codec.Codec;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+package com.bud.player.persistence;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
+import com.hypixel.hytale.component.Component;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class PlayerData implements Component<EntityStore> {
 

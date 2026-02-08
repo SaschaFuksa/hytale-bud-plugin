@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.npc.BudManager;
 import com.bud.npc.BudStateTracker;
-import com.bud.npc.persistence.PersistenceManager;
+import com.bud.player.persistence.PersistenceManager;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;

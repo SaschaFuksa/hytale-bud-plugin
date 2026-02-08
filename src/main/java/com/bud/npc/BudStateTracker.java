@@ -8,7 +8,6 @@ import java.util.Set;
 import com.bud.interaction.InteractionManager;
 import com.bud.npc.buds.IBudData;
 import com.bud.llm.message.state.LLMStateManager;
-import com.bud.llm.message.state.LLMStateMessageCreation;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -78,8 +77,8 @@ public class BudStateTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::pollStates, 200L, 200L,
-                TimeUnit.MILLISECONDS);
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::pollStates, 500L, 500L,
+                TimeUnit.MICROSECONDS);
         LoggerUtil.getLogger().fine(() -> "[BUD] Started state polling task");
     }
 

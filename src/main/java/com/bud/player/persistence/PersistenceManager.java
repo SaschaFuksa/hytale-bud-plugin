@@ -1,4 +1,4 @@
-package com.bud.npc.persistence;
+package com.bud.player.persistence;
 
 import java.util.HashSet;
 import java.util.UUID;

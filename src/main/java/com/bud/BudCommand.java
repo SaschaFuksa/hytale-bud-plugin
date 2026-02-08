@@ -15,7 +15,7 @@ import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
 import com.bud.npc.buds.VeriData;
 import com.bud.npc.creation.BudCreation;
-import com.bud.npc.persistence.PlayerData;
+import com.bud.player.persistence.PlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
