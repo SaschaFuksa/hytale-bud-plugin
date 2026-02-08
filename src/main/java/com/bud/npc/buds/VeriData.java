@@ -2,13 +2,14 @@ package com.bud.npc.buds;
 
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.npc.buds.sound.VeriSoundData;
 import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.npc.buds.sound.VeriSoundData;
 
 public class VeriData implements IBudData {
 
 	public static final String NPC_TYPE_ID = "Veri_Bud";
 	public static final String NPC_DISPLAY_NAME = "Veri";
+	public static final String NPC_DISPLAY_NAME_LOWER = "veri";
 	private static final IBudSoundData budSoundData = new VeriSoundData();
 
 	@Override

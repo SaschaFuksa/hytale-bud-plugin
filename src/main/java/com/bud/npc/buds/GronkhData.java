@@ -9,6 +9,7 @@ public class GronkhData implements IBudData {
 
 	public static final String NPC_TYPE_ID = "Gronkh_Bud";
 	public static final String NPC_DISPLAY_NAME = "Gronkh";
+	public static final String NPC_DISPLAY_NAME_LOWER = "gronkh";
 	private static final IBudSoundData budSoundData = new GronkhSoundData();
 
 	@Override

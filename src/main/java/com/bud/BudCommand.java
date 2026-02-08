@@ -95,20 +95,20 @@ public class BudCommand extends AbstractPlayerCommand {
                 @Nonnull PlayerRef playerRef,
                 @Nonnull World world) {
 
-            String inputMode = this.modeArg.get(commandContext);
+            String inputMode = this.modeArg.get(commandContext).toLowerCase();
 
             switch (inputMode) {
-                case VeriData.NPC_DISPLAY_NAME -> {
+                case VeriData.NPC_DISPLAY_NAME_LOWER -> {
                     IResult result = executeBudAction(playerRef, store, new VeriData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
-                case GronkhData.NPC_DISPLAY_NAME -> {
+                case GronkhData.NPC_DISPLAY_NAME_LOWER -> {
                     IResult result = executeBudAction(playerRef, store, new GronkhData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
-                case KeylethData.NPC_DISPLAY_NAME -> {
+                case KeylethData.NPC_DISPLAY_NAME_LOWER -> {
                     IResult result = executeBudAction(playerRef, store, new KeylethData());
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
@@ -143,12 +143,12 @@ public class BudCommand extends AbstractPlayerCommand {
                                 "[BUD] " + creationResult.getMessage());
                     }
                 }
-                case "clean" -> {
+                case "clean", "clear" -> {
                     IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
                 }
-                case "clean-all" -> {
+                case "clean-allbuds", "clear-allbuds" -> {
                     IResult result = CleanUpHandler.cleanupAllBuds(world);
                     result.printResult();
                     this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
@@ -162,12 +162,12 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "Current BudPlayerData: " + uuids);
                 }
-                case "data-clean" -> {
+                case "clean-data", "clear-data" -> {
                     store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), new PlayerData());
                     LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
-                case "prompt-reload" -> {
+                case "prompt-reload", "clean-prompt", "clear-prompt" -> {
                     LLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
@@ -180,15 +180,17 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "/bud [atk|attack|fol|follow|chill|stay]: Change current bud behavior");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud clean: Cleanup your buds.");
+                            "/bud clean, /bud clear: Cleanup your buds.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud clean-all: Cleanup all buds in current world.");
+                            "/bud clean-all, /bud clear-all: Cleanup all buds in current world.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "/bud reset: Cleanup and recreate all buds.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "/bud data: Show your persisted data.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud data-clean: Clean your persisted data.");
+                            "/bud clean-data, /bud clear-data: Clean your persisted data.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud clear-prompt, /bud prompt-reload: Reload prompts.");
                 }
             }
         }

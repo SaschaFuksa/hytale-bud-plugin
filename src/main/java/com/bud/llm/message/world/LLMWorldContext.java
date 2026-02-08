@@ -46,18 +46,16 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
 
         String zoneName = this.currentZone.name().toLowerCase();
-        if (zoneName.contains("1") || zoneName.contains("emerald"))
+        if (zoneName.contains("zone1") || zoneName.contains("emerald"))
             return manager.getZoneMessage("emerald_grove");
-        if (zoneName.contains("2") || zoneName.contains("howling"))
+        if (zoneName.contains("zone2") || zoneName.contains("howling"))
             return manager.getZoneMessage("howling_sands");
-        if (zoneName.contains("3") || zoneName.contains("whisperfrost"))
+        if (zoneName.contains("zone3") || zoneName.contains("whisperfrost"))
             return manager.getZoneMessage("whisperfrost_frontiers");
-        if (zoneName.contains("4") || zoneName.contains("devastated"))
+        if (zoneName.contains("zone4") || zoneName.contains("devastated"))
             return manager.getZoneMessage("devasted_lands");
-        if (zoneName.contains("ocean"))
+        if (zoneName.contains("zone0"))
             return manager.getZoneMessage("ocean");
-        if (zoneName.contains("dungeon"))
-            return manager.getZoneMessage("dungeons");
 
         return manager.getZoneMessage("fallback");
     }

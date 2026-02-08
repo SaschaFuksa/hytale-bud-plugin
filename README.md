@@ -55,15 +55,15 @@ The plugin is primarily controlled via simple chat commands:
 
 *   **`/bud`** - The main command. Spawns all three buddies, teleports them to you, or respawns them if they died.
 *   **`/bud [Veri|Gronkh|Keyleth]`** - Target a specific buddy for spawning or teleportation.
-*   **`/bud [attack|atk]`** - Change the behavior mode for all active Buds to Defensive.
+*   **`/bud [attack|atk]`** - Change the behavior mode for all active Buds to Defensive.s
 *   **`/bud [follow|fol]`** - Change the behavior mode for all active Buds to Passive.
 *   **`/bud [chill|stay]`** - Change the behavior mode for all active Buds to Sitting.
 *   **`/bud reset`** - Quickly cleanup and recreate all your buddies.
-*   **`/bud clean`** - Removes your personal buddies from the world.
-*   **`/bud clean-all`** - Removes all buddies from the world.
+*   **`/bud clear`** - Removes your personal buddies from the world.
+*   **`/bud clear-allbuds`** - Removes all buddies from the world.
+*   **`/bud clear-data`** - Clears all persisted buddy data (useful for debugging).
+*   **`/bud clear-prompt`** - Hot-reload the LLM prompt configurations without restarting the server.
 *   **`/bud data`** - Displays persisted data (Reference Player UUID to NPC UUID).
-*   **`/bud data-clean`** - Clears all persisted buddy data (useful for debugging).
-*   **`/bud prompt-reload`** - Hot-reload the LLM prompt configurations without restarting the server.
 
 ### 🤖 Intelligent Interaction
 *   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
