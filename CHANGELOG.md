@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Added fallback zone message for when no specific zone info is available, preventing null pointer exceptions and providing a default response.
 - Improved code structure and organization for better readability and maintainability, including separating concerns and improving method naming.
 - Now set system prompt correctly.
+- Fixed bug in zone detection logic. Changed check of numeric value to "Zone1" to avoid issues with zone names containing numbers (e.g. "Zone2_1").
 
 ---
 
