@@ -4,19 +4,21 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
-import com.bud.llm.message.combat.LLMCombatManager;
-import com.bud.llm.message.creation.Prompt;
 import com.bud.BudConfig;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
+import com.bud.llm.message.combat.LLMCombatManager;
+import com.bud.llm.message.creation.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.buds.sound.IBudSoundData;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 public class InteractionManager {
 
@@ -91,15 +93,22 @@ public class InteractionManager {
     }
 
     private void sendToChat(BudInstance budInstance, Prompt prompt, ILLMChatManager context) {
+        World world = WorldInformationUtil.resolveWorld(budInstance);
+        if (world == null) {
+            LoggerUtil.getLogger()
+                    .severe(() -> "[BUD] Could not resolve world for bud " + budInstance.getData().getNPCDisplayName());
+            return;
+        }
+
         if (config.isEnableLLM()) {
             Thread.ofVirtual().start(() -> {
                 try {
                     String response = this.llmClient.callLLM(prompt);
                     String message = budInstance.getData().getNPCDisplayName() + ": " + response;
                     LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
-                    this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
+                    this.chatInteraction.sendChatMessage(world, budInstance.getOwner(),
                             message);
-                    playSound(budInstance);
+                    playSound(budInstance, world);
                 } catch (Exception e) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
                 }
@@ -107,17 +116,17 @@ public class InteractionManager {
         } else {
             String message = budInstance.getData().getNPCDisplayName() + ": " + context.getFallbackMessage(budInstance);
             LoggerUtil.getLogger().info(() -> "[BUD] Fallback response: " + message);
-            this.chatInteraction.sendChatMessage(budInstance.getEntity().getWorld(), budInstance.getOwner(),
+            this.chatInteraction.sendChatMessage(world, budInstance.getOwner(),
                     message);
-            playSound(budInstance);
+            playSound(budInstance, world);
         }
     }
 
-    private void playSound(BudInstance budInstance) {
+    private void playSound(BudInstance budInstance, World world) {
         IBudSoundData npcSoundData = budInstance.getData().getBudSoundData();
         if (npcSoundData != null) {
             String soundEventID = npcSoundData.getSoundForState("PetPassive");
-            this.soundInteraction.playSound(budInstance.getEntity().getWorld(), budInstance.getEntity(),
+            this.soundInteraction.playSound(world, budInstance.getEntity(),
                     soundEventID);
         }
     }
