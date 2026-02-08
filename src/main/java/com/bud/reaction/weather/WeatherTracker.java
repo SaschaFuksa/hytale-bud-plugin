@@ -30,9 +30,8 @@ public class WeatherTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        // Poll every 5 seconds
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::checkWeather, 250L, 500L,
-                TimeUnit.MILLISECONDS);
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::checkWeather, 3L, 3L,
+                TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Weather tracker started.");
     }
 

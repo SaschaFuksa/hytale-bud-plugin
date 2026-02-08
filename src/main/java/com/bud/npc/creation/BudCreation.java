@@ -115,7 +115,7 @@ public class BudCreation {
             if (npc == null) {
                 return new DataResult<>(null, "Spawn result data is null");
             }
-            IResult registerResult = RegistryManager.getInstance().register(playerRef, npc, budNPCData);
+            IResult registerResult = RegistryManager.getInstance().registerBud(playerRef, npc, budNPCData);
 
             if (!registerResult.isSuccess()) {
                 CleanUpHandler.despawnBud(npc).printResult();

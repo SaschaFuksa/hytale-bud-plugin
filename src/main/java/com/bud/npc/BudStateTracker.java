@@ -77,8 +77,8 @@ public class BudStateTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::pollStates, 500L, 500L,
-                TimeUnit.MICROSECONDS);
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::pollStates, 250L, 250L,
+                TimeUnit.MILLISECONDS);
         LoggerUtil.getLogger().fine(() -> "[BUD] Started state polling task");
     }
 

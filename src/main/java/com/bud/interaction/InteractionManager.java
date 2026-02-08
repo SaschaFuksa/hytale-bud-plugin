@@ -62,7 +62,6 @@ public class InteractionManager {
             try {
                 Prompt prompt = getPrompt(context, budInstance);
                 if (prompt == null) {
-                    errors.add(budInstance);
                     LoggerUtil.getLogger().warning(() -> "[BUD] No prompt generated for owner " + ownerId);
                     continue;
                 } else if (prompt.userPrompt().equals(LLMCombatManager.NO_COMBAT_STRING)) {

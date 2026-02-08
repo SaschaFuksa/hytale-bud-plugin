@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.creation.Prompt;
@@ -16,6 +18,7 @@ import com.bud.result.IDataResult;
 import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 public class LLMWeatherManager implements ILLMChatManager {
 
@@ -27,19 +30,33 @@ public class LLMWeatherManager implements ILLMChatManager {
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
-        if (weather == null) {
-            return new DataResult<>(null, "No weather found for bud instance.");
+        World world = WorldInformationUtil.resolveWorld(budInstance.getOwner());
+        if (world == null) {
+            return new DataResult<>(null, "No world found for bud instance.");
         }
-        PlayerInstance playerInstance = PlayerRegistry.getInstance().getByOwner(budInstance.getOwner().getUuid());
-        if (!this.hasWeatherChanged(weather, playerInstance)) {
-            return new DataResult<>(null, "Weather has not changed since last check.");
-        } else {
-            playerInstance.setLastKnownWeather(weather.getId());
+
+        try {
+            // We must fetch weather data on the world thread
+            return CompletableFuture.supplyAsync(() -> {
+                Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
+                if (weather == null) {
+                    return new DataResult<Prompt>(null, "No weather found for bud instance.");
+                }
+                PlayerInstance playerInstance = PlayerRegistry.getInstance()
+                        .getByOwner(budInstance.getOwner().getUuid());
+                if (!this.hasWeatherChanged(weather, playerInstance)) {
+                    return new DataResult<Prompt>(null, "Weather has not changed since last check.");
+                } else {
+                    playerInstance.setLastKnownWeather(weather.getId());
+                }
+                LLMWeatherContext contextResult = LLMWeatherContext.from(weather.getId());
+                Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
+                return new DataResult<Prompt>(prompt, "Weather prompt generation.");
+            }, world::execute).get(2, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Error generating prompt in world thread: " + e.getMessage());
+            return new DataResult<>(null, "Thread error: " + e.getMessage());
         }
-        LLMWeatherContext contextResult = LLMWeatherContext.from(weather.getId());
-        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
-        return new DataResult<>(prompt, "Weather prompt generation.");
     }
 
     @Override
@@ -53,21 +70,37 @@ public class LLMWeatherManager implements ILLMChatManager {
 
     @Override
     public String getFallbackMessage(BudInstance budInstance) {
-        Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
-        if (weather == null) {
+        World world = WorldInformationUtil.resolveWorld(budInstance.getOwner());
+        if (world == null) {
             return null;
         }
-        PlayerInstance playerInstance = PlayerRegistry.getInstance().getByOwner(budInstance.getOwner().getUuid());
-        if (!this.hasWeatherChanged(weather, playerInstance)) {
+
+        try {
+            return CompletableFuture.supplyAsync(() -> {
+                Weather weather = WorldInformationUtil.getCurrentWeather(budInstance.getOwner());
+                if (weather == null) {
+                    return null;
+                }
+                PlayerInstance playerInstance = PlayerRegistry.getInstance()
+                        .getByOwner(budInstance.getOwner().getUuid());
+                if (!this.hasWeatherChanged(weather, playerInstance)) {
+                    return null;
+                } else {
+                    playerInstance.setLastKnownWeather(weather.getId());
+                }
+                return budInstance.getData().getBudMessage().getFallback("weather");
+            }, world::execute).get(2, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Error getting fallback in world thread: " + e.getMessage());
             return null;
-        } else {
-            playerInstance.setLastKnownWeather(weather.getId());
         }
-        return budInstance.getData().getBudMessage().getFallback("weather");
     }
 
     private boolean hasWeatherChanged(Weather currentWeather, PlayerInstance playerInstance) {
         String lastKnownWeatherId = playerInstance.getLastKnownWeather();
+        if (lastKnownWeatherId == null) {
+            return true;
+        }
         LoggerUtil.getLogger().fine(() -> "[BUD] Last known weather ID: " + lastKnownWeatherId);
         LoggerUtil.getLogger().fine(() -> "[BUD] Current weather ID: " + currentWeather.getId());
         return !lastKnownWeatherId.equals(currentWeather.getId());

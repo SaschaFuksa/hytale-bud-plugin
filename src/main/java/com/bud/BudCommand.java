@@ -15,13 +15,16 @@ import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
 import com.bud.npc.buds.VeriData;
 import com.bud.npc.creation.BudCreation;
+import com.bud.player.PlayerRegistry;
 import com.bud.player.persistence.PlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
@@ -69,6 +72,7 @@ public class BudCommand extends AbstractPlayerCommand {
         if (creationResult.isSuccess()) {
             this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
         }
+        RegistryManager.getInstance().registerPlayer(playerRef);
     }
 
     private static class BudSetVariant extends AbstractPlayerCommand {
@@ -133,15 +137,12 @@ public class BudCommand extends AbstractPlayerCommand {
                 }
                 case "reset" -> {
                     CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
-                    IDataListResult<NPCEntity> teleportResult = BudManager.getInstance().teleportBuds(playerRef, store);
-                    if (teleportResult.isSuccess()) {
-                        this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
-                    }
                     IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
                     if (creationResult.isSuccess()) {
                         this.chatInteraction.sendChatMessage(world, playerRef,
                                 creationResult.getMessage());
                     }
+                    RegistryManager.getInstance().registerPlayer(playerRef);
                 }
                 case "clean", "clear" -> {
                     IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
@@ -171,6 +172,10 @@ public class BudCommand extends AbstractPlayerCommand {
                     LLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
+                }
+                case "weather" -> {
+                    Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
+                    this.chatInteraction.sendChatMessage(world, playerRef, "Current weather: " + weather.getId());
                 }
                 default -> {
                     this.chatInteraction.sendChatMessage(world, playerRef,
@@ -219,7 +224,11 @@ public class BudCommand extends AbstractPlayerCommand {
         if (BudManager.getInstance().canBeAdded(playerRef.getUuid(), store,
                 missingBud)) {
             // Create new Bud
-            return BudCreation.createBud(store, playerRef, Set.of(missingBud));
+            IResult result = BudCreation.createBud(store, playerRef, Set.of(missingBud));
+            if (PlayerRegistry.getInstance().getByOwner(playerRef.getUuid()) == null) {
+                RegistryManager.getInstance().registerPlayer(playerRef);
+            }
+            return result;
         } else {
             // Teleport existing Buds
             return BudManager.getInstance().teleportBud(playerRef, store, missingBud);

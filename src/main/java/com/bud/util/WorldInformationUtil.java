@@ -76,7 +76,6 @@ public class WorldInformationUtil {
                 componentType);
         int index = tracker.getWeatherIndex();
         Weather weather = Weather.getAssetMap().getAsset(index);
-        LoggerUtil.getLogger().info(() -> "[BUD] Current weather: " + weather);
         return weather;
     }
 

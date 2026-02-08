@@ -37,28 +37,33 @@ public class RegistryManager {
         return INSTANCE;
     }
 
-    /**
-     * Start tracking a Bud for state changes.
-     */
-    public IResult register(PlayerRef owner, NPCEntity bud, IBudData budNPCData) {
-        boolean isSuccess = true;
-        try {
-            this.registerBud(owner, bud, budNPCData);
-        } catch (Exception e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Error registering Bud: " + e.getMessage());
-            isSuccess = false;
+    public IResult registerBud(PlayerRef owner, NPCEntity bud, IBudData budNPCData) {
+        Ref<EntityStore> budRef = bud.getReference();
+        if (budRef == null) {
+            return new ErrorResult("Bud NPC has no valid reference");
         }
-        try {
-            this.registerPlayer(owner);
-        } catch (Exception e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Error registering player: " + e.getMessage());
-            isSuccess = false;
+        Role role = bud.getRole();
+        if (role == null) {
+            return new ErrorResult("Bud NPC has no valid Role");
         }
-        if (!isSuccess) {
-            return new ErrorResult("Error registering Bud or player. Check logs for details.");
-        } else {
-            return new SuccessResult("Successfully registered Bud and player.");
+        String mainStateName = LLMStateManager.getMainStateName(role.getStateSupport().getStateName());
+        budRegistry.register(owner, bud, budNPCData,
+                mainStateName);
+
+        // Start polling when at least one Bud is tracked
+        budStateTracker.startPolling();
+        return new SuccessResult("Bud registered for tracking for player " + owner.getUuid());
+    }
+
+    public IResult registerPlayer(PlayerRef owner) {
+        if (playerRegistry.getByOwner(owner.getUuid()) != null) {
+            return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
         }
+        Weather weather = WorldInformationUtil.getCurrentWeather(owner);
+        playerRegistry.register(owner.getUuid(), weather != null ? weather.getId() : null);
+
+        weatherTracker.startPolling();
+        return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
     }
 
     public IResult unregister(NPCEntity bud, PlayerRef player) {
@@ -80,32 +85,6 @@ public class RegistryManager {
         } else {
             return new SuccessResult("Successfully unregistered Bud and player.");
         }
-    }
-
-    private IResult registerBud(PlayerRef owner, NPCEntity bud, IBudData budNPCData) {
-        Ref<EntityStore> budRef = bud.getReference();
-        if (budRef == null) {
-            return new ErrorResult("Bud NPC has no valid reference");
-        }
-        Role role = bud.getRole();
-        if (role == null) {
-            return new ErrorResult("Bud NPC has no valid Role");
-        }
-        String mainStateName = LLMStateManager.getMainStateName(role.getStateSupport().getStateName());
-        budRegistry.register(owner, bud, budNPCData,
-                mainStateName);
-
-        // Start polling when at least one Bud is tracked
-        budStateTracker.startPolling();
-        return new SuccessResult("Bud registered for tracking for player " + owner.getUuid());
-    }
-
-    private IResult registerPlayer(PlayerRef owner) {
-        Weather weather = WorldInformationUtil.getCurrentWeather(owner);
-        playerRegistry.register(owner.getUuid(), weather != null ? weather.getId() : null);
-
-        weatherTracker.startPolling();
-        return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
     }
 
     private IResult unregisterBud(NPCEntity bud) {
