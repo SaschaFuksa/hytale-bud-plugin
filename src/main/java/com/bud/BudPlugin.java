@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import com.bud.block.BlockBreakFilterSystem;
+import com.bud.block.BlockPlaceFilterSystem;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.combat.CombatChatScheduler;
@@ -80,6 +81,7 @@ public class BudPlugin extends JavaPlugin {
         if (this.config.get().isEnableBlockReactions()) {
             // Register Block Break Filter System
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
+            this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
         if (this.config.get().isEnableWorldReactions()) {
             // Register World Chat Scheduler

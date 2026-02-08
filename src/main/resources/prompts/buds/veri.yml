@@ -31,3 +31,4 @@ fallbacks:
   default: I love shiny things! Do you have any? Let's play!
   worldView: I love sunny deserts and oases! Cold places are yucky!
   combatView: I'll do my best to protect you!
+  blockView: Oh if I find something shiny, I'll let you know!

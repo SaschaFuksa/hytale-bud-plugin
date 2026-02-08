@@ -36,8 +36,8 @@ public class LLMBlockManager implements ILLMChatManager {
         if (latestEntry == null) {
             return new DataResult<>(new Prompt("", NO_BLOCK_STRING), NO_BLOCK_STRING);
         }
-        String blockName = latestEntry.blockName().replace("_", " ");
-        LLMBlockContext context = new LLMBlockContext(blockName, budInstance.getOwner());
+        LLMBlockContext context = LLMBlockContext.from(latestEntry.blockName(), latestEntry.interaction(),
+                budInstance.getOwner());
         Prompt prompt = this.llmCreation.createPrompt(context, budInstance.getData().getBudMessage());
         return new DataResult<>(prompt, "Block prompt generation.");
     }
@@ -56,6 +56,6 @@ public class LLMBlockManager implements ILLMChatManager {
     public String getFallbackMessage(BudInstance budInstance) {
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budName = budInstance.getData().getNPCDisplayName();
-        return manager.getBudMessage(budName.toLowerCase()).getFallback("default_chat");
+        return manager.getBudMessage(budName.toLowerCase()).getFallback("blockView");
     }
 }

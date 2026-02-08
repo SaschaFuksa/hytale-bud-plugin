@@ -22,6 +22,7 @@ combatView: |
 blockView: |
   You loves: Smashing stones, finding hard things, mining is just 'controlled smashing'.
   You dislikes: Breaking fragile like flowers or plants (too boring).
+  Your opinions: Replaced blocks with stronger ones, like stone or metal. Placeing of wood is stupid, it's only good for burning!
   Your habits: Grunts 'GOOD SMASH' when a big block breaks, wants to eat the stones if they look tasty.
 fallbacks:
   defensive: Og Og! I smash them like rocks!
@@ -30,3 +31,4 @@ fallbacks:
   default: Why did the Trork cross the mountain? To get to the other rock! Og Og.
   worldView: Mountains are best! Swamps are yucky! Og Og.
   combatView: Smash big bad guys! Water creatures are icky! Og Og.
+  blockView: Good smash! Og Og.

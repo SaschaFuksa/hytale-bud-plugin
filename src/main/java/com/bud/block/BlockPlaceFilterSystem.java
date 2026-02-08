@@ -10,19 +10,19 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
+import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
 /**
- * Filter system for block breaking events.
- * Captures when players break blocks to provide context for Buds.
+ * Filter system for block placing events.
+ * Captures when players place blocks to provide context for Buds.
  */
-public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
+public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
 
-    public BlockBreakFilterSystem() {
-        super(BreakBlockEvent.class);
+    public BlockPlaceFilterSystem() {
+        super(PlaceBlockEvent.class);
     }
 
     @Override
@@ -33,11 +33,11 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
     @Override
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
-            @Nonnull BreakBlockEvent event) {
+            @Nonnull PlaceBlockEvent event) {
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
-            // Try to see if the entity breaking the block is a player
+            // Try to see if the entity placing the block is a player
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             if (player != null) {
@@ -45,19 +45,16 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
 
                 // Only care if the player has a Bud
                 if (BlockUtil.playerHasBud(playerId)) {
-                    if (event.getBlockType().getId().contains("Empty")) {
-                        return;
-                    }
+                    String blockName = BlockUtil.getBlockName(event.getItemInHand().getItem().getBlockId());
 
-                    final String blockName = BlockUtil.getBlockName(event.getBlockType().getId());
-
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " + player.getDisplayName() + " broke "
-                            + blockName);
-                    RecentBlockCache.addBlock(playerId, blockName, BlockInteraction.BREAK);
+                    LoggerUtil.getLogger()
+                            .finer(() -> "[BUD] Block Place Event: " + player.getDisplayName() + " placed "
+                                    + blockName);
+                    RecentBlockCache.addBlock(playerId, blockName, BlockInteraction.PLACE);
                 }
             }
         } catch (Exception e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockBreakFilterSystem: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockPlaceFilterSystem: " + e.getMessage());
         }
     }
 

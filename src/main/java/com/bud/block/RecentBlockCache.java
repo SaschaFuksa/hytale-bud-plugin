@@ -13,7 +13,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  */
 public class RecentBlockCache {
 
-    public record BlockEntry(String blockName) {
+    public record BlockEntry(String blockName, BlockInteraction interaction) {
     }
 
     private static final Map<UUID, LinkedList<BlockEntry>> cache = new ConcurrentHashMap<>();
@@ -25,29 +25,31 @@ public class RecentBlockCache {
      * @param playerId  Player UUID
      * @param blockName Name/ID of the block
      */
-    public static void addBlock(UUID playerId, String blockName) {
+    public static void addBlock(UUID playerId, String blockName, BlockInteraction interaction) {
         cache.compute(playerId, (key, list) -> {
             if (list == null) {
                 list = new LinkedList<>();
             }
 
             // Avoid duplicate consecutive entries of the same block type
-            if (!list.isEmpty() && list.getLast().blockName().equals(blockName)) {
+            if (!list.isEmpty() && list.getLast().blockName().equals(blockName)
+                    && list.getLast().interaction() == interaction) {
                 return list;
             }
 
-            list.addLast(new BlockEntry(blockName));
+            list.addLast(new BlockEntry(blockName, interaction));
 
             if (list.size() > MAX_HISTORY) {
                 list.removeFirst();
             }
 
-            LoggerUtil.getLogger().fine(() -> "[BUD-Cache] Player " + playerId + " broke block: " + blockName);
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD-Cache] Player " + playerId + " " + interaction + " block: " + blockName);
             return list;
         });
 
         // Trigger the block chat scheduler
-        BlockChatScheduler.getInstance().onBlockBroken(playerId);
+        BlockChatScheduler.getInstance().onBlockEvent(playerId);
     }
 
     public static LinkedList<BlockEntry> getHistory(UUID playerId) {

@@ -1,5 +1,6 @@
 package com.bud.llm.message.block;
 
+import com.bud.block.BlockInteraction;
 import com.bud.llm.message.creation.ILLMMessageCreation;
 import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.creation.Prompt;
@@ -18,9 +19,11 @@ public class LLMBlockMessageCreation implements ILLMMessageCreation {
 
         String playerName = blockContext.player().getUsername();
         String blockName = blockContext.blockName();
+        BlockInteraction interaction = blockContext.interaction();
 
         // Simple context message for the LLM
-        String interactionInfo = String.format("The player %s just broke a block: %s.", playerName, blockName);
+        String interactionInfo = String.format("Your friend %s just %s a block: %s.", playerName,
+                interaction.name().toLowerCase(), blockName);
 
         String budInfo = npcMessage.getCharacteristics();
         String personalView = npcMessage.getPersonalBlockView();
