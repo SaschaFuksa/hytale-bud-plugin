@@ -14,6 +14,9 @@ public class BudConfig {
     private String apiKey = "not_needed";
     private int maxTokens = 200;
     private double temperature = 0.8;
+    private boolean enableCombatReactions = true;
+    private boolean enableWorldReactions = true;
+    private boolean enableBlockReactions = true;
 
     private static volatile BudConfig instance;
 
@@ -57,6 +60,18 @@ public class BudConfig {
         return this.temperature;
     }
 
+    public boolean isEnableCombatReactions() {
+        return this.enableCombatReactions;
+    }
+
+    public boolean isEnableWorldReactions() {
+        return this.enableWorldReactions;
+    }
+
+    public boolean isEnableBlockReactions() {
+        return this.enableBlockReactions;
+    }
+
     static {
         CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -86,6 +101,18 @@ public class BudConfig {
                 .append(new KeyedCodec<>("Temperature", Codec.DOUBLE),
                         (config, value) -> config.temperature = value,
                         config -> config.temperature)
+                .add()
+                .append(new KeyedCodec<>("EnableCombatReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableCombatReactions = value,
+                        config -> config.enableCombatReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableWorldReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableWorldReactions = value,
+                        config -> config.enableWorldReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableBlockReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableBlockReactions = value,
+                        config -> config.enableBlockReactions)
                 .add()
                 .build();
     }

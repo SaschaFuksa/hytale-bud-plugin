@@ -5,16 +5,16 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.bud.cleanup.CleanupSystem;
 import com.bud.block.BlockBreakFilterSystem;
 import com.bud.cleanup.CleanUpHandler;
+import com.bud.cleanup.CleanupSystem;
 import com.bud.combat.CombatChatScheduler;
 import com.bud.combat.DamageFilterSystem;
 import com.bud.interaction.InteractionManager;
+import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.persistence.PlayerData;
-import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -64,7 +64,30 @@ public class BudPlugin extends JavaPlugin {
 
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
+        this.registerEvents();
 
+    }
+
+    private void registerEvents() {
+        this.registerCleanupSystem();
+        this.registerPlayerConnectEvent();
+        this.registerPlayerDisconnectEvent();
+
+        if (this.config.get().isEnableCombatReactions()) {
+            // Register Damage Filter System
+            this.getEntityStoreRegistry().registerSystem(new DamageFilterSystem());
+        }
+        if (this.config.get().isEnableBlockReactions()) {
+            // Register Block Break Filter System
+            this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
+        }
+        if (this.config.get().isEnableWorldReactions()) {
+            // Register World Chat Scheduler
+            this.registerWorldChatScheduler();
+        }
+    }
+
+    private void registerCleanupSystem() {
         // Register Cleanup System
         /**
          * This Cleanup Stystem is triggered on server start
@@ -72,8 +95,10 @@ public class BudPlugin extends JavaPlugin {
          * up any Bud NPCs
          */
         this.getEntityStoreRegistry().registerSystem(new CleanupSystem());
-        this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
 
+    }
+
+    private void registerPlayerConnectEvent() {
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
              * On player connect, we need to clean up any Bud NPCs owned by the player
@@ -94,7 +119,9 @@ public class BudPlugin extends JavaPlugin {
                 new ErrorResult("Fail during player connect event handling").printResult();
             }
         });
+    }
 
+    private void registerPlayerDisconnectEvent() {
         this.getEventRegistry().register(PlayerDisconnectEvent.class, event -> {
             /**
              * On player disconnect, we need to clean up any Bud NPCs owned by the player
@@ -120,11 +147,9 @@ public class BudPlugin extends JavaPlugin {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
         });
+    }
 
-        // Register Damage Filter System
-        this.getEntityStoreRegistry().registerSystem(new DamageFilterSystem());
-        // Schedule Random World Chat Task (every 2 minutes)
-        // World chats are still polled since they are time-based, not event-driven
+    private void registerWorldChatScheduler() {
         HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
             IResult result = InteractionManager.getInstance()
                     .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
@@ -133,10 +158,6 @@ public class BudPlugin extends JavaPlugin {
             }
         }, 90L, 90L, TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
-        registerLLMFeatures();
-    }
-
-    private void registerLLMFeatures() {
     }
 
     public static BudPlugin getInstance() {
