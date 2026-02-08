@@ -21,7 +21,7 @@ prompts:
     You shall say something about the block the player interacted with.
     First, you get some details about your personality.
     Second, you get information about your personal view on mining and environment changes.
-    Third, you get information about the block the player interacted with (broke or placed).
+    Third, you get the block name and interaction type (broke or placed) by the player.
     Finally, say something related to the player's action and the block.
   state: |
     You shall say something about your current state.

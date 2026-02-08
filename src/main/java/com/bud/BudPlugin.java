@@ -5,17 +5,17 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.bud.block.BlockBreakFilterSystem;
-import com.bud.block.BlockPlaceFilterSystem;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
-import com.bud.combat.CombatChatScheduler;
-import com.bud.combat.DamageFilterSystem;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.persistence.PlayerData;
+import com.bud.reaction.block.BlockBreakFilterSystem;
+import com.bud.reaction.block.BlockPlaceFilterSystem;
+import com.bud.reaction.combat.CombatChatScheduler;
+import com.bud.reaction.combat.DamageFilterSystem;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;

@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.bud.combat.RecentOpponentCache;
-import com.bud.combat.RecentOpponentCache.OpponentEntry;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.reaction.combat.RecentOpponentCache;
+import com.bud.reaction.combat.RecentOpponentCache.OpponentEntry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.hypixel.hytale.server.core.universe.PlayerRef;

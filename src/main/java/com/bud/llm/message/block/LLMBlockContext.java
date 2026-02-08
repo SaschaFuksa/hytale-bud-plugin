@@ -1,7 +1,7 @@
 package com.bud.llm.message.block;
 
-import com.bud.block.BlockInteraction;
 import com.bud.llm.message.creation.IPromptContext;
+import com.bud.reaction.block.BlockInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public record LLMBlockContext(String blockName, BlockInteraction interaction, PlayerRef player)

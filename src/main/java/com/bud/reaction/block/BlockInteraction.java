@@ -1,4 +1,4 @@
-package com.bud.block;
+package com.bud.reaction.block;
 
 public enum BlockInteraction {
 

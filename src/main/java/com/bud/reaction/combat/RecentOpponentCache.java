@@ -1,4 +1,4 @@
-package com.bud.combat;
+package com.bud.reaction.combat;
 
 import java.util.LinkedList;
 import java.util.Map;

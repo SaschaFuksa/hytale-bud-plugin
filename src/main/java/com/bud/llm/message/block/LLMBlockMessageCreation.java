@@ -1,11 +1,11 @@
 package com.bud.llm.message.block;
 
-import com.bud.block.BlockInteraction;
 import com.bud.llm.message.creation.ILLMMessageCreation;
 import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.reaction.block.BlockInteraction;
 
 public class LLMBlockMessageCreation implements ILLMMessageCreation {
 

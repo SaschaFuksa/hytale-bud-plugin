@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.bud.block.RecentBlockCache;
-import com.bud.block.RecentBlockCache.BlockEntry;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.creation.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.reaction.block.RecentBlockCache;
+import com.bud.reaction.block.RecentBlockCache.BlockEntry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 
