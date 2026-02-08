@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.bud.BudConfig;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.weather.LLMWeatherManager;
 import com.bud.npc.BudRegistry;
@@ -30,7 +31,8 @@ public class WeatherTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::checkWeather, 3L, 3L,
+        long interval = BudConfig.getInstance().getWeatherReactionPeriod();
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::checkWeather, 3L, interval,
                 TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Weather tracker started.");
     }

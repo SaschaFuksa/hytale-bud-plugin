@@ -30,6 +30,8 @@ public class RegistryManager {
 
     private static final WeatherTracker weatherTracker = WeatherTracker.getInstance();
 
+    private static final BudConfig config = BudConfig.getInstance();
+
     private RegistryManager() {
     }
 
@@ -56,14 +58,17 @@ public class RegistryManager {
     }
 
     public IResult registerPlayer(PlayerRef owner) {
-        if (playerRegistry.getByOwner(owner.getUuid()) != null) {
-            return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
-        }
-        Weather weather = WorldInformationUtil.getCurrentWeather(owner);
-        playerRegistry.register(owner.getUuid(), weather != null ? weather.getId() : null);
+        if (config.isEnableWeatherReactions()) {
+            if (playerRegistry.getByOwner(owner.getUuid()) != null) {
+                return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
+            }
+            Weather weather = WorldInformationUtil.getCurrentWeather(owner);
+            playerRegistry.register(owner.getUuid(), weather != null ? weather.getId() : null);
 
-        weatherTracker.startPolling();
-        return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
+            weatherTracker.startPolling();
+            return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
+        }
+        return new SuccessResult("Weather reactions are disabled; player not registered.");
     }
 
     public IResult unregister(NPCEntity bud, PlayerRef player) {

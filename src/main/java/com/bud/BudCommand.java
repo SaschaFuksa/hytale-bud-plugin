@@ -20,11 +20,9 @@ import com.bud.player.persistence.PlayerData;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
@@ -172,10 +170,6 @@ public class BudCommand extends AbstractPlayerCommand {
                     LLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
-                }
-                case "weather" -> {
-                    Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
-                    this.chatInteraction.sendChatMessage(world, playerRef, "Current weather: " + weather.getId());
                 }
                 default -> {
                     this.chatInteraction.sendChatMessage(world, playerRef,
