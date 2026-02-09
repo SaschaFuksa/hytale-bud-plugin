@@ -18,7 +18,9 @@ public class BudConfig {
     private boolean enableWorldReactions = true;
     private boolean enableBlockReactions = true;
     private boolean enableWeatherReactions = true;
-    private long weatherReactionPeriod = 3L;
+    private long weatherReactionPeriod = 3L; // seconds
+    private boolean enableMoodReactions = true;
+    private long moodReactionPeriod = 3L; // minutes
 
     private static volatile BudConfig instance;
 
@@ -82,6 +84,14 @@ public class BudConfig {
         return this.weatherReactionPeriod;
     }
 
+    public boolean isEnableMoodReactions() {
+        return this.enableMoodReactions;
+    }
+
+    public long getMoodReactionPeriod() {
+        return this.moodReactionPeriod;
+    }
+
     static {
         CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -131,6 +141,14 @@ public class BudConfig {
                 .append(new KeyedCodec<>("WeatherReactionPeriod", Codec.LONG),
                         (config, value) -> config.weatherReactionPeriod = value,
                         config -> config.weatherReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("EnableMoodReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableMoodReactions = value,
+                        config -> config.enableMoodReactions)
+                .add()
+                .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
+                        (config, value) -> config.moodReactionPeriod = value,
+                        config -> config.moodReactionPeriod)
                 .add()
                 .build();
     }

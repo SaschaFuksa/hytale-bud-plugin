@@ -1,7 +1,6 @@
 package com.bud.reaction.world.time;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
@@ -33,9 +32,10 @@ public class TimeInformationUtil {
         }
     }
 
-    public static String getIngameDateTime(Store<EntityStore> store) {
+    public static DayOfWeek getDayOfWeek(Store<EntityStore> store) {
         LocalDateTime gameTime = readIngameDateTime(store);
-        return (gameTime != null) ? gameTime.format(DateTimeFormatter.ofPattern("HH:mm")) : "Unknown";
+        long dayCount = gameTime != null ? gameTime.toLocalDate().toEpochDay() : 0L;
+        return DayOfWeek.fromDayCount(dayCount);
     }
 
     private static LocalDateTime readIngameDateTime(Store<EntityStore> store) {
