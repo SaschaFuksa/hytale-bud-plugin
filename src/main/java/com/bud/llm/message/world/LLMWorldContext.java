@@ -2,7 +2,7 @@ package com.bud.llm.message.world;
 
 import java.util.Map.Entry;
 
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.TimeMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
@@ -34,17 +34,18 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         };
     }
 
-    public static LLMWorldContext from(PlayerRef owner, World world, Store<EntityStore> store) {
+    public static LLMWorldContext from(PlayerRef owner, World world,
+            Store<EntityStore> store) {
         Vector3d pos = owner.getTransform().getPosition();
-        TimeOfDay tod = TimeInformationUtil.getTimeOfDay(store);
-        LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + tod.name());
+        TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(store);
+        LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
         Biome biome = WorldInformationUtil.getCurrentBiome(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
         Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
         LLMWeatherContext weatherContext = LLMWeatherContext
                 .from(WorldInformationUtil.getCurrentWeather(owner).getId());
-        return new LLMWorldContext(tod, zone, biome, weatherContext.getWeatherInformation());
+        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext.getWeatherInformation());
     }
 
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
