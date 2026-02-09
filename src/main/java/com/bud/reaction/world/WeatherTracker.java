@@ -32,7 +32,8 @@ public class WeatherTracker {
             return;
         }
         long interval = BudConfig.getInstance().getWeatherReactionPeriod();
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::checkWeather, 3L, interval,
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
+                () -> Thread.ofVirtual().start(this::checkWeather), 3L, interval,
                 TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Weather tracker started.");
     }

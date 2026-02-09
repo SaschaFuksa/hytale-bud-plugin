@@ -24,11 +24,12 @@ public class LLMWorldMessageCreation implements ILLMMessageCreation {
         String timeInfo = worldContext.getTimeInfo(manager.getTimeMessage());
         String budInfo = npcMessage.getCharacteristics();
         String environmentInfo = template.getEnvironmentInfo().formatted(zoneInfo, biomeInfo, timeInfo);
+        String weatherInfo = worldContext.getWeatherInfo();
         String personalView = npcMessage.getPersonalWorldView();
 
         String systemPrompt = manager.getSystemPrompt("world") + "\n"
                 + manager.getSystemPrompt("default") + "\n" + budInfo + "\n" + personalView;
-        String message = environmentInfo + "\n" + manager.getSystemPrompt("final");
+        String message = environmentInfo + "\n" + weatherInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);
     }
 

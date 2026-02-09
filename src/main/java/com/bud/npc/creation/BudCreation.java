@@ -69,31 +69,34 @@ public class BudCreation {
         AtomicReference<ScheduledFuture<?>> futureRef = new AtomicReference<>();
 
         futureRef.set(HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            if (!iterator.hasNext()) {
-                ScheduledFuture<?> future = futureRef.get();
-                if (future != null) {
-                    future.cancel(false);
+            Thread.ofVirtual().start(() -> {
+                if (!iterator.hasNext()) {
+                    ScheduledFuture<?> future = futureRef.get();
+                    if (future != null) {
+                        future.cancel(false);
+                    }
+                    return;
                 }
-                return;
-            }
 
-            IBudData nextData = iterator.next();
-            World world = store.getExternalData().getWorld();
-            world.execute(() -> {
-                DataResult<NPCEntity> result = internalSpawnAndRegister(store, playerRef, nextData);
-                LoggerUtil.getLogger().info(
-                        () -> "[BUD] Spawn attempt for " + nextData.getNPCDisplayName() + ": " + result.getMessage());
-                if (result.isSuccess() && result.getData() != null) {
-                    NPCEntity npc = result.getData();
-                    spawnedBuds.add(npc);
-                    printNPCDebugInfo(npc);
-                    LoggerUtil.getLogger()
-                            .info(() -> "[BUD] Spawning complete for: " + nextData.getNPCDisplayName());
-                } else {
-                    result.printResult();
-                    ChatInteraction.getInstance().sendChatMessage(world, playerRef,
-                            "[BUD] §cFailed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
-                }
+                IBudData nextData = iterator.next();
+                World world = store.getExternalData().getWorld();
+                world.execute(() -> {
+                    DataResult<NPCEntity> result = internalSpawnAndRegister(store, playerRef, nextData);
+                    LoggerUtil.getLogger().info(
+                            () -> "[BUD] Spawn attempt for " + nextData.getNPCDisplayName() + ": "
+                                    + result.getMessage());
+                    if (result.isSuccess() && result.getData() != null) {
+                        NPCEntity npc = result.getData();
+                        spawnedBuds.add(npc);
+                        printNPCDebugInfo(npc);
+                        LoggerUtil.getLogger()
+                                .info(() -> "[BUD] Spawning complete for: " + nextData.getNPCDisplayName());
+                    } else {
+                        result.printResult();
+                        ChatInteraction.getInstance().sendChatMessage(world, playerRef,
+                                "[BUD] §cFailed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
+                    }
+                });
             });
         }, 0L, 300L, TimeUnit.MILLISECONDS));
         String budNames = missingBuds.stream()

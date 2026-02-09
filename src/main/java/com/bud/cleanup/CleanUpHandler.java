@@ -82,10 +82,10 @@ public class CleanUpHandler {
         LoggerUtil.getLogger().fine(
                 () -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
         HytaleServer.SCHEDULED_EXECUTOR.schedule(
-                () -> {
+                () -> Thread.ofVirtual().start(() -> {
                     IResult result = cleanupWorld(world, typesSnapshot);
                     result.printResult();
-                },
+                }),
                 1L,
                 TimeUnit.SECONDS);
         return new SuccessResult("Scheduled cleanup for world " + world.getName());

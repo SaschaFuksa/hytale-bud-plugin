@@ -88,7 +88,7 @@ public class CombatChatScheduler {
 
         // Schedule new delayed task
         ScheduledFuture<?> newTask = HytaleServer.SCHEDULED_EXECUTOR.schedule(
-                () -> triggerCombatChat(playerId),
+                () -> Thread.ofVirtual().start(() -> triggerCombatChat(playerId)),
                 COMBAT_CHAT_DELAY_SECONDS,
                 TimeUnit.SECONDS);
 

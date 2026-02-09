@@ -161,11 +161,13 @@ public class BudPlugin extends JavaPlugin {
 
     private void registerWorldChatScheduler() {
         HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            IResult result = InteractionManager.getInstance()
-                    .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
-            if (!result.isSuccess()) {
-                result.printResult();
-            }
+            Thread.ofVirtual().start(() -> {
+                IResult result = InteractionManager.getInstance()
+                        .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
+                if (!result.isSuccess()) {
+                    result.printResult();
+                }
+            });
         }, 60L, 60L, TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
     }

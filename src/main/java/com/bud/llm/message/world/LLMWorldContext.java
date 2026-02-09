@@ -6,6 +6,7 @@ import com.bud.llm.message.creation.IPromptContext;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.TimeMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
+import com.bud.llm.message.weather.LLMWeatherContext;
 import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.reaction.world.time.TimeInformationUtil;
 import com.bud.reaction.world.time.TimeOfDay;
@@ -18,7 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
-public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome)
+public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome, String weatherInformation)
         implements IPromptContext {
 
     @Override
@@ -28,6 +29,7 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
             case "timeOfDay" -> timeOfDay.name();
             case "currentZone" -> currentZone.name();
             case "currentBiome" -> currentBiome.getName();
+            case "weatherInformation" -> weatherInformation;
             default -> null;
         };
     }
@@ -40,7 +42,9 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
         Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
-        return new LLMWorldContext(tod, zone, biome);
+        LLMWeatherContext weatherContext = LLMWeatherContext
+                .from(WorldInformationUtil.getCurrentWeather(owner).getId());
+        return new LLMWorldContext(tod, zone, biome, weatherContext.getWeatherInformation());
     }
 
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
@@ -84,5 +88,9 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
                     .orElse(this.timeOfDay().name());
         }
         return timeInfo;
+    }
+
+    public String getWeatherInfo() {
+        return this.weatherInformation();
     }
 }
