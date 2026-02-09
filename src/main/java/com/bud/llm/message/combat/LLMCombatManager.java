@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
@@ -36,7 +36,7 @@ public class LLMCombatManager implements ILLMChatManager {
             return new DataResult<>(noCombatPrompt, NO_COMBAT_STRING);
         }
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
-        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
+        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
 

@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.llm.ILLMChatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerInstance;
@@ -50,7 +50,7 @@ public class LLMWeatherManager implements ILLMChatManager {
                     playerInstance.setLastKnownWeather(weather.getId());
                 }
                 LLMWeatherContext contextResult = LLMWeatherContext.from(weather.getId());
-                Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
+                Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
                 return new DataResult<Prompt>(prompt, "Weather prompt generation.");
             }, world::execute).get(2, TimeUnit.SECONDS);
         } catch (Exception e) {

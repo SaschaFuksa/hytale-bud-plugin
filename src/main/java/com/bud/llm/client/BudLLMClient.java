@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import com.bud.BudConfig;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**

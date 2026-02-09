@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
@@ -35,7 +35,7 @@ public class LLMWorldManager implements ILLMChatManager {
             return new DataResult<>(null, "Failed to create context: " + contextResult.getMessage());
         }
         LLMWorldContext context = contextResult.getData();
-        Prompt prompt = llmCreation.createPrompt(context, instance.getData().getBudMessage());
+        Prompt prompt = llmCreation.createPrompt(context, instance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
 

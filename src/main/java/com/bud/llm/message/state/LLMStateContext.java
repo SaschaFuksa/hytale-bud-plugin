@@ -1,6 +1,6 @@
 package com.bud.llm.message.state;
 
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 
 public record LLMStateContext(String state) implements IPromptContext {
 

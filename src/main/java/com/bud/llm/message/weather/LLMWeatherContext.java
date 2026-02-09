@@ -1,6 +1,6 @@
 package com.bud.llm.message.weather;
 
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 
 public record LLMWeatherContext(String weatherName) implements IPromptContext {
 
