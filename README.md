@@ -53,6 +53,17 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
 
 ## 🚀 Features
 
+
+### 🤖 Intelligent Interaction
+*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
+*   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
+*   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
+*   **Block Interaction**: Your companions react to your recent block placements or block breaks.
+*   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
+*   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
+*   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
+
+
 ### 🎮 Commands
 The plugin is primarily controlled via simple chat commands:
 
@@ -67,11 +78,6 @@ The plugin is primarily controlled via simple chat commands:
 *   **`/bud clear-data`** - Clears all persisted buddy data (useful for debugging).
 *   **`/bud clear-prompt`** - Hot-reload the LLM prompt configurations without restarting the server.
 *   **`/bud data`** - Displays persisted data (Reference Player UUID to NPC UUID).
-
-### 🤖 Intelligent Interaction
-*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
-*   **World Awareness**: Buds send chat messages about current world information every few minutes.
-*   **Combat Memory**: Your companions react to your recent fights with context-aware dialogue.
 
 <br>
 

@@ -7,7 +7,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
 import com.bud.interaction.InteractionManager;
+import com.bud.player.PlayerInstance;
+import com.bud.player.PlayerRegistry;
+import com.bud.reaction.world.time.DayOfWeek;
 import com.bud.reaction.world.time.Mood;
+import com.bud.reaction.world.time.TimeInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
@@ -47,24 +51,42 @@ public class BudMoodTracker {
 
     private void changeMood() {
         BudRegistry budRegistry = BudRegistry.getInstance();
+        PlayerRegistry playerRegistry = PlayerRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {
             return;
         }
         for (UUID owner : owners) {
-            Set<BudInstance> bud = budRegistry.getByOwner(owner);
-            for (BudInstance instance : bud) {
-                changeMood(instance);
+            Set<BudInstance> buds = budRegistry.getByOwner(owner);
+            PlayerInstance playerInstance = playerRegistry.getByOwner(owner);
+            for (BudInstance budInstance : buds) {
+                changeMood(budInstance, playerInstance);
             }
         }
     }
 
-    private void changeMood(BudInstance budInstance) {
-        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT) || Math.random() < 0.5) {
-            budInstance.setCurrentMood(Mood.DEFAULT);
+    private void changeMood(BudInstance budInstance, PlayerInstance playerInstance) {
+        DayOfWeek currentDay = TimeInformationUtil.getDayOfWeek(budInstance.getRef().getStore());
+        DayOfWeek favDay = budInstance.getData().getFavoriteDay();
+        DayOfWeek lastDay = playerInstance.getLastDay();
+
+        if (currentDay.equals(favDay)) {
+            budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+            if (lastDay != null && !lastDay.equals(currentDay)) {
+                // TODO: Chat-Interaktion
+                LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
+                        + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
+            }
         } else {
-            Mood randomMood = Mood.getRandomMood();
-            budInstance.setCurrentMood(randomMood);
+            if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+                if (Math.random() < 0.5) {
+                    budInstance.setCurrentMood(Mood.getRandomMood());
+                }
+            } else {
+                budInstance.setCurrentMood(Mood.DEFAULT);
+            }
         }
+
+        playerInstance.setLastDay(currentDay);
     }
 }
