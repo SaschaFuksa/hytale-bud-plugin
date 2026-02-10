@@ -21,10 +21,16 @@ public class BlockChatScheduler {
     private static final BlockChatScheduler INSTANCE = new BlockChatScheduler();
 
     private final Map<UUID, Long> lastReactionTime = new ConcurrentHashMap<>();
+
     private final Map<UUID, ScheduledFuture<?>> pendingReactions = new ConcurrentHashMap<>();
 
     private static final long COOLDOWN_MS = 10_000; // 10 seconds cooldown between reactions
+
     private static final long DEBOUNCE_MS = 3_000; // 3 seconds debounce for consecutive blocks
+
+    private static final InteractionManager interactionManager = InteractionManager.getInstance();
+
+    private static final LLMBlockManager llmBlockManager = LLMBlockManager.getInstance();
 
     private BlockChatScheduler() {
     }
@@ -62,9 +68,9 @@ public class BlockChatScheduler {
                     lastReactionTime.put(playerId, System.currentTimeMillis());
 
                     LoggerUtil.getLogger().fine(() -> "[BUD] Triggering block reaction for player " + playerId);
-                    InteractionManager.getInstance().processInteraction(
+                    interactionManager.processInteraction(
                             Collections.singleton(playerId),
-                            LLMBlockManager.getInstance());
+                            llmBlockManager);
                 } catch (Exception e) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockChatScheduler: " + e.getMessage());
                 }

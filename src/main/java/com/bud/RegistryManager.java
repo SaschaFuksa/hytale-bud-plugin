@@ -7,6 +7,8 @@ import com.bud.npc.buds.IBudData;
 import com.bud.player.PlayerRegistry;
 import com.bud.reaction.world.WeatherTracker;
 import com.bud.reaction.world.WorldInformationUtil;
+import com.bud.reaction.world.time.DayOfWeek;
+import com.bud.reaction.world.time.TimeInformationUtil;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -63,7 +65,7 @@ public class RegistryManager {
                 return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
             }
             Weather weather = WorldInformationUtil.getCurrentWeather(owner);
-            playerRegistry.register(owner.getUuid(), weather != null ? weather.getId() : null);
+            playerRegistry.register(owner, weather != null ? weather.getId() : null);
 
             weatherTracker.startPolling();
             return new SuccessResult("Player registered for tracking for player " + owner.getUuid());

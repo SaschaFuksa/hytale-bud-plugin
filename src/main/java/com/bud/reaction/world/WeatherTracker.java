@@ -18,6 +18,8 @@ public class WeatherTracker {
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
+    private static final LLMWeatherManager llmWeatherManager = new LLMWeatherManager();
+
     private WeatherTracker() {
     }
 
@@ -51,6 +53,6 @@ public class WeatherTracker {
         if (owners.isEmpty()) {
             return;
         }
-        interactionManager.processInteraction(owners, new LLMWeatherManager());
+        interactionManager.processInteraction(owners, llmWeatherManager);
     }
 }

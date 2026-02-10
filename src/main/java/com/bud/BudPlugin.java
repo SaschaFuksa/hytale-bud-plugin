@@ -34,8 +34,14 @@ import com.hypixel.hytale.server.core.util.Config;
 public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
+
     private final Config<BudConfig> config;
+
     private ComponentType<EntityStore, PlayerData> budPlayerData;
+
+    private static final InteractionManager interactionManager = InteractionManager.getInstance();
+
+    private static final LLMWorldManager llmWorldManager = new LLMWorldManager();
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -162,14 +168,14 @@ public class BudPlugin extends JavaPlugin {
     private void registerWorldChatScheduler() {
         HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
             Thread.ofVirtual().start(() -> {
-                IResult result = InteractionManager.getInstance()
-                        .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
+                IResult result = interactionManager.processInteraction(BudRegistry.getInstance().getAllOwners(),
+                        llmWorldManager);
                 if (!result.isSuccess()) {
                     result.printResult();
                 }
             });
         }, 60L, 60L, TimeUnit.SECONDS);
-        LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
+        LoggerUtil.getLogger().info(() -> "[BUD] World chat scheduler initialized (event-driven)");
     }
 
     public static BudPlugin getInstance() {

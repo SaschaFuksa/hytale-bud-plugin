@@ -31,6 +31,8 @@ public class BudStateTracker {
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
+    private static final LLMStateManager llmStateManager = new LLMStateManager();
+
     private BudStateTracker() {
     }
 
@@ -96,7 +98,7 @@ public class BudStateTracker {
         if (owners.isEmpty()) {
             return;
         }
-        interactionManager.processInteraction(owners, new LLMStateManager());
+        interactionManager.processInteraction(owners, llmStateManager);
     }
 
 }

@@ -7,8 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
 import com.bud.interaction.InteractionManager;
-import com.bud.player.PlayerInstance;
-import com.bud.player.PlayerRegistry;
+import com.bud.llm.message.mood.LLMMoodManager;
 import com.bud.reaction.world.time.DayOfWeek;
 import com.bud.reaction.world.time.Mood;
 import com.bud.reaction.world.time.TimeInformationUtil;
@@ -21,10 +20,14 @@ public class BudMoodTracker {
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
+    private static final LLMMoodManager llmMoodManager = new LLMMoodManager();
+
     private BudMoodTracker() {
     }
 
     private volatile ScheduledFuture<?> pollingTask;
+
+    private DayOfWeek lastPollDay;
 
     public static BudMoodTracker getInstance() {
         return INSTANCE;
@@ -34,6 +37,7 @@ public class BudMoodTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
+        lastPollDay = TimeInformationUtil.getDayOfWeek();
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 () -> Thread.ofVirtual().start(this::changeMood), 3L, interval,
@@ -51,29 +55,34 @@ public class BudMoodTracker {
 
     private void changeMood() {
         BudRegistry budRegistry = BudRegistry.getInstance();
-        PlayerRegistry playerRegistry = PlayerRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {
             return;
         }
+
+        boolean isDayTransition = false;
+        DayOfWeek currentDay = TimeInformationUtil.getDayOfWeek();
+        if (!lastPollDay.equals(currentDay)) {
+            isDayTransition = true;
+            lastPollDay = currentDay;
+        }
+
         for (UUID owner : owners) {
             Set<BudInstance> buds = budRegistry.getByOwner(owner);
-            PlayerInstance playerInstance = playerRegistry.getByOwner(owner);
             for (BudInstance budInstance : buds) {
-                changeMood(budInstance, playerInstance);
+                changeMood(budInstance, currentDay, isDayTransition);
             }
         }
     }
 
-    private void changeMood(BudInstance budInstance, PlayerInstance playerInstance) {
-        DayOfWeek currentDay = TimeInformationUtil.getDayOfWeek(budInstance.getRef().getStore());
+    private void changeMood(BudInstance budInstance, DayOfWeek currentDay,
+            boolean isDayTransition) {
         DayOfWeek favDay = budInstance.getData().getFavoriteDay();
-        DayOfWeek lastDay = playerInstance.getLastDay();
 
         if (currentDay.equals(favDay)) {
             budInstance.setCurrentMood(Mood.OVERMOTIVATED);
-            if (lastDay != null && !lastDay.equals(currentDay)) {
-                // TODO: Chat-Interaktion
+            if (isDayTransition) {
+                interactionManager.processInteractionForBuds(Set.of(budInstance), llmMoodManager);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
             }
@@ -81,12 +90,14 @@ public class BudMoodTracker {
             if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
                 if (Math.random() < 0.5) {
                     budInstance.setCurrentMood(Mood.getRandomMood());
+                    LoggerUtil.getLogger().info(() -> "[BUD] Random mood change for "
+                            + budInstance.getData().getNPCTypeId() + ": " + budInstance.getCurrentMood());
                 }
             } else {
                 budInstance.setCurrentMood(Mood.DEFAULT);
+                LoggerUtil.getLogger().info(() -> "[BUD] Mood reset to DEFAULT for "
+                        + budInstance.getData().getNPCTypeId());
             }
         }
-
-        playerInstance.setLastDay(currentDay);
     }
 }

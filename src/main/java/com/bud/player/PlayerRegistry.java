@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+
 public class PlayerRegistry {
 
     private static final PlayerRegistry INSTANCE = new PlayerRegistry();
@@ -18,9 +20,9 @@ public class PlayerRegistry {
         return INSTANCE;
     }
 
-    public synchronized void register(UUID playerId, String lastKnownWeather) {
-        PlayerInstance instance = new PlayerInstance(lastKnownWeather);
-        byOwner.putIfAbsent(playerId, instance);
+    public synchronized void register(PlayerRef playerRef, String lastKnownWeather) {
+        PlayerInstance instance = new PlayerInstance(playerRef, lastKnownWeather);
+        byOwner.putIfAbsent(playerRef.getUuid(), instance);
     }
 
     public synchronized void unregister(UUID playerId) {

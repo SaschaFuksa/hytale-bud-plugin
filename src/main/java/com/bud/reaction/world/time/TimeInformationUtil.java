@@ -2,8 +2,10 @@ package com.bud.reaction.world.time;
 
 import java.time.LocalDateTime;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TimeInformationUtil {
@@ -32,10 +34,23 @@ public class TimeInformationUtil {
         }
     }
 
+    public static DayOfWeek getDayOfWeek() {
+        try {
+            return getDayOfWeek(Universe.get().getDefaultWorld().getEntityStore().getStore());
+        } catch (Exception e) {
+            LoggerUtil.getLogger()
+                    .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());
+            return DayOfWeek.MONDAY;
+        }
+    }
+
     public static DayOfWeek getDayOfWeek(Store<EntityStore> store) {
         LocalDateTime gameTime = readIngameDateTime(store);
-        long dayCount = gameTime != null ? gameTime.toLocalDate().toEpochDay() : 0L;
-        return DayOfWeek.fromDayCount(dayCount);
+        if (gameTime == null) {
+            return DayOfWeek.MONDAY;
+        }
+        int dayValue = gameTime.getDayOfWeek().getValue();
+        return DayOfWeek.values()[dayValue - 1];
     }
 
     private static LocalDateTime readIngameDateTime(Store<EntityStore> store) {

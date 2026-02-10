@@ -19,8 +19,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public class LLMCombatManager implements ILLMChatManager {
 
-    public static final String NO_COMBAT_STRING = "No recent combat interactions.";
-
     private final LLMCombatMessageCreation llmCreation;
 
     public LLMCombatManager() {
@@ -31,10 +29,6 @@ public class LLMCombatManager implements ILLMChatManager {
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
         OpponentEntry latestEntry = getLastEntryInCombatHistory(player.getUuid());
-        if (latestEntry == null) {
-            Prompt noCombatPrompt = new Prompt("", NO_COMBAT_STRING);
-            return new DataResult<>(noCombatPrompt, NO_COMBAT_STRING);
-        }
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
