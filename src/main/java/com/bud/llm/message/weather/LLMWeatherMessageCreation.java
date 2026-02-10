@@ -6,6 +6,7 @@ import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
+import com.bud.reaction.world.time.Mood;
 
 public class LLMWeatherMessageCreation implements ILLMMessageCreation {
 
@@ -21,9 +22,16 @@ public class LLMWeatherMessageCreation implements ILLMMessageCreation {
         String weatherInfo = weatherContext.getWeatherInformation();
         String weatherView = npcMessage.getPersonalWeatherView();
 
-        String systemPrompt = manager.getSystemPrompt("weather") + "\n"
-                + manager.getSystemPrompt("default") + "\n"
-                + budInfo + "\n" + weatherView;
+        StringBuilder systemPromptBuilder = new StringBuilder();
+        systemPromptBuilder.append(manager.getSystemPrompt("weather")).append("\n")
+                .append(manager.getSystemPrompt("default")).append("\n")
+                .append(budInfo).append("\n").append(weatherView);
+
+        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        }
+        String systemPrompt = systemPromptBuilder.toString();
 
         String userPrompt = weatherInfo + "\n" + manager.getSystemPrompt("final");
 

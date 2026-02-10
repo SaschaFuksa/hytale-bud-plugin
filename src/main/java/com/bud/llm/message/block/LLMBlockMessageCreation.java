@@ -7,6 +7,7 @@ import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.reaction.block.BlockInteraction;
+import com.bud.reaction.world.time.Mood;
 
 public class LLMBlockMessageCreation implements ILLMMessageCreation {
 
@@ -32,9 +33,17 @@ public class LLMBlockMessageCreation implements ILLMMessageCreation {
         if (personalView == null)
             personalView = npcMessage.getPersonalWorldView(); // Fallback
 
-        String systemPrompt = manager.getSystemPrompt("block") + "\n"
-                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n"
-                + personalView;
+        StringBuilder systemPromptBuilder = new StringBuilder();
+        systemPromptBuilder.append(manager.getSystemPrompt("block")).append("\n")
+                .append(manager.getSystemPrompt("default")).append("\n")
+                .append(budInfo).append("\n")
+                .append(personalView);
+
+        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        }
+        String systemPrompt = systemPromptBuilder.toString();
 
         String message = interactionInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);

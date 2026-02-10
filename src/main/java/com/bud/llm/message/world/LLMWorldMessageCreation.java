@@ -8,6 +8,7 @@ import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.WorldMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
 import com.bud.npc.BudInstance;
+import com.bud.reaction.world.time.Mood;
 
 public class LLMWorldMessageCreation implements ILLMMessageCreation {
 
@@ -30,10 +31,19 @@ public class LLMWorldMessageCreation implements ILLMMessageCreation {
         String weatherInfo = worldContext.getWeatherInfo();
         String personalView = npcMessage.getPersonalWorldView();
 
-        String systemPrompt = manager.getSystemPrompt("world") + "\n"
-                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n" + personalView;
+        StringBuilder systemPromptBuilder = new StringBuilder();
+        systemPromptBuilder.append(manager.getSystemPrompt("world")).append("\n")
+                .append(manager.getSystemPrompt("default")).append("\n")
+                .append(budInfo).append("\n")
+                .append(personalView);
+
+        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        }
+
+        String systemPrompt = systemPromptBuilder.toString();
         String message = environmentInfo + "\n" + weatherInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);
     }
-
 }
