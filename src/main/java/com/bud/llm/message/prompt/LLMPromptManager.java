@@ -48,7 +48,7 @@ public class LLMPromptManager {
         this.combatInfoTemplate = CombatMessage.load(dataDir.resolve("interaction/combat.yml"));
         this.entityCategories = EntityCategoriesMessage.load(dataDir.resolve("interaction/entities.yml"));
         this.systemPrompts = SystemPromptMessage.load(dataDir.resolve("system_prompt.yml")).getPrompts();
-        this.moodMessage = MoodPromptMessage.load(dataDir.resolve("buds/mood.yml")).getPrompts();
+        this.moodMessage = MoodPromptMessage.load(dataDir.resolve("buds/mood.yml")).getMood();
 
         debugLog();
     }

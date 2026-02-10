@@ -125,9 +125,9 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.5.0**: Interaction to weather events and add "days"
-- [ ] **1.6.0**: Memory storage: Keep memories of player and buds interactions. (Also remove current caching of the last combat action and use the memory storage instead?)
-- [ ] **1.7.0**: ?
+- [x] **1.5.0**: Interaction to weather events and add "days", also added mood system (currently only random mood changes every 3 minutes)
+- [ ] **1.6.0**: Memory storage: Keep memories of player and bud interactions.
+- [ ] **1.7.0**: More bud interaction: Crafting, Dropping items, discover zone, etc.
 - [ ] **1.8.0**: Visual updates & special models for Buds?
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?

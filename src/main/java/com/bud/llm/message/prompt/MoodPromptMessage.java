@@ -5,10 +5,10 @@ import java.util.Map;
 
 public class MoodPromptMessage extends AbstractYamlMessage {
 
-    private Map<String, String> prompts;
+    private Map<String, String> mood;
 
-    public Map<String, String> getPrompts() {
-        return prompts;
+    public Map<String, String> getMood() {
+        return mood;
     }
 
     public static MoodPromptMessage load(Path path) {
