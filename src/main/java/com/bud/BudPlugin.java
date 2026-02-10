@@ -16,6 +16,7 @@ import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -78,6 +79,7 @@ public class BudPlugin extends JavaPlugin {
         this.registerCleanupSystem();
         this.registerPlayerConnectEvent();
         this.registerPlayerDisconnectEvent();
+        this.registerMoodTracker();
 
         if (this.config.get().isEnableCombatReactions()) {
             // Register Damage Filter System
@@ -92,6 +94,10 @@ public class BudPlugin extends JavaPlugin {
             // Register World Chat Scheduler
             this.registerWorldChatScheduler();
         }
+    }
+
+    private void registerMoodTracker() {
+        MoodTracker.getInstance().startPolling();
     }
 
     private void registerCleanupSystem() {

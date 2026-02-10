@@ -2,9 +2,9 @@ package com.bud;
 
 import com.bud.llm.message.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.BudStateTracker;
 import com.bud.npc.buds.IBudData;
 import com.bud.player.PlayerRegistry;
+import com.bud.reaction.tracker.StateTracker;
 import com.bud.reaction.world.WeatherTracker;
 import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.reaction.world.time.DayOfWeek;
@@ -26,7 +26,7 @@ public class RegistryManager {
 
     private static final BudRegistry budRegistry = BudRegistry.getInstance();
 
-    private static final BudStateTracker budStateTracker = BudStateTracker.getInstance();
+    private static final StateTracker budStateTracker = StateTracker.getInstance();
 
     private static final PlayerRegistry playerRegistry = PlayerRegistry.getInstance();
 

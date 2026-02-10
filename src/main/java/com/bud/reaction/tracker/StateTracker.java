@@ -1,4 +1,4 @@
-package com.bud.npc;
+package com.bud.reaction.tracker;
 
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.Set;
 
 import com.bud.interaction.InteractionManager;
+import com.bud.npc.BudRegistry;
 import com.bud.npc.buds.IBudData;
 import com.bud.llm.message.state.LLMStateManager;
 import com.bud.result.ErrorResult;
@@ -25,20 +26,20 @@ import com.hypixel.hytale.server.npc.role.Role;
  * Listens to PlayerInteractEvent with InteractionType.Use (F-key).
  * States: PetDefensive, PetPassive, PetSitting
  */
-public class BudStateTracker {
+public class StateTracker {
 
-    private static final BudStateTracker INSTANCE = new BudStateTracker();
+    private static final StateTracker INSTANCE = new StateTracker();
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
     private static final LLMStateManager llmStateManager = new LLMStateManager();
 
-    private BudStateTracker() {
+    private StateTracker() {
     }
 
     private volatile ScheduledFuture<?> pollingTask;
 
-    public static BudStateTracker getInstance() {
+    public static StateTracker getInstance() {
         return INSTANCE;
     }
 

@@ -1,4 +1,4 @@
-package com.bud.npc;
+package com.bud.reaction.tracker;
 
 import java.util.Set;
 import java.util.UUID;
@@ -8,28 +8,30 @@ import java.util.concurrent.TimeUnit;
 import com.bud.BudConfig;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.mood.LLMMoodManager;
+import com.bud.npc.BudInstance;
+import com.bud.npc.BudRegistry;
 import com.bud.reaction.world.time.DayOfWeek;
 import com.bud.reaction.world.time.Mood;
 import com.bud.reaction.world.time.TimeInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
-public class BudMoodTracker {
+public class MoodTracker {
 
-    private static final BudMoodTracker INSTANCE = new BudMoodTracker();
+    private static final MoodTracker INSTANCE = new MoodTracker();
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
     private static final LLMMoodManager llmMoodManager = new LLMMoodManager();
 
-    private BudMoodTracker() {
+    private MoodTracker() {
     }
 
     private volatile ScheduledFuture<?> pollingTask;
 
     private DayOfWeek lastPollDay;
 
-    public static BudMoodTracker getInstance() {
+    public static MoodTracker getInstance() {
         return INSTANCE;
     }
 
@@ -43,14 +45,6 @@ public class BudMoodTracker {
                 () -> Thread.ofVirtual().start(this::changeMood), 3L, interval,
                 TimeUnit.MINUTES);
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
-    }
-
-    public synchronized void stopPolling() {
-        if (pollingTask != null) {
-            pollingTask.cancel(false);
-            pollingTask = null;
-            LoggerUtil.getLogger().fine(() -> "[BUD] Stopped mood polling task");
-        }
     }
 
     private void changeMood() {
