@@ -17,7 +17,6 @@ import com.bud.result.IDataResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -28,9 +27,9 @@ public class LLMWorldManager implements ILLMChatManager {
 
     private final LLMWeatherContext weatherContext;
 
-    public LLMWorldManager(Weather weather) {
+    public LLMWorldManager(String weatherId) {
         this.llmCreation = new LLMWorldMessageCreation();
-        this.weatherContext = new LLMWeatherContext(weather.getId());
+        this.weatherContext = LLMWeatherContext.from(weatherId);
     }
 
     @Override

@@ -19,7 +19,7 @@ public class BudConfig {
     private boolean enableWorldReactions = true;
     private long worldReactionPeriod = 60L; // seconds
     private boolean enableWeatherReactions = true;
-    private long weatherReactionPeriod = 3L; // seconds
+    private long weatherReactionPeriod = 5L; // seconds
     private boolean enableMoodReactions = true;
     private long moodReactionPeriod = 180L; // seconds
 

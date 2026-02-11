@@ -20,6 +20,13 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
 - **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
 (See more changes in GitHub Repository in the **CHANGELOG.md**
 
+### Quote of the release:
+
+After hitting grass...
+Gronkh: 
+>Grass? Og Og-what's wrong with that fool, smashing tender things like flowers? Too weak for even my stone mace's respect.
+
+
 ### Meet your Buddies
 
 <table>

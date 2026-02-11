@@ -16,6 +16,7 @@ import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 public class WeatherTracker extends AbstractTracker {
 
@@ -43,7 +44,7 @@ public class WeatherTracker extends AbstractTracker {
         }
         long interval = BudConfig.getInstance().getWeatherReactionPeriod();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                () -> Thread.ofVirtual().start(this::triggerWeatherMessage), 3L, interval,
+                () -> Thread.ofVirtual().start(this::triggerWeatherMessage), interval, interval,
                 TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Weather tracker started.");
     }
@@ -60,13 +61,17 @@ public class WeatherTracker extends AbstractTracker {
                 LoggerUtil.getLogger().warning(() -> "[BUD] No PlayerInstance found for owner: " + owner);
                 continue;
             }
-            Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
-            Thread.ofVirtual().start(() -> {
-                IResult result = interactionManager.processInteraction(Set.of(owner),
-                        new LLMWeatherManager(weather));
-                if (!result.isSuccess()) {
-                    result.printResult();
-                }
+            World world = WorldInformationUtil.resolveWorld(playerInstance.getPlayerRef());
+            world.execute(() -> {
+                Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
+                String weatherId = weather != null ? weather.getId() : "unknown";
+                Thread.ofVirtual().start(() -> {
+                    IResult result = interactionManager.processInteraction(Set.of(owner),
+                            new LLMWeatherManager(weatherId));
+                    if (!result.isSuccess()) {
+                        result.printResult();
+                    }
+                });
             });
         }
     }

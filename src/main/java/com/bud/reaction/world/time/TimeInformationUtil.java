@@ -10,6 +10,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TimeInformationUtil {
 
+    public static TimeOfDay getTimeOfDay() {
+        try {
+            return getTimeOfDay(Universe.get().getDefaultWorld().getEntityStore().getStore());
+        } catch (Exception e) {
+            LoggerUtil.getLogger()
+                    .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());
+            return TimeOfDay.DAY;
+        }
+    }
+
     public static TimeOfDay getTimeOfDay(Store<EntityStore> store) {
         LocalDateTime gameTime = readIngameDateTime(store);
         return getTimeOfDay(gameTime);

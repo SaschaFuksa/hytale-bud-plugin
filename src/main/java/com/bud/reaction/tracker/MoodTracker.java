@@ -13,6 +13,7 @@ import com.bud.npc.BudRegistry;
 import com.bud.reaction.world.time.DayOfWeek;
 import com.bud.reaction.world.time.Mood;
 import com.bud.reaction.world.time.TimeInformationUtil;
+import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
@@ -46,13 +47,11 @@ public class MoodTracker extends AbstractTracker {
         }
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                () -> Thread.ofVirtual().start(this::changeMood), interval, interval,
-                TimeUnit.SECONDS);
+                this::changeMood, interval, interval, TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
     }
 
     private void changeMood() {
-        lastPollDay = TimeInformationUtil.getDayOfWeek();
         BudRegistry budRegistry = BudRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {
@@ -60,30 +59,35 @@ public class MoodTracker extends AbstractTracker {
         }
 
         boolean isDayTransition = false;
-        DayOfWeek currentDay = TimeInformationUtil.getDayOfWeek();
-        if (!lastPollDay.equals(currentDay)) {
+        DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek();
+        if (!lastPollDay.equals(currentPollDay)) {
             isDayTransition = true;
-            lastPollDay = currentDay;
+            lastPollDay = currentPollDay;
         }
 
         for (UUID owner : owners) {
             Set<BudInstance> buds = budRegistry.getByOwner(owner);
             for (BudInstance budInstance : buds) {
-                changeMood(budInstance, currentDay, isDayTransition);
+                changeMood(budInstance, currentPollDay, isDayTransition);
             }
         }
     }
 
-    private void changeMood(BudInstance budInstance, DayOfWeek currentDay,
+    private void changeMood(BudInstance budInstance, DayOfWeek currentPollDay,
             boolean isDayTransition) {
         DayOfWeek favDay = budInstance.getData().getFavoriteDay();
 
-        if (currentDay.equals(favDay)) {
+        if (currentPollDay.equals(favDay)) {
             budInstance.setCurrentMood(Mood.OVERMOTIVATED);
             if (isDayTransition) {
-                interactionManager.processInteractionForBuds(Set.of(budInstance), llmMoodManager);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
+                Thread.ofVirtual().start(() -> {
+                    IResult result = interactionManager.processInteractionForBuds(Set.of(budInstance), llmMoodManager);
+                    if (!result.isSuccess()) {
+                        result.printResult();
+                    }
+                });
             }
         } else {
             if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {

@@ -14,32 +14,31 @@ import com.bud.player.PlayerRegistry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
-import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 
 public class LLMWeatherManager implements ILLMChatManager {
 
     private final LLMWeatherMessageCreation llmCreation;
 
-    private final Weather weather;
+    private final String weatherId;
 
-    public LLMWeatherManager(Weather weather) {
+    public LLMWeatherManager(String weatherId) {
         this.llmCreation = new LLMWeatherMessageCreation();
-        this.weather = weather;
+        this.weatherId = weatherId;
     }
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        if (this.weather == null) {
+        if (this.weatherId == null) {
             return new DataResult<>(null, "No weather found for bud instance.");
         }
         PlayerInstance playerInstance = PlayerRegistry.getInstance()
                 .getByOwner(budInstance.getOwner().getUuid());
-        if (!this.hasWeatherChanged(this.weather, playerInstance)) {
+        if (!this.hasWeatherChanged(this.weatherId, playerInstance)) {
             return new DataResult<>(null, "Weather has not changed since last check.");
         } else {
-            playerInstance.setLastKnownWeather(this.weather.getId());
+            playerInstance.setLastKnownWeather(this.weatherId);
         }
-        LLMWeatherContext contextResult = LLMWeatherContext.from(this.weather.getId());
+        LLMWeatherContext contextResult = LLMWeatherContext.from(this.weatherId);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Weather prompt generation.");
     }
@@ -57,22 +56,22 @@ public class LLMWeatherManager implements ILLMChatManager {
     public String getFallbackMessage(BudInstance budInstance) {
         PlayerInstance playerInstance = PlayerRegistry.getInstance()
                 .getByOwner(budInstance.getOwner().getUuid());
-        if (!this.hasWeatherChanged(weather, playerInstance)) {
+        if (!this.hasWeatherChanged(this.weatherId, playerInstance)) {
             return null;
         } else {
-            LoggerUtil.getLogger().info(() -> "[BUD] Weather changed to " + weather.getId() + " for player "
+            LoggerUtil.getLogger().info(() -> "[BUD] Weather changed to " + this.weatherId + " for player "
                     + budInstance.getOwner().getUsername());
-            playerInstance.setLastKnownWeather(weather.getId());
+            playerInstance.setLastKnownWeather(this.weatherId);
         }
         return budInstance.getData().getBudMessage().getFallback("weather");
     }
 
-    private boolean hasWeatherChanged(Weather currentWeather, PlayerInstance playerInstance) {
+    private boolean hasWeatherChanged(String currentWeatherId, PlayerInstance playerInstance) {
         String lastKnownWeatherId = playerInstance.getLastKnownWeather();
         if (lastKnownWeatherId == null) {
             return true;
         }
-        return !lastKnownWeatherId.equals(currentWeather.getId());
+        return !lastKnownWeatherId.equals(currentWeatherId);
     }
 
 }

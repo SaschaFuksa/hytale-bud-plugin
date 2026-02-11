@@ -66,7 +66,7 @@ public class InteractionManager {
             try {
                 Prompt prompt = getPrompt(chatManager, budInstance);
                 if (prompt == null) {
-                    LoggerUtil.getLogger().warning(() -> "[BUD] No prompt generated for owner " + ownerId);
+                    LoggerUtil.getLogger().finer(() -> "[BUD] No prompt generated for owner " + ownerId);
                     continue;
                 }
 
