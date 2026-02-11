@@ -19,7 +19,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
-public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome, String weatherInformation)
+public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome,
+        LLMWeatherContext weatherContext)
         implements IPromptContext {
 
     @Override
@@ -29,13 +30,13 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
             case "timeOfDay" -> timeOfDay.name();
             case "currentZone" -> currentZone.name();
             case "currentBiome" -> currentBiome.getName();
-            case "weatherInformation" -> weatherInformation;
+            case "weatherContext" -> weatherContext.getWeatherInformation();
             default -> null;
         };
     }
 
     public static LLMWorldContext from(PlayerRef owner, World world,
-            Store<EntityStore> store) {
+            Store<EntityStore> store, LLMWeatherContext weatherContext) {
         Vector3d pos = owner.getTransform().getPosition();
         TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(store);
         LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
@@ -43,9 +44,7 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
         Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
-        LLMWeatherContext weatherContext = LLMWeatherContext
-                .from(WorldInformationUtil.getCurrentWeather(owner).getId());
-        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext.getWeatherInformation());
+        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext);
     }
 
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
@@ -58,7 +57,7 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         if (zoneName.contains("zone3") || zoneName.contains("whisperfrost"))
             return manager.getZoneMessage("whisperfrost_frontiers");
         if (zoneName.contains("zone4") || zoneName.contains("devastated"))
-            return manager.getZoneMessage("devasted_lands");
+            return manager.getZoneMessage("devastated_lands");
         if (zoneName.contains("zone0"))
             return manager.getZoneMessage("ocean");
 
@@ -92,6 +91,6 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
     }
 
     public String getWeatherInfo() {
-        return this.weatherInformation();
+        return this.weatherContext.getWeatherInformation();
     }
 }

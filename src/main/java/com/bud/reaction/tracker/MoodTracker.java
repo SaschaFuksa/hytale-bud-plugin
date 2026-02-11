@@ -16,7 +16,7 @@ import com.bud.reaction.world.time.TimeInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
-public class MoodTracker {
+public class MoodTracker extends AbstractTracker {
 
     private static final MoodTracker INSTANCE = new MoodTracker();
 
@@ -35,19 +35,24 @@ public class MoodTracker {
         return INSTANCE;
     }
 
+    @Override
     public synchronized void startPolling() {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        lastPollDay = TimeInformationUtil.getDayOfWeek();
+        BudRegistry budRegistry = BudRegistry.getInstance();
+        if (budRegistry.getAllOwners().isEmpty()) {
+            return;
+        }
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                () -> Thread.ofVirtual().start(this::changeMood), 3L, interval,
-                TimeUnit.MINUTES);
+                () -> Thread.ofVirtual().start(this::changeMood), interval, interval,
+                TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
     }
 
     private void changeMood() {
+        lastPollDay = TimeInformationUtil.getDayOfWeek();
         BudRegistry budRegistry = BudRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {

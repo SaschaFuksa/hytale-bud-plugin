@@ -4,11 +4,11 @@ import com.bud.llm.message.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.buds.IBudData;
 import com.bud.player.PlayerRegistry;
+import com.bud.reaction.tracker.MoodTracker;
 import com.bud.reaction.tracker.StateTracker;
-import com.bud.reaction.world.WeatherTracker;
+import com.bud.reaction.tracker.WeatherTracker;
+import com.bud.reaction.tracker.WorldTracker;
 import com.bud.reaction.world.WorldInformationUtil;
-import com.bud.reaction.world.time.DayOfWeek;
-import com.bud.reaction.world.time.TimeInformationUtil;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -26,11 +26,7 @@ public class RegistryManager {
 
     private static final BudRegistry budRegistry = BudRegistry.getInstance();
 
-    private static final StateTracker budStateTracker = StateTracker.getInstance();
-
     private static final PlayerRegistry playerRegistry = PlayerRegistry.getInstance();
-
-    private static final WeatherTracker weatherTracker = WeatherTracker.getInstance();
 
     private static final BudConfig config = BudConfig.getInstance();
 
@@ -51,26 +47,47 @@ public class RegistryManager {
             return new ErrorResult("Bud NPC has no valid Role");
         }
         String mainStateName = LLMStateManager.getMainStateName(role.getStateSupport().getStateName());
+
+        boolean isFirstBud = budRegistry.getAllOwners().isEmpty();
         budRegistry.register(owner, bud, budNPCData,
                 mainStateName);
 
         // Start polling when at least one Bud is tracked
-        budStateTracker.startPolling();
+        checkAndStartTrackers(isFirstBud);
         return new SuccessResult("Bud registered for tracking for player " + owner.getUuid());
     }
 
     public IResult registerPlayer(PlayerRef owner) {
-        if (config.isEnableWeatherReactions()) {
-            if (playerRegistry.getByOwner(owner.getUuid()) != null) {
-                return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
-            }
-            Weather weather = WorldInformationUtil.getCurrentWeather(owner);
-            playerRegistry.register(owner, weather != null ? weather.getId() : null);
-
-            weatherTracker.startPolling();
-            return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
+        if (playerRegistry.getByOwner(owner.getUuid()) != null) {
+            return new SuccessResult("Player already registered for tracking for player " + owner.getUuid());
         }
-        return new SuccessResult("Weather reactions are disabled; player not registered.");
+        Weather weather = WorldInformationUtil.getCurrentWeather(owner);
+
+        boolean isFirstPlayer = playerRegistry.getAllOwners().isEmpty();
+        playerRegistry.register(owner, weather != null ? weather.getId() : null);
+
+        // Start polling when at least one player is tracked
+        checkAndStartTrackers(isFirstPlayer);
+        return new SuccessResult("Player registered for tracking for player " + owner.getUuid());
+    }
+
+    private void checkAndStartTrackers(boolean isFirst) {
+        if (isFirst) {
+            registerTracker();
+        }
+    }
+
+    private void registerTracker() {
+        StateTracker.getInstance().startPolling();
+        if (RegistryManager.config.isEnableWorldReactions()) {
+            WorldTracker.getInstance().startPolling();
+        }
+        if (RegistryManager.config.isEnableWeatherReactions()) {
+            WeatherTracker.getInstance().startPolling();
+        }
+        if (RegistryManager.config.isEnableMoodReactions()) {
+            MoodTracker.getInstance().startPolling();
+        }
     }
 
     public IResult unregister(NPCEntity bud, PlayerRef player) {
@@ -97,7 +114,7 @@ public class RegistryManager {
     private IResult unregisterBud(NPCEntity bud) {
         budRegistry.unregister(bud);
         if (budRegistry.getAllRefs().isEmpty()) {
-            budStateTracker.stopPolling();
+            stopAllTrackers();
         }
         return new SuccessResult("Stopped tracking for bud " + bud.getUuid());
     }
@@ -105,9 +122,16 @@ public class RegistryManager {
     private IResult unregisterPlayer(PlayerRef player) {
         playerRegistry.unregister(player.getUuid());
         if (playerRegistry.getAllOwners().isEmpty()) {
-            weatherTracker.stopPolling();
+            stopAllTrackers();
         }
         return new SuccessResult("Stopped tracking for player " + player.getUuid());
+    }
+
+    private void stopAllTrackers() {
+        StateTracker.getInstance().stopPolling();
+        WorldTracker.getInstance().stopPolling();
+        WeatherTracker.getInstance().stopPolling();
+        MoodTracker.getInstance().stopPolling();
     }
 
 }

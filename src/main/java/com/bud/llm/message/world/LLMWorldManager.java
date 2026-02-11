@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.llm.message.weather.LLMWeatherContext;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.buds.IBudData;
@@ -16,6 +17,7 @@ import com.bud.result.IDataResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -24,8 +26,11 @@ public class LLMWorldManager implements ILLMChatManager {
 
     private final LLMWorldMessageCreation llmCreation;
 
-    public LLMWorldManager() {
+    private final LLMWeatherContext weatherContext;
+
+    public LLMWorldManager(Weather weather) {
         this.llmCreation = new LLMWorldMessageCreation();
+        this.weatherContext = new LLMWeatherContext(weather.getId());
     }
 
     @Override
@@ -73,7 +78,7 @@ public class LLMWorldManager implements ILLMChatManager {
 
         Store<EntityStore> store = ownerRef.getStore();
         World world = store.getExternalData().getWorld();
-        LLMWorldContext context = LLMWorldContext.from(owner, world, store);
+        LLMWorldContext context = LLMWorldContext.from(owner, world, store, this.weatherContext);
 
         LoggerUtil.getLogger().fine(() -> "[BUD] World data extracted: " + context.currentBiome().getName() + ", "
                 + context.currentZone().name() + ", " + context.timeOfDay().name());

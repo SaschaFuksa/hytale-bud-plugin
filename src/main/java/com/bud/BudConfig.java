@@ -15,12 +15,13 @@ public class BudConfig {
     private int maxTokens = 200;
     private double temperature = 0.8;
     private boolean enableCombatReactions = true;
-    private boolean enableWorldReactions = true;
     private boolean enableBlockReactions = true;
+    private boolean enableWorldReactions = true;
+    private long worldReactionPeriod = 60L; // seconds
     private boolean enableWeatherReactions = true;
     private long weatherReactionPeriod = 3L; // seconds
     private boolean enableMoodReactions = true;
-    private long moodReactionPeriod = 3L; // minutes
+    private long moodReactionPeriod = 180L; // seconds
 
     private static volatile BudConfig instance;
 
@@ -68,12 +69,16 @@ public class BudConfig {
         return this.enableCombatReactions;
     }
 
+    public boolean isEnableBlockReactions() {
+        return this.enableBlockReactions;
+    }
+
     public boolean isEnableWorldReactions() {
         return this.enableWorldReactions;
     }
 
-    public boolean isEnableBlockReactions() {
-        return this.enableBlockReactions;
+    public long getWorldReactionPeriod() {
+        return this.worldReactionPeriod;
     }
 
     public boolean isEnableWeatherReactions() {
@@ -149,6 +154,10 @@ public class BudConfig {
                 .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
                         (config, value) -> config.moodReactionPeriod = value,
                         config -> config.moodReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("WorldReactionPeriod", Codec.LONG),
+                        (config, value) -> config.worldReactionPeriod = value,
+                        config -> config.worldReactionPeriod)
                 .add()
                 .build();
     }

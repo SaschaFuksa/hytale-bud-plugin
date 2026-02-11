@@ -1,7 +1,6 @@
 package com.bud;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
@@ -9,19 +8,15 @@ import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.llm.message.world.LLMWorldManager;
-import com.bud.npc.BudRegistry;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
-import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -41,8 +36,6 @@ public class BudPlugin extends JavaPlugin {
     private ComponentType<EntityStore, PlayerData> budPlayerData;
 
     private static final InteractionManager interactionManager = InteractionManager.getInstance();
-
-    private static final LLMWorldManager llmWorldManager = new LLMWorldManager();
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -79,7 +72,6 @@ public class BudPlugin extends JavaPlugin {
         this.registerCleanupSystem();
         this.registerPlayerConnectEvent();
         this.registerPlayerDisconnectEvent();
-        this.registerMoodTracker();
 
         if (this.config.get().isEnableCombatReactions()) {
             // Register Damage Filter System
@@ -90,14 +82,6 @@ public class BudPlugin extends JavaPlugin {
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
-        if (this.config.get().isEnableWorldReactions()) {
-            // Register World Chat Scheduler
-            this.registerWorldChatScheduler();
-        }
-    }
-
-    private void registerMoodTracker() {
-        MoodTracker.getInstance().startPolling();
     }
 
     private void registerCleanupSystem() {
@@ -169,19 +153,6 @@ public class BudPlugin extends JavaPlugin {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
         });
-    }
-
-    private void registerWorldChatScheduler() {
-        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            Thread.ofVirtual().start(() -> {
-                IResult result = interactionManager.processInteraction(BudRegistry.getInstance().getAllOwners(),
-                        llmWorldManager);
-                if (!result.isSuccess()) {
-                    result.printResult();
-                }
-            });
-        }, 60L, 60L, TimeUnit.SECONDS);
-        LoggerUtil.getLogger().info(() -> "[BUD] World chat scheduler initialized (event-driven)");
     }
 
     public static BudPlugin getInstance() {
