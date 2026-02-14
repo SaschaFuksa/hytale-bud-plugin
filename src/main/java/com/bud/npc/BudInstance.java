@@ -9,7 +9,7 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudInstance {
     private final PlayerRef owner;
-    private final NPCEntity entity;
+    private NPCEntity entity;
     private final IBudData data;
     private String lastKnownState;
     private Mood currentMood;
@@ -48,6 +48,10 @@ public class BudInstance {
 
     public void setCurrentMood(Mood currentMood) {
         this.currentMood = currentMood;
+    }
+
+    public void setEntity(NPCEntity entity) {
+        this.entity = entity;
     }
 
     public Ref<EntityStore> getRef() {

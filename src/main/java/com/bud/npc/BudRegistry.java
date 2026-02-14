@@ -54,6 +54,14 @@ public class BudRegistry {
         }
     }
 
+    public synchronized void updateRef(Ref<EntityStore> oldRef, Ref<EntityStore> newRef, NPCEntity newEntity) {
+        BudInstance instance = byRef.remove(oldRef);
+        if (instance != null) {
+            instance.setEntity(newEntity);
+            byRef.put(newRef, instance);
+        }
+    }
+
     public BudInstance get(Ref<EntityStore> ref) {
         return byRef.get(ref);
     }
