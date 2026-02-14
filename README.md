@@ -157,7 +157,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## Known Issues
 
-- After player teleport, nuds are often broken and are "invisible". Workaround: Use "/bud" or "/bud reset" command to respawn them.
+- After player teleport, buds are often broken and are "invisible". Workaround: Use "/bud" or "/bud reset" command to respawn them.
 
 <br>
 
