@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Added weather info to world interaction messages and fixed a bug where weather info was not included in the prompt.
 - In Sheduling of world interactions, now directly start a new virtual thread for processing the interactions to avoid blocking the scheduler and ensure timely responses.
 - Bud teleport: Improvement after player teleport, if buds are broken, they are respawn now with "/bud" command.
+- Improvement: prompt-reload and prompt.reset commands.
 
 
 ---
