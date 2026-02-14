@@ -44,7 +44,8 @@ public class LLMStateManager implements ILLMChatManager {
         Set<BudInstance> relevantBuds = ConcurrentHashMap.newKeySet();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (BudInstance budInstance : buds) {
-            if (budInstance.getEntity() == null || budInstance.getRef() == null) {
+            if (budInstance.getEntity() == null || budInstance.getRef() == null
+                    || !budInstance.getRef().isValid()) {
                 continue;
             }
 
@@ -54,17 +55,21 @@ public class LLMStateManager implements ILLMChatManager {
             CompletableFuture<Void> future = new CompletableFuture<>();
             futures.add(future);
 
-            world.execute(() -> {
-                try {
-                    String newState = checkStateChange(budInstance);
-                    if (newState != null) {
-                        relevantBuds.add(budInstance);
+            try {
+                world.execute(() -> {
+                    try {
+                        String newState = checkStateChange(budInstance);
+                        if (newState != null) {
+                            relevantBuds.add(budInstance);
+                        }
+                        future.complete(null);
+                    } catch (Exception e) {
+                        future.completeExceptionally(e);
                     }
-                    future.complete(null);
-                } catch (Exception e) {
-                    future.completeExceptionally(e);
-                }
-            });
+                });
+            } catch (Exception e) {
+                future.complete(null);
+            }
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         return relevantBuds;

@@ -2,7 +2,6 @@ package com.bud.reaction.tracker;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.interaction.InteractionManager;
@@ -28,24 +27,22 @@ public class StateTracker extends AbstractTracker {
     private StateTracker() {
     }
 
-    private volatile ScheduledFuture<?> pollingTask;
-
     public static StateTracker getInstance() {
         return INSTANCE;
     }
 
     @Override
     public synchronized void startPolling() {
-        if (pollingTask != null && !pollingTask.isCancelled()) {
+        if (isPolling()) {
             return;
         }
         BudRegistry budRegistry = BudRegistry.getInstance();
         if (budRegistry.getAllOwners().isEmpty()) {
             return;
         }
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                () -> Thread.ofVirtual().start(this::checkStates), 250L, 250L,
-                TimeUnit.MILLISECONDS);
+        setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
+                () -> Thread.ofVirtual().start(this::checkStates), 333L, 333L,
+                TimeUnit.MILLISECONDS));
         LoggerUtil.getLogger().fine(() -> "[BUD] Started state polling task");
     }
 

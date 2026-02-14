@@ -2,7 +2,6 @@ package com.bud.reaction.tracker;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
@@ -28,8 +27,6 @@ public class MoodTracker extends AbstractTracker {
     private MoodTracker() {
     }
 
-    private volatile ScheduledFuture<?> pollingTask;
-
     private DayOfWeek lastPollDay;
 
     public static MoodTracker getInstance() {
@@ -38,13 +35,13 @@ public class MoodTracker extends AbstractTracker {
 
     @Override
     public synchronized void startPolling() {
-        if (pollingTask != null && !pollingTask.isCancelled()) {
+        if (isPolling()) {
             return;
         }
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
         lastPollDay = TimeInformationUtil.getDayOfWeek();
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                this::changeMood, interval, interval, TimeUnit.SECONDS);
+        setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
+                this::changeMood, interval, interval, TimeUnit.SECONDS));
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
     }
 

@@ -65,10 +65,14 @@ public class BudCommand extends AbstractPlayerCommand {
         IDataListResult<NPCEntity> teleportResult = BudManager.getInstance().teleportBuds(playerRef, store);
         if (teleportResult.isSuccess()) {
             this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
+        } else {
+            teleportResult.printResult();
         }
         IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
         if (creationResult.isSuccess()) {
             this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
+        } else {
+            creationResult.printResult();
         }
         RegistryManager.getInstance().registerPlayer(playerRef);
     }

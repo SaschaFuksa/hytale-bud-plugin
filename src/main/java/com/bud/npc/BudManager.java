@@ -20,6 +20,7 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -57,11 +58,11 @@ public class BudManager {
 
         for (BudInstance instance : playerBuds) {
             Ref<EntityStore> budRef = instance.getRef();
-            if (budRef == null)
+            if (budRef == null || !budRef.isValid())
                 continue;
 
             boolean isDead = store.getArchetype(budRef).contains(DeathComponent.getComponentType());
-            if (!isDead && budRef.isValid()) {
+            if (!isDead) {
                 String typeId = instance.getData().getNPCTypeId();
                 missingBuds.removeIf(b -> b.getNPCTypeId().equals(typeId));
             }
@@ -69,7 +70,7 @@ public class BudManager {
         return missingBuds;
     }
 
-    public IDataListResult<NPCEntity> teleportBuds(PlayerRef playerRef, Store<EntityStore> store) {
+    public IDataListResult<NPCEntity> teleportBuds(PlayerRef playerRef, @Nonnull Store<EntityStore> store) {
         Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
 
         if (ownedBuds.isEmpty()) {
@@ -87,9 +88,12 @@ public class BudManager {
                 CleanUpHandler.cleanupBud(playerRef, bud.getWorld(), bud.getUuid());
             }
         }
-        // Force the player's client to re-receive all entities (including teleported buds)
+        // Force the player's client to re-receive all entities (including teleported
+        // buds)
         Ref<EntityStore> viewerRef = playerRef.getReference();
         if (viewerRef != null && viewerRef.isValid()) {
+            LoggerUtil.getLogger().info(
+                    () -> "Despawning all entities for player " + playerRef.getUuid() + " to refresh teleported buds.");
             EntityTrackerSystems.despawnAll(viewerRef, store);
         }
 
@@ -138,6 +142,7 @@ public class BudManager {
         if (transform != null) {
             Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
             bud.getWorld().execute(() -> {
+                bud.moveTo(budRef, targetPos.getX(), targetPos.getY(), targetPos.getZ(), store);
                 store.addComponent(budRef, Teleport.getComponentType(),
                         Teleport.createExact(targetPos, transform.getRotation()));
             });

@@ -10,6 +10,14 @@ public abstract class AbstractTracker {
 
     public abstract void startPolling();
 
+    protected boolean isPolling() {
+        return pollingTask != null && !pollingTask.isCancelled();
+    }
+
+    protected void setPollingTask(ScheduledFuture<?> task) {
+        this.pollingTask = task;
+    }
+
     public synchronized void stopPolling() {
         if (pollingTask != null) {
             pollingTask.cancel(false);

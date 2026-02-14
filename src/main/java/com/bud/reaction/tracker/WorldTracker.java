@@ -2,7 +2,6 @@ package com.bud.reaction.tracker;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
@@ -27,15 +26,13 @@ public class WorldTracker extends AbstractTracker {
     private WorldTracker() {
     }
 
-    private volatile ScheduledFuture<?> pollingTask;
-
     public static WorldTracker getInstance() {
         return INSTANCE;
     }
 
     @Override
     public synchronized void startPolling() {
-        if (pollingTask != null && !pollingTask.isCancelled()) {
+        if (isPolling()) {
             return;
         }
         BudRegistry budRegistry = BudRegistry.getInstance();
@@ -43,9 +40,9 @@ public class WorldTracker extends AbstractTracker {
             return;
         }
         long interval = BudConfig.getInstance().getWorldReactionPeriod();
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
+        setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
                 interval,
-                TimeUnit.SECONDS);
+                TimeUnit.SECONDS));
         LoggerUtil.getLogger().info(() -> "[BUD] World tracker started.");
     }
 
@@ -62,17 +59,24 @@ public class WorldTracker extends AbstractTracker {
                 continue;
             }
             World world = WorldInformationUtil.resolveWorld(playerInstance.getPlayerRef());
-            world.execute(() -> {
-                Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
-                String weatherId = weather != null ? weather.getId() : "unknown";
-                Thread.ofVirtual().start(() -> {
-                    IResult result = interactionManager.processInteraction(Set.of(owner),
-                            new LLMWorldManager(weatherId));
-                    if (!result.isSuccess()) {
-                        result.printResult();
-                    }
+            if (world == null)
+                continue;
+            try {
+                world.execute(() -> {
+                    Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
+                    String weatherId = weather != null ? weather.getId() : "unknown";
+                    Thread.ofVirtual().start(() -> {
+                        IResult result = interactionManager.processInteraction(Set.of(owner),
+                                new LLMWorldManager(weatherId));
+                        if (!result.isSuccess()) {
+                            result.printResult();
+                        }
+                    });
                 });
-            });
+            } catch (Exception e) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] World tracker could not execute on world thread: " + e.getMessage());
+            }
         }
     }
 
