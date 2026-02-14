@@ -18,10 +18,10 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.4.0
+## New in 1.5.0
 - **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
 - **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
-(See more changes in GitHub Repository in the **CHANGELOG.md**
+(See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
 ### Quote of the release:
 
@@ -163,7 +163,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 📜 History
 
-For a detailed list of all changes and version history, please see the [CHANGELOG.md](CHANGELOG.md).
+For a detailed list of all changes and version history, please see the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>.
 ---
 <div align="center">
   <p><i>"This mod will also work without LLM, but the main goal is to have interactive buddies."</i></p>
