@@ -1,4 +1,4 @@
-package com.bud.util;
+package com.bud.llm.client;
 
 /**
  * Utility class for JSON string operations.

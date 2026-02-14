@@ -1,9 +1,5 @@
 package com.bud.llm.client;
 
-import com.bud.BudConfig;
-import com.bud.util.JsonUtils;
-import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,7 +8,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import com.bud.llm.message.creation.Prompt;
+import com.bud.BudConfig;
+import com.bud.llm.message.Prompt;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
  * Player2 API LLM client implementation.

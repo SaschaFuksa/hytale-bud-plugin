@@ -1,19 +1,22 @@
 package com.bud.llm.message.block;
 
-import com.bud.llm.message.creation.ILLMMessageCreation;
-import com.bud.llm.message.creation.IPromptContext;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.ILLMMessageCreation;
+import com.bud.llm.message.IPromptContext;
+import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.npc.BudInstance;
 import com.bud.reaction.block.BlockInteraction;
+import com.bud.reaction.world.time.Mood;
 
 public class LLMBlockMessageCreation implements ILLMMessageCreation {
 
     @Override
-    public Prompt createPrompt(IPromptContext context, BudMessage npcMessage) {
+    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
         if (!(context instanceof LLMBlockContext blockContext)) {
             throw new IllegalArgumentException("Context must be of type LLMBlockContext");
         }
+        BudMessage npcMessage = budInstance.getData().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
@@ -30,9 +33,19 @@ public class LLMBlockMessageCreation implements ILLMMessageCreation {
         if (personalView == null)
             personalView = npcMessage.getPersonalWorldView(); // Fallback
 
-        String systemPrompt = manager.getSystemPrompt("block") + "\n"
-                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n"
-                + personalView;
+        StringBuilder systemPromptBuilder = new StringBuilder();
+        systemPromptBuilder.append(manager.getSystemPrompt("block")).append("\n")
+                .append(manager.getSystemPrompt("default")).append("\n")
+                .append(budInfo).append("\n")
+                .append(personalView);
+
+        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt("instruction"));
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        }
+        String systemPrompt = systemPromptBuilder.toString();
 
         String message = interactionInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);

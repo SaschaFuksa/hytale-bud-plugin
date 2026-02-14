@@ -1,20 +1,24 @@
 package com.bud.llm.message.world;
 
-import com.bud.llm.message.creation.ILLMMessageCreation;
-import com.bud.llm.message.creation.IPromptContext;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.ILLMMessageCreation;
+import com.bud.llm.message.IPromptContext;
+import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.WorldMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
+import com.bud.npc.BudInstance;
+import com.bud.reaction.world.time.Mood;
 
 public class LLMWorldMessageCreation implements ILLMMessageCreation {
 
     @Override
-    public Prompt createPrompt(IPromptContext context, BudMessage npcMessage) {
+    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
         if (!(context instanceof LLMWorldContext worldContext)) {
             throw new IllegalArgumentException("Context must be of type LLMWorldContext");
         }
+        BudMessage npcMessage = budInstance.getData().getBudMessage();
+
         LLMPromptManager manager = LLMPromptManager.getInstance();
         WorldMessage template = manager.getWorldInfoTemplate();
 
@@ -24,12 +28,24 @@ public class LLMWorldMessageCreation implements ILLMMessageCreation {
         String timeInfo = worldContext.getTimeInfo(manager.getTimeMessage());
         String budInfo = npcMessage.getCharacteristics();
         String environmentInfo = template.getEnvironmentInfo().formatted(zoneInfo, biomeInfo, timeInfo);
+        String weatherInfo = worldContext.getWeatherInfo();
         String personalView = npcMessage.getPersonalWorldView();
 
-        String systemPrompt = manager.getSystemPrompt("world") + "\n"
-                + manager.getSystemPrompt("default") + "\n" + budInfo + "\n" + personalView;
-        String message = environmentInfo + "\n" + manager.getSystemPrompt("final");
+        StringBuilder systemPromptBuilder = new StringBuilder();
+        systemPromptBuilder.append(manager.getSystemPrompt("world")).append("\n")
+                .append(manager.getSystemPrompt("default")).append("\n")
+                .append(budInfo).append("\n")
+                .append(personalView);
+
+        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt("instruction"));
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        }
+
+        String systemPrompt = systemPromptBuilder.toString();
+        String message = environmentInfo + "\n" + weatherInfo + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);
     }
-
 }

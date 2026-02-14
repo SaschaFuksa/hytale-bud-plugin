@@ -1,5 +1,6 @@
 package com.bud.interaction;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -8,15 +9,14 @@ import com.bud.BudConfig;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
-import com.bud.llm.message.combat.LLMCombatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.bud.util.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 
@@ -40,9 +40,9 @@ public class InteractionManager {
         return INSTANCE;
     }
 
-    public IResult processInteraction(Set<UUID> ownerIds, ILLMChatManager context) {
+    public IResult processInteraction(Set<UUID> ownerIds, ILLMChatManager chatManager) {
         for (UUID ownerId : ownerIds) {
-            IResult result = processInteractionForOwner(ownerId, context);
+            IResult result = processInteractionForOwner(ownerId, chatManager);
             if (!result.isSuccess()) {
                 LoggerUtil.getLogger().severe(() -> "Error processing interaction for owner " + ownerId + ": "
                         + result.getMessage());
@@ -51,24 +51,26 @@ public class InteractionManager {
         return new SuccessResult("Processed interactions for all owners.");
     }
 
-    private IResult processInteractionForOwner(UUID ownerId, ILLMChatManager context) {
-        Set<BudInstance> budInstances = context.getRelevantBudInstances(ownerId);
+    private IResult processInteractionForOwner(UUID ownerId, ILLMChatManager chatManager) {
+        Set<BudInstance> budInstances = chatManager.getRelevantBudInstances(ownerId);
         if (budInstances == null || budInstances.isEmpty()) {
             return new SuccessResult("No bud available for owner " + ownerId);
         }
+        return processInteractionForBuds(budInstances, chatManager);
+    }
+
+    public IResult processInteractionForBuds(Set<BudInstance> budInstances, ILLMChatManager chatManager) {
         Set<BudInstance> errors = new HashSet<>();
+        UUID ownerId = budInstances.iterator().next().getOwner().getUuid();
         for (BudInstance budInstance : budInstances) {
             try {
-                Prompt prompt = getPrompt(context, budInstance);
+                Prompt prompt = getPrompt(chatManager, budInstance);
                 if (prompt == null) {
-                    errors.add(budInstance);
-                    LoggerUtil.getLogger().warning(() -> "[BUD] No prompt generated for owner " + ownerId);
-                } else if (prompt.userPrompt().equals(LLMCombatManager.NO_COMBAT_STRING)) {
-                    LoggerUtil.getLogger().info(() -> "[BUD] No combat prompt generated for owner " + ownerId);
+                    LoggerUtil.getLogger().finer(() -> "[BUD] No prompt generated for owner " + ownerId);
                     continue;
                 }
 
-                sendToChat(budInstance, prompt, context);
+                sendToChat(budInstance, prompt);
                 return new SuccessResult("Triggered chat for owner " + ownerId);
             } catch (Exception e) {
                 errors.add(budInstance);
@@ -82,19 +84,22 @@ public class InteractionManager {
         return new SuccessResult("Processed interactions for owner " + ownerId);
     }
 
-    private Prompt getPrompt(ILLMChatManager context, BudInstance budInstance) {
+    private Prompt getPrompt(ILLMChatManager chatManager, BudInstance budInstance) {
         if (this.config.isEnableLLM()) {
-            IDataResult<Prompt> promptResult = context.generatePrompt(budInstance);
+            IDataResult<Prompt> promptResult = chatManager.generatePrompt(budInstance);
             if (promptResult.isSuccess()) {
                 return promptResult.getData();
             }
         }
-        String fallback = context.getFallbackMessage(budInstance);
+        String fallback = chatManager.getFallbackMessage(budInstance);
+        if (fallback == null) {
+            return null;
+        }
         return new Prompt(fallback, fallback);
     }
 
-    private void sendToChat(BudInstance budInstance, Prompt prompt, ILLMChatManager context) {
-        World world = WorldInformationUtil.resolveWorld(budInstance);
+    private void sendToChat(BudInstance budInstance, Prompt prompt) {
+        World world = WorldInformationUtil.resolveWorld(budInstance.getOwner());
         if (world == null) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Could not resolve world for bud " + budInstance.getData().getNPCDisplayName());
@@ -110,7 +115,7 @@ public class InteractionManager {
                     this.chatInteraction.sendChatMessage(world, budInstance.getOwner(),
                             message);
                     playSound(budInstance, world);
-                } catch (Exception e) {
+                } catch (IOException | InterruptedException e) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Random Chat Error: " + e.getMessage());
                 }
             });

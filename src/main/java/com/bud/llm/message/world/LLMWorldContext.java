@@ -2,13 +2,14 @@ package com.bud.llm.message.world;
 
 import java.util.Map.Entry;
 
-import com.bud.data.TimeOfDay;
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.prompt.TimeMessage;
 import com.bud.llm.message.prompt.ZoneMessage;
-import com.bud.util.TimeInformationUtil;
-import com.bud.util.WorldInformationUtil;
+import com.bud.llm.message.weather.LLMWeatherContext;
+import com.bud.reaction.world.WorldInformationUtil;
+import com.bud.reaction.world.time.TimeInformationUtil;
+import com.bud.reaction.world.time.TimeOfDay;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -18,7 +19,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
-public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome)
+public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome,
+        LLMWeatherContext weatherContext)
         implements IPromptContext {
 
     @Override
@@ -28,19 +30,21 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
             case "timeOfDay" -> timeOfDay.name();
             case "currentZone" -> currentZone.name();
             case "currentBiome" -> currentBiome.getName();
+            case "weatherContext" -> weatherContext.getWeatherInformation();
             default -> null;
         };
     }
 
-    public static LLMWorldContext from(PlayerRef owner, World world, Store<EntityStore> store) {
+    public static LLMWorldContext from(PlayerRef owner, World world,
+            Store<EntityStore> store, LLMWeatherContext weatherContext) {
         Vector3d pos = owner.getTransform().getPosition();
-        TimeOfDay tod = TimeInformationUtil.getTimeOfDay(store);
-        LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + tod.name());
+        TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(store);
+        LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
         Biome biome = WorldInformationUtil.getCurrentBiome(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
         Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
-        return new LLMWorldContext(tod, zone, biome);
+        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext);
     }
 
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
@@ -53,7 +57,7 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         if (zoneName.contains("zone3") || zoneName.contains("whisperfrost"))
             return manager.getZoneMessage("whisperfrost_frontiers");
         if (zoneName.contains("zone4") || zoneName.contains("devastated"))
-            return manager.getZoneMessage("devasted_lands");
+            return manager.getZoneMessage("devastated_lands");
         if (zoneName.contains("zone0"))
             return manager.getZoneMessage("ocean");
 
@@ -84,5 +88,9 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
                     .orElse(this.timeOfDay().name());
         }
         return timeInfo;
+    }
+
+    public String getWeatherInfo() {
+        return this.weatherContext.getWeatherInformation();
     }
 }

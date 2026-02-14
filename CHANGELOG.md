@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0]
+### Added
+- **Weather Interaction**: Buds will now respond to weather changes. Added enablement option for weather interactions in the config and a configurable reaction period.
+- **Week System**: Added week system, so the current day will also enable reactions.
+- **Mood System**: The Buds will have changing moods based on a period of time. Current moods: "Default", "Sad", "Grumpy", "Dazed" and "Insane". Each bud has a favorite day where they react more positively with "Overmotivated" mood.
+
+### Fixed
+- Added weather info to world interaction messages and fixed a bug where weather info was not included in the prompt.
+- In Scheduling of interactions, now directly start a new virtual thread for processing the interactions to avoid blocking the scheduler and ensure timely responses.
+- Bud teleport: Improvement after player teleport, if buds are broken, they are respawn now with "/bud" command.
+- Improvement: prompt-reload and prompt.reset commands.
+
+
+---
+
 ## [1.4.0]
 ### Added
 - **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.

@@ -4,6 +4,7 @@ import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.buds.sound.IBudSoundData;
 import com.bud.npc.buds.sound.KeylethSoundData;
+import com.bud.reaction.world.time.DayOfWeek;
 
 public class KeylethData implements IBudData {
 
@@ -40,6 +41,11 @@ public class KeylethData implements IBudData {
 	@Override
 	public String getNPCDisplayName() {
 		return NPC_DISPLAY_NAME;
+	}
+
+	@Override
+	public DayOfWeek getFavoriteDay() {
+		return DayOfWeek.WEDNESDAY;
 	}
 
 }

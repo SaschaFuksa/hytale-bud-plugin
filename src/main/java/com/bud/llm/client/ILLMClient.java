@@ -3,7 +3,7 @@ package com.bud.llm.client;
 import java.io.IOException;
 import java.util.function.Consumer;
 
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**

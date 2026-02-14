@@ -11,14 +11,25 @@
 
 This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles.
 
+<br>
+
 ## Update information:
 
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
+For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.4.0
+## New in 1.5.0
 - **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
 - **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
-(See more changes in GitHub Repository in the **CHANGELOG.md**
+(See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
+
+### Quote of the release:
+
+After hitting grass...
+Gronkh: 
+>Grass? Og Og-what's wrong with that fool, smashing tender things like flowers? Too weak for even my stone mace's respect.
+
+<br>
 
 ### Meet your Buddies
 
@@ -53,6 +64,18 @@ If you have an older version of the plugin, remove the **/prompts** folder or up
 
 ## 🚀 Features
 
+
+### 🤖 Intelligent Interaction
+*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
+*   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
+*   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
+*   **Block Interaction**: Your companions react to your recent block placements or block breaks.
+*   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
+*   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
+*   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
+
+<br>
+
 ### 🎮 Commands
 The plugin is primarily controlled via simple chat commands:
 
@@ -64,14 +87,10 @@ The plugin is primarily controlled via simple chat commands:
 *   **`/bud reset`** - Quickly cleanup and recreate all your buddies.
 *   **`/bud clear`** - Removes your personal buddies from the world.
 *   **`/bud clear-allbuds`** - Removes all buddies from the world.
-*   **`/bud clear-data`** - Clears all persisted buddy data (useful for debugging).
-*   **`/bud clear-prompt`** - Hot-reload the LLM prompt configurations without restarting the server.
 *   **`/bud data`** - Displays persisted data (Reference Player UUID to NPC UUID).
-
-### 🤖 Intelligent Interaction
-*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
-*   **World Awareness**: Buds send chat messages about current world information every few minutes.
-*   **Combat Memory**: Your companions react to your recent fights with context-aware dialogue.
+*   **`/bud clear-data`** - Clears all persisted buddy data (useful for debugging).
+*   **`/bud reload-prompt`** - Reload missing LLM prompt configurations without restarting the server.
+*   **`/bud reset-prompt`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
 
 <br>
 
@@ -89,8 +108,15 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `MaxTokens` | Limit the length of AI responses | `200` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
 | `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
-| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
+| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
+| `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
+| `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
+| `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
+| `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
+| `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
+
+<br>
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
@@ -98,6 +124,8 @@ The LLM prompts are now stored in external `YAML` files located in the mod folde
 First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
 
 **Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
+
+<br>
 
 ### ⚠️ LLM Performance Note (Reasoning Models)
 
@@ -119,17 +147,23 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.5.0**: Interaction to weather events and add "days"
-- [ ] **1.6.0**: Memory storage: Keep memories of player and buds interacttions. Also remove current caching of the last combat action and use the memory storage instead.
-- [ ] **1.7.0**: ?
+- [x] **1.5.0**: Interaction to weather events and add "days", also added mood system (currently only random mood changes every 3 minutes)
+- [ ] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
+- [ ] **1.7.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.8.0**: Visual updates & special models for Buds?
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>
 
+## Known Issues
+
+- After player teleport, nuds are often broken and are "invisible". Workaround: Use "/bud" or "/bud reset" command to respawn them.
+
+<br>
+
 ## 📜 History
 
-For a detailed list of all changes and version history, please see the [CHANGELOG.md](CHANGELOG.md).
+For a detailed list of all changes and version history, please see the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>.
 ---
 <div align="center">
   <p><i>"This mod will also work without LLM, but the main goal is to have interactive buddies."</i></p>

@@ -12,11 +12,16 @@ public class BudConfig {
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen/qwen3-1.7b"
     private String apiKey = "not_needed";
-    private int maxTokens = 200;
+    private int maxTokens = 150;
     private double temperature = 0.8;
     private boolean enableCombatReactions = true;
-    private boolean enableWorldReactions = true;
     private boolean enableBlockReactions = true;
+    private boolean enableWorldReactions = true;
+    private long worldReactionPeriod = 60L; // seconds
+    private boolean enableWeatherReactions = true;
+    private long weatherReactionPeriod = 5L; // seconds
+    private boolean enableMoodReactions = true;
+    private long moodReactionPeriod = 180L; // seconds
 
     private static volatile BudConfig instance;
 
@@ -64,12 +69,32 @@ public class BudConfig {
         return this.enableCombatReactions;
     }
 
+    public boolean isEnableBlockReactions() {
+        return this.enableBlockReactions;
+    }
+
     public boolean isEnableWorldReactions() {
         return this.enableWorldReactions;
     }
 
-    public boolean isEnableBlockReactions() {
-        return this.enableBlockReactions;
+    public long getWorldReactionPeriod() {
+        return this.worldReactionPeriod;
+    }
+
+    public boolean isEnableWeatherReactions() {
+        return this.enableWeatherReactions;
+    }
+
+    public long getWeatherReactionPeriod() {
+        return this.weatherReactionPeriod;
+    }
+
+    public boolean isEnableMoodReactions() {
+        return this.enableMoodReactions;
+    }
+
+    public long getMoodReactionPeriod() {
+        return this.moodReactionPeriod;
     }
 
     static {
@@ -113,6 +138,26 @@ public class BudConfig {
                 .append(new KeyedCodec<>("EnableBlockReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableBlockReactions = value,
                         config -> config.enableBlockReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableWeatherReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableWeatherReactions = value,
+                        config -> config.enableWeatherReactions)
+                .add()
+                .append(new KeyedCodec<>("WeatherReactionPeriod", Codec.LONG),
+                        (config, value) -> config.weatherReactionPeriod = value,
+                        config -> config.weatherReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("EnableMoodReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableMoodReactions = value,
+                        config -> config.enableMoodReactions)
+                .add()
+                .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
+                        (config, value) -> config.moodReactionPeriod = value,
+                        config -> config.moodReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("WorldReactionPeriod", Codec.LONG),
+                        (config, value) -> config.worldReactionPeriod = value,
+                        config -> config.worldReactionPeriod)
                 .add()
                 .build();
     }

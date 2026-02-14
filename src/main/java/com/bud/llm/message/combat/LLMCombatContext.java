@@ -2,7 +2,7 @@ package com.bud.llm.message.combat;
 
 import java.util.Map.Entry;
 
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 import com.bud.llm.message.prompt.CombatMessage;
 import com.bud.llm.message.prompt.EntityCategoriesMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;

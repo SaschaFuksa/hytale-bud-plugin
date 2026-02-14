@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.bud.llm.ILLMChatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
@@ -38,7 +38,7 @@ public class LLMBlockManager implements ILLMChatManager {
         }
         LLMBlockContext context = LLMBlockContext.from(latestEntry.blockName(), latestEntry.interaction(),
                 budInstance.getOwner());
-        Prompt prompt = this.llmCreation.createPrompt(context, budInstance.getData().getBudMessage());
+        Prompt prompt = this.llmCreation.createPrompt(context, budInstance);
         return new DataResult<>(prompt, "Block prompt generation.");
     }
 

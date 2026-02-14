@@ -28,30 +28,17 @@ public class CombatChatScheduler {
 
     private static final CombatChatScheduler INSTANCE = new CombatChatScheduler();
 
-    /**
-     * Delay in seconds before sending combat chat after last combat event.
-     * This allows for "debouncing" - multiple hits in quick succession
-     * will only result in one chat message.
-     */
     private static final long COMBAT_CHAT_DELAY_SECONDS = 2L;
 
-    /**
-     * Minimum time between combat chats for the same player (cooldown).
-     * Prevents spam if player is in prolonged combat.
-     */
     private static final long COOLDOWN_SECONDS = 3L;
 
-    /**
-     * Tracks pending chat tasks per player.
-     * If a new combat event occurs while a task is pending, we cancel and
-     * reschedule.
-     */
     private final Map<UUID, ScheduledFuture<?>> pendingTasks = new ConcurrentHashMap<>();
 
-    /**
-     * Tracks last chat time per player for cooldown enforcement.
-     */
     private final Map<UUID, Long> lastChatTime = new ConcurrentHashMap<>();
+
+    private static final InteractionManager interactionManager = InteractionManager.getInstance();
+
+    private static final LLMCombatManager llmCombatManager = new LLMCombatManager();
 
     private CombatChatScheduler() {
     }
@@ -60,12 +47,6 @@ public class CombatChatScheduler {
         return INSTANCE;
     }
 
-    /**
-     * Called when a combat interaction is registered.
-     * Schedules a delayed chat message for the player.
-     * 
-     * @param playerId The UUID of the player involved in combat
-     */
     public void onCombatRegistered(UUID playerId) {
         // Check cooldown
         Long lastChat = lastChatTime.get(playerId);
@@ -88,7 +69,7 @@ public class CombatChatScheduler {
 
         // Schedule new delayed task
         ScheduledFuture<?> newTask = HytaleServer.SCHEDULED_EXECUTOR.schedule(
-                () -> triggerCombatChat(playerId),
+                () -> Thread.ofVirtual().start(() -> triggerCombatChat(playerId)),
                 COMBAT_CHAT_DELAY_SECONDS,
                 TimeUnit.SECONDS);
 
@@ -113,7 +94,12 @@ public class CombatChatScheduler {
         }
 
         lastChatTime.put(playerId, System.currentTimeMillis());
-        InteractionManager.getInstance().processInteraction(Set.of(playerId), new LLMCombatManager());
+        if (RecentOpponentCache.getHistory(playerId).isEmpty()) {
+            LoggerUtil.getLogger()
+                    .finer(() -> "[BUD] No recent combat history for " + playerId + ", skipping combat chat");
+            return;
+        }
+        interactionManager.processInteraction(Set.of(playerId), llmCombatManager);
     }
 
     /**

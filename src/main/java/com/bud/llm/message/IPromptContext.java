@@ -1,4 +1,4 @@
-package com.bud.llm.message.creation;
+package com.bud.llm.message;
 
 public interface IPromptContext {
 

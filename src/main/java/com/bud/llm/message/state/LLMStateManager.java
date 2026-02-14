@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bud.llm.ILLMChatManager;
-import com.bud.llm.message.creation.Prompt;
+import com.bud.llm.message.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.result.DataResult;
@@ -31,7 +31,7 @@ public class LLMStateManager implements ILLMChatManager {
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         LLMStateContext contextResult = LLMStateContext.from(budInstance.getLastKnownState());
-        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance.getData().getBudMessage());
+        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
 

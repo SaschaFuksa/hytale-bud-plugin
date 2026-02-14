@@ -1,26 +1,22 @@
 package com.bud;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
-import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.llm.message.world.LLMWorldManager;
-import com.bud.npc.BudRegistry;
-import com.bud.npc.persistence.PlayerData;
+import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -34,8 +30,12 @@ import com.hypixel.hytale.server.core.util.Config;
 public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
+
     private final Config<BudConfig> config;
+
     private ComponentType<EntityStore, PlayerData> budPlayerData;
+
+    private static boolean startedMoodTracker = false;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -47,15 +47,8 @@ public class BudPlugin extends JavaPlugin {
     protected void setup() {
         super.setup();
 
-        // Force log levels to ALL for debugging
-        java.util.logging.Logger logger = LoggerUtil.getLogger();
-        logger.setLevel(java.util.logging.Level.ALL);
-        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
-
-        BudConfig.setInstance(this.config.get());
-        this.config.save();
-
-        LLMPromptManager.getInstance().reload(false);
+        this.setupLogging();
+        this.setupConfig();
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -66,7 +59,20 @@ public class BudPlugin extends JavaPlugin {
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.registerEvents();
+    }
 
+    private void setupLogging() {
+        // Force log levels to ALL for debugging
+        java.util.logging.Logger logger = LoggerUtil.getLogger();
+        logger.setLevel(java.util.logging.Level.ALL);
+        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
+    }
+
+    private void setupConfig() {
+        BudConfig.setInstance(this.config.get());
+        this.config.save();
+
+        LLMPromptManager.getInstance().reloadMissingPrompts();
     }
 
     private void registerEvents() {
@@ -82,10 +88,6 @@ public class BudPlugin extends JavaPlugin {
             // Register Block Break Filter System
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
-        }
-        if (this.config.get().isEnableWorldReactions()) {
-            // Register World Chat Scheduler
-            this.registerWorldChatScheduler();
         }
     }
 
@@ -103,15 +105,33 @@ public class BudPlugin extends JavaPlugin {
     private void registerPlayerConnectEvent() {
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
-             * On player connect, we need to clean up any Bud NPCs owned by the player
-             * This is triggered, if player has internet connection issues and the NPCs were
+             * On player connect, we need to register mood tracking and clean up any Bud
+             * NPCs owned by the player
+             * This clean up is triggered, if player has internet connection issues and the
+             * NPCs were
              * not despawned by the disconnect event
              */
+            if (!startedMoodTracker) {
+                try {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Starting MoodTracker.");
+                    MoodTracker.getInstance().startPolling();
+                    startedMoodTracker = true;
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MoodTracker: " + e.getMessage());
+                }
+            }
             try {
-                @Nonnull
                 PlayerRef playerRef = event.getPlayerRef();
-                @Nonnull
                 World world = event.getWorld();
+                if (world == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] World is null on player connect for player: "
+                            + playerRef.getUuid());
+                    return;
+                }
+                if (playerRef == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] PlayerRef is null on player connect event");
+                    return;
+                }
 
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
                 LoggerUtil.getLogger().fine(() -> "[BUD] World: " + world.getName());
@@ -135,11 +155,13 @@ public class BudPlugin extends JavaPlugin {
 
                 // Clear pending combat chat tasks for this player
                 CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
-                    @Nonnull
                     World world = Universe.get().getWorld(worldUUID);
+                    if (world == null) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] World not found for UUID: " + worldUUID);
+                        return;
+                    }
                     world.execute(() -> {
                         IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
                         result.printResult();
@@ -149,17 +171,6 @@ public class BudPlugin extends JavaPlugin {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
         });
-    }
-
-    private void registerWorldChatScheduler() {
-        HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            IResult result = InteractionManager.getInstance()
-                    .processInteraction(BudRegistry.getInstance().getAllOwners(), new LLMWorldManager());
-            if (!result.isSuccess()) {
-                result.printResult();
-            }
-        }, 60L, 60L, TimeUnit.SECONDS);
-        LoggerUtil.getLogger().info(() -> "[BUD] Combat chat scheduler initialized (event-driven)");
     }
 
     public static BudPlugin getInstance() {

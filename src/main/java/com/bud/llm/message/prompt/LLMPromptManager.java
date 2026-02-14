@@ -21,6 +21,7 @@ public class LLMPromptManager {
     private CombatMessage combatInfoTemplate;
     private EntityCategoriesMessage entityCategories;
     private Map<String, String> systemPrompts = new HashMap<>();
+    private Map<String, String> moodMessage = new HashMap<>();
 
     private LLMPromptManager() {
     }
@@ -32,7 +33,15 @@ public class LLMPromptManager {
         return instance;
     }
 
-    public void reload(boolean overwriteDefaults) {
+    public void resetPrompts() {
+        this.loadPrompts(true);
+    }
+
+    public void reloadMissingPrompts() {
+        this.loadPrompts(false);
+    }
+
+    private void loadPrompts(boolean overwriteDefaults) {
         Path dataDir = BudPlugin.getInstance().getDataDirectory().resolve("prompts");
 
         // Ensure directory structure and copy defaults (always override on explicit
@@ -47,6 +56,7 @@ public class LLMPromptManager {
         this.combatInfoTemplate = CombatMessage.load(dataDir.resolve("interaction/combat.yml"));
         this.entityCategories = EntityCategoriesMessage.load(dataDir.resolve("interaction/entities.yml"));
         this.systemPrompts = SystemPromptMessage.load(dataDir.resolve("system_prompt.yml")).getPrompts();
+        this.moodMessage = MoodPromptMessage.load(dataDir.resolve("buds/mood.yml")).getMood();
 
         debugLog();
     }
@@ -55,10 +65,10 @@ public class LLMPromptManager {
         String[] resources = {
                 "buds/gronkh.yml", "buds/keyleth.yml", "buds/veri.yml",
                 "world/world_system_info.yml", "world/time.yml",
-                "world/zones/devasted_lands.yml", "world/zones/emerald_grove.yml",
+                "world/zones/devastated_lands.yml", "world/zones/emerald_grove.yml",
                 "world/zones/howling_sands.yml", "world/zones/ocean.yml", "world/zones/whisperfrost_frontiers.yml",
                 "world/zones/fallback.yml",
-                "interaction/entities.yml", "interaction/combat.yml", "system_prompt.yml"
+                "interaction/entities.yml", "interaction/combat.yml", "system_prompt.yml", "buds/mood.yml"
         };
 
         for (String res : resources) {
@@ -98,7 +108,7 @@ public class LLMPromptManager {
 
     private void loadZones(Path zonesDir) {
         zoneMessages.clear();
-        String[] zones = { "devasted_lands", "emerald_grove", "howling_sands", "ocean",
+        String[] zones = { "devastated_lands", "emerald_grove", "howling_sands", "ocean",
                 "whisperfrost_frontiers", "fallback" };
         for (String zone : zones) {
             zoneMessages.put(zone, ZoneMessage.load(zonesDir.resolve(zone + ".yml")));
@@ -136,6 +146,10 @@ public class LLMPromptManager {
 
     public String getSystemPrompt(String key) {
         return systemPrompts.get(key);
+    }
+
+    public String getMoodPrompt(String moodKey) {
+        return moodMessage.get(moodKey);
     }
 
     public void debugLog() {

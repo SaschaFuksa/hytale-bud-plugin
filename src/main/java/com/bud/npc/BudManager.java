@@ -25,6 +25,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
+import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -85,6 +87,12 @@ public class BudManager {
                 CleanUpHandler.cleanupBud(playerRef, bud.getWorld(), bud.getUuid());
             }
         }
+        // Force the player's client to re-receive all entities (including teleported buds)
+        Ref<EntityStore> viewerRef = playerRef.getReference();
+        if (viewerRef != null && viewerRef.isValid()) {
+            EntityTrackerSystems.despawnAll(viewerRef, store);
+        }
+
         String joinedNames = teleportedBuds.stream()
                 .map(npc -> npc.getNPCTypeId().split("_")[0])
                 .collect(Collectors.joining(", "));
@@ -102,7 +110,15 @@ public class BudManager {
             return new ErrorResult(
                     "No bud of type " + budData.getNPCTypeId() + " found for player " + playerRef.getUuid());
         }
-        return teleportBud(targetBud, playerRef, store);
+        IResult result = teleportBud(targetBud, playerRef, store);
+
+        // Force client to re-receive all entities after teleport
+        Ref<EntityStore> viewerRef = playerRef.getReference();
+        if (viewerRef != null && viewerRef.isValid()) {
+            EntityTrackerSystems.despawnAll(viewerRef, store);
+        }
+
+        return result;
     }
 
     public Set<NPCEntity> getOwnedBuds(UUID playerId, Store<EntityStore> store) {
@@ -121,7 +137,10 @@ public class BudManager {
 
         if (transform != null) {
             Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
-            transform.setPosition(targetPos);
+            bud.getWorld().execute(() -> {
+                store.addComponent(budRef, Teleport.getComponentType(),
+                        Teleport.createExact(targetPos, transform.getRotation()));
+            });
             return new SuccessResult("Teleported Bud " + bud.getNPCTypeId().split("_")[0] + " successfully.");
         } else {
             return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");

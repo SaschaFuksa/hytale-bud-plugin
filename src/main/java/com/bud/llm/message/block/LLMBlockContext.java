@@ -1,6 +1,6 @@
 package com.bud.llm.message.block;
 
-import com.bud.llm.message.creation.IPromptContext;
+import com.bud.llm.message.IPromptContext;
 import com.bud.reaction.block.BlockInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 

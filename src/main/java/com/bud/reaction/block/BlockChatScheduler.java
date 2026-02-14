@@ -4,14 +4,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.block.LLMBlockManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.server.core.HytaleServer;
 
 /**
  * Schedules LLM reactions after blocks are broken.
@@ -20,13 +19,18 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 public class BlockChatScheduler {
 
     private static final BlockChatScheduler INSTANCE = new BlockChatScheduler();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private final Map<UUID, Long> lastReactionTime = new ConcurrentHashMap<>();
+
     private final Map<UUID, ScheduledFuture<?>> pendingReactions = new ConcurrentHashMap<>();
 
     private static final long COOLDOWN_MS = 10_000; // 10 seconds cooldown between reactions
+
     private static final long DEBOUNCE_MS = 3_000; // 3 seconds debounce for consecutive blocks
+
+    private static final InteractionManager interactionManager = InteractionManager.getInstance();
+
+    private static final LLMBlockManager llmBlockManager = LLMBlockManager.getInstance();
 
     private BlockChatScheduler() {
     }
@@ -57,18 +61,20 @@ public class BlockChatScheduler {
         }
 
         // Schedule reaction with a delay to group multiple blocks (e.g. mining a vein)
-        ScheduledFuture<?> future = scheduler.schedule(() -> {
-            try {
-                pendingReactions.remove(playerId);
-                lastReactionTime.put(playerId, System.currentTimeMillis());
+        ScheduledFuture<?> future = HytaleServer.SCHEDULED_EXECUTOR.schedule(() -> {
+            Thread.ofVirtual().start(() -> {
+                try {
+                    pendingReactions.remove(playerId);
+                    lastReactionTime.put(playerId, System.currentTimeMillis());
 
-                LoggerUtil.getLogger().fine(() -> "[BUD] Triggering block reaction for player " + playerId);
-                InteractionManager.getInstance().processInteraction(
-                        Collections.singleton(playerId),
-                        LLMBlockManager.getInstance());
-            } catch (Exception e) {
-                LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockChatScheduler: " + e.getMessage());
-            }
+                    LoggerUtil.getLogger().fine(() -> "[BUD] Triggering block reaction for player " + playerId);
+                    interactionManager.processInteraction(
+                            Collections.singleton(playerId),
+                            llmBlockManager);
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockChatScheduler: " + e.getMessage());
+                }
+            });
         }, DEBOUNCE_MS, TimeUnit.MILLISECONDS);
 
         pendingReactions.put(playerId, future);
