@@ -77,4 +77,9 @@ public class BudRegistry {
     public Set<UUID> getAllOwners() {
         return byOwner.keySet();
     }
+
+    public boolean isRegistered(UUID npcUuid) {
+        return byRef.values().stream()
+                .anyMatch(bud -> bud.getEntity().getUuid().equals(npcUuid));
+    }
 }
