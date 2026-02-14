@@ -29,6 +29,8 @@ public class LLMWeatherMessageCreation implements ILLMMessageCreation {
 
         if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt("instruction"));
+            systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
         }
         String systemPrompt = systemPromptBuilder.toString();

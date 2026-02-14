@@ -12,7 +12,7 @@ public class BudConfig {
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen/qwen3-1.7b"
     private String apiKey = "not_needed";
-    private int maxTokens = 200;
+    private int maxTokens = 150;
     private double temperature = 0.8;
     private boolean enableCombatReactions = true;
     private boolean enableBlockReactions = true;
