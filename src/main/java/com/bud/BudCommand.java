@@ -194,9 +194,9 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "/bud clean-data, /bud clear-data: Clean your persisted data.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud prompt-reload: Reload prompts from disk, missing prompts will be re-copied from defaults.");
+                            "/bud reload-prompt: Reload prompts from disk, missing prompts will be re-copied from defaults.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud prompt-reset: Reset prompts, all prompts will be re-copied from defaults.");
+                            "/bud reset-prompt: Reset prompts, all prompts will be re-copied from defaults.");
                 }
             }
         }
