@@ -166,10 +166,15 @@ public class BudCommand extends AbstractPlayerCommand {
                     LoggerUtil.getLogger().info(() -> "[BUD] Cleared BudPlayerData for player " + playerRef.getUuid());
                     this.chatInteraction.sendChatMessage(world, playerRef, "Cleared BudPlayerData.");
                 }
-                case "prompt-reload", "clean-prompt", "clear-prompt" -> {
-                    LLMPromptManager.getInstance().reload(true);
+                case "prompt-reload", "reload-prompt" -> {
+                    LLMPromptManager.getInstance().reloadMissingPrompts();
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
+                }
+                case "prompt-reset", "reset-prompt", "clear-prompt", "prompt-clear" -> {
+                    LLMPromptManager.getInstance().resetPrompts();
+                    LoggerUtil.getLogger().info(() -> "[BUD] Reset prompts.");
+                    this.chatInteraction.sendChatMessage(world, playerRef, "Reset prompts.");
                 }
                 default -> {
                     this.chatInteraction.sendChatMessage(world, playerRef,
@@ -189,7 +194,9 @@ public class BudCommand extends AbstractPlayerCommand {
                     this.chatInteraction.sendChatMessage(world, playerRef,
                             "/bud clean-data, /bud clear-data: Clean your persisted data.");
                     this.chatInteraction.sendChatMessage(world, playerRef,
-                            "/bud clear-prompt, /bud prompt-reload: Reload prompts.");
+                            "/bud prompt-reload: Reload prompts from disk, missing prompts will be re-copied from defaults.");
+                    this.chatInteraction.sendChatMessage(world, playerRef,
+                            "/bud prompt-reset: Reset prompts, all prompts will be re-copied from defaults.");
                 }
             }
         }

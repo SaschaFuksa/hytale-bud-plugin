@@ -33,7 +33,15 @@ public class LLMPromptManager {
         return instance;
     }
 
-    public void reload(boolean overwriteDefaults) {
+    public void resetPrompts() {
+        this.loadPrompts(true);
+    }
+
+    public void reloadMissingPrompts() {
+        this.loadPrompts(false);
+    }
+
+    private void loadPrompts(boolean overwriteDefaults) {
         Path dataDir = BudPlugin.getInstance().getDataDirectory().resolve("prompts");
 
         // Ensure directory structure and copy defaults (always override on explicit

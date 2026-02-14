@@ -47,15 +47,8 @@ public class BudPlugin extends JavaPlugin {
     protected void setup() {
         super.setup();
 
-        // Force log levels to ALL for debugging
-        java.util.logging.Logger logger = LoggerUtil.getLogger();
-        logger.setLevel(java.util.logging.Level.ALL);
-        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
-
-        BudConfig.setInstance(this.config.get());
-        this.config.save();
-
-        LLMPromptManager.getInstance().reload(false);
+        this.setupLogging();
+        this.setupConfig();
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -66,6 +59,20 @@ public class BudPlugin extends JavaPlugin {
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.registerEvents();
+    }
+
+    private void setupLogging() {
+        // Force log levels to ALL for debugging
+        java.util.logging.Logger logger = LoggerUtil.getLogger();
+        logger.setLevel(java.util.logging.Level.ALL);
+        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
+    }
+
+    private void setupConfig() {
+        BudConfig.setInstance(this.config.get());
+        this.config.save();
+
+        LLMPromptManager.getInstance().reloadMissingPrompts();
     }
 
     private void registerEvents() {

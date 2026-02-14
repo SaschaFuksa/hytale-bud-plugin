@@ -37,6 +37,11 @@ prompts:
     Second, you get information about your personal view on weather.
     Third, you get the new weather type.
     Finally, say something very short and reactive to this specific weather.
+  favoriteDay: |
+    Today is your favorite day! This happens only once a week.
+    First, you get some details about your personality.
+    Second, you get information about why today is special for you and how you feel about it.
+    Finally, say something overmotivated and excited about your favorite day!
   final: |
     Now you have all information. Answer short, Keep responses concise and entertaining and do not highlight information.
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit.
