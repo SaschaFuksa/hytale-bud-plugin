@@ -94,7 +94,7 @@ public class BudCreation {
                     } else {
                         result.printResult();
                         ChatInteraction.getInstance().sendChatMessage(world, playerRef,
-                                "[BUD] §cFailed to spawn " + nextData.getNPCDisplayName() + ": " + result.getMessage());
+                                "[BUD] Failed to spawn " + nextData.getNPCDisplayName() + ".");
                     }
                 });
             });
