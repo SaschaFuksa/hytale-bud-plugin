@@ -25,6 +25,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -121,7 +122,10 @@ public class BudManager {
 
         if (transform != null) {
             Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
-            transform.setPosition(targetPos);
+            bud.getWorld().execute(() -> {
+                store.addComponent(budRef, Teleport.getComponentType(),
+                        Teleport.createExact(targetPos, transform.getRotation()));
+            });
             return new SuccessResult("Teleported Bud " + bud.getNPCTypeId().split("_")[0] + " successfully.");
         } else {
             return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");

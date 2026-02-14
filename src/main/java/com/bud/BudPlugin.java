@@ -6,17 +6,18 @@ import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
-import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.event.events.BootEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -34,8 +35,6 @@ public class BudPlugin extends JavaPlugin {
     private final Config<BudConfig> config;
 
     private ComponentType<EntityStore, PlayerData> budPlayerData;
-
-    private static final InteractionManager interactionManager = InteractionManager.getInstance();
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -72,6 +71,7 @@ public class BudPlugin extends JavaPlugin {
         this.registerCleanupSystem();
         this.registerPlayerConnectEvent();
         this.registerPlayerDisconnectEvent();
+        this.registerBootEvent();
 
         if (this.config.get().isEnableCombatReactions()) {
             // Register Damage Filter System
@@ -152,6 +152,13 @@ public class BudPlugin extends JavaPlugin {
             } catch (Exception e) {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
+        });
+    }
+
+    private void registerBootEvent() {
+        this.getEventRegistry().register(BootEvent.class, event -> {
+            LoggerUtil.getLogger().info(() -> "[BUD] Server booted, starting MoodTracker.");
+            MoodTracker.getInstance().startPolling();
         });
     }
 

@@ -46,12 +46,13 @@ public class MoodTracker extends AbstractTracker {
             return;
         }
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
+        lastPollDay = TimeInformationUtil.getDayOfWeek();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::changeMood, interval, interval, TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
     }
 
-    private void changeMood() {
+    public void changeMood() {
         BudRegistry budRegistry = BudRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {
@@ -60,11 +61,11 @@ public class MoodTracker extends AbstractTracker {
 
         boolean isDayTransition = false;
         DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek();
-        if (!lastPollDay.equals(currentPollDay)) {
-            isDayTransition = true;
-            lastPollDay = currentPollDay;
+        if (currentPollDay == null) {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] Could not determine current day of week. Skipping mood change.");
+            return;
         }
-
         for (UUID owner : owners) {
             Set<BudInstance> buds = budRegistry.getByOwner(owner);
             for (BudInstance budInstance : buds) {
@@ -76,6 +77,8 @@ public class MoodTracker extends AbstractTracker {
     private void changeMood(BudInstance budInstance, DayOfWeek currentPollDay,
             boolean isDayTransition) {
         DayOfWeek favDay = budInstance.getData().getFavoriteDay();
+        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budInstance.getData().getNPCTypeId()
+                + ". Current day: " + currentPollDay + ", Favorite day: " + favDay);
 
         if (currentPollDay.equals(favDay)) {
             budInstance.setCurrentMood(Mood.OVERMOTIVATED);

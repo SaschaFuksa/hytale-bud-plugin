@@ -4,7 +4,6 @@ import com.bud.llm.message.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.buds.IBudData;
 import com.bud.player.PlayerRegistry;
-import com.bud.reaction.tracker.MoodTracker;
 import com.bud.reaction.tracker.StateTracker;
 import com.bud.reaction.tracker.WeatherTracker;
 import com.bud.reaction.tracker.WorldTracker;
@@ -85,9 +84,6 @@ public class RegistryManager {
         if (RegistryManager.config.isEnableWeatherReactions()) {
             WeatherTracker.getInstance().startPolling();
         }
-        if (RegistryManager.config.isEnableMoodReactions()) {
-            MoodTracker.getInstance().startPolling();
-        }
     }
 
     public IResult unregister(NPCEntity bud, PlayerRef player) {
@@ -131,7 +127,6 @@ public class RegistryManager {
         StateTracker.getInstance().stopPolling();
         WorldTracker.getInstance().stopPolling();
         WeatherTracker.getInstance().stopPolling();
-        MoodTracker.getInstance().stopPolling();
     }
 
 }
