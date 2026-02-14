@@ -41,7 +41,7 @@ public class StateTracker extends AbstractTracker {
             return;
         }
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
-                () -> Thread.ofVirtual().start(this::checkStates), 333L, 333L,
+                () -> Thread.ofVirtual().start(this::checkStates), 250L, 250L,
                 TimeUnit.MILLISECONDS));
         LoggerUtil.getLogger().fine(() -> "[BUD] Started state polling task");
     }

@@ -88,14 +88,6 @@ public class BudManager {
                 CleanUpHandler.cleanupBud(playerRef, bud.getWorld(), bud.getUuid());
             }
         }
-        // Force the player's client to re-receive all entities (including teleported
-        // buds)
-        Ref<EntityStore> viewerRef = playerRef.getReference();
-        if (viewerRef != null && viewerRef.isValid()) {
-            LoggerUtil.getLogger().info(
-                    () -> "Despawning all entities for player " + playerRef.getUuid() + " to refresh teleported buds.");
-            EntityTrackerSystems.despawnAll(viewerRef, store);
-        }
 
         String joinedNames = teleportedBuds.stream()
                 .map(npc -> npc.getNPCTypeId().split("_")[0])
