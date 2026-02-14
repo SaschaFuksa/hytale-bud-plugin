@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
 import com.bud.interaction.InteractionManager;
-import com.bud.llm.message.mood.LLMMoodManager;
+import com.bud.llm.message.favoriteday.LLMFavoriteDayManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.reaction.world.time.DayOfWeek;
@@ -23,7 +23,7 @@ public class MoodTracker extends AbstractTracker {
 
     private final InteractionManager interactionManager = InteractionManager.getInstance();
 
-    private static final LLMMoodManager llmMoodManager = new LLMMoodManager();
+    private static final LLMFavoriteDayManager llmFavoriteDayManager = new LLMFavoriteDayManager();
 
     private MoodTracker() {
     }
@@ -48,7 +48,7 @@ public class MoodTracker extends AbstractTracker {
         LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
     }
 
-    public void changeMood() {
+    private void changeMood() {
         BudRegistry budRegistry = BudRegistry.getInstance();
         Set<UUID> owners = budRegistry.getAllOwners();
         if (owners.isEmpty()) {
@@ -70,12 +70,12 @@ public class MoodTracker extends AbstractTracker {
         for (UUID owner : owners) {
             Set<BudInstance> buds = budRegistry.getByOwner(owner);
             for (BudInstance budInstance : buds) {
-                changeMood(budInstance, currentPollDay, isDayTransition);
+                changeBudMood(budInstance, currentPollDay, isDayTransition);
             }
         }
     }
 
-    private void changeMood(BudInstance budInstance, DayOfWeek currentPollDay,
+    private void changeBudMood(BudInstance budInstance, DayOfWeek currentPollDay,
             boolean isDayTransition) {
         DayOfWeek favDay = budInstance.getData().getFavoriteDay();
         LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budInstance.getData().getNPCTypeId()
@@ -87,7 +87,8 @@ public class MoodTracker extends AbstractTracker {
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
                 Thread.ofVirtual().start(() -> {
-                    IResult result = interactionManager.processInteractionForBuds(Set.of(budInstance), llmMoodManager);
+                    IResult result = interactionManager.processInteractionForBuds(Set.of(budInstance),
+                            llmFavoriteDayManager);
                     if (!result.isSuccess()) {
                         result.printResult();
                     }

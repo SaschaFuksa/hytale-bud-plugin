@@ -1,4 +1,4 @@
-package com.bud.llm.message.mood;
+package com.bud.llm.message.favoriteday;
 
 import java.util.Collections;
 import java.util.Set;
@@ -11,17 +11,17 @@ import com.bud.npc.BudInstance;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 
-public class LLMMoodManager implements ILLMChatManager {
+public class LLMFavoriteDayManager implements ILLMChatManager {
 
-    private final LLMMoodMessageCreation llmCreation;
+    private final LLMFavoriteDayMessageCreation llmCreation;
 
-    public LLMMoodManager() {
-        this.llmCreation = new LLMMoodMessageCreation();
+    public LLMFavoriteDayManager() {
+        this.llmCreation = new LLMFavoriteDayMessageCreation();
     }
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        LLMMoodContext contextResult = LLMMoodContext.from();
+        LLMFavoriteDayContext contextResult = LLMFavoriteDayContext.from();
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }

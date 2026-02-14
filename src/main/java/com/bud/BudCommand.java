@@ -17,9 +17,6 @@ import com.bud.npc.buds.VeriData;
 import com.bud.npc.creation.BudCreation;
 import com.bud.player.PlayerRegistry;
 import com.bud.player.persistence.PlayerData;
-import com.bud.reaction.tracker.MoodTracker;
-import com.bud.reaction.world.time.DayOfWeek;
-import com.bud.reaction.world.time.TimeInformationUtil;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
@@ -173,19 +170,6 @@ public class BudCommand extends AbstractPlayerCommand {
                     LLMPromptManager.getInstance().reload(true);
                     LoggerUtil.getLogger().info(() -> "[BUD] Reloaded prompts.");
                     this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
-                }
-                case "time" -> {
-                    DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek();
-                    LoggerUtil.getLogger().info(
-                            () -> "[BUD] Current time: " + currentPollDay + ", " + TimeInformationUtil.getTimeOfDay());
-                    this.chatInteraction.sendChatMessage(world, playerRef,
-                            "Current time: " + currentPollDay + ", " + TimeInformationUtil.getTimeOfDay());
-                    TimeInformationUtil.getTimeOfDay();
-                    LoggerUtil.getLogger().info(() -> "[BUD] Current day: " + currentPollDay);
-                    this.chatInteraction.sendChatMessage(world, playerRef, "Current day: " + currentPollDay);
-                }
-                case "mood" -> {
-                    MoodTracker.getInstance().changeMood();
                 }
                 default -> {
                     this.chatInteraction.sendChatMessage(world, playerRef,

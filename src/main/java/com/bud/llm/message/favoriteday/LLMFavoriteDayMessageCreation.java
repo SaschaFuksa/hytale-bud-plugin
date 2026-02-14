@@ -1,4 +1,4 @@
-package com.bud.llm.message.mood;
+package com.bud.llm.message.favoriteday;
 
 import com.bud.llm.message.ILLMMessageCreation;
 import com.bud.llm.message.IPromptContext;
@@ -7,7 +7,7 @@ import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 
-public class LLMMoodMessageCreation implements ILLMMessageCreation {
+public class LLMFavoriteDayMessageCreation implements ILLMMessageCreation {
 
         @Override
         public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
