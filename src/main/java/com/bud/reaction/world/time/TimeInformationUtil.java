@@ -46,6 +46,13 @@ public class TimeInformationUtil {
 
     public static DayOfWeek getDayOfWeek() {
         try {
+            System.out.println("Getting day of week...");
+            System.out.println("Getting day of week..." + Universe.get().getName());
+            System.out.println("Getting day of week..." + Universe.get().getDefaultWorld().getName());
+            System.out.println(
+                    "Getting day of week..." + Universe.get().getDefaultWorld().getEntityStore().getClass().getName());
+            System.out.println("Getting day of week..."
+                    + Universe.get().getDefaultWorld().getEntityStore().getStore().getClass().getName());
             return getDayOfWeek(Universe.get().getDefaultWorld().getEntityStore().getStore());
         } catch (Exception e) {
             LoggerUtil.getLogger()

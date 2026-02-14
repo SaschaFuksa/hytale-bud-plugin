@@ -17,7 +17,6 @@ import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.server.core.event.events.BootEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -35,6 +34,8 @@ public class BudPlugin extends JavaPlugin {
     private final Config<BudConfig> config;
 
     private ComponentType<EntityStore, PlayerData> budPlayerData;
+
+    private static boolean startedMoodTracker = false;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -71,7 +72,6 @@ public class BudPlugin extends JavaPlugin {
         this.registerCleanupSystem();
         this.registerPlayerConnectEvent();
         this.registerPlayerDisconnectEvent();
-        this.registerBootEvent();
 
         if (this.config.get().isEnableCombatReactions()) {
             // Register Damage Filter System
@@ -98,10 +98,21 @@ public class BudPlugin extends JavaPlugin {
     private void registerPlayerConnectEvent() {
         this.getEventRegistry().register(PlayerConnectEvent.class, event -> {
             /**
-             * On player connect, we need to clean up any Bud NPCs owned by the player
-             * This is triggered, if player has internet connection issues and the NPCs were
+             * On player connect, we need to register mood tracking and clean up any Bud
+             * NPCs owned by the player
+             * This clean up is triggered, if player has internet connection issues and the
+             * NPCs were
              * not despawned by the disconnect event
              */
+            if (!startedMoodTracker) {
+                try {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Starting MoodTracker.");
+                    MoodTracker.getInstance().startPolling();
+                    startedMoodTracker = true;
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MoodTracker: " + e.getMessage());
+                }
+            }
             try {
                 PlayerRef playerRef = event.getPlayerRef();
                 World world = event.getWorld();
@@ -152,13 +163,6 @@ public class BudPlugin extends JavaPlugin {
             } catch (Exception e) {
                 new ErrorResult("Fail during player disconnect event handling").printResult();
             }
-        });
-    }
-
-    private void registerBootEvent() {
-        this.getEventRegistry().register(BootEvent.class, event -> {
-            LoggerUtil.getLogger().info(() -> "[BUD] Server booted, starting MoodTracker.");
-            MoodTracker.getInstance().startPolling();
         });
     }
 

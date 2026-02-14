@@ -41,10 +41,6 @@ public class MoodTracker extends AbstractTracker {
         if (pollingTask != null && !pollingTask.isCancelled()) {
             return;
         }
-        BudRegistry budRegistry = BudRegistry.getInstance();
-        if (budRegistry.getAllOwners().isEmpty()) {
-            return;
-        }
         long interval = BudConfig.getInstance().getMoodReactionPeriod();
         lastPollDay = TimeInformationUtil.getDayOfWeek();
         pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
@@ -66,6 +62,11 @@ public class MoodTracker extends AbstractTracker {
                     .warning(() -> "[BUD] Could not determine current day of week. Skipping mood change.");
             return;
         }
+        if (!lastPollDay.equals(currentPollDay)) {
+            isDayTransition = true;
+            lastPollDay = currentPollDay;
+        }
+
         for (UUID owner : owners) {
             Set<BudInstance> buds = budRegistry.getByOwner(owner);
             for (BudInstance budInstance : buds) {
@@ -81,8 +82,8 @@ public class MoodTracker extends AbstractTracker {
                 + ". Current day: " + currentPollDay + ", Favorite day: " + favDay);
 
         if (currentPollDay.equals(favDay)) {
-            budInstance.setCurrentMood(Mood.OVERMOTIVATED);
             if (isDayTransition) {
+                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
                 Thread.ofVirtual().start(() -> {
@@ -91,6 +92,10 @@ public class MoodTracker extends AbstractTracker {
                         result.printResult();
                     }
                 });
+            } else if (!budInstance.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
+                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+                LoggerUtil.getLogger().info(() -> "[BUD] Favorite day detected for "
+                        + budInstance.getData().getNPCTypeId() + ". Mood set to OVERMOTIVATED.");
             }
         } else {
             if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {

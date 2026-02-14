@@ -43,7 +43,8 @@ public class WorldTracker extends AbstractTracker {
             return;
         }
         long interval = BudConfig.getInstance().getWorldReactionPeriod();
-        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, 3L, interval,
+        pollingTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
+                interval,
                 TimeUnit.SECONDS);
         LoggerUtil.getLogger().info(() -> "[BUD] World tracker started.");
     }
