@@ -24,6 +24,6 @@ public class SuccessResult implements IResult {
 
     @Override
     public void printResult() {
-        LoggerUtil.getLogger().log(Level.FINER, "[BUD] Success: ", this.message);
+        LoggerUtil.getLogger().log(Level.FINER, () -> "[BUD] Success: " + this.message);
     }
 }

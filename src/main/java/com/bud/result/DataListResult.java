@@ -40,9 +40,9 @@ public class DataListResult<T> implements IDataListResult<T> {
     @Override
     public void printResult() {
         if (isSuccess()) {
-            LoggerUtil.getLogger().log(Level.FINER, "[BUD] Success: ", this.message);
+            LoggerUtil.getLogger().log(Level.FINER, () -> "[BUD] Success: " + this.message);
         } else {
-            LoggerUtil.getLogger().log(Level.WARNING, "[BUD] Error: ", this.message);
+            LoggerUtil.getLogger().log(Level.WARNING, () -> "[BUD] Error: " + this.message);
         }
     }
 }

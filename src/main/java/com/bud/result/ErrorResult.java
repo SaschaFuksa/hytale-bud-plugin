@@ -24,7 +24,7 @@ public class ErrorResult implements IResult {
 
     @Override
     public void printResult() {
-        LoggerUtil.getLogger().log(Level.WARNING, "[BUD] Error: ", this.message);
+        LoggerUtil.getLogger().log(Level.WARNING, () -> "[BUD] Error: " + this.message);
     }
 
 }
