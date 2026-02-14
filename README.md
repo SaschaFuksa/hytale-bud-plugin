@@ -147,8 +147,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.5.0**: Interaction to weather events and add "days", also added mood system (currently only random mood changes every 3 minutes)
-- [ ] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
+- [x] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
 - [ ] **1.7.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.8.0**: Visual updates & special models for Buds?
 - [ ] **1.9.0**: Item-based spawning instead of commands?
