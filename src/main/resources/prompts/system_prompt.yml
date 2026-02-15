@@ -48,6 +48,12 @@ prompts:
     Second, you get information about your personal view on items.
     Third, you get the item name.
     Finally, say something related to the item. Try to be creative and entertaining.
+  discover: |
+    Your Buddy just discovered a new zone or area!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on exploration and discovery.
+    Third, you get the name and description of the newly discovered zone.
+    Finally, say something excited and reactive about arriving in this new area. Use the zone description to make it personal and relevant to your character.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions.
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit.

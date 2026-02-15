@@ -13,6 +13,10 @@ import com.bud.reaction.block.BlockChatScheduler;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.discover.DiscoverChatScheduler;
+import com.bud.reaction.discover.DiscoverZoneFilterSystem;
+import com.bud.reaction.farming.CraftRecipeFilterSystem;
+import com.bud.reaction.farming.UseBlockFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemChatScheduler;
 import com.bud.reaction.item.ItemPickupFilterSystem;
@@ -101,6 +105,13 @@ public class BudPlugin extends JavaPlugin {
                     new InventoryChangeListener());
             this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
         }
+        if (this.config.get().isEnableDiscoverReactions()) {
+            this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
+        }
+
+        // Debug: Event listeners to discover farming/crafting interactions
+        this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
+        this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
 
     }
 
@@ -170,6 +181,7 @@ public class BudPlugin extends JavaPlugin {
                 CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 BlockChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 ItemChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                DiscoverChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

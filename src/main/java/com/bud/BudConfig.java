@@ -18,6 +18,7 @@ public class BudConfig {
     private boolean enableBlockReactions = true;
     private boolean enableItemReactions = true;
     private boolean enableWorldReactions = true;
+    private boolean enableDiscoverReactions = true;
     private long worldReactionPeriod = 60L; // seconds
     private boolean enableWeatherReactions = true;
     private long weatherReactionPeriod = 5L; // seconds
@@ -72,6 +73,10 @@ public class BudConfig {
 
     public boolean isEnableBlockReactions() {
         return this.enableBlockReactions;
+    }
+
+    public boolean isEnableDiscoverReactions() {
+        return this.enableDiscoverReactions;
     }
 
     public boolean isEnableWorldReactions() {
@@ -143,6 +148,10 @@ public class BudConfig {
                 .append(new KeyedCodec<>("EnableItemReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableItemReactions = value,
                         config -> config.enableItemReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableDiscoverReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableDiscoverReactions = value,
+                        config -> config.enableDiscoverReactions)
                 .add()
                 .append(new KeyedCodec<>("EnableWorldReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWorldReactions = value,

@@ -39,6 +39,11 @@ itemView: |
   You dislikes: Flowers, fragile items or ingots, because of the smooth surface.
   Your opinions: Collecting gem and ore is the best! You want to eat it!
   Your habits: Gets excited when finding new ore, but you get tired with boring natural stuff!
+discoverView: |
+  You loves: Discovering rocky mountains, caves, and cold windy areas.
+  You dislikes: Arriving at lush, swampy, or flowery places (too boring!).
+  Your habits: Gets excited about new caves to smash, wants to claim every mountain as Trork territory.
+  Your opinions: New areas mean new rocks to smash and new streams to start!
 fallbacks:
   defensive: Og Og! I smash them like rocks!
   passive: Not too fast! I lazy now Og Og.
@@ -50,3 +55,4 @@ fallbacks:
   weather: Og Og! The weather change make me want to smash things!
   favoriteDayView: Og Og! Today my favorite day friday! I want to smash everything today!
   itemView: Og Og! Collect everything! I want to smash them all!
+  discoverView: Og Og! New land to conquer! Where are the rocks?!

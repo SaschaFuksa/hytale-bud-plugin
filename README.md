@@ -112,11 +112,17 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
 | `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
 | `EnableItemReactions` | Enable or disable item reaction messages | `true` |
+| `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
+
+**LLM Usage:**
+- You can use your own local LLM Client (like LM Studio)
+- Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
+- Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
 <br>
 
