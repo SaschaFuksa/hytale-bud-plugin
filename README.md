@@ -113,6 +113,7 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
 | `EnableItemReactions` | Enable or disable item reaction messages | `true` |
 | `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
+| `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
@@ -150,14 +151,16 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 1.  **Initial Setup**: `.\gradlew decompileServer`
 2.  **Build**: `.\gradlew build`
 3.  **Run Server**: `.\gradlew runServer`
+4.  **Auth Login**: `/auth login device`
+5.  **Persist Login**: `/auth persistence Encrypted`
 
 <br>
 
 ## 🗺️ Roadmap
 
 - [x] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
-- [ ] **1.7.0**: Memory storage: Keep memories of player and bud interactions.
-- [ ] **1.8.0**: Visual updates & special models for Buds?
+- [ ] **1.7.0**: Bud reactions to player messages in chat. Better cooldown management for reactions to avoid too many messages.
+- [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>

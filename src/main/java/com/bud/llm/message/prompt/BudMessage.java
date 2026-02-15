@@ -15,6 +15,7 @@ public class BudMessage extends BaseYamlMessage {
     private String favoriteDayView;
     private String itemView;
     private String discoverView;
+    private String craftView;
 
     public String getCharacteristics() {
         return characteristics;
@@ -85,6 +86,10 @@ public class BudMessage extends BaseYamlMessage {
 
     public String getPersonalDiscoverView() {
         return discoverView;
+    }
+
+    public String getPersonalCraftView() {
+        return craftView;
     }
 
     public static BudMessage load(Path path) {

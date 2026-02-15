@@ -1,0 +1,55 @@
+package com.bud.reaction.crafting;
+
+import java.util.LinkedList;
+import java.util.UUID;
+
+import com.bud.reaction.BaseCache;
+import com.bud.reaction.ICacheEntry;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+
+/**
+ * Cache for recently crafted items by players.
+ * Used to provide context for Bud interactions.
+ */
+public class RecentCraftCache extends BaseCache {
+
+    private static final RecentCraftCache INSTANCE = new RecentCraftCache();
+
+    private RecentCraftCache() {
+    }
+
+    public static RecentCraftCache getInstance() {
+        return INSTANCE;
+    }
+
+    @Override
+    public void add(UUID playerId, ICacheEntry entry) {
+        if (!(entry instanceof CraftEntry craftEntry)) {
+            LoggerUtil.getLogger()
+                    .severe(() -> "[BUD-Cache] Invalid entry type for RecentCraftCache: " + entry);
+            return;
+        }
+        cache.compute(playerId, (key, list) -> {
+            if (list == null) {
+                list = new LinkedList<>();
+            }
+
+            // Deduplicate: don't add if last entry has the same item ID
+            if (!list.isEmpty() && list.getLast() instanceof CraftEntry lastEntry
+                    && lastEntry.itemId().equals(craftEntry.itemId())) {
+                return list;
+            }
+
+            list.addLast(craftEntry);
+            if (list.size() > MAX_HISTORY) {
+                list.removeFirst();
+            }
+
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD-Cache] Player " + playerId + " crafted item: " + craftEntry.itemId());
+            return list;
+        });
+
+        CraftChatScheduler.getInstance().onEvent(playerId);
+    }
+}

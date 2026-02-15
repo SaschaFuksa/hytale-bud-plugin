@@ -13,9 +13,11 @@ import com.bud.reaction.block.BlockChatScheduler;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.crafting.CraftChatScheduler;
+import com.bud.reaction.crafting.CraftRecipeFilterSystem;
 import com.bud.reaction.discover.DiscoverChatScheduler;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
-import com.bud.reaction.farming.CraftRecipeFilterSystem;
+import com.bud.reaction.farming.PlayerInteractListener;
 import com.bud.reaction.farming.UseBlockFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemChatScheduler;
@@ -28,6 +30,7 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -108,10 +111,13 @@ public class BudPlugin extends JavaPlugin {
         if (this.config.get().isEnableDiscoverReactions()) {
             this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
         }
+        if (this.config.get().isEnableCraftingReactions()) {
+            this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
+        }
 
         // Debug: Event listeners to discover farming/crafting interactions
         this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
-        this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
+        this.getEventRegistry().registerGlobal(PlayerInteractEvent.class, new PlayerInteractListener());
 
     }
 
@@ -182,6 +188,7 @@ public class BudPlugin extends JavaPlugin {
                 BlockChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 ItemChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 DiscoverChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                CraftChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

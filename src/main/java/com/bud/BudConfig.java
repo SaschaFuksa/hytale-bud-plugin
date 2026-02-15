@@ -17,8 +17,9 @@ public class BudConfig {
     private boolean enableCombatReactions = true;
     private boolean enableBlockReactions = true;
     private boolean enableItemReactions = true;
-    private boolean enableWorldReactions = true;
     private boolean enableDiscoverReactions = true;
+    private boolean enableCraftingReactions = true;
+    private boolean enableWorldReactions = true;
     private long worldReactionPeriod = 60L; // seconds
     private boolean enableWeatherReactions = true;
     private long weatherReactionPeriod = 5L; // seconds
@@ -107,6 +108,10 @@ public class BudConfig {
         return this.enableItemReactions;
     }
 
+    public boolean isEnableCraftingReactions() {
+        return this.enableCraftingReactions;
+    }
+
     static {
         CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -152,6 +157,10 @@ public class BudConfig {
                 .append(new KeyedCodec<>("EnableDiscoverReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableDiscoverReactions = value,
                         config -> config.enableDiscoverReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableCraftingReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableCraftingReactions = value,
+                        config -> config.enableCraftingReactions)
                 .add()
                 .append(new KeyedCodec<>("EnableWorldReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWorldReactions = value,
