@@ -17,7 +17,6 @@ import com.bud.reaction.crafting.CraftChatScheduler;
 import com.bud.reaction.crafting.CraftRecipeFilterSystem;
 import com.bud.reaction.discover.DiscoverChatScheduler;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
-import com.bud.reaction.farming.PlayerInteractListener;
 import com.bud.reaction.farming.UseBlockFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemChatScheduler;
@@ -30,7 +29,6 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
-import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -117,7 +115,6 @@ public class BudPlugin extends JavaPlugin {
 
         // Debug: Event listeners to discover farming/crafting interactions
         this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
-        this.getEventRegistry().registerGlobal(PlayerInteractEvent.class, new PlayerInteractListener());
 
     }
 

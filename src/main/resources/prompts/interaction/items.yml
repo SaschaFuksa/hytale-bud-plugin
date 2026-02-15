@@ -8,6 +8,20 @@ pickup:
   storm_thistle: Storm Thistle is a rare plant with spiky leaves and a stormy yellow color. It is used in alchemy and potion-making.
   stormcap: Stormcap Mushroom is a rare mushroom with a stormy yellow cap. It is used in alchemy and potion-making.
   storm_sapling: Storm Sapling is a rare sapling with stormy yellow leaves. It is used in crafting and has magical properties.
+  berries: Berries are small, colorful fruits. They taste sweet.
+  lettuce: Lettuce is a leafy green vegetable. It tastes fresh and crisp.
+  wheat: Wheat is a common crop. It is used in crafting and can be eaten for a quick boost of energy.
+  carrot: Carrots are orange root vegetables. They taste sweet and earthy.
+  corn: Corn is a tall crop. It tastes sweet and starchy.
+  cauliflower: Cauliflower is a white vegetable. It tastes mild and slightly nutty.
+  pumpkin: Pumpkins are large, orange vegetables. They taste sweet and earthy.
+  eggplant: Eggplants are purple vegetables. They taste slightly bitter and spongy.
+  tomato: Tomatoes are red fruits. They taste juicy and slightly tangy.
+  onion: Onions are bulb vegetables. They taste pungent and can make you cry when cut.
+  potato: Potatoes are starchy tubers. They taste earthy and can be cooked in various ways.
+  rice: Rice is a staple grain. It tastes mild and can be used in many dishes.
+  cotton: Cotton is a soft fiber. It is used in crafting and can be processed into fabric.
+  apple: Apples are red or green fruits. They taste sweet and crisp.
 inventory:
   ore: Ore is a raw material that can be mined from the world. It is typically found in veins. The rarest ores are gold, silver, mythril, and prisma.
   ingot: Ingots are refined materials that are created by smelting ores. They are used in crafting recipes.
