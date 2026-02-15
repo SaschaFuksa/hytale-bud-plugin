@@ -2,6 +2,8 @@ package com.bud.reaction.block;
 
 import java.util.UUID;
 
+import com.bud.npc.BudRegistry;
+import com.bud.reaction.ItemUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -44,16 +46,16 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
                 UUID playerId = player.getUuid();
 
                 // Only care if the player has a Bud
-                if (BlockUtil.playerHasBud(playerId)) {
+                if (BudRegistry.playerHasBud(playerId)) {
                     if (event.getBlockType().getId().contains("Empty")) {
                         return;
                     }
 
-                    final String blockName = BlockUtil.getBlockName(event.getBlockType().getId());
+                    final String blockName = ItemUtil.getItemName(event.getBlockType().getId());
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " + player.getDisplayName() + " broke "
                             + blockName);
-                    RecentBlockCache.addBlock(playerId, blockName, BlockInteraction.BREAK);
+                    RecentBlockCache.getInstance().add(playerId, new BlockEntry(blockName, BlockInteraction.BREAK));
                 }
             }
         } catch (Exception e) {

@@ -6,7 +6,7 @@ import com.bud.llm.message.IPromptContext;
 import com.bud.llm.message.prompt.CombatMessage;
 import com.bud.llm.message.prompt.EntityCategoriesMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.reaction.combat.RecentOpponentCache.OpponentEntry;
+import com.bud.reaction.combat.OpponentEntry;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public record LLMCombatContext(String combatContext, String targetName, PlayerRef player) implements IPromptContext {

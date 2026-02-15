@@ -1,4 +1,4 @@
-package com.bud.llm.message.combat;
+package com.bud.llm.message.item;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,25 +11,25 @@ import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
-import com.bud.reaction.combat.OpponentEntry;
-import com.bud.reaction.combat.RecentOpponentCache;
+import com.bud.reaction.item.ItemEntry;
+import com.bud.reaction.item.RecentItemCache;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
-public class LLMCombatManager implements ILLMChatManager {
+public class LLMItemManager implements ILLMChatManager {
 
-    private final LLMCombatMessageCreation llmCreation;
+    private final LLMItemMessageCreation llmCreation;
 
-    public LLMCombatManager() {
-        this.llmCreation = new LLMCombatMessageCreation();
+    public LLMItemManager() {
+        this.llmCreation = new LLMItemMessageCreation();
     }
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
-        OpponentEntry latestEntry = (OpponentEntry) RecentOpponentCache.pollHistory(player.getUuid());
-        LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
+        ItemEntry latestEntry = (ItemEntry) RecentItemCache.pollHistory(player.getUuid());
+        LLMItemContext contextResult = LLMItemContext.from(latestEntry.getName());
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
@@ -37,23 +37,10 @@ public class LLMCombatManager implements ILLMChatManager {
     @Override
     @SuppressWarnings("unchecked")
     public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
-        // Peek at history without removing - generatePrompt will do the atomic poll
-        LinkedList<OpponentEntry> history = (LinkedList<OpponentEntry>) (LinkedList<?>) RecentOpponentCache
-                .getHistory(ownerId);
+        LinkedList<ItemEntry> history = (LinkedList<ItemEntry>) (LinkedList<?>) RecentItemCache.getHistory(ownerId);
         if (history == null || history.isEmpty())
             return null;
-
-        OpponentEntry latestEntry = history.getFirst();
-        String roleName = latestEntry.roleName();
-
         List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));
-
-        // Filter out the bud that matches the roleName of the opponent (avoid talking
-        // about itself as an opponent)
-        ownerBuds.removeIf(bud -> {
-            String npcTypeId = bud.getEntity().getNPCTypeId();
-            return npcTypeId != null && npcTypeId.equals(roleName);
-        });
 
         if (ownerBuds.isEmpty()) {
             // No suitable Buds available - let generatePrompt handle cleanup
@@ -68,7 +55,6 @@ public class LLMCombatManager implements ILLMChatManager {
     public String getFallbackMessage(BudInstance budInstance) {
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budName = budInstance.getData().getNPCDisplayName();
-        return manager.getBudMessage(budName.toLowerCase()).getFallback("combatView");
+        return manager.getBudMessage(budName.toLowerCase()).getFallback("itemView");
     }
-
 }

@@ -1,38 +1,27 @@
-package com.bud.reaction.combat;
+package com.bud.reaction.item;
 
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.llm.message.combat.LLMCombatManager;
+import com.bud.llm.message.item.LLMItemManager;
 import com.bud.reaction.BaseChatScheduler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
-/**
- * Event-driven combat chat scheduler.
- * Instead of polling every 10 seconds, this scheduler triggers a delayed
- * LLM chat message when combat is registered.
- * 
- * Benefits:
- * - Only processes players with actual combat events
- * - No unnecessary iteration over all players
- * - Configurable delay between combat and chat response
- * - Debouncing: Multiple rapid combat events only trigger one chat
- */
-public class CombatChatScheduler extends BaseChatScheduler {
+public class ItemChatScheduler extends BaseChatScheduler {
 
-    private static final CombatChatScheduler INSTANCE = new CombatChatScheduler();
+    private static final ItemChatScheduler INSTANCE = new ItemChatScheduler();
 
-    private static final LLMCombatManager llmCombatManager = new LLMCombatManager();
-
-    private CombatChatScheduler() {
+    private ItemChatScheduler() {
     }
 
-    public static CombatChatScheduler getInstance() {
+    public static ItemChatScheduler getInstance() {
         return INSTANCE;
     }
+
+    private static final LLMItemManager llmItemManager = new LLMItemManager();
 
     @Override
     public void onEvent(UUID playerId) {
@@ -44,24 +33,24 @@ public class CombatChatScheduler extends BaseChatScheduler {
             return;
         }
 
-        // Debounce: Cancel pending task if a new combat event occurs quickly
+        // Debounce: Cancel pending task if a new block event occurs quickly
         ScheduledFuture<?> pending = pendingReactions.remove(playerId);
         if (pending != null) {
             pending.cancel(false);
         }
 
-        // Schedule new delayed task
+        // Schedule new reaction after debounce period
         ScheduledFuture<?> future = HytaleServer.SCHEDULED_EXECUTOR.schedule(() -> {
             Thread.ofVirtual().start(() -> {
                 try {
                     pendingReactions.remove(playerId);
                     lastReactionTime.put(playerId, System.currentTimeMillis());
-                    LoggerUtil.getLogger().fine(() -> "[BUD] Triggering combat reaction for player " + playerId);
+                    LoggerUtil.getLogger().fine(() -> "[BUD] Triggering item reaction for player " + playerId);
                     interactionManager.processInteraction(
                             Collections.singleton(playerId),
-                            llmCombatManager);
+                            llmItemManager);
                 } catch (Exception e) {
-                    LoggerUtil.getLogger().severe(() -> "[BUD] Error in CombatChatScheduler: " + e.getMessage());
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Error in ItemChatScheduler: " + e.getMessage());
                 }
             });
         }, DEBOUNCE_MS, TimeUnit.MILLISECONDS);

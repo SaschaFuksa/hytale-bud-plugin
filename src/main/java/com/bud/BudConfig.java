@@ -16,6 +16,7 @@ public class BudConfig {
     private double temperature = 0.8;
     private boolean enableCombatReactions = true;
     private boolean enableBlockReactions = true;
+    private boolean enableItemReactions = true;
     private boolean enableWorldReactions = true;
     private long worldReactionPeriod = 60L; // seconds
     private boolean enableWeatherReactions = true;
@@ -97,6 +98,10 @@ public class BudConfig {
         return this.moodReactionPeriod;
     }
 
+    public boolean isEnableItemReactions() {
+        return this.enableItemReactions;
+    }
+
     static {
         CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -131,13 +136,21 @@ public class BudConfig {
                         (config, value) -> config.enableCombatReactions = value,
                         config -> config.enableCombatReactions)
                 .add()
+                .append(new KeyedCodec<>("EnableBlockReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableBlockReactions = value,
+                        config -> config.enableBlockReactions)
+                .add()
+                .append(new KeyedCodec<>("EnableItemReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableItemReactions = value,
+                        config -> config.enableItemReactions)
+                .add()
                 .append(new KeyedCodec<>("EnableWorldReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWorldReactions = value,
                         config -> config.enableWorldReactions)
                 .add()
-                .append(new KeyedCodec<>("EnableBlockReactions", Codec.BOOLEAN),
-                        (config, value) -> config.enableBlockReactions = value,
-                        config -> config.enableBlockReactions)
+                .append(new KeyedCodec<>("WorldReactionPeriod", Codec.LONG),
+                        (config, value) -> config.worldReactionPeriod = value,
+                        config -> config.worldReactionPeriod)
                 .add()
                 .append(new KeyedCodec<>("EnableWeatherReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWeatherReactions = value,
@@ -154,10 +167,6 @@ public class BudConfig {
                 .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
                         (config, value) -> config.moodReactionPeriod = value,
                         config -> config.moodReactionPeriod)
-                .add()
-                .append(new KeyedCodec<>("WorldReactionPeriod", Codec.LONG),
-                        (config, value) -> config.worldReactionPeriod = value,
-                        config -> config.worldReactionPeriod)
                 .add()
                 .build();
     }

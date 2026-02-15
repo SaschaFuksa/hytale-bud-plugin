@@ -13,6 +13,7 @@ public class BudMessage extends AbstractYamlMessage {
     private String blockView;
     private String weatherView;
     private String favoriteDayView;
+    private String itemView;
 
     public String getCharacteristics() {
         return characteristics;
@@ -75,6 +76,10 @@ public class BudMessage extends AbstractYamlMessage {
 
     public String getFavoriteDayView() {
         return favoriteDayView;
+    }
+
+    public String getPersonalItemView() {
+        return itemView;
     }
 
     public static BudMessage load(Path path) {

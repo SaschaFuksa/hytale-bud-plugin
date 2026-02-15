@@ -9,14 +9,19 @@ import com.bud.cleanup.CleanupSystem;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
+import com.bud.reaction.block.BlockChatScheduler;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.item.InventoryChangeListener;
+import com.bud.reaction.item.ItemChatScheduler;
+import com.bud.reaction.item.ItemPickupFilterSystem;
 import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -89,6 +94,14 @@ public class BudPlugin extends JavaPlugin {
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
+        if (this.config.get().isEnableItemReactions()) {
+            // Register inventory change listener for auto-pickup detection (e.g. ore)
+            this.getEventRegistry().registerGlobal(
+                    LivingEntityInventoryChangeEvent.class,
+                    new InventoryChangeListener());
+            this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
+        }
+
     }
 
     private void registerCleanupSystem() {
@@ -155,6 +168,8 @@ public class BudPlugin extends JavaPlugin {
 
                 // Clear pending combat chat tasks for this player
                 CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                BlockChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                ItemChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

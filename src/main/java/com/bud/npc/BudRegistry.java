@@ -66,6 +66,10 @@ public class BudRegistry {
         return byRef.get(ref);
     }
 
+    public static boolean playerHasBud(UUID playerId) {
+        return !getInstance().getByOwner(playerId).isEmpty();
+    }
+
     public Set<BudInstance> getByOwner(UUID ownerId) {
         return byOwner.getOrDefault(ownerId, Collections.emptySet());
     }

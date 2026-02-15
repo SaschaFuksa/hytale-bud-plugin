@@ -1,69 +1,64 @@
 package com.bud.reaction.block;
 
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
+import com.bud.reaction.BaseCache;
+import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
- * Cache for recently broken blocks by players.
+ * Cache for recently broken or added blocks by players.
  * Used to provide context for Bud interactions.
  */
-public class RecentBlockCache {
+public class RecentBlockCache extends BaseCache {
 
-    public record BlockEntry(String blockName, BlockInteraction interaction) {
+    private static final RecentBlockCache INSTANCE = new RecentBlockCache();
+
+    private RecentBlockCache() {
     }
 
-    private static final Map<UUID, LinkedList<BlockEntry>> cache = new ConcurrentHashMap<>();
-    private static final int MAX_HISTORY = 3;
+    public static RecentBlockCache getInstance() {
+        return INSTANCE;
+    }
 
     /**
-     * Adds a broken block to the cache.
+     * Adds a block interaction to the cache.
      * 
-     * @param playerId  Player UUID
-     * @param blockName Name/ID of the block
+     * @param playerId Player UUID
+     * @param entry    BlockEntry containing block information
      */
-    public static void addBlock(UUID playerId, String blockName, BlockInteraction interaction) {
+    @Override
+    public void add(UUID playerId, ICacheEntry entry) {
+        if (!(entry instanceof BlockEntry blockEntry)) {
+            LoggerUtil.getLogger().severe(() -> "[BUD-Cache] Invalid entry type for RecentBlockCache: " + entry);
+            return;
+        }
         cache.compute(playerId, (key, list) -> {
             if (list == null) {
                 list = new LinkedList<>();
             }
 
             // Avoid duplicate consecutive entries of the same block type
-            if (!list.isEmpty() && list.getLast().blockName().equals(blockName)
-                    && list.getLast().interaction() == interaction) {
+            if (!list.isEmpty() && list.getLast() instanceof BlockEntry lastEntry
+                    && lastEntry.getName().equals(blockEntry.getName())
+                    && lastEntry.interaction() == blockEntry.interaction()) {
                 return list;
             }
 
-            list.addLast(new BlockEntry(blockName, interaction));
+            list.addLast(blockEntry);
 
             if (list.size() > MAX_HISTORY) {
                 list.removeFirst();
             }
 
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD-Cache] Player " + playerId + " " + interaction + " block: " + blockName);
+                    .fine(() -> "[BUD-Cache] Player " + playerId + " " + blockEntry.interaction() + " block: "
+                            + blockEntry.getName());
             return list;
         });
 
         // Trigger the block chat scheduler
-        BlockChatScheduler.getInstance().onBlockEvent(playerId);
-    }
-
-    public static LinkedList<BlockEntry> getHistory(UUID playerId) {
-        return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));
-    }
-
-    public static BlockEntry pollHistory(UUID playerId) {
-        final BlockEntry[] result = new BlockEntry[1];
-        cache.computeIfPresent(playerId, (id, list) -> {
-            if (!list.isEmpty()) {
-                result[0] = list.removeFirst();
-            }
-            return list.isEmpty() ? null : list;
-        });
-        return result[0];
+        BlockChatScheduler.getInstance().onEvent(playerId);
     }
 }

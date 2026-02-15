@@ -52,10 +52,11 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             // Case 1: Player attacks NPC
             if (attackerPlayer != null && targetNPC != null && playerHasBud(attackerPlayer.getUuid())) {
-                RecentOpponentCache.addOpponent(
+                RecentOpponentCache.getInstance().add(
                         attackerPlayer.getUuid(),
-                        targetNPC.getRoleName(),
-                        RecentOpponentCache.CombatState.ATTACKED);
+                        new OpponentEntry(
+                                targetNPC.getRoleName(),
+                                CombatState.ATTACKED));
                 LoggerUtil.getLogger()
                         .finer(() -> "[BUD] Damage Event: " + attackerPlayer.getDisplayName() + " attacked NPC "
                                 + targetNPC.getRoleName());
@@ -67,10 +68,11 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             // Case 2: NPC attacks Player
             if (attackerNPC != null && targetPlayer != null && playerHasBud(targetPlayer.getUuid())) {
-                RecentOpponentCache.addOpponent(
+                RecentOpponentCache.getInstance().add(
                         targetPlayer.getUuid(),
-                        attackerNPC.getRoleName(),
-                        RecentOpponentCache.CombatState.WAS_ATTACKED);
+                        new OpponentEntry(
+                                attackerNPC.getRoleName(),
+                                CombatState.WAS_ATTACKED));
                 LoggerUtil.getLogger()
                         .finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
                                 + targetPlayer.getDisplayName());

@@ -70,6 +70,7 @@ Gronkh:
 *   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
 *   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
 *   **Block Interaction**: Your companions react to your recent block placements or block breaks.
+*   **Item Interaction**: Your companions react to your recent item collections.
 *   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
 *   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
 *   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
@@ -110,6 +111,7 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
 | `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
+| `EnableItemReactions` | Enable or disable item reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
