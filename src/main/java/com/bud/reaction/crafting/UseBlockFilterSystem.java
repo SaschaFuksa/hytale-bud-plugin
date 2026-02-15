@@ -1,7 +1,6 @@
 package com.bud.reaction.crafting;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -29,13 +28,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Post> {
 
     private final ItemPromptMessage itemPromptMessage = LLMPromptManager.getInstance().getItemPromptMessage();
-    private final Set<String> benchBlockIds;
+    private final Map<String, String> benchKeywords;
 
     public UseBlockFilterSystem() {
         super(UseBlockEvent.Post.class);
         Map<String, String> bench = itemPromptMessage.getBench();
-        benchBlockIds = (bench != null) ? bench.keySet() : Set.of();
-        LoggerUtil.getLogger().info(() -> "[BUD] UseBlockFilterSystem initialized with bench IDs: " + benchBlockIds);
+        benchKeywords = (bench != null) ? bench : Map.of();
+        LoggerUtil.getLogger()
+                .info(() -> "[BUD] UseBlockFilterSystem initialized with bench keywords: " + benchKeywords.keySet());
     }
 
     @Override
@@ -53,9 +53,22 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
             }
 
             String blockTypeId = event.getBlockType().getId();
+            String blockIdLower = blockTypeId.toLowerCase();
 
-            // Check if the block is a known bench type
-            if (!benchBlockIds.contains(blockTypeId)) {
+            // Must contain "bench" to be relevant at all
+            if (!blockIdLower.contains("bench")) {
+                return;
+            }
+
+            // Find matching keyword (e.g. "cooking", "alchemy", "weapon")
+            String matchedKeyword = null;
+            for (String keyword : benchKeywords.keySet()) {
+                if (blockIdLower.contains(keyword)) {
+                    matchedKeyword = keyword;
+                    break;
+                }
+            }
+            if (matchedKeyword == null) {
                 return;
             }
 
@@ -71,11 +84,12 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
                 return;
             }
 
+            final String benchKey = matchedKeyword;
             LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getDisplayName()
-                    + " used bench=" + blockTypeId);
+                    + " used bench=" + blockTypeId + " (keyword=" + benchKey + ")");
 
             RecentCraftCache.getInstance().add(playerId,
-                    new CraftEntry(blockTypeId, CraftInteraction.USED));
+                    new CraftEntry(benchKey, CraftInteraction.USED));
 
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in UseBlockFilterSystem: " + e.getMessage());
