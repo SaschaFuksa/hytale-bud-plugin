@@ -39,7 +39,7 @@ public class LLMCraftManager implements ILLMChatManager {
         CraftEntry latestEntry = (CraftEntry) RecentCraftCache.getInstance()
                 .pollHistory(budInstance.getOwner().getUuid());
         if (latestEntry == null) {
-            return new DataResult<>(new Prompt("", NO_CRAFT_STRING), NO_CRAFT_STRING);
+            return new DataResult<>(null, NO_CRAFT_STRING);
         }
         LLMCraftContext context = LLMCraftContext.from(latestEntry);
         Prompt prompt = this.llmCreation.createPrompt(context, budInstance);

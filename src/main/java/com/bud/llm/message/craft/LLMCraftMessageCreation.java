@@ -37,15 +37,19 @@ public class LLMCraftMessageCreation implements ILLMMessageCreation {
                 .append(budInfo).append("\n")
                 .append(craftView);
 
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append(craftingInfo).append("\n")
+                .append(manager.getSystemPrompt("final"));
+
         if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+            messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
         String systemPrompt = systemPromptBuilder.toString();
-        String message = craftingInfo + "\n"
-                + manager.getSystemPrompt("final");
+        String message = messageBuilder.toString();
 
         return new Prompt(systemPrompt, message);
     }

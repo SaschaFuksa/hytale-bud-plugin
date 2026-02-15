@@ -3,6 +3,10 @@ package com.bud.reaction.block;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.llm.message.block.LLMBlockManager;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.reaction.BaseCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -58,7 +62,11 @@ public class RecentBlockCache extends BaseCache {
             return list;
         });
 
-        // Trigger the block chat scheduler
-        BlockChatScheduler.getInstance().onEvent(playerId);
+        // Enqueue to orchestrator (throttled to channel cooldown)
+        if (shouldEnqueue(playerId)) {
+            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                    MessageChannel.ACTIVITY, 4, "block",
+                    LLMBlockManager.getInstance(), playerId, System.currentTimeMillis()));
+        }
     }
 }

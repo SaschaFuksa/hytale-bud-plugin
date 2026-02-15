@@ -26,6 +26,12 @@ public class BudConfig {
     private boolean enableMoodReactions = true;
     private long moodReactionPeriod = 180L; // seconds
 
+    // Orchestrator settings
+    private long orchestratorGlobalCooldownMs = 3000L; // ms between ANY bud message per player
+    private long orchestratorChannelCooldownMs = 5000L; // ms between messages on the same channel
+    private int orchestratorMaxQueueDepth = 3; // max pending events per channel per player
+    private long orchestratorTickIntervalMs = 1000L; // how often the orchestrator checks queues
+
     private static volatile BudConfig instance;
 
     public static void setInstance(BudConfig config) {
@@ -112,6 +118,22 @@ public class BudConfig {
         return this.enableCraftingReactions;
     }
 
+    public long getOrchestratorGlobalCooldownMs() {
+        return this.orchestratorGlobalCooldownMs;
+    }
+
+    public long getOrchestratorChannelCooldownMs() {
+        return this.orchestratorChannelCooldownMs;
+    }
+
+    public int getOrchestratorMaxQueueDepth() {
+        return this.orchestratorMaxQueueDepth;
+    }
+
+    public long getOrchestratorTickIntervalMs() {
+        return this.orchestratorTickIntervalMs;
+    }
+
     static {
         CODEC = BuilderCodec.builder(BudConfig.class, BudConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -185,6 +207,22 @@ public class BudConfig {
                 .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
                         (config, value) -> config.moodReactionPeriod = value,
                         config -> config.moodReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("OrchestratorGlobalCooldownMs", Codec.LONG),
+                        (config, value) -> config.orchestratorGlobalCooldownMs = value,
+                        config -> config.orchestratorGlobalCooldownMs)
+                .add()
+                .append(new KeyedCodec<>("OrchestratorChannelCooldownMs", Codec.LONG),
+                        (config, value) -> config.orchestratorChannelCooldownMs = value,
+                        config -> config.orchestratorChannelCooldownMs)
+                .add()
+                .append(new KeyedCodec<>("OrchestratorMaxQueueDepth", Codec.INTEGER),
+                        (config, value) -> config.orchestratorMaxQueueDepth = value,
+                        config -> config.orchestratorMaxQueueDepth)
+                .add()
+                .append(new KeyedCodec<>("OrchestratorTickIntervalMs", Codec.LONG),
+                        (config, value) -> config.orchestratorTickIntervalMs = value,
+                        config -> config.orchestratorTickIntervalMs)
                 .add()
                 .build();
     }

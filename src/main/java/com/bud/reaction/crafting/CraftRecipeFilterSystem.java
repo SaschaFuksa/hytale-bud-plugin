@@ -43,6 +43,7 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
                 UUID playerId = player.getUuid();
                 if (BudRegistry.playerHasBud(playerId)) {
                     String itemId = event.getCraftedRecipe().getPrimaryOutput().getItemId();
+                    System.out.println("DEBUG: Player " + player.getDisplayName() + " crafted item " + itemId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getDisplayName()
                             + " crafted item=" + itemId);

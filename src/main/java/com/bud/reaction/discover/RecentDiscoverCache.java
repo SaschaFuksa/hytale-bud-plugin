@@ -3,6 +3,10 @@ package com.bud.reaction.discover;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.llm.message.discover.LLMDiscoverManager;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.reaction.BaseCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -52,6 +56,11 @@ public class RecentDiscoverCache extends BaseCache {
             return list;
         });
 
-        DiscoverChatScheduler.getInstance().onEvent(playerId);
+        // Enqueue to orchestrator (throttled to channel cooldown)
+        if (shouldEnqueue(playerId)) {
+            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                    MessageChannel.AMBIENT, 1, "discover",
+                    LLMDiscoverManager.getInstance(), playerId, System.currentTimeMillis()));
+        }
     }
 }

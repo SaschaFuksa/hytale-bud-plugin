@@ -43,16 +43,20 @@ public class LLMDiscoverMessageCreation implements ILLMMessageCreation {
                 .append(budInfo).append("\n")
                 .append(discoverView);
 
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append(discoveryInfo).append("\n")
+                .append("Zone description: ").append(zoneDescription).append("\n")
+                .append(manager.getSystemPrompt("final"));
+
         if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+            messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
         String systemPrompt = systemPromptBuilder.toString();
-        String message = discoveryInfo + "\n"
-                + "Zone description: " + zoneDescription + "\n"
-                + manager.getSystemPrompt("final");
+        String message = messageBuilder.toString();
 
         return new Prompt(systemPrompt, message);
     }

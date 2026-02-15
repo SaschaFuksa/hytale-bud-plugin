@@ -3,6 +3,10 @@ package com.bud.reaction.crafting;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.llm.message.craft.LLMCraftManager;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.reaction.BaseCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -34,7 +38,8 @@ public class RecentCraftCache extends BaseCache {
                 list = new LinkedList<>();
             }
 
-            // Deduplicate: don't add if last entry has the same item ID and interaction type
+            // Deduplicate: don't add if last entry has the same item ID and interaction
+            // type
             if (!list.isEmpty() && list.getLast() instanceof CraftEntry lastEntry
                     && lastEntry.itemId().equals(craftEntry.itemId())
                     && lastEntry.interaction() == craftEntry.interaction()) {
@@ -52,6 +57,12 @@ public class RecentCraftCache extends BaseCache {
             return list;
         });
 
-        CraftChatScheduler.getInstance().onEvent(playerId);
+        // Enqueue to orchestrator (throttled to channel cooldown)
+        if (shouldEnqueue(playerId)) {
+            int priority = (craftEntry.interaction() == CraftInteraction.CRAFTED) ? 1 : 2;
+            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                    MessageChannel.ACTIVITY, priority, "craft",
+                    LLMCraftManager.getInstance(), playerId, System.currentTimeMillis()));
+        }
     }
 }

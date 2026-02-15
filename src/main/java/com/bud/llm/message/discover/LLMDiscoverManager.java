@@ -39,7 +39,7 @@ public class LLMDiscoverManager implements ILLMChatManager {
         DiscoverEntry latestEntry = (DiscoverEntry) RecentDiscoverCache.getInstance()
                 .pollHistory(budInstance.getOwner().getUuid());
         if (latestEntry == null) {
-            return new DataResult<>(new Prompt("", NO_DISCOVER_STRING), NO_DISCOVER_STRING);
+            return new DataResult<>(null, NO_DISCOVER_STRING);
         }
         LLMDiscoverContext context = LLMDiscoverContext.from(latestEntry);
         Prompt prompt = this.llmCreation.createPrompt(context, budInstance);

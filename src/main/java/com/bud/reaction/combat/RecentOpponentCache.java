@@ -3,6 +3,10 @@ package com.bud.reaction.combat;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.llm.message.combat.LLMCombatManager;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.reaction.BaseCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -65,8 +69,12 @@ public class RecentOpponentCache extends BaseCache {
             return list;
         });
 
-        // Trigger event-driven combat chat scheduler
-        CombatChatScheduler.getInstance().onEvent(playerId);
+        // Enqueue to orchestrator (throttled to channel cooldown)
+        if (shouldEnqueue(playerId)) {
+            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                    MessageChannel.COMBAT, 1, "combat",
+                    new LLMCombatManager(), playerId, System.currentTimeMillis()));
+        }
     }
 
 }

@@ -3,6 +3,10 @@ package com.bud.reaction.item;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.llm.message.item.LLMItemManager;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.reaction.BaseCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -62,7 +66,11 @@ public class RecentItemCache extends BaseCache {
             return (LinkedList<ICacheEntry>) (LinkedList<?>) currentList;
         });
 
-        // Trigger the item chat scheduler
-        ItemChatScheduler.getInstance().onEvent(playerId);
+        // Enqueue to orchestrator (throttled to channel cooldown)
+        if (shouldEnqueue(playerId)) {
+            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                    MessageChannel.ACTIVITY, 3, "item",
+                    new LLMItemManager(), playerId, System.currentTimeMillis()));
+        }
     }
 }

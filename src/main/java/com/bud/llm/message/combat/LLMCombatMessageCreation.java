@@ -35,15 +35,23 @@ public class LLMCombatMessageCreation implements ILLMMessageCreation {
                                 .append(manager.getSystemPrompt("default")).append("\n")
                                 .append(budInfo).append("\n")
                                 .append(combatView);
+
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.append(combatInfo).append("\n")
+                                .append(entityInfo).append("\n")
+                                .append(manager.getSystemPrompt("final"));
+
                 if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
                                                         budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                        messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
+
                 String systemPrompt = systemPromptBuilder.toString();
-                String message = combatInfo + "\n" + entityInfo + "\n" + manager.getSystemPrompt("final");
+                String message = messageBuilder.toString();
                 return new Prompt(systemPrompt, message);
         }
 

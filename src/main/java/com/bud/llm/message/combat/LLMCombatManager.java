@@ -29,6 +29,9 @@ public class LLMCombatManager implements ILLMChatManager {
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
         OpponentEntry latestEntry = (OpponentEntry) RecentOpponentCache.getInstance().pollHistory(player.getUuid());
+        if (latestEntry == null) {
+            return new DataResult<>(null, "No recent combat data for player.");
+        }
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");

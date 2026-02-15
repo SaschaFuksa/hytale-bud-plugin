@@ -7,19 +7,15 @@ import javax.annotation.Nonnull;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
-import com.bud.reaction.block.BlockChatScheduler;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
-import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
-import com.bud.reaction.crafting.CraftChatScheduler;
 import com.bud.reaction.crafting.CraftRecipeFilterSystem;
 import com.bud.reaction.crafting.UseBlockFilterSystem;
-import com.bud.reaction.discover.DiscoverChatScheduler;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
-import com.bud.reaction.item.ItemChatScheduler;
 import com.bud.reaction.item.ItemPickupFilterSystem;
 import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
@@ -46,6 +42,7 @@ public class BudPlugin extends JavaPlugin {
     private ComponentType<EntityStore, PlayerData> budPlayerData;
 
     private static boolean startedMoodTracker = false;
+    private static boolean startedOrchestrator = false;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -145,6 +142,15 @@ public class BudPlugin extends JavaPlugin {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MoodTracker: " + e.getMessage());
                 }
             }
+            if (!startedOrchestrator) {
+                try {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Starting MessageOrchestrator.");
+                    MessageOrchestrator.getInstance().start();
+                    startedOrchestrator = true;
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MessageOrchestrator: " + e.getMessage());
+                }
+            }
             try {
                 PlayerRef playerRef = event.getPlayerRef();
                 World world = event.getWorld();
@@ -178,12 +184,8 @@ public class BudPlugin extends JavaPlugin {
                 PlayerRef playerRef = event.getPlayerRef();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
 
-                // Clear pending combat chat tasks for this player
-                CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-                BlockChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-                ItemChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-                DiscoverChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
-                CraftChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                // Clear pending orchestrator state for this player
+                MessageOrchestrator.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

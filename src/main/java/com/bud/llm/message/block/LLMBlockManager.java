@@ -35,7 +35,7 @@ public class LLMBlockManager implements ILLMChatManager {
         BlockEntry latestEntry = (BlockEntry) RecentBlockCache.getInstance()
                 .pollHistory(budInstance.getOwner().getUuid());
         if (latestEntry == null) {
-            return new DataResult<>(new Prompt("", NO_BLOCK_STRING), NO_BLOCK_STRING);
+            return new DataResult<>(null, NO_BLOCK_STRING);
         }
         LLMBlockContext context = LLMBlockContext.from(latestEntry.blockName(), latestEntry.interaction(),
                 budInstance.getOwner());
