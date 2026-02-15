@@ -13,7 +13,7 @@ public abstract class BaseChatScheduler {
 
     protected final Map<UUID, ScheduledFuture<?>> pendingReactions = new ConcurrentHashMap<>();
 
-    protected static final long COOLDOWN_MS = 5_000; // 5 seconds cooldown between reactions
+    protected static final long COOLDOWN_MS = 3_000; // 3 seconds cooldown between reactions
 
     protected static final long DEBOUNCE_MS = 3_000; // 3 seconds debounce for consecutive blocks
 

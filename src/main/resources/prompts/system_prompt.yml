@@ -4,7 +4,7 @@ prompts:
     Do not setting the response in quotes like " " or * *.
     Do not use any emojis or other special characters.
     Do not highlighting information, we don't support bold or italic text.
-    Do always respond short in a single sentence with maximum 20 words.
+    Do always respond short in a single sentence not too many words.
     Do focus on exactly one piece of information, or one thought.
   combat: |
     You want to say something about the last combat actions of your Buddy.

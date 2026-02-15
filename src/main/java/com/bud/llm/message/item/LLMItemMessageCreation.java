@@ -12,45 +12,45 @@ import com.bud.reaction.world.time.Mood;
 
 public class LLMItemMessageCreation implements ILLMMessageCreation {
 
-    @Override
-    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
-        if (!(context instanceof LLMItemContext itemContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMItemContext");
+        @Override
+        public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
+                if (!(context instanceof LLMItemContext itemContext)) {
+                        throw new IllegalArgumentException("Context must be of type LLMItemContext");
+                }
+                BudMessage npcMessage = budInstance.getData().getBudMessage();
+
+                LLMPromptManager manager = LLMPromptManager.getInstance();
+
+                String collectInformation = itemContext.getCollectInformation();
+                ItemPromptMessage itemPromptMessage = manager.getItemPromptMessage();
+                final String itemInformation = (itemContext.itemEntry().interaction().equals(ItemInteraction.INVENTORY)
+                                ? itemPromptMessage.getInventory()
+                                : itemPromptMessage.getPickup())
+                                .entrySet().stream()
+                                .filter(entry -> itemContext.itemEntry().itemName().toLowerCase()
+                                                .contains(entry.getKey().toLowerCase()))
+                                .map(entry -> "\n" + entry.getValue())
+                                .findFirst()
+                                .orElse("");
+
+                String budInfo = npcMessage.getCharacteristics();
+                String itemView = npcMessage.getPersonalItemView();
+
+                StringBuilder systemPromptBuilder = new StringBuilder();
+                systemPromptBuilder.append(manager.getSystemPrompt("item")).append("\n")
+                                .append(manager.getSystemPrompt("default")).append("\n")
+                                .append(budInfo).append("\n")
+                                .append(itemView);
+                if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+                        systemPromptBuilder.append("\n")
+                                        .append(manager.getMoodPrompt("instruction"));
+                        systemPromptBuilder.append("\n")
+                                        .append(manager.getMoodPrompt(
+                                                        budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                }
+                String systemPrompt = systemPromptBuilder.toString();
+                String message = collectInformation + "\n" + itemInformation + "\n" + manager.getSystemPrompt("final");
+                return new Prompt(systemPrompt, message);
         }
-        BudMessage npcMessage = budInstance.getData().getBudMessage();
-
-        LLMPromptManager manager = LLMPromptManager.getInstance();
-
-        String collectInformation = itemContext.getCollectInformation();
-        ItemPromptMessage itemPromptMessage = manager.getItemPromptMessage();
-        final String itemInformation = (itemContext.itemEntry().interaction().equals(ItemInteraction.INVENTORY)
-                ? itemPromptMessage.getInventory()
-                : itemPromptMessage.getPickup())
-                .entrySet().stream()
-                .filter(entry -> itemContext.itemEntry().itemName().toLowerCase()
-                        .contains(entry.getKey().toLowerCase()))
-                .map(entry -> "\n" + entry.getValue())
-                .findFirst()
-                .orElse("");
-
-        String budInfo = npcMessage.getCharacteristics();
-        String itemView = npcMessage.getPersonalItemView();
-
-        StringBuilder systemPromptBuilder = new StringBuilder();
-        systemPromptBuilder.append(manager.getSystemPrompt("item")).append("\n")
-                .append(manager.getSystemPrompt("default")).append("\n")
-                .append(budInfo).append("\n")
-                .append(itemView);
-        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
-            systemPromptBuilder.append("\n")
-                    .append(manager.getMoodPrompt("instruction"));
-            systemPromptBuilder.append("\n")
-                    .append(manager.getMoodPrompt(
-                            budInstance.getCurrentMood().getDisplayName().toLowerCase()));
-        }
-        String systemPrompt = systemPromptBuilder.toString();
-        String message = collectInformation + "\n" + itemInformation + "\n" + manager.getSystemPrompt("final");
-        return new Prompt(systemPrompt, message);
-    }
 
 }

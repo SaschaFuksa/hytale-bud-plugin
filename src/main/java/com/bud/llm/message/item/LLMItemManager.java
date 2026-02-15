@@ -29,6 +29,11 @@ public class LLMItemManager implements ILLMChatManager {
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
         ItemEntry latestEntry = (ItemEntry) RecentItemCache.getInstance().pollHistory(player.getUuid());
+
+        if (latestEntry == null) {
+            return new DataResult<>(null, "No recent item found for player.");
+        }
+
         LLMItemContext contextResult = LLMItemContext.from(latestEntry);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");

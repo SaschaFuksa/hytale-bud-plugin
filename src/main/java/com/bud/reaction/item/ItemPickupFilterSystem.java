@@ -34,8 +34,8 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
 
     public ItemPickupFilterSystem() {
         super(InteractivelyPickupItemEvent.class);
-        Map<String, String> inventory = itemPromptMessage.getInventory();
-        String joined = inventory.keySet().stream()
+        Map<String, String> pickup = itemPromptMessage.getPickup();
+        String joined = pickup.keySet().stream()
                 .map(key -> key.replace("_", " "))
                 .collect(Collectors.joining("|"));
         RELEVANT_ITEMS_PATTERN = Pattern.compile(".*\\b(?i)(" + joined + ")\\b.*");
@@ -69,7 +69,7 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
                         .finer(() -> "[BUD] Item Pickup Event: " + player.getDisplayName() + " picked up "
                                 + displayName);
                 RecentItemCache.getInstance().add(playerId,
-                        new ItemEntry(displayName, getPriority(displayName), ItemInteraction.PICKUP));
+                        new ItemEntry(displayName, getPriority(displayName.toLowerCase()), ItemInteraction.PICKUP));
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in ItemPickupFilterSystem: " + e.getMessage());
@@ -78,11 +78,11 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
 
     private static int getPriority(String itemName) {
         // Simple priority logic based on item type keywords
-        if (itemName.contains("gem")) {
+        if (itemName.contains("blood leaf") || itemName.contains("kelp") || itemName.contains("storm sapling")) {
             return 3;
-        } else if (itemName.contains("ingot")) {
+        } else if (itemName.contains("bloodcap") || itemName.contains("azurecap") || itemName.contains("stormcap")) {
             return 2;
-        } else if (itemName.contains("ore")) {
+        } else if (itemName.contains("rose") || itemName.contains("fern") || itemName.contains("thistle")) {
             return 1;
         }
         return 0; // Default priority for other items
