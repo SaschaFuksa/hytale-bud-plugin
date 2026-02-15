@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class MoodPromptMessage extends AbstractYamlMessage {
+public class MoodPromptMessage extends BaseYamlMessage {
 
     private Map<String, String> mood;
 

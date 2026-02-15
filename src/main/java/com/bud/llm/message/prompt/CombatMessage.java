@@ -1,6 +1,6 @@
 package com.bud.llm.message.prompt;
 
-public class CombatMessage extends AbstractYamlMessage {
+public class CombatMessage extends BaseYamlMessage {
 
     private String combatInfo;
     private String targetInfoTemplate;

@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.HytaleServer;
  * Listens to PlayerInteractEvent with InteractionType.Use (F-key).
  * States: PetDefensive, PetPassive, PetSitting
  */
-public class StateTracker extends AbstractTracker {
+public class StateTracker extends BaseTracker {
 
     private static final StateTracker INSTANCE = new StateTracker();
 

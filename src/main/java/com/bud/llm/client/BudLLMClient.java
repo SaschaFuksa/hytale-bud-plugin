@@ -16,7 +16,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Legacy LLM client implementation.
  * Calls your own LLM server directly.
  */
-public class BudLLMClient extends AbstractLLMClient {
+public class BudLLMClient extends BaseLLMClient {
     private final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))

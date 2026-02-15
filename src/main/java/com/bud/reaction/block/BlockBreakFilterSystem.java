@@ -51,7 +51,7 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
                         return;
                     }
 
-                    final String blockName = ItemUtil.getItemName(event.getBlockType().getId());
+                    final String blockName = ItemUtil.getDisplayName(event.getBlockType().getId());
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " + player.getDisplayName() + " broke "
                             + blockName);

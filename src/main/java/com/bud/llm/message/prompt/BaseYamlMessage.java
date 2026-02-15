@@ -3,15 +3,16 @@ package com.bud.llm.message.prompt;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
 /**
  * Abstract base class for messages loaded from YAML resources or files.
  */
-public abstract class AbstractYamlMessage {
+public abstract class BaseYamlMessage {
 
     /**
      * Loads a YAML file and maps it to the specified class.

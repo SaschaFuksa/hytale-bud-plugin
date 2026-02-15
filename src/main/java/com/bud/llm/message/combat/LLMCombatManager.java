@@ -28,7 +28,7 @@ public class LLMCombatManager implements ILLMChatManager {
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
-        OpponentEntry latestEntry = (OpponentEntry) RecentOpponentCache.pollHistory(player.getUuid());
+        OpponentEntry latestEntry = (OpponentEntry) RecentOpponentCache.getInstance().pollHistory(player.getUuid());
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
@@ -39,6 +39,7 @@ public class LLMCombatManager implements ILLMChatManager {
     public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
         // Peek at history without removing - generatePrompt will do the atomic poll
         LinkedList<OpponentEntry> history = (LinkedList<OpponentEntry>) (LinkedList<?>) RecentOpponentCache
+                .getInstance()
                 .getHistory(ownerId);
         if (history == null || history.isEmpty())
             return null;

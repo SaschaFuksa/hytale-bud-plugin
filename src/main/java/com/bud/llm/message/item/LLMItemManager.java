@@ -28,8 +28,8 @@ public class LLMItemManager implements ILLMChatManager {
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
-        ItemEntry latestEntry = (ItemEntry) RecentItemCache.pollHistory(player.getUuid());
-        LLMItemContext contextResult = LLMItemContext.from(latestEntry.getName());
+        ItemEntry latestEntry = (ItemEntry) RecentItemCache.getInstance().pollHistory(player.getUuid());
+        LLMItemContext contextResult = LLMItemContext.from(latestEntry);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
@@ -37,7 +37,8 @@ public class LLMItemManager implements ILLMChatManager {
     @Override
     @SuppressWarnings("unchecked")
     public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
-        LinkedList<ItemEntry> history = (LinkedList<ItemEntry>) (LinkedList<?>) RecentItemCache.getHistory(ownerId);
+        LinkedList<ItemEntry> history = (LinkedList<ItemEntry>) (LinkedList<?>) RecentItemCache.getInstance()
+                .getHistory(ownerId);
         if (history == null || history.isEmpty())
             return null;
         List<BudInstance> ownerBuds = new ArrayList<>(BudRegistry.getInstance().getByOwner(ownerId));

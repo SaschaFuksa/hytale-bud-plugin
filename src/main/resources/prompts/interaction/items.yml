@@ -1,0 +1,14 @@
+pickup:
+  blood_rose: Blood Rose is a rare flower with a deep red color. It is used in alchemy and potion-making.  
+  bloodcap: Bloodcap Mushroom is a rare mushroom with mystical red glow. It is used in alchemy and potion-making.
+  blood_leaf: Bloodleaf is a rare plant with deep red leaves. It is used in crafting and has magical properties.
+  azure_fern: Azure Fern is a rare plant with vibrant blue-green leaves. It is used in alchemy and potion-making.
+  azurecap: Azurecap Mushroom is a rare mushroom with a bright blue cap. It is used in alchemy and potion-making.
+  azure_kelp: Azure Kelp is a rare aquatic plant with blue-green fronds and magical glow. It is used in crafting and has magical properties.
+  storm_thistle: Storm Thistle is a rare plant with spiky leaves and a stormy yellow color. It is used in alchemy and potion-making.
+  stormcap: Stormcap Mushroom is a rare mushroom with a stormy yellow cap. It is used in alchemy and potion-making.
+  storm_sapling: Storm Sapling is a rare sapling with stormy yellow leaves. It is used in crafting and has magical properties.
+inventory:
+  ore: Ore is a raw material that can be mined from the world. It is typically found in veins. The rarest ores are gold, silver, mythril, and prisma.
+  ingot: Ingots are refined materials that are created by smelting ores. They are used in crafting recipes.
+  gem: Gems are extremely rare stones that can be found in the world. They are extremely valuable.

@@ -1,9 +1,9 @@
 package com.bud.llm.message.prompt;
 
-import java.util.Map;
 import java.nio.file.Path;
+import java.util.Map;
 
-public class EntityCategoriesMessage extends AbstractYamlMessage {
+public class EntityCategoriesMessage extends BaseYamlMessage {
 
     private Map<String, CategoryData> categories;
 

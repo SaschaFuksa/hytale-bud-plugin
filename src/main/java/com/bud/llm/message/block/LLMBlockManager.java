@@ -32,7 +32,8 @@ public class LLMBlockManager implements ILLMChatManager {
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        BlockEntry latestEntry = (BlockEntry) RecentBlockCache.pollHistory(budInstance.getOwner().getUuid());
+        BlockEntry latestEntry = (BlockEntry) RecentBlockCache.getInstance()
+                .pollHistory(budInstance.getOwner().getUuid());
         if (latestEntry == null) {
             return new DataResult<>(new Prompt("", NO_BLOCK_STRING), NO_BLOCK_STRING);
         }

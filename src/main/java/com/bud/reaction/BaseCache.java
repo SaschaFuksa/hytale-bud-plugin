@@ -7,14 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class BaseCache {
 
-    protected static final Map<UUID, LinkedList<ICacheEntry>> cache = new ConcurrentHashMap<>();
+    protected final Map<UUID, LinkedList<ICacheEntry>> cache = new ConcurrentHashMap<>();
     protected static final int MAX_HISTORY = 3;
 
-    public static LinkedList<ICacheEntry> getHistory(UUID playerId) {
+    public LinkedList<ICacheEntry> getHistory(UUID playerId) {
         return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));
     }
 
-    public static ICacheEntry pollHistory(UUID playerId) {
+    public ICacheEntry pollHistory(UUID playerId) {
         final ICacheEntry[] result = new ICacheEntry[1];
         cache.computeIfPresent(playerId, (id, list) -> {
             if (!list.isEmpty()) {

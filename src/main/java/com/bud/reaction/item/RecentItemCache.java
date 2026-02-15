@@ -61,5 +61,8 @@ public class RecentItemCache extends BaseCache {
                     .fine(() -> "[BUD-Cache] Player " + playerId + " picked up item: " + itemEntry.itemName());
             return (LinkedList<ICacheEntry>) (LinkedList<?>) currentList;
         });
+
+        // Trigger the item chat scheduler
+        ItemChatScheduler.getInstance().onEvent(playerId);
     }
 }

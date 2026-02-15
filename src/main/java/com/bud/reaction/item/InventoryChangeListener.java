@@ -1,8 +1,12 @@
 package com.bud.reaction.item;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
+import com.bud.llm.message.prompt.ItemPromptMessage;
+import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudRegistry;
 import com.bud.reaction.ItemUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -20,6 +24,18 @@ import com.hypixel.hytale.server.core.inventory.transaction.Transaction;
  * this fires for ALL inventory additions including auto-pickup.
  */
 public class InventoryChangeListener implements Consumer<LivingEntityInventoryChangeEvent> {
+
+    private final ItemPromptMessage itemPromptMessage = LLMPromptManager.getInstance().getItemPromptMessage();
+
+    private static Pattern RELEVANT_ITEMS_PATTERN;
+
+    public InventoryChangeListener() {
+        Map<String, String> inventory = itemPromptMessage.getInventory();
+        String joined = String.join("|", inventory.keySet());
+        RELEVANT_ITEMS_PATTERN = Pattern.compile(".*\\b(?i)(" + joined + ")\\b.*");
+        LoggerUtil.getLogger().info(() -> "[BUD] InventoryChangeListener initialized with relevant item patterns: "
+                + RELEVANT_ITEMS_PATTERN.pattern());
+    }
 
     @Override
     public void accept(LivingEntityInventoryChangeEvent event) {
@@ -45,17 +61,17 @@ public class InventoryChangeListener implements Consumer<LivingEntityInventoryCh
                 return;
             }
             String itemName = itemTransaction.getQuery().getItem().getId();
-            String displayName = ItemUtil.getItemName(itemName);
+            String displayName = ItemUtil.getDisplayName(itemName);
 
-            boolean relevantItem = displayName.matches(".*\\b(?i)(ore|ingot|gem)\\b.*");
+            boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
             UUID playerId = player.getUuid();
 
             if (relevantItem && BudRegistry.playerHasBud(playerId)) {
                 LoggerUtil.getLogger()
                         .finer(() -> "[BUD] Inventory Change (ADD): " + player.getDisplayName()
-                                + " received " + itemName);
+                                + " received " + displayName);
                 RecentItemCache.getInstance().add(playerId,
-                        new ItemEntry(displayName, getPriority(displayName)));
+                        new ItemEntry(displayName, getPriority(displayName), ItemInteraction.INVENTORY));
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in InventoryChangeListener: " + e.getMessage());

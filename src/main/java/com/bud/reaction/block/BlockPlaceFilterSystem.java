@@ -47,7 +47,7 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
 
                 // Only care if the player has a Bud
                 if (BudRegistry.playerHasBud(playerId)) {
-                    String blockName = ItemUtil.getItemName(event.getItemInHand().getItem().getBlockId());
+                    String blockName = ItemUtil.getDisplayName(event.getItemInHand().getItem().getBlockId());
 
                     LoggerUtil.getLogger()
                             .finer(() -> "[BUD] Block Place Event: " + player.getDisplayName() + " placed "

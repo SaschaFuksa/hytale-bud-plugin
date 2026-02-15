@@ -8,7 +8,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Base class for LLM clients providing shared utility methods for logging and
  * parsing.
  */
-public abstract class AbstractLLMClient implements ILLMClient {
+public abstract class BaseLLMClient implements ILLMClient {
 
     protected void logUsage(String clientName, String jsonResponse) {
         try {

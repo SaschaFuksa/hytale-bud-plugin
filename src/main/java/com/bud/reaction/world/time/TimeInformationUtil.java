@@ -60,6 +60,8 @@ public class TimeInformationUtil {
             return DayOfWeek.MONDAY;
         }
         int dayValue = gameTime.getDayOfWeek().getValue();
+        LoggerUtil.getLogger().finer(
+                () -> "[BUD] In-game day of week value: " + dayValue + " (" + DayOfWeek.values()[dayValue - 1] + ")");
         return DayOfWeek.values()[dayValue - 1];
     }
 

@@ -17,7 +17,7 @@ import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
 
-public class WorldTracker extends AbstractTracker {
+public class WorldTracker extends BaseTracker {
 
     private static final WorldTracker INSTANCE = new WorldTracker();
 

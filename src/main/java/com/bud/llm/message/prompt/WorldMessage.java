@@ -1,6 +1,6 @@
 package com.bud.llm.message.prompt;
 
-public class WorldMessage extends AbstractYamlMessage {
+public class WorldMessage extends BaseYamlMessage {
 
     private String environmentInfo;
 

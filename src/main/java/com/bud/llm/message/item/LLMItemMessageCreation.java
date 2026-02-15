@@ -4,8 +4,10 @@ import com.bud.llm.message.ILLMMessageCreation;
 import com.bud.llm.message.IPromptContext;
 import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.BudMessage;
+import com.bud.llm.message.prompt.ItemPromptMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
+import com.bud.reaction.item.ItemInteraction;
 import com.bud.reaction.world.time.Mood;
 
 public class LLMItemMessageCreation implements ILLMMessageCreation {
@@ -19,7 +21,17 @@ public class LLMItemMessageCreation implements ILLMMessageCreation {
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        String itemInformation = LLMItemContext.getItemInformation(itemContext.itemName());
+        String collectInformation = itemContext.getCollectInformation();
+        ItemPromptMessage itemPromptMessage = manager.getItemPromptMessage();
+        final String itemInformation = (itemContext.itemEntry().interaction().equals(ItemInteraction.INVENTORY)
+                ? itemPromptMessage.getInventory()
+                : itemPromptMessage.getPickup())
+                .entrySet().stream()
+                .filter(entry -> itemContext.itemEntry().itemName().toLowerCase()
+                        .contains(entry.getKey().toLowerCase()))
+                .map(entry -> "\n" + entry.getValue())
+                .findFirst()
+                .orElse("");
 
         String budInfo = npcMessage.getCharacteristics();
         String itemView = npcMessage.getPersonalItemView();
@@ -37,7 +49,7 @@ public class LLMItemMessageCreation implements ILLMMessageCreation {
                             budInstance.getCurrentMood().getDisplayName().toLowerCase()));
         }
         String systemPrompt = systemPromptBuilder.toString();
-        String message = itemInformation + "\n" + manager.getSystemPrompt("final");
+        String message = collectInformation + "\n" + itemInformation + "\n" + manager.getSystemPrompt("final");
         return new Prompt(systemPrompt, message);
     }
 

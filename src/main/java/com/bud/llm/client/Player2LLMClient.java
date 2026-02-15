@@ -16,7 +16,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Player2 API LLM client implementation.
  * Simple, stateless LLM calls to Player2 API.
  */
-public class Player2LLMClient extends AbstractLLMClient {
+public class Player2LLMClient extends BaseLLMClient {
     private static final String BASE_URL = "http://localhost:4315";
     private static final String GAME_KEY = "hytale-bud";
 
