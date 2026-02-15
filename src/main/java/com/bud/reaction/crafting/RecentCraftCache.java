@@ -34,9 +34,10 @@ public class RecentCraftCache extends BaseCache {
                 list = new LinkedList<>();
             }
 
-            // Deduplicate: don't add if last entry has the same item ID
+            // Deduplicate: don't add if last entry has the same item ID and interaction type
             if (!list.isEmpty() && list.getLast() instanceof CraftEntry lastEntry
-                    && lastEntry.itemId().equals(craftEntry.itemId())) {
+                    && lastEntry.itemId().equals(craftEntry.itemId())
+                    && lastEntry.interaction() == craftEntry.interaction()) {
                 return list;
             }
 
@@ -46,7 +47,8 @@ public class RecentCraftCache extends BaseCache {
             }
 
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD-Cache] Player " + playerId + " crafted item: " + craftEntry.itemId());
+                    .fine(() -> "[BUD-Cache] Player " + playerId + " " + craftEntry.interaction().name().toLowerCase()
+                            + " item: " + craftEntry.itemId());
             return list;
         });
 

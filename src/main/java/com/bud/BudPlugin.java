@@ -15,9 +15,9 @@ import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
 import com.bud.reaction.crafting.CraftChatScheduler;
 import com.bud.reaction.crafting.CraftRecipeFilterSystem;
+import com.bud.reaction.crafting.UseBlockFilterSystem;
 import com.bud.reaction.discover.DiscoverChatScheduler;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
-import com.bud.reaction.farming.UseBlockFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemChatScheduler;
 import com.bud.reaction.item.ItemPickupFilterSystem;
@@ -111,10 +111,8 @@ public class BudPlugin extends JavaPlugin {
         }
         if (this.config.get().isEnableCraftingReactions()) {
             this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
+            this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
         }
-
-        // Debug: Event listeners to discover farming/crafting interactions
-        this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
 
     }
 

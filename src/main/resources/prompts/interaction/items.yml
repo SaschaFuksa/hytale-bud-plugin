@@ -1,13 +1,13 @@
 pickup:
-  blood_rose: Blood Rose is a rare flower with a deep red color. It is used in alchemy and potion-making.  
-  bloodcap: Bloodcap Mushroom is a rare mushroom with mystical red glow. It is used in alchemy and potion-making.
-  blood_leaf: Bloodleaf is a rare plant with deep red leaves. It is used in crafting and has magical properties.
-  azure_fern: Azure Fern is a rare plant with vibrant blue-green leaves. It is used in alchemy and potion-making.
-  azurecap: Azurecap Mushroom is a rare mushroom with a bright blue cap. It is used in alchemy and potion-making.
-  azure_kelp: Azure Kelp is a rare aquatic plant with blue-green fronds and magical glow. It is used in crafting and has magical properties.
-  storm_thistle: Storm Thistle is a rare plant with spiky leaves and a stormy yellow color. It is used in alchemy and potion-making.
-  stormcap: Stormcap Mushroom is a rare mushroom with a stormy yellow cap. It is used in alchemy and potion-making.
-  storm_sapling: Storm Sapling is a rare sapling with stormy yellow leaves. It is used in crafting and has magical properties.
+  blood_rose: Blood Rose is a rare flower with a deep red color. This rose is often associated with love and passion.
+  bloodcap: Bloodcap Mushroom is a rare mushroom with mystical red glow. This mushroom is often used in magical rituals and potion-making.
+  blood_leaf: Bloodleaf is a rare plant with deep red leaves. This leaf has life-extending properties and is often used in alchemy.
+  azure_fern: Azure Fern is a rare plant with vibrant blue-green leaves. This fern has magical healing properties.
+  azurecap: Azurecap Mushroom is a rare mushroom with a bright blue cap. This mushroom is often used in alchemy for its rejuvenating effects.
+  azure_kelp: Azure Kelp is a rare aquatic plant with blue-green fronds and magical glow. This kelp has powerful restorative properties.
+  storm_thistle: Storm Thistle is a rare plant with spiky leaves and a stormy yellow color. This thistle increase the energy and strength of those who consume it.
+  stormcap: Stormcap Mushroom is a rare mushroom with a stormy yellow cap. This mushroom is often used in alchemy for its energizing effects.
+  storm_sapling: Storm Sapling is a rare sapling with stormy yellow leaves. This sapling has magical properties and energizes the environment around it.
   berries: Berries are small, colorful fruits. They taste sweet.
   lettuce: Lettuce is a leafy green vegetable. It tastes fresh and crisp.
   wheat: Wheat is a common crop. It is used in crafting and can be eaten for a quick boost of energy.
@@ -26,3 +26,17 @@ inventory:
   ore: Ore is a raw material that can be mined from the world. It is typically found in veins. The rarest ores are gold, silver, mythril, and prisma.
   ingot: Ingots are refined materials that are created by smelting ores. They are used in crafting recipes.
   gem: Gems are extremely rare stones that can be found in the world. They are extremely valuable.
+bench:
+  cooking: Cooking Bench is used to prepare meals and cook food from raw ingredients.
+  alchemy: Alchemy Bench is used to brew potions and mix alchemical ingredients.
+  arcane: Arcane Bench is used to enchant items and craft magical artifacts.
+  armour: Armour Bench is used to craft and repair armour pieces.
+  weapon: Weapon Bench is used to forge and upgrade weapons.
+  builders: Builders Bench is used to craft building materials and decorative blocks.
+  campfire: Campfire is used to cook simple meals and provide warmth.
+  farming: Farming Bench is used to process crops and prepare seeds.
+  furnace: Furnace is used to smelt ores into ingots and process raw materials.
+  furniture: Furniture Bench is used to craft furniture and home decorations.
+  salvage: Salvage Bench is used to break down items and recover materials.
+  tannery: Tannery is used to process hides and craft leather goods.
+  workbench: Workbench is a general-purpose crafting station for various recipes.

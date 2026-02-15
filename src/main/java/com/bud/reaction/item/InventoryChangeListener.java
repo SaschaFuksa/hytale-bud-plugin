@@ -62,6 +62,8 @@ public class InventoryChangeListener implements Consumer<LivingEntityInventoryCh
             }
             String itemName = itemTransaction.getQuery().getItem().getId();
             String displayName = ItemUtil.getDisplayName(itemName);
+            // TODO: For debugging, remove later
+            System.out.println("InventoryChangeListener detected item: " + displayName);
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
             UUID playerId = player.getUuid();
