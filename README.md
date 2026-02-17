@@ -18,9 +18,9 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.5.0
-- **Block Interaction**: Buds will now respond to block placements and breaks by the player, providing feedback on the block type and action.
-- **Event Registration Control**: Added enable/disable options for combat, world, and block interactions in the config.
+## New in 1.6.0
+- **More Bud Reactions**: Buds will now react to more world interactions, such as crafting and discovering new zones. The reactions are prioritized based on the type of item or block involved, with gems being the highest priority, followed by ores, ingots, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling, and other blocks/items.
+- **LLM rework**: Some LLM rework to support more interactions and better performance. With orchestration of LLM calls, the LLM is now called in more frequent way to avoid too many interactions at the same time.
 (See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
 ### Quote of the release:
@@ -74,6 +74,8 @@ Gronkh:
 *   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
 *   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
 *   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
+*   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
+*   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
 
 <br>
 
@@ -140,7 +142,7 @@ First time the server starts, the default prompts will be copied from the resour
 
 If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 *   **Disable "Thinking":** These models generate many `<think>` tokens which can cause delays or cut-off messages. It is recommended to use models without a "thinking" phase or to disable it in your API provider's settings.
-*   **Token Limit:** If messages are cut off, increase `MaxTokens` in your config to at least `500`.
+*   **Token Limit:** If messages are cut off, increase `MaxTokens` in your config to at least `200`.
 *   **Filter:** The plugin automatically tries to filter `<think>` tags, but native "No-Thinking" models provide the best experience.
 
 <br>

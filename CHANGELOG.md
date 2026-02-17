@@ -4,15 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [1.6.0]
 ### Added
-- **More Bud Reactions**: ...DiscoverZoneEvent, DropItemEvent
-item reaction:
-Prio 1: gem
-Prio 2: ore, ingot, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling
-Prio 3: other blocks/items
+- **More Bud Reactions**: Buds will now react to more world interactions, such as crafting and discovering new zones. The reactions are prioritized based on the type of item or block involved, with gems being the highest priority, followed by ores, ingots, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling, and other blocks/items.
+- **LLM rework**: Some LLM rework to support more interactions and better performance. With orchestration of LLM calls, the LLM is now called in more frequent way to avoid too many interactions at the same time.
 
 ### Fixed
-- ...
-- Check state change message versus first "welcome" message of the bud. If current state is "unknown", ignore state change message.
+- Updated server version
+- Reduced token size
 
 
 ---
