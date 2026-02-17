@@ -3,6 +3,7 @@ package com.bud.npc;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -195,9 +196,11 @@ public class BudManager {
 
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
-        double offsetX = (Math.random() * 0.5 + 1.0) * (Math.random() > 0.5 ? 1.0 : -1.0);
-        double offsetZ = (Math.random() * 0.5 + 1.0) * (Math.random() > 0.5 ? 1.0 : -1.0);
-        return targetPos.add(offsetX, 0, offsetZ);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        double offsetX = targetPos.getX() + random.nextDouble() * 6 - 3;
+        double offsetY = targetPos.getY() + 0.5;
+        double offsetZ = targetPos.getZ() + random.nextDouble() * 6 - 3;
+        return new Vector3d(offsetX, offsetY, offsetZ);
     }
 
     public Vector3d getPlayerPosition(PlayerRef playerRef) {
