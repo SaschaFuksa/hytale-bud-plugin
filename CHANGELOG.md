@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0]
+### Added
+- **More Bud Reactions**: ...DiscoverZoneEvent, DropItemEvent
+item reaction:
+Prio 1: gem
+Prio 2: ore, ingot, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling
+Prio 3: other blocks/items
+
+### Fixed
+- ...
+- Check state change message versus first "welcome" message of the bud. If current state is "unknown", ignore state change message.
+
+
+---
+
 ## [1.5.0]
 ### Added
 - **Weather Interaction**: Buds will now respond to weather changes. Added enablement option for weather interactions in the config and a configurable reaction period.

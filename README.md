@@ -70,6 +70,7 @@ Gronkh:
 *   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
 *   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
 *   **Block Interaction**: Your companions react to your recent block placements or block breaks.
+*   **Item Interaction**: Your companions react to your recent item collections.
 *   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
 *   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
 *   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
@@ -105,16 +106,24 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `Url` | Your LLM API Endpoint | `v1/chat/completions` |
 | `Model` | The AI model identifier | `ibm/granite-4-h-tiny` |
 | `ApiKey` | The API key for your LLM service | `not_needed` |
-| `MaxTokens` | Limit the length of AI responses | `200` |
-| `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
+| `MaxTokens` | Limit the length of AI responses | `100` |
+| `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
 | `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
 | `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
+| `EnableItemReactions` | Enable or disable item reaction messages | `true` |
+| `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
+| `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
+
+**LLM Usage:**
+- You can use your own local LLM Client (like LM Studio)
+- Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
+- Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
 <br>
 
@@ -142,15 +151,16 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 1.  **Initial Setup**: `.\gradlew decompileServer`
 2.  **Build**: `.\gradlew build`
 3.  **Run Server**: `.\gradlew runServer`
+4.  **Auth Login**: `/auth login device`
+5.  **Persist Login**: `/auth persistence Encrypted`
 
 <br>
 
 ## 🗺️ Roadmap
 
-- [x] **1.5.0**: Interaction to weather events and add "days", also added mood system (currently only random mood changes every 3 minutes)
-- [ ] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
-- [ ] **1.7.0**: Memory storage: Keep memories of player and bud interactions.
-- [ ] **1.8.0**: Visual updates & special models for Buds?
+- [x] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
+- [ ] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent). Better cooldown management for reactions to avoid too many messages.
+- [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>

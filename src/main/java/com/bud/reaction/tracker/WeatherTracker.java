@@ -5,13 +5,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.BudConfig;
-import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.weather.LLMWeatherManager;
 import com.bud.npc.BudRegistry;
+import com.bud.orchestrator.MessageChannel;
+import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.orchestrator.QueuedEvent;
 import com.bud.player.PlayerInstance;
 import com.bud.player.PlayerRegistry;
 import com.bud.reaction.world.WorldInformationUtil;
-import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
@@ -20,8 +21,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 public class WeatherTracker extends AbstractTracker {
 
     private static final WeatherTracker INSTANCE = new WeatherTracker();
-
-    private final InteractionManager interactionManager = InteractionManager.getInstance();
 
     private WeatherTracker() {
     }
@@ -65,13 +64,9 @@ public class WeatherTracker extends AbstractTracker {
                 world.execute(() -> {
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
                     String weatherId = weather != null ? weather.getId() : "unknown";
-                    Thread.ofVirtual().start(() -> {
-                        IResult result = interactionManager.processInteraction(Set.of(owner),
-                                new LLMWeatherManager(weatherId));
-                        if (!result.isSuccess()) {
-                            result.printResult();
-                        }
-                    });
+                    MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
+                            MessageChannel.AMBIENT, 2, "weather",
+                            new LLMWeatherManager(weatherId), owner, System.currentTimeMillis()));
                 });
             } catch (Exception e) {
                 LoggerUtil.getLogger()

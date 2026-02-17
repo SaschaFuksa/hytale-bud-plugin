@@ -90,7 +90,12 @@ public class LLMStateManager implements ILLMChatManager {
         String currentState = getMainStateName(role.getStateSupport().getStateName());
         String lastState = budInstance.getLastKnownState();
 
-        if (lastState != null && lastState.equals(currentState)) {
+        // TODO: First bud message not by state change
+        // if (currentState.equals("unknown")) {
+        // budInstance.setLastKnownState(currentState);
+        // return null;
+        // }
+        if (lastState.equals(currentState)) {
             return null;
         }
 

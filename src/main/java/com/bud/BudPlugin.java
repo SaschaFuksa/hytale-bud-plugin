@@ -7,16 +7,23 @@ import javax.annotation.Nonnull;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
-import com.bud.reaction.combat.CombatChatScheduler;
 import com.bud.reaction.combat.DamageFilterSystem;
+import com.bud.reaction.crafting.CraftRecipeFilterSystem;
+import com.bud.reaction.crafting.UseBlockFilterSystem;
+import com.bud.reaction.discover.DiscoverZoneFilterSystem;
+import com.bud.reaction.item.InventoryChangeListener;
+import com.bud.reaction.item.ItemPickupFilterSystem;
+import com.bud.reaction.teleport.TeleportFilterSystem;
 import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -36,6 +43,7 @@ public class BudPlugin extends JavaPlugin {
     private ComponentType<EntityStore, PlayerData> budPlayerData;
 
     private static boolean startedMoodTracker = false;
+    private static boolean startedOrchestrator = false;
 
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -89,6 +97,24 @@ public class BudPlugin extends JavaPlugin {
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
+        if (this.config.get().isEnableItemReactions()) {
+            // Register inventory change listener for auto-pickup detection (e.g. ore)
+            this.getEventRegistry().registerGlobal(
+                    LivingEntityInventoryChangeEvent.class,
+                    new InventoryChangeListener());
+            this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
+        }
+        if (this.config.get().isEnableDiscoverReactions()) {
+            this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
+        }
+        if (this.config.get().isEnableCraftingReactions()) {
+            this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
+            this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
+        }
+
+        // Register Teleport Filter System (always enabled for debugging)
+        this.getEntityStoreRegistry().registerSystem(new TeleportFilterSystem());
+
     }
 
     private void registerCleanupSystem() {
@@ -118,6 +144,15 @@ public class BudPlugin extends JavaPlugin {
                     startedMoodTracker = true;
                 } catch (Exception e) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MoodTracker: " + e.getMessage());
+                }
+            }
+            if (!startedOrchestrator) {
+                try {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Starting MessageOrchestrator.");
+                    MessageOrchestrator.getInstance().start();
+                    startedOrchestrator = true;
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MessageOrchestrator: " + e.getMessage());
                 }
             }
             try {
@@ -153,8 +188,8 @@ public class BudPlugin extends JavaPlugin {
                 PlayerRef playerRef = event.getPlayerRef();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Player disconnected: " + playerRef.getUuid());
 
-                // Clear pending combat chat tasks for this player
-                CombatChatScheduler.getInstance().clearPlayer(playerRef.getUuid());
+                // Clear pending orchestrator state for this player
+                MessageOrchestrator.getInstance().clearPlayer(playerRef.getUuid());
                 UUID worldUUID = playerRef.getWorldUuid();
                 if (worldUUID != null) {
                     World world = Universe.get().getWorld(worldUUID);

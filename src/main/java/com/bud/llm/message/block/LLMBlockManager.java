@@ -10,8 +10,8 @@ import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.reaction.block.BlockEntry;
 import com.bud.reaction.block.RecentBlockCache;
-import com.bud.reaction.block.RecentBlockCache.BlockEntry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 
@@ -32,9 +32,10 @@ public class LLMBlockManager implements ILLMChatManager {
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        BlockEntry latestEntry = RecentBlockCache.pollHistory(budInstance.getOwner().getUuid());
+        BlockEntry latestEntry = (BlockEntry) RecentBlockCache.getInstance()
+                .pollHistory(budInstance.getOwner().getUuid());
         if (latestEntry == null) {
-            return new DataResult<>(new Prompt("", NO_BLOCK_STRING), NO_BLOCK_STRING);
+            return new DataResult<>(null, NO_BLOCK_STRING);
         }
         LLMBlockContext context = LLMBlockContext.from(latestEntry.blockName(), latestEntry.interaction(),
                 budInstance.getOwner());

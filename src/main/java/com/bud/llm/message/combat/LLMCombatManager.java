@@ -11,8 +11,8 @@ import com.bud.llm.message.Prompt;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.reaction.combat.OpponentEntry;
 import com.bud.reaction.combat.RecentOpponentCache;
-import com.bud.reaction.combat.RecentOpponentCache.OpponentEntry;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -28,16 +28,22 @@ public class LLMCombatManager implements ILLMChatManager {
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
         PlayerRef player = budInstance.getOwner();
-        OpponentEntry latestEntry = getLastEntryInCombatHistory(player.getUuid());
+        OpponentEntry latestEntry = (OpponentEntry) RecentOpponentCache.getInstance().pollHistory(player.getUuid());
+        if (latestEntry == null) {
+            return new DataResult<>(null, "No recent combat data for player.");
+        }
         LLMCombatContext contextResult = LLMCombatContext.from(latestEntry, player);
         Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
         return new DataResult<>(prompt, "Prompt generation.");
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Set<BudInstance> getRelevantBudInstances(UUID ownerId) {
         // Peek at history without removing - generatePrompt will do the atomic poll
-        LinkedList<OpponentEntry> history = RecentOpponentCache.getHistory(ownerId);
+        LinkedList<OpponentEntry> history = (LinkedList<OpponentEntry>) (LinkedList<?>) RecentOpponentCache
+                .getInstance()
+                .getHistory(ownerId);
         if (history == null || history.isEmpty())
             return null;
 
@@ -69,9 +75,4 @@ public class LLMCombatManager implements ILLMChatManager {
         return manager.getBudMessage(budName.toLowerCase()).getFallback("combatView");
     }
 
-    private OpponentEntry getLastEntryInCombatHistory(UUID uuid) {
-        // Use pollHistory to get and remove the entry atomically
-        // This ensures that only one Bud processes this specific combat event
-        return RecentOpponentCache.pollHistory(uuid);
-    }
 }

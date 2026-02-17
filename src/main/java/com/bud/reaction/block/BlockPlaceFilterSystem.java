@@ -2,6 +2,8 @@ package com.bud.reaction.block;
 
 import java.util.UUID;
 
+import com.bud.npc.BudRegistry;
+import com.bud.reaction.ItemUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -44,13 +46,13 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
                 UUID playerId = player.getUuid();
 
                 // Only care if the player has a Bud
-                if (BlockUtil.playerHasBud(playerId)) {
-                    String blockName = BlockUtil.getBlockName(event.getItemInHand().getItem().getBlockId());
+                if (BudRegistry.playerHasBud(playerId)) {
+                    String blockName = ItemUtil.getDisplayName(event.getItemInHand().getItem().getBlockId());
 
                     LoggerUtil.getLogger()
                             .finer(() -> "[BUD] Block Place Event: " + player.getDisplayName() + " placed "
                                     + blockName);
-                    RecentBlockCache.addBlock(playerId, blockName, BlockInteraction.PLACE);
+                    RecentBlockCache.getInstance().add(playerId, new BlockEntry(blockName, BlockInteraction.PLACE));
                 }
             }
         } catch (Exception e) {

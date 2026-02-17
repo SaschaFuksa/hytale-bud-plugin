@@ -39,15 +39,20 @@ public class LLMBlockMessageCreation implements ILLMMessageCreation {
                 .append(budInfo).append("\n")
                 .append(personalView);
 
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append(interactionInfo).append("\n")
+                .append(manager.getSystemPrompt("final"));
+
         if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+            messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
-        String systemPrompt = systemPromptBuilder.toString();
 
-        String message = interactionInfo + "\n" + manager.getSystemPrompt("final");
+        String systemPrompt = systemPromptBuilder.toString();
+        String message = messageBuilder.toString();
         return new Prompt(systemPrompt, message);
     }
 }

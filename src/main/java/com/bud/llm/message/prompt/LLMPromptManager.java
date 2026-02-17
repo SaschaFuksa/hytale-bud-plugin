@@ -22,6 +22,7 @@ public class LLMPromptManager {
     private EntityCategoriesMessage entityCategories;
     private Map<String, String> systemPrompts = new HashMap<>();
     private Map<String, String> moodMessage = new HashMap<>();
+    private ItemPromptMessage itemPromptMessage;
 
     private LLMPromptManager() {
     }
@@ -57,6 +58,7 @@ public class LLMPromptManager {
         this.entityCategories = EntityCategoriesMessage.load(dataDir.resolve("interaction/entities.yml"));
         this.systemPrompts = SystemPromptMessage.load(dataDir.resolve("system_prompt.yml")).getPrompts();
         this.moodMessage = MoodPromptMessage.load(dataDir.resolve("buds/mood.yml")).getMood();
+        this.itemPromptMessage = ItemPromptMessage.load(dataDir.resolve("interaction/items.yml"));
 
         debugLog();
     }
@@ -68,7 +70,8 @@ public class LLMPromptManager {
                 "world/zones/devastated_lands.yml", "world/zones/emerald_grove.yml",
                 "world/zones/howling_sands.yml", "world/zones/ocean.yml", "world/zones/whisperfrost_frontiers.yml",
                 "world/zones/fallback.yml",
-                "interaction/entities.yml", "interaction/combat.yml", "system_prompt.yml", "buds/mood.yml"
+                "interaction/entities.yml", "interaction/combat.yml", "system_prompt.yml", "buds/mood.yml",
+                "interaction/items.yml"
         };
 
         for (String res : resources) {
@@ -150,6 +153,10 @@ public class LLMPromptManager {
 
     public String getMoodPrompt(String moodKey) {
         return moodMessage.get(moodKey);
+    }
+
+    public ItemPromptMessage getItemPromptMessage() {
+        return itemPromptMessage;
     }
 
     public void debugLog() {
