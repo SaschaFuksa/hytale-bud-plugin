@@ -106,8 +106,8 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `Url` | Your LLM API Endpoint | `v1/chat/completions` |
 | `Model` | The AI model identifier | `ibm/granite-4-h-tiny` |
 | `ApiKey` | The API key for your LLM service | `not_needed` |
-| `MaxTokens` | Limit the length of AI responses | `200` |
-| `Temperature` | Control randomness (0.0 - 1.0) | `0.8` |
+| `MaxTokens` | Limit the length of AI responses | `100` |
+| `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
 | `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
 | `EnableWorldReactions` | Enable or disable world reaction messages | `true` |

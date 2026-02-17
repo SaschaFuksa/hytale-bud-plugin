@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class ItemPromptMessage extends BaseYamlMessage {
+public class ItemPromptMessage extends AbstractYamlMessage {
 
     private Map<String, String> pickup;
     private Map<String, String> inventory;

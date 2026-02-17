@@ -7,7 +7,7 @@ import com.bud.llm.message.item.LLMItemManager;
 import com.bud.orchestrator.MessageChannel;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.orchestrator.QueuedEvent;
-import com.bud.reaction.BaseCache;
+import com.bud.reaction.AbstractCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -15,7 +15,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Cache for recently picked items by players.
  * Used to provide context for Bud interactions.
  */
-public class RecentItemCache extends BaseCache {
+public class RecentItemCache extends AbstractCache {
 
     private static final RecentItemCache INSTANCE = new RecentItemCache();
 

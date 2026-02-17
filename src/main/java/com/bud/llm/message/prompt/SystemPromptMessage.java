@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class SystemPromptMessage extends BaseYamlMessage {
+public class SystemPromptMessage extends AbstractYamlMessage {
 
     private Map<String, String> prompts;
 

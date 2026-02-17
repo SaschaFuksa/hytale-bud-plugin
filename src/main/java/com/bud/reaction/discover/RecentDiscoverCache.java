@@ -7,7 +7,7 @@ import com.bud.llm.message.discover.LLMDiscoverManager;
 import com.bud.orchestrator.MessageChannel;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.orchestrator.QueuedEvent;
-import com.bud.reaction.BaseCache;
+import com.bud.reaction.AbstractCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -15,7 +15,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Cache for recently discovered zones by players.
  * Used to provide context for Bud interactions.
  */
-public class RecentDiscoverCache extends BaseCache {
+public class RecentDiscoverCache extends AbstractCache {
 
     private static final RecentDiscoverCache INSTANCE = new RecentDiscoverCache();
 

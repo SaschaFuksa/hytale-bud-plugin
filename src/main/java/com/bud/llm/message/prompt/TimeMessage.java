@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TimeMessage extends BaseYamlMessage {
+public class TimeMessage extends AbstractYamlMessage {
 
     private String morning;
     private String day;

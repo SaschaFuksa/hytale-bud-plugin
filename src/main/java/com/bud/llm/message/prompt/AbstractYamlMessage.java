@@ -12,7 +12,7 @@ import org.yaml.snakeyaml.introspector.BeanAccess;
 /**
  * Abstract base class for messages loaded from YAML resources or files.
  */
-public abstract class BaseYamlMessage {
+public abstract class AbstractYamlMessage {
 
     /**
      * Loads a YAML file and maps it to the specified class.

@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class BudMessage extends BaseYamlMessage {
+public class BudMessage extends AbstractYamlMessage {
 
     private String characteristics;
     private Map<String, String> states;

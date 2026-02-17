@@ -7,7 +7,7 @@ import com.bud.llm.message.block.LLMBlockManager;
 import com.bud.orchestrator.MessageChannel;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.orchestrator.QueuedEvent;
-import com.bud.reaction.BaseCache;
+import com.bud.reaction.AbstractCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -15,7 +15,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Cache for recently broken or added blocks by players.
  * Used to provide context for Bud interactions.
  */
-public class RecentBlockCache extends BaseCache {
+public class RecentBlockCache extends AbstractCache {
 
     private static final RecentBlockCache INSTANCE = new RecentBlockCache();
 

@@ -17,6 +17,7 @@ import com.bud.reaction.crafting.UseBlockFilterSystem;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemPickupFilterSystem;
+import com.bud.reaction.teleport.TeleportFilterSystem;
 import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
 import com.bud.result.IResult;
@@ -110,6 +111,9 @@ public class BudPlugin extends JavaPlugin {
             this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
         }
+
+        // Register Teleport Filter System (always enabled for debugging)
+        this.getEntityStoreRegistry().registerSystem(new TeleportFilterSystem());
 
     }
 

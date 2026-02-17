@@ -7,11 +7,11 @@ import com.bud.llm.message.combat.LLMCombatManager;
 import com.bud.orchestrator.MessageChannel;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.orchestrator.QueuedEvent;
-import com.bud.reaction.BaseCache;
+import com.bud.reaction.AbstractCache;
 import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-public class RecentOpponentCache extends BaseCache {
+public class RecentOpponentCache extends AbstractCache {
 
     private static final RecentOpponentCache INSTANCE = new RecentOpponentCache();
 

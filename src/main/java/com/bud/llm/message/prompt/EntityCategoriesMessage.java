@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class EntityCategoriesMessage extends BaseYamlMessage {
+public class EntityCategoriesMessage extends AbstractYamlMessage {
 
     private Map<String, CategoryData> categories;
 

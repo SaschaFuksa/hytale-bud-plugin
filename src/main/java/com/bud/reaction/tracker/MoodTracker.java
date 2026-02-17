@@ -16,7 +16,7 @@ import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
-public class MoodTracker extends BaseTracker {
+public class MoodTracker extends AbstractTracker {
 
     private static final MoodTracker INSTANCE = new MoodTracker();
 

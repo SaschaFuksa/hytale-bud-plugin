@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.bud.BudConfig;
 
-public abstract class BaseCache {
+public abstract class AbstractCache {
 
     protected final Map<UUID, LinkedList<ICacheEntry>> cache = new ConcurrentHashMap<>();
     protected static final int MAX_HISTORY = 3;

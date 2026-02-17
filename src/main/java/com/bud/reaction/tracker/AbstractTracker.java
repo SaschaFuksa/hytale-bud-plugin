@@ -4,7 +4,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-public abstract class BaseTracker {
+public abstract class AbstractTracker {
 
     private volatile ScheduledFuture<?> pollingTask;
 

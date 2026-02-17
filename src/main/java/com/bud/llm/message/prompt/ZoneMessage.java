@@ -3,7 +3,7 @@ package com.bud.llm.message.prompt;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class ZoneMessage extends BaseYamlMessage {
+public class ZoneMessage extends AbstractYamlMessage {
 
     private String zone;
     private Map<String, String> biomes;
