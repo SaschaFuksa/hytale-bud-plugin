@@ -14,8 +14,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.FlagArg;
-import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
-import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -25,15 +23,14 @@ public class DataCommand extends AbstractPlayerCommand {
 
     private final FlagArg deleteFlag;
 
-    private final RequiredArg<String> deleteAllFlag;
+    private final FlagArg deleteAllFlag;
 
     private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
-    @SuppressWarnings("null")
     public DataCommand() {
         super("data", "Manage player persisted data.");
         this.deleteFlag = this.withFlagArg("delete", "Delete persisted player data.");
-        this.deleteAllFlag = this.withRequiredArg("delete", "Delete all persisted player data.", ArgTypes.STRING);
+        this.deleteAllFlag = this.withFlagArg("delete-all", "Delete all persisted player data.");
     }
 
     @Override
@@ -44,8 +41,7 @@ public class DataCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        String inputMode = this.deleteAllFlag.get(context).toLowerCase();
-        if (inputMode.equals("all")) {
+        if (this.deleteAllFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Deleting all persisted player data by player " + playerRef.getUsername());
             // TODO: Implement actual deletion of all player data, currently just clears the

@@ -9,6 +9,9 @@ import javax.annotation.Nonnull;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.commands.BudCommandCollection;
+import com.bud.config.LLMConfig;
+import com.bud.config.OrchestratorConfig;
+import com.bud.config.ReactionConfig;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.player.persistence.PlayerData;
@@ -41,25 +44,32 @@ public class BudPlugin extends JavaPlugin {
 
     private static BudPlugin instance;
 
-    private final Config<BudConfig> config;
+    private final Config<LLMConfig> llmConfig;
+    private final Config<ReactionConfig> reactionConfig;
+    private final Config<OrchestratorConfig> orchestratorConfig;
 
     private ComponentType<EntityStore, PlayerData> budPlayerData;
 
     private static boolean startedMoodTracker = false;
     private static boolean startedOrchestrator = false;
 
+    @SuppressWarnings("null")
     public BudPlugin(JavaPluginInit init) {
         super(init);
         instance = this;
-        this.config = this.withConfig("Bud", BudConfig.CODEC);
+        this.llmConfig = this.withConfig("LLM", LLMConfig.CODEC);
+        this.reactionConfig = this.withConfig("Reaction", ReactionConfig.CODEC);
+        this.orchestratorConfig = this.withConfig("Orchestrator", OrchestratorConfig.CODEC);
     }
 
     @Override
+    @SuppressWarnings("null")
     protected void setup() {
         super.setup();
 
         this.setupLogging();
         this.setupConfig();
+        LLMPromptManager.getInstance().reloadMissingPrompts();
 
         // Register persistent data
         this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
@@ -81,10 +91,12 @@ public class BudPlugin extends JavaPlugin {
     }
 
     private void setupConfig() {
-        BudConfig.setInstance(this.config.get());
-        this.config.save();
-
-        LLMPromptManager.getInstance().reloadMissingPrompts();
+        LLMConfig.setInstance(this.llmConfig.get());
+        this.llmConfig.save();
+        ReactionConfig.setInstance(this.reactionConfig.get());
+        this.reactionConfig.save();
+        OrchestratorConfig.setInstance(this.orchestratorConfig.get());
+        this.orchestratorConfig.save();
     }
 
     private void registerEvents() {
@@ -92,26 +104,26 @@ public class BudPlugin extends JavaPlugin {
         this.registerPlayerConnectEvent();
         this.registerPlayerDisconnectEvent();
 
-        if (this.config.get().isEnableCombatReactions()) {
+        if (this.reactionConfig.get().isEnableCombatReactions()) {
             // Register Damage Filter System
             this.getEntityStoreRegistry().registerSystem(new DamageFilterSystem());
         }
-        if (this.config.get().isEnableBlockReactions()) {
+        if (this.reactionConfig.get().isEnableBlockReactions()) {
             // Register Block Break Filter System
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
-        if (this.config.get().isEnableItemReactions()) {
+        if (this.reactionConfig.get().isEnableItemReactions()) {
             // Register inventory change listener for auto-pickup detection (e.g. ore)
             this.getEventRegistry().registerGlobal(
                     LivingEntityInventoryChangeEvent.class,
                     new InventoryChangeListener());
             this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
         }
-        if (this.config.get().isEnableDiscoverReactions()) {
+        if (this.reactionConfig.get().isEnableDiscoverReactions()) {
             this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
         }
-        if (this.config.get().isEnableCraftingReactions()) {
+        if (this.reactionConfig.get().isEnableCraftingReactions()) {
             this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
         }

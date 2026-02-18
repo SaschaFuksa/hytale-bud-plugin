@@ -20,7 +20,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
-public class StateCommands extends AbstractPlayerCommand {
+public class StateCommand extends AbstractPlayerCommand {
 
     private final FlagArg defensiveFlag;
 
@@ -30,7 +30,7 @@ public class StateCommands extends AbstractPlayerCommand {
 
     private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
-    public StateCommands() {
+    public StateCommand() {
         super("state", "Commands for checking and managing Bud state.");
         this.defensiveFlag = this.withFlagArg("defensive", "Change Bud state to defensive mode.");
         this.passiveFlag = this.withFlagArg("passive", "Change Bud state to passive mode.");
