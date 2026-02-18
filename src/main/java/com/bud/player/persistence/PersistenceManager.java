@@ -70,23 +70,15 @@ public class PersistenceManager {
             Holder<EntityStore> holder = playerRef.getHolder();
             if (holder == null) {
                 Ref<EntityStore> ref = playerRef.getReference();
-                LoggerUtil.getLogger().fine(() -> "[BUD] Got player ref");
                 Store<EntityStore> store = ref.getStore();
-                LoggerUtil.getLogger().fine(() -> "[BUD] Got store");
                 PlayerData customData = store.ensureAndGetComponent(ref,
                         BudPlugin.getInstance().getBudPlayerDataComponent());
-                LoggerUtil.getLogger().fine(() -> "[BUD] Got custom data");
                 customData.remove(uuid);
-                LoggerUtil.getLogger()
-                        .fine(() -> "[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
                 store.putComponent(ref, BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
             } else {
                 PlayerData customData = holder
                         .ensureAndGetComponent(BudPlugin.getInstance().getBudPlayerDataComponent());
-                LoggerUtil.getLogger().fine(() -> "[BUD] Got custom data");
                 customData.remove(uuid);
-                LoggerUtil.getLogger()
-                        .fine(() -> "[BUD] Removed NPC UUID " + uuid + " from player " + playerRef.getUuid());
                 holder.putComponent(BudPlugin.getInstance().getBudPlayerDataComponent(), customData);
             }
             return new SuccessResult("Data unpersisted for " + playerRef.getUuid());

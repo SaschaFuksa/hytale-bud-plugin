@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.npc.BudManager;
 import com.bud.npc.BudRegistry;
+import com.bud.result.IDataListResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -19,6 +20,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 /**
  * Filter system for detecting player teleportation.
@@ -99,15 +101,25 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             if (playerRef != null && BudRegistry.playerHasBud(playerRef.getUuid())) {
                 // Delay teleport by 25ms to avoid conflicts with the player's teleport
                 SCHEDULER.schedule(() -> {
-                    try {
-                        store.getExternalData().getWorld().execute(() -> {
-                            BudManager.getInstance().teleportBuds(playerRef, store);
+                    store.getExternalData().getWorld().execute(() -> {
+                        try {
+                            IDataListResult<NPCEntity> result = BudManager.getInstance().teleportBuds(playerRef, store);
+                            if (result.isSuccess()) {
+                                LoggerUtil.getLogger()
+                                        .fine(() -> "[BUD] Teleported Buds for player: " + playerRef.getUuid());
+                            } else {
+                                LoggerUtil.getLogger()
+                                        .warning(() -> "[BUD] Failed to teleport Buds for player: "
+                                                + playerRef.getUuid() +
+                                                ". Reason: " + result.getMessage());
+                                // TODO: Cleanup
+                                // Create new
+                            }
+                        } catch (Exception e) {
                             LoggerUtil.getLogger()
-                                    .fine(() -> "[BUD] Teleported Buds for player: " + playerRef.getUuid());
-                        });
-                    } catch (Exception e) {
-                        LoggerUtil.getLogger().severe(() -> "[BUD] Error in delayed Bud teleport: " + e.getMessage());
-                    }
+                                    .severe(() -> "[BUD] Error in delayed Bud teleport: " + e.getMessage());
+                        }
+                    });
                 }, TELEPORT_DELAY_MS, TimeUnit.MILLISECONDS);
             }
         } catch (Exception e) {

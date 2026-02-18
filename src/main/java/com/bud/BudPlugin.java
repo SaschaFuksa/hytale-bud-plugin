@@ -1,11 +1,14 @@
 package com.bud;
 
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
+import com.bud.commands.BudCommandCollection;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.player.persistence.PlayerData;
@@ -65,14 +68,15 @@ public class BudPlugin extends JavaPlugin {
                 PlayerData.CODEC);
 
         // Register commands
-        this.getCommandRegistry().registerCommand(new BudCommand(this));
+        // TODO: REMOVE this.getCommandRegistry().registerCommand(new BudCommand(this));
+        this.getCommandRegistry().registerCommand(new BudCommandCollection());
         this.registerEvents();
     }
 
     private void setupLogging() {
         // Force log levels to ALL for debugging
-        java.util.logging.Logger logger = LoggerUtil.getLogger();
-        logger.setLevel(java.util.logging.Level.ALL);
+        Logger logger = LoggerUtil.getLogger();
+        logger.setLevel(Level.ALL);
         logger.info(() -> "[BUD] Logger name is: " + logger.getName());
     }
 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [1.7.0]
+### Added
+- **Command Rework**: Fill rework to use command collection and subcommands.
+
+### Fixed
+- Updated server version
+- Reduced token size
+
+
+---
+
 ## [1.6.0]
 ### Added
 - **More Bud Reactions**: Buds will now react to more world interactions, such as crafting and discovering new zones. The reactions are prioritized based on the type of item or block involved, with gems being the highest priority, followed by ores, ingots, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling, and other blocks/items.

@@ -62,6 +62,6 @@ prompts:
     Finally, say something reactive about the crafted item. Consider whether this item fits your personal preferences or not.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
-    Ensure your response is complete and ends with a punctuation mark before reaching the length limit.
+    Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!
   final-mood: |
     And your response should be related to the current mood.

@@ -3,8 +3,8 @@ package com.bud.llm.message.prompt;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.bud.BudPlugin;
@@ -14,14 +14,14 @@ public class LLMPromptManager {
 
     private static LLMPromptManager instance;
 
-    private final Map<String, BudMessage> budMessages = new HashMap<>();
+    private final Map<String, BudMessage> budMessages = new ConcurrentHashMap<>();
     private WorldMessage worldInfoTemplate;
     private TimeMessage timeMessage;
-    private final Map<String, ZoneMessage> zoneMessages = new HashMap<>();
+    private final Map<String, ZoneMessage> zoneMessages = new ConcurrentHashMap<>();
     private CombatMessage combatInfoTemplate;
     private EntityCategoriesMessage entityCategories;
-    private Map<String, String> systemPrompts = new HashMap<>();
-    private Map<String, String> moodMessage = new HashMap<>();
+    private Map<String, String> systemPrompts = new ConcurrentHashMap<>();
+    private Map<String, String> moodMessage = new ConcurrentHashMap<>();
     private ItemPromptMessage itemPromptMessage;
 
     private LLMPromptManager() {
