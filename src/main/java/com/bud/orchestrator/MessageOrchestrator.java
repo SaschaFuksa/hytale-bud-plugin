@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudConfig;
+import com.bud.config.OrchestratorConfig;
 import com.bud.interaction.InteractionManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -77,7 +77,7 @@ public class MessageOrchestrator {
      */
     public void enqueue(QueuedEvent event) {
         PriorityQueue<QueuedEvent> queue = getOrCreateQueue(event.playerId(), event.channel());
-        int maxDepth = BudConfig.getInstance().getOrchestratorMaxQueueDepth();
+        int maxDepth = OrchestratorConfig.getInstance().getOrchestratorMaxQueueDepth();
 
         synchronized (queue) {
             // Deduplication: replace existing event of the same type instead of stacking
@@ -120,7 +120,7 @@ public class MessageOrchestrator {
         if (tickTask != null) {
             return;
         }
-        long tickMs = BudConfig.getInstance().getOrchestratorTickIntervalMs();
+        long tickMs = OrchestratorConfig.getInstance().getOrchestratorTickIntervalMs();
         tickTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::tick, tickMs, tickMs, TimeUnit.MILLISECONDS);
         LoggerUtil.getLogger().info(() -> "[Orchestrator] Started with tick interval " + tickMs + "ms");
@@ -159,8 +159,8 @@ public class MessageOrchestrator {
     private void tick() {
         try {
             long now = System.currentTimeMillis();
-            long globalCooldown = BudConfig.getInstance().getOrchestratorGlobalCooldownMs();
-            long channelCooldown = BudConfig.getInstance().getOrchestratorChannelCooldownMs();
+            long globalCooldown = OrchestratorConfig.getInstance().getOrchestratorGlobalCooldownMs();
+            long channelCooldown = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
 
             for (UUID playerId : queues.keySet()) {
                 // Global cooldown check

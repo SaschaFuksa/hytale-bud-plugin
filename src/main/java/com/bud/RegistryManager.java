@@ -1,5 +1,6 @@
 package com.bud;
 
+import com.bud.config.ReactionConfig;
 import com.bud.llm.message.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
 import com.bud.npc.buds.IBudData;
@@ -27,7 +28,7 @@ public class RegistryManager {
 
     private static final PlayerRegistry playerRegistry = PlayerRegistry.getInstance();
 
-    private static final BudConfig config = BudConfig.getInstance();
+    private static final ReactionConfig config = ReactionConfig.getInstance();
 
     private RegistryManager() {
     }

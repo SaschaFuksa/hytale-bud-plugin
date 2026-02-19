@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudConfig;
+import com.bud.config.ReactionConfig;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
@@ -39,7 +39,7 @@ public class WorldTracker extends AbstractTracker {
         if (budRegistry.getAllOwners().isEmpty()) {
             return;
         }
-        long interval = BudConfig.getInstance().getWorldReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWorldReactionPeriod();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
                 interval,
                 TimeUnit.SECONDS));

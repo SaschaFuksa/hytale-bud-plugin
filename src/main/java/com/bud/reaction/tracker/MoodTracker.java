@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudConfig;
+import com.bud.config.ReactionConfig;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.message.favoriteday.LLMFavoriteDayManager;
 import com.bud.npc.BudInstance;
@@ -38,7 +38,7 @@ public class MoodTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = BudConfig.getInstance().getMoodReactionPeriod();
+        long interval = ReactionConfig.getInstance().getMoodReactionPeriod();
         lastPollDay = TimeInformationUtil.getDayOfWeek();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::changeMood, interval, interval, TimeUnit.SECONDS));

@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.bud.BudConfig;
+import com.bud.config.ReactionConfig;
 import com.bud.llm.message.weather.LLMWeatherManager;
 import com.bud.npc.BudRegistry;
 import com.bud.orchestrator.MessageChannel;
@@ -38,7 +38,7 @@ public class WeatherTracker extends AbstractTracker {
         if (budRegistry.getAllOwners().isEmpty()) {
             return;
         }
-        long interval = BudConfig.getInstance().getWeatherReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWeatherReactionPeriod();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 () -> Thread.ofVirtual().start(this::triggerWeatherMessage), interval, interval,
                 TimeUnit.SECONDS));

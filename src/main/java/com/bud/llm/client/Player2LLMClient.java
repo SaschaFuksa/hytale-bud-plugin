@@ -8,7 +8,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import com.bud.BudConfig;
+import com.bud.config.LLMConfig;
 import com.bud.llm.message.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -31,7 +31,7 @@ public class Player2LLMClient extends AbstractLLMClient {
 
     @Override
     public String callLLM(Prompt prompt) throws IOException, InterruptedException {
-        BudConfig config = getConfig();
+        LLMConfig config = LLMConfig.getInstance();
         // Build simple JSON payload
         String jsonPayload = String.format(
                 "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":"
@@ -78,9 +78,5 @@ public class Player2LLMClient extends AbstractLLMClient {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private BudConfig getConfig() {
-        return BudConfig.getInstance();
     }
 }

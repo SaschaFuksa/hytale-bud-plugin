@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.bud.BudConfig;
+import com.bud.config.ReactionConfig;
 import com.bud.llm.message.prompt.ItemPromptMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.npc.BudRegistry;
@@ -48,7 +48,7 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
             @Nonnull UseBlockEvent.Post event) {
         try {
-            if (!BudConfig.getInstance().isEnableCraftingReactions()) {
+            if (!ReactionConfig.getInstance().isEnableCraftingReactions()) {
                 return;
             }
 

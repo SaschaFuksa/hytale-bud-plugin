@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.bud.BudConfig;
+import com.bud.config.OrchestratorConfig;
 
 public abstract class AbstractCache {
 
@@ -19,7 +19,7 @@ public abstract class AbstractCache {
      * a separate orchestrator event.
      */
     private final Map<UUID, Long> lastEnqueueTime = new ConcurrentHashMap<>();
-    private final long enqueueCooldownMs = BudConfig.getInstance().getOrchestratorChannelCooldownMs();
+    private final long enqueueCooldownMs = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
 
     public LinkedList<ICacheEntry> getHistory(UUID playerId) {
         return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));

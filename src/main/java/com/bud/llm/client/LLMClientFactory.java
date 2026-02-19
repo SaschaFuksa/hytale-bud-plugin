@@ -1,6 +1,6 @@
 package com.bud.llm.client;
 
-import com.bud.BudConfig;
+import com.bud.config.LLMConfig;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -15,7 +15,7 @@ public class LLMClientFactory {
      * @return ILLMClient instance (BudLLM or Player2LLM)
      */
     public static ILLMClient createClient() {
-        BudConfig config = BudConfig.getInstance();
+        LLMConfig config = LLMConfig.getInstance();
 
         if (config.isUsePlayer2API()) {
             LoggerUtil.getLogger().info(() -> "[LLM] Using Player2 LLM");

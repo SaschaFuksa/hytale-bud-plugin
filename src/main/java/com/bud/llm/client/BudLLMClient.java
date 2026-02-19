@@ -8,7 +8,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import com.bud.BudConfig;
+import com.bud.config.LLMConfig;
 import com.bud.llm.message.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -24,7 +24,7 @@ public class BudLLMClient extends AbstractLLMClient {
 
     @Override
     public String callLLM(Prompt prompt) throws IOException, InterruptedException {
-        BudConfig config = getConfig();
+        LLMConfig config = LLMConfig.getInstance();
         String escapedSystemPrompt = JsonUtils.escapeJson(prompt.systemPrompt());
         LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
         String escapedMessage = JsonUtils.escapeJson(prompt.userPrompt());
@@ -57,9 +57,5 @@ public class BudLLMClient extends AbstractLLMClient {
         String responseBody = response.body();
         logUsage("LLM", responseBody);
         return extractContent(responseBody);
-    }
-
-    private BudConfig getConfig() {
-        return BudConfig.getInstance();
     }
 }

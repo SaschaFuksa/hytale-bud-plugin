@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.bud.BudConfig;
+import com.bud.config.LLMConfig;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
@@ -30,7 +30,7 @@ public class InteractionManager {
 
     private final ILLMClient llmClient;
 
-    private final BudConfig config = BudConfig.getInstance();
+    private final LLMConfig config = LLMConfig.getInstance();
 
     private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 

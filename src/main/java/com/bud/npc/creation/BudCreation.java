@@ -57,7 +57,6 @@ public class BudCreation {
 
     public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             Set<IBudData> missingBuds) {
-
         printPlayerDebugInfo(playerRef, store);
 
         if (missingBuds.isEmpty()) {
