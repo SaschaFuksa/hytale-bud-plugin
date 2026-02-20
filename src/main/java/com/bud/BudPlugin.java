@@ -6,12 +6,17 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import com.bud.cleanup.CleanUpHandler;
 import com.bud.cleanup.CleanupSystem;
 import com.bud.commands.BudCommandCollection;
+import com.bud.components.BudComponent;
+import com.bud.components.PlayerBudComponent;
 import com.bud.config.LLMConfig;
 import com.bud.config.OrchestratorConfig;
 import com.bud.config.ReactionConfig;
+import com.bud.events.ChatEvent;
+import com.bud.events.SoundEvent;
+import com.bud.handler.ChatHandler;
+import com.bud.handler.SoundHandler;
 import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.orchestrator.MessageOrchestrator;
 import com.bud.player.persistence.PlayerData;
@@ -23,10 +28,12 @@ import com.bud.reaction.crafting.UseBlockFilterSystem;
 import com.bud.reaction.discover.DiscoverZoneFilterSystem;
 import com.bud.reaction.item.InventoryChangeListener;
 import com.bud.reaction.item.ItemPickupFilterSystem;
+import com.bud.reaction.state.BudStateChangeSystem;
 import com.bud.reaction.teleport.TeleportFilterSystem;
 import com.bud.reaction.tracker.MoodTracker;
 import com.bud.result.ErrorResult;
-import com.bud.result.IResult;
+import com.bud.systems.BudRemovalSystem;
+import com.bud.systems.PlayerJoinSystem;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
@@ -77,6 +84,21 @@ public class BudPlugin extends JavaPlugin {
                 "BudPlayerData",
                 PlayerData.CODEC);
 
+        // Register BudComponent for state tracking
+        ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(
+                BudComponent.class,
+                "BudComponent",
+                BudComponent.CODEC);
+        BudComponent.setComponentType(budComponentType);
+
+        // Register PlayerBudComponent for tracking player's Buds
+        ComponentType<EntityStore, PlayerBudComponent> playerBudComponentType = this.getEntityStoreRegistry()
+                .registerComponent(
+                        PlayerBudComponent.class,
+                        "PlayerBuddiesComponent",
+                        PlayerBudComponent.CODEC);
+        PlayerBudComponent.setComponentType(playerBudComponentType);
+
         // Register commands
         // TODO: REMOVE this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.getCommandRegistry().registerCommand(new BudCommandCollection());
@@ -102,7 +124,8 @@ public class BudPlugin extends JavaPlugin {
     private void registerEvents() {
         this.registerCleanupSystem();
         this.registerPlayerConnectEvent();
-        this.registerPlayerDisconnectEvent();
+        // this.registerPlayerDisconnectEvent();
+        this.getEntityStoreRegistry().registerSystem(new PlayerJoinSystem());
 
         if (this.reactionConfig.get().isEnableCombatReactions()) {
             // Register Damage Filter System
@@ -131,6 +154,12 @@ public class BudPlugin extends JavaPlugin {
         // Register Teleport Filter System (always enabled for debugging)
         this.getEntityStoreRegistry().registerSystem(new TeleportFilterSystem());
 
+        // Register Bud State Change System for detecting NPC state changes
+        this.getEntityStoreRegistry().registerSystem(new BudStateChangeSystem());
+
+        this.getEventRegistry().register(ChatEvent.class, new ChatHandler());
+        this.getEventRegistry().register(SoundEvent.class, new SoundHandler());
+
     }
 
     private void registerCleanupSystem() {
@@ -141,6 +170,7 @@ public class BudPlugin extends JavaPlugin {
          * up any Bud NPCs
          */
         this.getEntityStoreRegistry().registerSystem(new CleanupSystem());
+        this.getEntityStoreRegistry().registerSystem(new BudRemovalSystem());
 
     }
 
@@ -171,27 +201,8 @@ public class BudPlugin extends JavaPlugin {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Failed to start MessageOrchestrator: " + e.getMessage());
                 }
             }
-            try {
-                PlayerRef playerRef = event.getPlayerRef();
-                World world = event.getWorld();
-                if (world == null) {
-                    LoggerUtil.getLogger().warning(() -> "[BUD] World is null on player connect for player: "
-                            + playerRef.getUuid());
-                    return;
-                }
-                if (playerRef == null) {
-                    LoggerUtil.getLogger().warning(() -> "[BUD] PlayerRef is null on player connect event");
-                    return;
-                }
-
-                LoggerUtil.getLogger().fine(() -> "[BUD] Player connected: " + playerRef.getUuid());
-                LoggerUtil.getLogger().fine(() -> "[BUD] World: " + world.getName());
-                IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                result.printResult();
-            } catch (Exception e) {
-                new ErrorResult("Fail during player connect event handling").printResult();
-            }
         });
+
     }
 
     private void registerPlayerDisconnectEvent() {
@@ -213,10 +224,10 @@ public class BudPlugin extends JavaPlugin {
                         LoggerUtil.getLogger().warning(() -> "[BUD] World not found for UUID: " + worldUUID);
                         return;
                     }
-                    world.execute(() -> {
-                        IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
-                        result.printResult();
-                    });
+                    // world.execute(() -> {
+                    // IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
+                    // result.printResult();
+                    // });
                 }
             } catch (Exception e) {
                 new ErrorResult("Fail during player disconnect event handling").printResult();

@@ -47,7 +47,10 @@ public class CleanupSystem extends RefSystem<EntityStore> {
                         LoggerUtil.getLogger()
                                 .fine(() -> "[BUD] Cleaning up orphan Bud loaded from disk: " + npc.getUuid());
                         commandBuffer.removeEntity(ref, RemoveReason.REMOVE);
+                        npc.remove();
                     } else {
+                        commandBuffer.removeEntity(ref, RemoveReason.REMOVE);
+                        npc.remove();
                         LoggerUtil.getLogger()
                                 .fine(() -> "[BUD] Skipping cleanup for active Bud: " + npc.getUuid());
                     }

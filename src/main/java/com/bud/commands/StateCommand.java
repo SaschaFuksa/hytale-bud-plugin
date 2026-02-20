@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
 import com.bud.npc.creation.BudCreation;
+import com.bud.reaction.state.BudState;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -49,7 +50,7 @@ public class StateCommand extends AbstractPlayerCommand {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to defensive mode for player "
                             + playerRef.getUsername());
-            IResult stateResult = changeState(playerRef, store, "PetDefensive");
+            IResult stateResult = changeState(playerRef, store, BudState.PET_DEFENSIVE);
             if (stateResult.isSuccess()) {
                 this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
             }
@@ -58,7 +59,7 @@ public class StateCommand extends AbstractPlayerCommand {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to passive mode for player "
                             + playerRef.getUsername());
-            IResult stateResult = changeState(playerRef, store, "PetPassive");
+            IResult stateResult = changeState(playerRef, store, BudState.PET_PASSIVE);
             if (stateResult.isSuccess()) {
                 this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
             }
@@ -67,7 +68,7 @@ public class StateCommand extends AbstractPlayerCommand {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to sitting mode for player "
                             + playerRef.getUsername());
-            IResult stateResult = changeState(playerRef, store, "PetSitting");
+            IResult stateResult = changeState(playerRef, store, BudState.PET_SITTING);
             if (stateResult.isSuccess()) {
                 this.chatInteraction.sendChatMessage(world, playerRef, stateResult.getMessage());
             }
@@ -80,7 +81,7 @@ public class StateCommand extends AbstractPlayerCommand {
     }
 
     // TODO: Move to other class
-    private IResult changeState(PlayerRef playerRef, Store<EntityStore> store, String petState) {
+    private IResult changeState(PlayerRef playerRef, Store<EntityStore> store, BudState petState) {
         Set<NPCEntity> buds = BudManager.getInstance().getOwnedBuds(playerRef.getUuid(), store);
         boolean successed = false;
         for (NPCEntity bud : buds) {
@@ -90,7 +91,7 @@ public class StateCommand extends AbstractPlayerCommand {
             }
         }
         if (successed) {
-            String state = petState.replace("Pet", "");
+            String state = petState.getStateName().replace("Pet", "");
             return new SuccessResult("Changed bud state to " + state + ".");
         } else {
             return new SuccessResult("No role changed.");

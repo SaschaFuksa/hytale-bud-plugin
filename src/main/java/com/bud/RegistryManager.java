@@ -78,7 +78,7 @@ public class RegistryManager {
     }
 
     private void registerTracker() {
-        StateTracker.getInstance().startPolling();
+        // StateTracker.getInstance().startPolling();
         if (RegistryManager.config.isEnableWorldReactions()) {
             WorldTracker.getInstance().startPolling();
         }
@@ -125,7 +125,7 @@ public class RegistryManager {
     }
 
     private void stopAllTrackers() {
-        StateTracker.getInstance().stopPolling();
+        // StateTracker.getInstance().stopPolling();
         WorldTracker.getInstance().stopPolling();
         WeatherTracker.getInstance().stopPolling();
     }

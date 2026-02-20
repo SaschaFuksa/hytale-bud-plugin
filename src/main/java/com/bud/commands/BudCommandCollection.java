@@ -12,6 +12,7 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new StateCommand());
         this.addSubCommand(new DataCommand());
         this.addSubCommand(new PromptCommand());
+        this.addSubCommand(new DebugCommand());
     }
 
     @Override

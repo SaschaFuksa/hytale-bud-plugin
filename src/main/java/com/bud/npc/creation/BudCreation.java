@@ -17,10 +17,13 @@ import javax.annotation.Nonnull;
 
 import com.bud.RegistryManager;
 import com.bud.cleanup.CleanUpHandler;
+import com.bud.components.BudComponent;
+import com.bud.components.PlayerBudComponent;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
 import com.bud.npc.buds.IBudData;
 import com.bud.player.persistence.PersistenceManager;
+import com.bud.reaction.state.BudState;
 import com.bud.result.AsyncDataListResult;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
@@ -150,7 +153,8 @@ public class BudCreation {
                     .addArmor(budNPCData.getArmorID())
                     .spawn();
             NPCEntity npc = (NPCEntity) result.second();
-            changeRoleState(npc, playerRef, "PetDefensive").printResult();
+
+            changeRoleState(npc, playerRef, BudState.PET_DEFENSIVE).printResult();
             return new DataResult<>(npc,
                     "Spawned Bud " + budNPCData.getNPCTypeId() + " for player " + playerRef.getUuid());
         } catch (Exception e) {
@@ -159,7 +163,7 @@ public class BudCreation {
         }
     }
 
-    public static IResult changeRoleState(NPCEntity bud, @Nonnull PlayerRef owner, String stateName) {
+    public static IResult changeRoleState(NPCEntity bud, @Nonnull PlayerRef owner, BudState state) {
         Role role = bud.getRole();
         World world = bud.getWorld();
 
@@ -169,7 +173,7 @@ public class BudCreation {
 
         world.execute(() -> {
             StateSupport stateSupport = role.getStateSupport();
-            int attackStateIndex = stateSupport.getStateHelper().getStateIndex(stateName);
+            int attackStateIndex = stateSupport.getStateHelper().getStateIndex(state.getStateName());
 
             if (attackStateIndex >= 0) {
                 // Use default sub-state for Attack
@@ -179,11 +183,25 @@ public class BudCreation {
 
                 // Force the state change
                 stateSupport.setState(attackStateIndex, subStateIndex, true, false);
-                LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to " + stateName + " for NPC: " +
+                Store<EntityStore> store = bud.getReference().getStore();
+                BudComponent budComponent = store.getComponent(bud.getReference(), BudComponent.getComponentType());
+                if (budComponent == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] BudComponent not found for NPC: " + bud.getNPCTypeId());
+                    store.addComponent(bud.getReference(), BudComponent.getComponentType(),
+                            new BudComponent(bud, owner, state.getStateName()));
+                }
+                PlayerBudComponent playerBudComponent = store.getComponent(owner.getReference(),
+                        PlayerBudComponent.getComponentType());
+                if (playerBudComponent == null)
+                    return;
+                playerBudComponent.addBud(bud);
+                store.putComponent(owner.getReference(), PlayerBudComponent.getComponentType(), playerBudComponent);
+                LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to " + state.getStateName() + " for NPC: " +
                         bud.getNPCTypeId());
             } else {
-                LoggerUtil.getLogger().severe(() -> "[BUD] Could not find state '" + stateName + "' for NPC: " +
-                        bud.getNPCTypeId());
+                LoggerUtil.getLogger()
+                        .severe(() -> "[BUD] Could not find state '" + state.getStateName() + "' for NPC: " +
+                                bud.getNPCTypeId());
             }
 
             // Set Player as LockedTarget (Standard slot for combat targets)

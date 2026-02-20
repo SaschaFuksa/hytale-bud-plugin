@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 
 import com.bud.RegistryManager;
+import com.bud.components.PlayerBudComponent;
 import com.bud.npc.BudManager;
 import com.bud.player.persistence.PersistenceManager;
 import com.hypixel.hytale.component.Ref;
@@ -71,6 +72,17 @@ public class CleanUpHandler {
             if (!unpersistResult.isSuccess()) {
                 return unpersistResult;
             }
+            PlayerBudComponent playerBudComponent = world.getEntityStore().getStore().getComponent(
+                    playerRef.getReference(),
+                    PlayerBudComponent.getComponentType());
+            // TODO: REMOVE uuids
+            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getBuds();
+            for (NPCEntity bud : buds) {
+                if (bud.getUuid().equals(budUUID)) {
+                    playerBudComponent.removeBud(bud);
+                    break;
+                }
+            }
             return new SuccessResult("Removed owner bud successfully.");
         } catch (Exception e) {
             return new ErrorResult("Exception removing owner bud: " + e.getMessage());
@@ -122,9 +134,13 @@ public class CleanUpHandler {
                             BudInstance instance = BudRegistry.getInstance()
                                     .get(npcComponent.getReference());
                             if (instance != null) {
+                                LoggerUtil.getLogger()
+                                        .fine(() -> "[BUD] Marking tracked Bud for removal: " + npcComponent.getUuid());
                                 trackedBudsToRemove.add(instance);
                             } else {
                                 // Orphan / Untracked: Remove immediately
+                                LoggerUtil.getLogger()
+                                        .fine(() -> "[BUD] Removing orphan/untracked Bud: " + npcComponent.getUuid());
                                 commandBuffer.removeEntity(npcComponent.getReference(), RemoveReason.REMOVE);
                             }
                         });
@@ -132,6 +148,8 @@ public class CleanUpHandler {
                 // Process tracked buds sequentially to ensure thread-safety for data
                 // persistence
                 for (BudInstance instance : trackedBudsToRemove) {
+                    LoggerUtil.getLogger()
+                            .fine(() -> "[BUD] Cleaning up tracked Bud: " + instance.getEntity().getUuid());
                     try {
                         NPCEntity npcEntity = instance.getEntity();
                         PlayerRef owner = instance.getOwner();
