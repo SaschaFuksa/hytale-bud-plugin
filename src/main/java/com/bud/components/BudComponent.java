@@ -1,9 +1,12 @@
 package com.bud.components;
 
+import javax.annotation.Nonnull;
+
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
@@ -28,18 +31,23 @@ public class BudComponent implements Component<EntityStore> {
         this.currentStateName = currentStateNameName;
     }
 
+    @Nonnull
     public static final BuilderCodec<BudComponent> CODEC = BuilderCodec.builder(BudComponent.class, BudComponent::new)
-            // .append(new KeyedCodec<>("CurrentStateName", Codec.STRING),
-            // BudComponent::setCurrentStateName,
-            // BudComponent::getCurrentStateName)
-            // .add()
             .build();
 
     public static void setComponentType(ComponentType<EntityStore, BudComponent> type) {
         TYPE = type;
     }
 
+    @Nonnull
     public static ComponentType<EntityStore, BudComponent> getComponentType() {
+        if (TYPE == null) {
+            TYPE = Universe.get().getEntityStoreRegistry().registerComponent(
+                    BudComponent.class,
+                    "BudComponent",
+                    BudComponent.CODEC);
+            return TYPE;
+        }
         return TYPE;
     }
 

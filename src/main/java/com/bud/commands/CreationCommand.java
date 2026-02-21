@@ -5,12 +5,13 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import com.bud.RegistryManager;
+import com.bud.events.BudCreationEvent;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
+import com.bud.npc.buds.BudType;
 import com.bud.npc.buds.GronkhData;
 import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
-import com.bud.npc.buds.VeriData;
 import com.bud.npc.creation.BudCreation;
 import com.bud.player.PlayerRegistry;
 import com.bud.result.IDataListResult;
@@ -61,9 +62,7 @@ public class CreationCommand extends AbstractPlayerCommand {
         } else if (this.veriFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Veri Bud for player " + playerRef.getUsername());
-            IResult result = executeBudAction(playerRef, store, new VeriData());
-            result.printResult();
-            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
+            BudCreationEvent.dispatch(playerRef.getReference(), Set.of(BudType.VERI));
         } else if (this.keylethFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Keyleth Bud for player " + playerRef.getUsername());

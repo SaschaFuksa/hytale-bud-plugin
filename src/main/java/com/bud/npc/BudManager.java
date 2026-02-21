@@ -1,6 +1,7 @@
 package com.bud.npc;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -10,6 +11,8 @@ import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.bud.cleanup.CleanUpHandler;
+import com.bud.components.PlayerBudComponent;
+import com.bud.npc.buds.BudType;
 import com.bud.npc.buds.GronkhData;
 import com.bud.npc.buds.IBudData;
 import com.bud.npc.buds.KeylethData;
@@ -22,6 +25,7 @@ import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -48,6 +52,31 @@ public class BudManager {
             new VeriData(),
             new GronkhData(),
             new KeylethData());
+
+    public IBudData getBudDataByType(BudType budType) {
+        return BUDS.stream()
+                .filter(b -> b.getNPCTypeId().equals(budType.getName()))
+                .findFirst()
+                .orElse(new GronkhData());
+    }
+
+    public static boolean playerHasBudType(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull BudType budType) {
+        if (playerBudComponent.getLoadedBuds().contains(budType.getName())) {
+            Optional<NPCEntity> existingBud = playerBudComponent.getBuds().stream()
+                    .filter(b -> b.getNPCTypeId().equals(budType.getName()))
+                    .findFirst();
+            if (existingBud.isPresent()) {
+                Ref<EntityStore> ref = existingBud.get().getReference();
+                if (ref != null && ref.isValid()) {
+                    boolean isDead = ref.getStore().getArchetype(ref).contains(DeathComponent.getComponentType());
+                    if (!isDead) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     public Set<IBudData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
         Set<IBudData> missingBuds = BUDS.stream().collect(Collectors.toSet());
