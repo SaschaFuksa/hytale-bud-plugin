@@ -2,25 +2,16 @@ package com.bud.llm.messages.combat;
 
 import java.util.Map.Entry;
 
+import com.bud.components.BudComponent;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.prompt.CombatMessage;
 import com.bud.llm.messages.prompt.EntityCategoriesMessage;
 import com.bud.llm.messages.prompt.LLMPromptManager;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.combat.OpponentEntry;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public record LLMCombatContext(String combatContext, String targetName, PlayerRef player) implements IPromptContext {
-
-    @Override
-    public String getContextById(String contextId) {
-        // Implement this method based on your context retrieval logic
-        return switch (contextId) {
-            case "combatContext" -> this.combatContext;
-            case "targetName" -> this.targetName;
-            case "player" -> this.player.getUsername();
-            default -> null;
-        };
-    }
 
     public static LLMCombatContext from(OpponentEntry entry, PlayerRef player) {
         String cleanName = entry.roleName().replace("_Bud", "").replace("_", " ");
@@ -91,5 +82,17 @@ public record LLMCombatContext(String combatContext, String targetName, PlayerRe
             return template.getAllyInfoTemplate().formatted(category, catInfo, specInfo);
         }
         return template.getTargetInfoTemplate().formatted(category, catInfo + " " + specInfo);
+    }
+
+    @Override
+    public BudComponent getBudComponent() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+    }
+
+    @Override
+    public IBudProfile getBudProfile() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
     }
 }

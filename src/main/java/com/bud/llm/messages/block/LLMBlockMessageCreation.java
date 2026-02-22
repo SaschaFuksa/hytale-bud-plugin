@@ -1,6 +1,6 @@
 package com.bud.llm.messages.block;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -9,9 +9,8 @@ import com.bud.npc.BudInstance;
 import com.bud.reaction.block.BlockInteraction;
 import com.bud.reaction.world.time.Mood;
 
-public class LLMBlockMessageCreation implements ILLMMessageCreation {
+public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
-    @Override
     public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
         if (!(context instanceof LLMBlockContext blockContext)) {
             throw new IllegalArgumentException("Context must be of type LLMBlockContext");
@@ -54,5 +53,15 @@ public class LLMBlockMessageCreation implements ILLMMessageCreation {
         String systemPrompt = systemPromptBuilder.toString();
         String message = messageBuilder.toString();
         return new Prompt(systemPrompt, message);
+    }
+
+    @Override
+    protected Prompt createLLMPrompt(IPromptContext context) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    protected Prompt createFallbackPrompt(IPromptContext context) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

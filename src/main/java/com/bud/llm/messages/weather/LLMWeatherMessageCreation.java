@@ -1,6 +1,6 @@
 package com.bud.llm.messages.weather;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -8,9 +8,8 @@ import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.reaction.world.time.Mood;
 
-public class LLMWeatherMessageCreation implements ILLMMessageCreation {
+public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 
-    @Override
     public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
         if (!(context instanceof LLMWeatherContext weatherContext)) {
             throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
@@ -43,5 +42,17 @@ public class LLMWeatherMessageCreation implements ILLMMessageCreation {
         String message = messageBuilder.toString();
 
         return new Prompt(systemPrompt, message);
+    }
+
+    @Override
+    protected Prompt createLLMPrompt(IPromptContext context) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
+    }
+
+    @Override
+    protected Prompt createFallbackPrompt(IPromptContext context) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
     }
 }

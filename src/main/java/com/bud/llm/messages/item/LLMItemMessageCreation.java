@@ -1,6 +1,6 @@
 package com.bud.llm.messages.item;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -10,9 +10,8 @@ import com.bud.npc.BudInstance;
 import com.bud.reaction.item.ItemInteraction;
 import com.bud.reaction.world.time.Mood;
 
-public class LLMItemMessageCreation implements ILLMMessageCreation {
+public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
 
-        @Override
         public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
                 if (!(context instanceof LLMItemContext itemContext)) {
                         throw new IllegalArgumentException("Context must be of type LLMItemContext");
@@ -59,6 +58,18 @@ public class LLMItemMessageCreation implements ILLMMessageCreation {
                 String message = messageBuilder.toString();
 
                 return new Prompt(systemPrompt, message);
+        }
+
+        @Override
+        protected Prompt createLLMPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
+        }
+
+        @Override
+        protected Prompt createFallbackPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
         }
 
 }

@@ -1,8 +1,10 @@
 package com.bud.llm.messages.discover;
 
+import com.bud.components.BudComponent;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.llm.messages.prompt.ZoneMessage;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.discover.DiscoverEntry;
 
 /**
@@ -10,16 +12,6 @@ import com.bud.reaction.discover.DiscoverEntry;
  * Resolves zone/region names to existing zone descriptions.
  */
 public record LLMDiscoverContext(DiscoverEntry discoverEntry) implements IPromptContext {
-
-    @Override
-    public String getContextById(String contextId) {
-        return switch (contextId) {
-            case "zoneName" -> this.discoverEntry.zoneName();
-            case "regionName" -> this.discoverEntry.regionName();
-            case "major" -> String.valueOf(this.discoverEntry.major());
-            default -> null;
-        };
-    }
 
     public static LLMDiscoverContext from(DiscoverEntry entry) {
         return new LLMDiscoverContext(entry);
@@ -67,5 +59,17 @@ public record LLMDiscoverContext(DiscoverEntry discoverEntry) implements IPrompt
      */
     private static String formatZoneName(String zoneName) {
         return zoneName.replace("_", " ");
+    }
+
+    @Override
+    public BudComponent getBudComponent() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+    }
+
+    @Override
+    public IBudProfile getBudProfile() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
     }
 }

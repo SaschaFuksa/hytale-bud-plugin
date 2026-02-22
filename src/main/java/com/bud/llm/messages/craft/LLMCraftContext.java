@@ -2,9 +2,11 @@ package com.bud.llm.messages.craft;
 
 import java.util.Map;
 
+import com.bud.components.BudComponent;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.prompt.ItemPromptMessage;
 import com.bud.llm.messages.prompt.LLMPromptManager;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.ItemUtil;
 import com.bud.reaction.crafting.CraftEntry;
 import com.bud.reaction.crafting.CraftInteraction;
@@ -14,16 +16,6 @@ import com.bud.reaction.crafting.CraftInteraction;
  * Wraps a CraftEntry and provides formatted item information.
  */
 public record LLMCraftContext(CraftEntry craftEntry) implements IPromptContext {
-
-    @Override
-    public String getContextById(String contextId) {
-        return switch (contextId) {
-            case "itemId" -> this.craftEntry.itemId();
-            case "displayName" -> getDisplayName();
-            case "interaction" -> this.craftEntry.interaction().name();
-            default -> null;
-        };
-    }
 
     public static LLMCraftContext from(CraftEntry entry) {
         return new LLMCraftContext(entry);
@@ -55,5 +47,17 @@ public record LLMCraftContext(CraftEntry craftEntry) implements IPromptContext {
             return "Your Buddy just used a crafting station: " + getDisplayName();
         }
         return "Your Buddy just crafted: " + getDisplayName() + ".";
+    }
+
+    @Override
+    public BudComponent getBudComponent() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+    }
+
+    @Override
+    public IBudProfile getBudProfile() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
     }
 }

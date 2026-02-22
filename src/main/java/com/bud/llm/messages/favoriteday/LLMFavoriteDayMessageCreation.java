@@ -1,6 +1,6 @@
 package com.bud.llm.messages.favoriteday;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -8,9 +8,8 @@ import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.reaction.world.time.Mood;
 
-public class LLMFavoriteDayMessageCreation implements ILLMMessageCreation {
+public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
 
-        @Override
         public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
                 BudMessage npcMessage = budInstance.getData().getBudMessage();
 
@@ -40,6 +39,18 @@ public class LLMFavoriteDayMessageCreation implements ILLMMessageCreation {
                 String message = messageBuilder.toString();
 
                 return new Prompt(systemPrompt, message);
+        }
+
+        @Override
+        protected Prompt createLLMPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
+        }
+
+        @Override
+        protected Prompt createFallbackPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
         }
 
 }

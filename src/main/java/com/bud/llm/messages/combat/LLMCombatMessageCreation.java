@@ -1,6 +1,6 @@
 package com.bud.llm.messages.combat;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -9,9 +9,8 @@ import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.npc.BudInstance;
 import com.bud.reaction.world.time.Mood;
 
-public class LLMCombatMessageCreation implements ILLMMessageCreation {
+public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
 
-        @Override
         public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
                 if (!(context instanceof LLMCombatContext combatContext)) {
                         throw new IllegalArgumentException("Context must be of type LLMCombatContext");
@@ -53,6 +52,18 @@ public class LLMCombatMessageCreation implements ILLMMessageCreation {
                 String systemPrompt = systemPromptBuilder.toString();
                 String message = messageBuilder.toString();
                 return new Prompt(systemPrompt, message);
+        }
+
+        @Override
+        protected Prompt createLLMPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
+        }
+
+        @Override
+        protected Prompt createFallbackPrompt(IPromptContext context) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
         }
 
 }

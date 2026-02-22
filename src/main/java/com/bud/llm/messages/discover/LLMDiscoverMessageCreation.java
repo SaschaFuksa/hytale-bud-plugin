@@ -1,6 +1,6 @@
 package com.bud.llm.messages.discover;
 
-import com.bud.llm.messages.ILLMMessageCreation;
+import com.bud.llm.AbstractLLMMessageCreation;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.Prompt;
 import com.bud.llm.messages.prompt.BudMessage;
@@ -14,9 +14,8 @@ import com.bud.reaction.world.time.Mood;
  * Uses the zone description from the existing zone YAML files
  * and matches the regionName to known biomes.
  */
-public class LLMDiscoverMessageCreation implements ILLMMessageCreation {
+public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
 
-    @Override
     public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
         if (!(context instanceof LLMDiscoverContext discoverContext)) {
             throw new IllegalArgumentException("Context must be of type LLMDiscoverContext");
@@ -59,5 +58,17 @@ public class LLMDiscoverMessageCreation implements ILLMMessageCreation {
         String message = messageBuilder.toString();
 
         return new Prompt(systemPrompt, message);
+    }
+
+    @Override
+    protected Prompt createLLMPrompt(IPromptContext context) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
+    }
+
+    @Override
+    protected Prompt createFallbackPrompt(IPromptContext context) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
     }
 }

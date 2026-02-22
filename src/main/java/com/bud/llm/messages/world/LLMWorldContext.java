@@ -2,11 +2,13 @@ package com.bud.llm.messages.world;
 
 import java.util.Map.Entry;
 
+import com.bud.components.BudComponent;
 import com.bud.llm.messages.IPromptContext;
 import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.llm.messages.prompt.TimeMessage;
 import com.bud.llm.messages.prompt.ZoneMessage;
 import com.bud.llm.messages.weather.LLMWeatherContext;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.reaction.world.time.TimeInformationUtil;
 import com.bud.reaction.world.time.TimeOfDay;
@@ -22,18 +24,6 @@ import com.hypixel.hytale.server.worldgen.zone.Zone;
 public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome,
         LLMWeatherContext weatherContext)
         implements IPromptContext {
-
-    @Override
-    public String getContextById(String contextId) {
-        // Implement this method based on your context retrieval logic
-        return switch (contextId) {
-            case "timeOfDay" -> timeOfDay.name();
-            case "currentZone" -> currentZone.name();
-            case "currentBiome" -> currentBiome.getName();
-            case "weatherContext" -> weatherContext.getWeatherInformation();
-            default -> null;
-        };
-    }
 
     public static LLMWorldContext from(PlayerRef owner, World world,
             Store<EntityStore> store, LLMWeatherContext weatherContext) {
@@ -92,5 +82,17 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
 
     public String getWeatherInfo() {
         return this.weatherContext.getWeatherInformation();
+    }
+
+    @Override
+    public BudComponent getBudComponent() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+    }
+
+    @Override
+    public IBudProfile getBudProfile() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
     }
 }

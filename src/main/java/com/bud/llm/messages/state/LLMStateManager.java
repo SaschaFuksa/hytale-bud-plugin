@@ -22,17 +22,19 @@ import com.hypixel.hytale.server.npc.role.Role;
 
 public class LLMStateManager implements ILLMChatManager {
 
-    private final LLMStateMessageCreation llmCreation;
+    // private final LLMStateMessageCreation llmCreation;
 
     public LLMStateManager() {
-        this.llmCreation = new LLMStateMessageCreation();
+        // this.llmCreation = new LLMStateMessageCreation();
     }
 
     @Override
     public IDataResult<Prompt> generatePrompt(BudInstance budInstance) {
-        LLMStateContext contextResult = LLMStateContext.from(budInstance.getLastKnownState());
-        Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
-        return new DataResult<>(prompt, "Prompt generation.");
+        // LLMStateContext contextResult =
+        // LLMStateContext.from(budInstance.getLastKnownState());
+        // Prompt prompt = this.llmCreation.createPrompt(contextResult, budInstance);
+        // return new DataResult<>(prompt, "Prompt generation.");
+        return new DataResult<>(null, "Not implemented yet.");
     }
 
     @Override
