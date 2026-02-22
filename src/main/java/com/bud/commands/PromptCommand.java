@@ -3,7 +3,7 @@ package com.bud.commands;
 import javax.annotation.Nonnull;
 
 import com.bud.interaction.ChatInteraction;
-import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

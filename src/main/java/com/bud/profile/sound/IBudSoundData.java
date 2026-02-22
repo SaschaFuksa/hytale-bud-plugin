@@ -1,11 +1,16 @@
 package com.bud.profile.sound;
 
+import javax.annotation.Nonnull;
+
 public interface IBudSoundData {
 
+    @Nonnull
     String getAttackSound();
 
+    @Nonnull
     String getPassiveSound();
 
+    @Nonnull
     String getIdleSound();
 
     /**
@@ -15,6 +20,7 @@ public interface IBudSoundData {
      *              "PetSitting")
      * @return The sound id
      */
+    @Nonnull
     String getSoundForState(String state);
 
 }

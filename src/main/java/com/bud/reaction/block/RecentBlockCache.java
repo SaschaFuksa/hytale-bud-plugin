@@ -3,7 +3,7 @@ package com.bud.reaction.block;
 import java.util.LinkedList;
 import java.util.UUID;
 
-import com.bud.llm.message.block.LLMBlockManager;
+import com.bud.llm.messages.block.LLMBlockManager;
 import com.bud.llm.orchestrator.MessageChannel;
 import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.llm.orchestrator.QueuedEvent;

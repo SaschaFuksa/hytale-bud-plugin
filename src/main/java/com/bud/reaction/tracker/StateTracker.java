@@ -5,7 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.interaction.InteractionManager;
-import com.bud.llm.message.state.LLMStateManager;
+import com.bud.llm.messages.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;

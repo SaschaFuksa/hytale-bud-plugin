@@ -9,7 +9,7 @@ import com.bud.config.LLMConfig;
 import com.bud.llm.ILLMChatManager;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
-import com.bud.llm.message.Prompt;
+import com.bud.llm.messages.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.profile.sound.IBudSoundData;
 import com.bud.reaction.world.WorldInformationUtil;

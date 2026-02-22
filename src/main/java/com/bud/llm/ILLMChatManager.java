@@ -3,7 +3,7 @@ package com.bud.llm;
 import java.util.Set;
 import java.util.UUID;
 
-import com.bud.llm.message.Prompt;
+import com.bud.llm.messages.Prompt;
 import com.bud.npc.BudInstance;
 import com.bud.result.IDataResult;
 

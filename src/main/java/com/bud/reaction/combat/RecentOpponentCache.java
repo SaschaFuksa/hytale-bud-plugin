@@ -3,7 +3,7 @@ package com.bud.reaction.combat;
 import java.util.LinkedList;
 import java.util.UUID;
 
-import com.bud.llm.message.combat.LLMCombatManager;
+import com.bud.llm.messages.combat.LLMCombatManager;
 import com.bud.llm.orchestrator.MessageChannel;
 import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.llm.orchestrator.QueuedEvent;

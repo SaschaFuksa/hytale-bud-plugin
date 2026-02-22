@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import com.bud.config.LLMConfig;
-import com.bud.llm.message.Prompt;
+import com.bud.llm.messages.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -17,45 +17,46 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
  * Calls your own LLM server directly.
  */
 public class BudLLMClient extends AbstractLLMClient {
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+        private final HttpClient httpClient = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_1_1)
+                        .connectTimeout(Duration.ofSeconds(10))
+                        .build();
 
-    @Override
-    public String callLLM(Prompt prompt) throws IOException, InterruptedException {
-        LLMConfig config = LLMConfig.getInstance();
-        String escapedSystemPrompt = JsonUtils.escapeJson(prompt.systemPrompt());
-        LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
-        String escapedMessage = JsonUtils.escapeJson(prompt.userPrompt());
-        LoggerUtil.getLogger().info(() -> "[LLM] Message: " + escapedMessage);
-        String jsonPayload = "{\"model\":\"" + config.getModel()
-                + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
-                + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
-                + "\"}],\"temperature\":" + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens()
-                + "}";
+        @Override
+        public String callLLM(Prompt prompt) throws IOException, InterruptedException {
+                LLMConfig config = LLMConfig.getInstance();
+                String escapedSystemPrompt = JsonUtils.escapeJson(prompt.systemPrompt());
+                LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
+                String escapedMessage = JsonUtils.escapeJson(prompt.userPrompt());
+                LoggerUtil.getLogger().info(() -> "[LLM] Message: " + escapedMessage);
+                String jsonPayload = "{\"model\":\"" + config.getModel()
+                                + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
+                                + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
+                                + "\"}],\"temperature\":" + config.getTemperature() + ",\"max_tokens\":"
+                                + config.getMaxTokens()
+                                + "}";
 
-        LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + config.getUrl());
+                LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + config.getUrl());
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(config.getUrl()))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .timeout(Duration.ofSeconds(10))
-                .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(config.getUrl()))
+                                .header("Content-Type", "application/json")
+                                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                                .timeout(Duration.ofSeconds(10))
+                                .build();
 
-        LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
-        HttpResponse<String> response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
+                HttpResponse<String> response = httpClient.send(request,
+                                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-        LoggerUtil.getLogger().info(() -> "[LLM] Response code: " + response.statusCode());
+                LoggerUtil.getLogger().info(() -> "[LLM] Response code: " + response.statusCode());
 
-        if (response.statusCode() != 200) {
-            throw new IOException("API Error: " + response.statusCode() + " " + response.body());
+                if (response.statusCode() != 200) {
+                        throw new IOException("API Error: " + response.statusCode() + " " + response.body());
+                }
+
+                String responseBody = response.body();
+                logUsage("LLM", responseBody);
+                return extractContent(responseBody);
         }
-
-        String responseBody = response.body();
-        logUsage("LLM", responseBody);
-        return extractContent(responseBody);
-    }
 }

@@ -102,6 +102,7 @@ public class CleanUpHandler {
             for (NPCEntity bud : buds) {
                 if (bud.getNPCTypeId().equals(budType.getName())) {
                     playerBudComponent.removeCurrentBud(bud, budType);
+                    despawnBud(bud).printResult();
                     break;
                 }
             }

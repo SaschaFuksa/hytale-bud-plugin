@@ -2,8 +2,8 @@ package com.bud.profile;
 
 import javax.annotation.Nonnull;
 
-import com.bud.llm.message.prompt.BudMessage;
-import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.llm.messages.prompt.BudMessage;
+import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.profile.sound.IBudSoundData;
 import com.bud.profile.sound.KeylethSoundData;
 import com.bud.reaction.world.time.DayOfWeek;

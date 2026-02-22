@@ -7,13 +7,14 @@ import javax.annotation.Nonnull;
 import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
 import com.bud.events.BudCreationEvent;
+import com.bud.mappings.BudProfileMapper;
 import com.bud.npc.BudManager;
 import com.bud.npc.creation.BudSpawner;
-import com.bud.profile.BudProfileMapper;
 import com.bud.profile.BudType;
 import com.bud.profile.IBudProfile;
+import com.bud.queue.StateChangeEntry;
+import com.bud.queue.StateChangeQueue;
 import com.bud.reaction.state.BudState;
-import com.bud.scheduling.StateChangeCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -72,10 +73,18 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                     .warning(() -> "[BUD] Failed to spawn Bud of type " + budType);
             return;
         }
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] Successfully spawned Bud with NPC Type ID: " + bud.getNPCTypeId());
         playerBudComponent.addBud(bud, budType);
-        registerBudComponent(store, bud, playerRef);
-        StateChangeCache.getInstance()
-                .addToCache(new StateChangeCache.StateChangeEntry(bud, playerRef, BudState.PET_DEFENSIVE));
+        BudComponent budComponent = registerBudComponent(store, bud, playerRef, budType);
+        if (budComponent == null) {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] Failed to register BudComponent for Bud of type " + budType);
+            return;
+        }
+        StateChangeQueue.getInstance()
+                .addToCache(new StateChangeEntry(budComponent, BudState.PET_DEFENSIVE));
+
     }
 
     private static NPCEntity spawnBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
@@ -92,14 +101,16 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         return (NPCEntity) result.second();
     }
 
-    private void registerBudComponent(@Nonnull Store<EntityStore> store, NPCEntity bud, @Nonnull PlayerRef playerRef) {
+    private BudComponent registerBudComponent(@Nonnull Store<EntityStore> store, NPCEntity bud,
+            @Nonnull PlayerRef playerRef, @Nonnull BudType budType) {
         Ref<EntityStore> ref = bud.getReference();
         if (ref == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Invalid NPCEntity reference for bud: " + bud);
-            return;
+            return null;
         }
-        BudComponent budComponent = new BudComponent(bud, playerRef, BudState.PET_DEFENSIVE.getStateName());
+        BudComponent budComponent = BudComponent.create(bud, budType, playerRef);
         store.addComponent(ref, BudComponent.getComponentType(), budComponent);
+        return budComponent;
     }
 }

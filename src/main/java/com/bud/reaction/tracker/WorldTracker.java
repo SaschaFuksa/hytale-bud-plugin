@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.config.ReactionConfig;
 import com.bud.interaction.InteractionManager;
-import com.bud.llm.message.world.LLMWorldManager;
+import com.bud.llm.messages.world.LLMWorldManager;
 import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerInstance;
 import com.bud.player.PlayerRegistry;

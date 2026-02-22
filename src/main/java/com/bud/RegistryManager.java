@@ -1,7 +1,7 @@
 package com.bud;
 
 import com.bud.config.ReactionConfig;
-import com.bud.llm.message.state.LLMStateManager;
+import com.bud.llm.messages.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerRegistry;
 import com.bud.profile.IBudProfile;

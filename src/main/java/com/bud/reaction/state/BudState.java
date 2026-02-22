@@ -1,5 +1,7 @@
 package com.bud.reaction.state;
 
+import javax.annotation.Nonnull;
+
 public enum BudState {
 
     PET_DEFENSIVE("PetDefensive"),
@@ -14,6 +16,16 @@ public enum BudState {
 
     public String getStateName() {
         return stateName;
+    }
+
+    @Nonnull
+    public static BudState fromStateName(String stateName) {
+        for (BudState state : values()) {
+            if (state.getStateName().equals(stateName)) {
+                return state;
+            }
+        }
+        throw new IllegalArgumentException("Unknown state name: " + stateName);
     }
 
 }

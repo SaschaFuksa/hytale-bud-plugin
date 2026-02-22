@@ -5,7 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.config.ReactionConfig;
-import com.bud.llm.message.weather.LLMWeatherManager;
+import com.bud.llm.messages.weather.LLMWeatherManager;
 import com.bud.llm.orchestrator.MessageChannel;
 import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.llm.orchestrator.QueuedEvent;

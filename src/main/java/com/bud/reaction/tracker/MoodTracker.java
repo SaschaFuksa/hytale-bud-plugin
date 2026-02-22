@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.config.ReactionConfig;
 import com.bud.interaction.InteractionManager;
-import com.bud.llm.message.favoriteday.LLMFavoriteDayManager;
+import com.bud.llm.messages.favoriteday.LLMFavoriteDayManager;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
 import com.bud.reaction.world.time.DayOfWeek;

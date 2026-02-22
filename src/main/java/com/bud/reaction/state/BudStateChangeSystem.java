@@ -3,7 +3,8 @@ package com.bud.reaction.state;
 import javax.annotation.Nonnull;
 
 import com.bud.components.BudComponent;
-import com.bud.events.ChatEvent;
+import com.bud.queue.StateChangeEntry;
+import com.bud.queue.StateChangeQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -28,24 +29,20 @@ public class BudStateChangeSystem extends EntityTickingSystem<EntityStore> {
         if (budComponent == null) {
             return;
         }
-        if (budComponent.getBud() == null) {
-            // TODO: Cleanup
-            return;
-        }
         Role role = budComponent.getBud().getRole();
         if (role == null) {
             return;
         }
         String currentStateName = role.getStateSupport().getStateName().split("\\.")[0];
-        if (!currentStateName.equals(budComponent.getCurrentStateName())) {
+        if (!currentStateName.equals(budComponent.getCurrentState().getStateName())) {
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] State change detected for NPC " + budComponent.getBud().getNPCTypeId());
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Old State: " + budComponent.getCurrentStateName() + ", New State: "
+                    .fine(() -> "[BUD] State change detected for NPC \"" + budComponent.getBud().getNPCTypeId()
+                            + "\". Old State: " + budComponent.getCurrentState().getStateName() + ", New State: "
                             + currentStateName);
-            budComponent.setCurrentStateName(currentStateName);
-            // Trigger LLM -> then ChatEvent
-            ChatEvent.dispatch(budComponent.getPlayerRef(), currentStateName);
+            BudState newState = BudState.fromStateName(currentStateName);
+            budComponent.setCurrentState(newState);
+            StateChangeQueue.getInstance()
+                    .addToCache(new StateChangeEntry(budComponent, newState));
         }
     }
 

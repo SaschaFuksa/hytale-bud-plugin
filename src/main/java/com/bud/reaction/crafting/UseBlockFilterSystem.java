@@ -6,8 +6,8 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import com.bud.config.ReactionConfig;
-import com.bud.llm.message.prompt.ItemPromptMessage;
-import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.llm.messages.prompt.ItemPromptMessage;
+import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.npc.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;

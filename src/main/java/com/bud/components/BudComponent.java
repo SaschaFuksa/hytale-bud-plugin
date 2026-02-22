@@ -1,7 +1,11 @@
 package com.bud.components;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+import com.bud.profile.BudType;
+import com.bud.reaction.state.BudState;
+import com.bud.reaction.world.time.Mood;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -14,21 +18,36 @@ public class BudComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, BudComponent> TYPE;
 
-    private String currentStateName = "";
+    private BudState currentState = BudState.PET_DEFENSIVE;
 
-    private final NPCEntity bud;
+    private Mood currentMood = Mood.DEFAULT;
 
-    private final PlayerRef playerRef;
+    @Nonnull
+    private BudType budType = BudType.VERI;
 
+    @Nullable
+    private NPCEntity bud;
+
+    @Nullable
+    private PlayerRef playerRef;
+
+    /**
+     * Default constructor for Codec deserialization.
+     * Use {@link #create(NPCEntity, PlayerRef)} for runtime instantiation.
+     */
     public BudComponent() {
-        this.bud = null;
-        this.playerRef = null;
     }
 
-    public BudComponent(NPCEntity bud, PlayerRef playerRef, String currentStateNameName) {
-        this.bud = bud;
-        this.playerRef = playerRef;
-        this.currentStateName = currentStateNameName;
+    /**
+     * Factory method for creating a properly initialized BudComponent.
+     */
+    @Nonnull
+    public static BudComponent create(@Nonnull NPCEntity bud, @Nonnull BudType budType, @Nonnull PlayerRef playerRef) {
+        BudComponent component = new BudComponent();
+        component.bud = bud;
+        component.playerRef = playerRef;
+        component.budType = budType;
+        return component;
     }
 
     @Nonnull
@@ -51,15 +70,24 @@ public class BudComponent implements Component<EntityStore> {
         return TYPE;
     }
 
-    public void setCurrentStateName(String state) {
-        this.currentStateName = state;
+    public void setCurrentState(BudState state) {
+        this.currentState = state;
     }
 
-    public String getCurrentStateName() {
-        return currentStateName;
+    public BudState getCurrentState() {
+        return currentState;
     }
 
+    @Nonnull
+    public BudType getBudType() {
+        return budType;
+    }
+
+    @Nonnull
     public NPCEntity getBud() {
+        if (bud == null) {
+            throw new IllegalStateException("NPCEntity cannot be null in BudComponent");
+        }
         return bud;
     }
 
@@ -69,6 +97,14 @@ public class BudComponent implements Component<EntityStore> {
             throw new IllegalStateException("PlayerRef cannot be null in BudComponent");
         }
         return playerRef;
+    }
+
+    public void setCurrentMood(Mood mood) {
+        this.currentMood = mood;
+    }
+
+    public Mood getCurrentMood() {
+        return currentMood;
     }
 
     @Override

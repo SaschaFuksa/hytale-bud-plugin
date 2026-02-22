@@ -189,7 +189,7 @@ public class BudCreation {
                 if (budComponent == null) {
                     LoggerUtil.getLogger().warning(() -> "[BUD] BudComponent not found for NPC: " + bud.getNPCTypeId());
                     store.addComponent(bud.getReference(), BudComponent.getComponentType(),
-                            new BudComponent(bud, owner, state.getStateName()));
+                            BudComponent.create(bud, owner));
                 }
                 PlayerBudComponent playerBudComponent = store.getComponent(owner.getReference(),
                         PlayerBudComponent.getComponentType());

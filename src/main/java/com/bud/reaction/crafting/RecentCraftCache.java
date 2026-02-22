@@ -3,7 +3,7 @@ package com.bud.reaction.crafting;
 import java.util.LinkedList;
 import java.util.UUID;
 
-import com.bud.llm.message.craft.LLMCraftManager;
+import com.bud.llm.messages.craft.LLMCraftManager;
 import com.bud.llm.orchestrator.MessageChannel;
 import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.llm.orchestrator.QueuedEvent;

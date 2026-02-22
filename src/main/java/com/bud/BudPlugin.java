@@ -17,7 +17,7 @@ import com.bud.handler.BudCreationHandler;
 import com.bud.handler.ChatHandler;
 import com.bud.handler.SoundHandler;
 import com.bud.handler.StateChangeHandler;
-import com.bud.llm.message.prompt.LLMPromptManager;
+import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
