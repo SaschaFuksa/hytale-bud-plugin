@@ -4,18 +4,8 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.bud.RegistryManager;
 import com.bud.events.BudCreationEvent;
-import com.bud.interaction.ChatInteraction;
-import com.bud.npc.BudManager;
-import com.bud.npc.creation.BudCreation;
-import com.bud.player.PlayerRegistry;
 import com.bud.profile.BudType;
-import com.bud.profile.GronkhProfile;
-import com.bud.profile.IBudProfile;
-import com.bud.profile.KeylethProfile;
-import com.bud.result.IDataListResult;
-import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -25,7 +15,6 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class CreationCommand extends AbstractPlayerCommand {
 
@@ -36,8 +25,6 @@ public class CreationCommand extends AbstractPlayerCommand {
     private final FlagArg keylethFlag;
 
     private final FlagArg gronkhFlag;
-
-    private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
     public CreationCommand() {
         super("create", "Bud creation commands.");
@@ -58,61 +45,43 @@ public class CreationCommand extends AbstractPlayerCommand {
         if (this.allFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            createAllBuds(playerRef, store, world);
+            Set<BudType> buds = Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH);
+            if (buds.isEmpty()) {
+                return;
+            }
+            BudCreationEvent.dispatch(ref, buds);
         } else if (this.veriFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Veri Bud for player " + playerRef.getUsername());
-            BudCreationEvent.dispatch(playerRef.getReference(), Set.of(BudType.VERI));
+            Set<BudType> veri = Set.of(BudType.VERI);
+            if (veri.isEmpty()) {
+                return;
+            }
+            BudCreationEvent.dispatch(ref, veri);
         } else if (this.keylethFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Keyleth Bud for player " + playerRef.getUsername());
-            IResult result = executeBudAction(playerRef, store, new KeylethProfile());
-            result.printResult();
-            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
+            Set<BudType> keyleth = Set.of(BudType.KEYLETH);
+            if (keyleth.isEmpty()) {
+                return;
+            }
+            BudCreationEvent.dispatch(ref, keyleth);
         } else if (this.gronkhFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Gronkh Bud for player " + playerRef.getUsername());
-            IResult result = executeBudAction(playerRef, store, new GronkhProfile());
-            result.printResult();
-            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
+            Set<BudType> gronkh = Set.of(BudType.GRONKH);
+            if (gronkh.isEmpty()) {
+                return;
+            }
+            BudCreationEvent.dispatch(ref, gronkh);
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            createAllBuds(playerRef, store, world);
-        }
-    }
-
-    // TODO: MOVE TO OTHER CLASS
-    private void createAllBuds(PlayerRef playerRef, Store<EntityStore> store, World world) {
-        IDataListResult<NPCEntity> teleportResult = BudManager.getInstance().teleportBuds(playerRef, store);
-        if (teleportResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef, teleportResult.getMessage());
-        } else {
-            teleportResult.printResult();
-        }
-        IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
-        if (creationResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef, creationResult.getMessage());
-        } else {
-            creationResult.printResult();
-        }
-        RegistryManager.getInstance().registerPlayer(playerRef);
-    }
-
-    // TODO: MOVE TO OTHER CLASS
-    public static IResult executeBudAction(PlayerRef playerRef, Store<EntityStore> store,
-            IBudProfile missingBud) {
-        if (BudManager.getInstance().canBeAdded(playerRef.getUuid(), store,
-                missingBud)) {
-            // Create new Bud
-            IResult result = BudCreation.createBud(store, playerRef, Set.of(missingBud));
-            if (PlayerRegistry.getInstance().getByOwner(playerRef.getUuid()) == null) {
-                RegistryManager.getInstance().registerPlayer(playerRef);
+            Set<BudType> buds = Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH);
+            if (buds.isEmpty()) {
+                return;
             }
-            return result;
-        } else {
-            // Teleport existing Buds
-            return BudManager.getInstance().teleportBud(playerRef, store, missingBud);
+            BudCreationEvent.dispatch(ref, buds);
         }
     }
 

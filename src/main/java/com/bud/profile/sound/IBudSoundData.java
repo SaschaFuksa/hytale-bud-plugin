@@ -5,13 +5,13 @@ import javax.annotation.Nonnull;
 public interface IBudSoundData {
 
     @Nonnull
-    String getAttackSound();
+    String getDefensiveSound();
 
     @Nonnull
     String getPassiveSound();
 
     @Nonnull
-    String getIdleSound();
+    String getSittingSound();
 
     /**
      * Get the sound for a specific state.

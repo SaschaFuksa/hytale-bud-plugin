@@ -26,10 +26,13 @@ public class SoundHandler implements Consumer<SoundEvent> {
             LoggerUtil.getLogger().warning(() -> "[BUD] TransformComponent type is null. Cannot play sound.");
             return;
         }
-        TransformComponent transformComponent = store.getComponent(budRef, transformComponentType);
-        Vector3d position = transformComponent.getPosition();
-        SoundUtil.playSoundEvent3d(budRef, getSoundEventIndex(event.soundEventID()), position.getX(), position.getY(),
-                position.getZ(), false, store);
+        store.getExternalData().getWorld().execute(() -> {
+            TransformComponent transformComponent = store.getComponent(budRef, transformComponentType);
+            Vector3d position = transformComponent.getPosition();
+            SoundUtil.playSoundEvent3d(budRef, getSoundEventIndex(event.soundEventID()), position.getX(),
+                    position.getY(),
+                    position.getZ(), false, store);
+        });
     }
 
     private int getSoundEventIndex(String soundEventId) {

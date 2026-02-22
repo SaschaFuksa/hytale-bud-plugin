@@ -45,10 +45,13 @@ public class DeletionCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         if (this.allFlag.get(context)) {
+            // TODO
             IResult result = CleanUpHandler.cleanupBud(playerRef, world, BudType.VERI);
             result.printResult();
+            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
             result = CleanUpHandler.cleanupBud(playerRef, world, BudType.KEYLETH);
             result.printResult();
+            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
             result = CleanUpHandler.cleanupBud(playerRef, world, BudType.GRONKH);
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
@@ -65,6 +68,7 @@ public class DeletionCommand extends AbstractPlayerCommand {
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else {
+            // TODO
             IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());

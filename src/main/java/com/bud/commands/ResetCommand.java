@@ -35,6 +35,7 @@ public class ResetCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Resetting Bud system for player: " + playerRef.getUsername());
+        // TODO
         CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
         IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
         if (creationResult.isSuccess()) {

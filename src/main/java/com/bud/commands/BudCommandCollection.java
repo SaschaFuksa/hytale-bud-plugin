@@ -10,7 +10,6 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new ResetCommand());
         this.addSubCommand(new DeletionCommand());
         this.addSubCommand(new StateCommand());
-        this.addSubCommand(new DataCommand());
         this.addSubCommand(new PromptCommand());
         this.addSubCommand(new DebugCommand());
     }

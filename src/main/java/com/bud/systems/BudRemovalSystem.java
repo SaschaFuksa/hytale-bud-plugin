@@ -43,6 +43,5 @@ public class BudRemovalSystem extends RefSystem<EntityStore> {
     @Override
     public void onEntityRemove(@Nonnull Ref<EntityStore> ref, @Nonnull RemoveReason reason,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        // Nothing to do
     }
 }

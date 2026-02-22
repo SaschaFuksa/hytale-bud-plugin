@@ -34,12 +34,20 @@ public class BudStateChangeSystem extends EntityTickingSystem<EntityStore> {
             return;
         }
         String currentStateName = role.getStateSupport().getStateName().split("\\.")[0];
-        if (!currentStateName.equals(budComponent.getCurrentState().getStateName())) {
+        if (!currentStateName.equals("Idle")
+                && !currentStateName.equals(budComponent.getCurrentState().getStateName())) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] State change detected for NPC \"" + budComponent.getBud().getNPCTypeId()
                             + "\". Old State: " + budComponent.getCurrentState().getStateName() + ", New State: "
                             + currentStateName);
             BudState newState = BudState.fromStateName(currentStateName);
+            if (newState == null) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] Unrecognized state \"" + currentStateName
+                                + "\" for NPC \"" + budComponent.getBud().getNPCTypeId()
+                                + "\". Skipping state change.");
+                return;
+            }
             budComponent.setCurrentState(newState);
             StateChangeQueue.getInstance()
                     .addToCache(new StateChangeEntry(budComponent, newState));

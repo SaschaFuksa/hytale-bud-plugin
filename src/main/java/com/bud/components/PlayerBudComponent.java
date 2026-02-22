@@ -96,6 +96,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         budTypes.remove(budType);
     }
 
+    @Nonnull
     public Set<BudType> getBudTypes() {
         return new HashSet<>(budTypes);
     }
