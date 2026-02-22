@@ -11,7 +11,7 @@ import com.bud.llm.message.prompt.LLMPromptManager;
 import com.bud.llm.message.weather.LLMWeatherContext;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.buds.IBudData;
+import com.bud.profile.IBudProfile;
 import com.bud.result.DataResult;
 import com.bud.result.IDataResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -63,7 +63,7 @@ public class LLMWorldManager implements ILLMChatManager {
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Generating world prompt for " + instance.getEntity().getNPCTypeId() + ".");
         PlayerRef owner = instance.getOwner();
-        IBudData budNPCData = instance.getData();
+        IBudProfile budNPCData = instance.getData();
 
         if (budNPCData == null)
             return new DataResult<>(null, "No NPC data available.");

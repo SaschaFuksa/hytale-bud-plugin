@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 import com.bud.BudPlugin;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -118,13 +120,9 @@ public class LLMPromptManager {
         }
     }
 
-    public BudMessage getBudMessage(String budName) {
-        BudMessage message = budMessages.get(budName.toLowerCase());
-        if (message == null) {
-            LoggerUtil.getLogger().warning(
-                    () -> "[BUD] No message found for bud: " + budName + " (Keys: " + budMessages.keySet() + ")");
-        }
-        return message;
+    @Nonnull
+    public BudMessage getBudMessage(@Nonnull String budName) {
+        return budMessages.get(budName.toLowerCase());
     }
 
     public WorldMessage getWorldInfoTemplate() {

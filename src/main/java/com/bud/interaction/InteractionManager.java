@@ -11,7 +11,7 @@ import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
 import com.bud.llm.message.Prompt;
 import com.bud.npc.BudInstance;
-import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.profile.sound.IBudSoundData;
 import com.bud.reaction.world.WorldInformationUtil;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataResult;

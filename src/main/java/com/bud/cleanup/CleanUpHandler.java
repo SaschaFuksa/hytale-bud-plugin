@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.bud.npc.BudInstance;
 import com.bud.npc.BudRegistry;
+import com.bud.profile.BudType;
 import com.bud.result.ErrorResult;
 import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
@@ -76,10 +77,31 @@ public class CleanUpHandler {
                     playerRef.getReference(),
                     PlayerBudComponent.getComponentType());
             // TODO: REMOVE uuids
-            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getBuds();
+            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
+            // for (NPCEntity bud : buds) {
+            // if (bud.getUuid().equals(budUUID)) {
+            // playerBudComponent.removeCurrentBud(bud);
+            // break;
+            // }
+            // }
+            return new SuccessResult("Removed owner bud successfully.");
+        } catch (Exception e) {
+            return new ErrorResult("Exception removing owner bud: " + e.getMessage());
+        }
+    }
+
+    public static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull BudType budType) {
+        try {
+            Ref<EntityStore> ref = playerRef.getReference();
+            if (ref == null) {
+                return new ErrorResult("Invalid PlayerRef reference.");
+            }
+            PlayerBudComponent playerBudComponent = world.getEntityStore().getStore().getComponent(ref,
+                    PlayerBudComponent.getComponentType());
+            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
             for (NPCEntity bud : buds) {
-                if (bud.getUuid().equals(budUUID)) {
-                    playerBudComponent.removeBud(bud);
+                if (bud.getNPCTypeId().equals(budType.getName())) {
+                    playerBudComponent.removeCurrentBud(bud, budType);
                     break;
                 }
             }

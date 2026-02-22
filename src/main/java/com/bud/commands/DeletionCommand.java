@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.interaction.ChatInteraction;
+import com.bud.profile.BudType;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -44,23 +45,25 @@ public class DeletionCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         if (this.allFlag.get(context)) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Deleting all Buds for all players.");
-            IResult result = CleanUpHandler.cleanupAllBuds(world);
+            IResult result = CleanUpHandler.cleanupBud(playerRef, world, BudType.VERI);
+            result.printResult();
+            result = CleanUpHandler.cleanupBud(playerRef, world, BudType.KEYLETH);
+            result.printResult();
+            result = CleanUpHandler.cleanupBud(playerRef, world, BudType.GRONKH);
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else if (this.veriFlag.get(context)) {
-            // TODO: Implement single removal
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Deleting Veri Bud for player " + playerRef.getUsername());
+            IResult result = CleanUpHandler.cleanupBud(playerRef, world, BudType.VERI);
+            result.printResult();
+            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else if (this.keylethFlag.get(context)) {
-            // TODO: Implement single removal
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Deleting Keyleth Bud for player " + playerRef.getUsername());
+            IResult result = CleanUpHandler.cleanupBud(playerRef, world, BudType.KEYLETH);
+            result.printResult();
+            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else if (this.gronkhFlag.get(context)) {
-            // TODO: Implement single removal
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Deleting Gronkh Bud for player " + playerRef.getUsername());
+            IResult result = CleanUpHandler.cleanupBud(playerRef, world, BudType.GRONKH);
+            result.printResult();
+            this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else {
             IResult result = CleanUpHandler.cleanupOwnerBuds(playerRef, world);
             result.printResult();

@@ -7,13 +7,13 @@ import javax.annotation.Nonnull;
 import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
 import com.bud.events.BudCreationEvent;
-import com.bud.events.ChatEvent;
-import com.bud.events.StateChangeEvent;
 import com.bud.npc.BudManager;
-import com.bud.npc.buds.BudType;
-import com.bud.npc.buds.IBudData;
 import com.bud.npc.creation.BudSpawner;
+import com.bud.profile.BudProfileMapper;
+import com.bud.profile.BudType;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.state.BudState;
+import com.bud.scheduling.StateChangeCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -61,7 +61,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             @Nonnull BudType budType, @Nonnull PlayerBudComponent playerBudComponent) {
-        if (BudManager.playerHasBudType(playerBudComponent, budType)) {
+        if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
             return;
@@ -72,26 +72,27 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                     .warning(() -> "[BUD] Failed to spawn Bud of type " + budType);
             return;
         }
-        playerBudComponent.addBud(bud);
-        StateChangeEvent.dispatch(bud, playerRef, BudState.PET_DEFENSIVE);
+        playerBudComponent.addBud(bud, budType);
         registerBudComponent(store, bud, playerRef);
+        StateChangeCache.getInstance()
+                .addToCache(new StateChangeCache.StateChangeEntry(bud, playerRef, BudState.PET_DEFENSIVE));
     }
 
     private static NPCEntity spawnBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             BudType budType) {
-        IBudData budNPCData = BudManager.getInstance().getBudDataByType(budType);
+        IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budType);
         Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
                 .create(store, budType.getName(), position)
                 .withRotation(new Vector3f(0, 0, 0))
                 .withInventory()
-                .addWeapon(budNPCData.getWeaponID(), 1, (short) 0)
-                .addArmor(budNPCData.getArmorID())
+                .addWeapon(budProfile.getWeaponID(), 1, (short) 0)
+                .addArmor(budProfile.getArmorID())
                 .spawn();
         return (NPCEntity) result.second();
     }
 
-    private void registerBudComponent(Store<EntityStore> store, NPCEntity bud, PlayerRef playerRef) {
+    private void registerBudComponent(@Nonnull Store<EntityStore> store, NPCEntity bud, @Nonnull PlayerRef playerRef) {
         Ref<EntityStore> ref = bud.getReference();
         if (ref == null) {
             LoggerUtil.getLogger()
@@ -100,6 +101,5 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         }
         BudComponent budComponent = new BudComponent(bud, playerRef, BudState.PET_DEFENSIVE.getStateName());
         store.addComponent(ref, BudComponent.getComponentType(), budComponent);
-        ChatEvent.dispatch(budComponent, "Your " + bud.getNPCTypeId().split("_")[0] + " Bud has been created!");
     }
 }

@@ -3,6 +3,7 @@ package com.bud.npc.creation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +22,8 @@ import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
-import com.bud.npc.buds.IBudData;
 import com.bud.player.persistence.PersistenceManager;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.state.BudState;
 import com.bud.result.AsyncDataListResult;
 import com.bud.result.DataListResult;
@@ -54,12 +55,12 @@ import it.unimi.dsi.fastutil.Pair;
 public class BudCreation {
 
     public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
-        Set<IBudData> missingBuds = BudManager.getInstance().getMissingBuds(playerRef.getUuid(), store);
+        Set<IBudProfile> missingBuds = new HashSet<>();
         return createBud(store, playerRef, missingBuds);
     }
 
     public static IDataListResult<NPCEntity> createBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            Set<IBudData> missingBuds) {
+            Set<IBudProfile> missingBuds) {
         printPlayerDebugInfo(playerRef, store);
 
         if (missingBuds.isEmpty()) {
@@ -67,7 +68,7 @@ public class BudCreation {
         }
 
         List<NPCEntity> spawnedBuds = Collections.synchronizedList(new ArrayList<>());
-        Iterator<IBudData> iterator = missingBuds.iterator();
+        Iterator<IBudProfile> iterator = missingBuds.iterator();
         AtomicReference<ScheduledFuture<?>> futureRef = new AtomicReference<>();
 
         futureRef.set(HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
@@ -80,7 +81,7 @@ public class BudCreation {
                     return;
                 }
 
-                IBudData nextData = iterator.next();
+                IBudProfile nextData = iterator.next();
                 World world = store.getExternalData().getWorld();
                 world.execute(() -> {
                     DataResult<NPCEntity> result = internalSpawnAndRegister(store, playerRef, nextData);
@@ -102,7 +103,7 @@ public class BudCreation {
             });
         }, 0L, 300L, TimeUnit.MILLISECONDS));
         String budNames = missingBuds.stream()
-                .map(IBudData::getNPCDisplayName)
+                .map(IBudProfile::getNPCDisplayName)
                 .collect(Collectors.joining(", "));
 
         return new AsyncDataListResult<>(spawnedBuds, "Spawning " + budNames + ".");
@@ -110,7 +111,7 @@ public class BudCreation {
 
     private static DataResult<NPCEntity> internalSpawnAndRegister(Store<EntityStore> store,
             @Nonnull PlayerRef playerRef,
-            IBudData budNPCData) {
+            IBudProfile budNPCData) {
         try {
             DataResult<NPCEntity> spawnResult = spawnBud(store, playerRef, budNPCData);
             if (!spawnResult.isSuccess()) {
@@ -141,12 +142,12 @@ public class BudCreation {
     }
 
     private static DataResult<NPCEntity> spawnBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            IBudData budNPCData) {
+            IBudProfile budNPCData) {
         try {
             Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
             Vector3f rotation = new Vector3f(0, 0, 0);
             Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
-                    .create(store, budNPCData.getNPCTypeId(), position)
+                    .create(store, budNPCData.getNPCTypeId().getName(), position)
                     .withRotation(rotation)
                     .withInventory()
                     .addWeapon(budNPCData.getWeaponID(), 1, (short) 0)
@@ -156,10 +157,10 @@ public class BudCreation {
 
             changeRoleState(npc, playerRef, BudState.PET_DEFENSIVE).printResult();
             return new DataResult<>(npc,
-                    "Spawned Bud " + budNPCData.getNPCTypeId() + " for player " + playerRef.getUuid());
+                    "Spawned Bud " + budNPCData.getNPCTypeId().getName() + " for player " + playerRef.getUuid());
         } catch (Exception e) {
             return new DataResult<>(null,
-                    "Exception while spawning Bud " + budNPCData.getNPCTypeId() + ": " + e.getMessage());
+                    "Exception while spawning Bud " + budNPCData.getNPCTypeId().getName() + ": " + e.getMessage());
         }
     }
 
@@ -194,7 +195,7 @@ public class BudCreation {
                         PlayerBudComponent.getComponentType());
                 if (playerBudComponent == null)
                     return;
-                playerBudComponent.addBud(bud);
+                // playerBudComponent.addBud(bud);
                 store.putComponent(owner.getReference(), PlayerBudComponent.getComponentType(), playerBudComponent);
                 LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to " + state.getStateName() + " for NPC: " +
                         bud.getNPCTypeId());

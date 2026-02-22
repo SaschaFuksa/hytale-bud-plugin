@@ -1,10 +1,10 @@
-package com.bud.npc.buds;
+package com.bud.profile;
 
 import com.bud.llm.message.prompt.BudMessage;
-import com.bud.npc.buds.sound.IBudSoundData;
+import com.bud.profile.sound.IBudSoundData;
 import com.bud.reaction.world.time.DayOfWeek;
 
-public interface IBudData {
+public interface IBudProfile {
 
     BudMessage getBudMessage();
 
@@ -16,7 +16,7 @@ public interface IBudData {
 
     String getArmorID();
 
-    String getNPCTypeId();
+    BudType getNPCTypeId();
 
     String getNPCDisplayName();
 

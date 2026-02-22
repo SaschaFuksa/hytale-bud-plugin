@@ -1,20 +1,20 @@
-package com.bud.npc.buds.sound;
+package com.bud.profile.sound;
 
-public class GronkhSoundData implements IBudSoundData {
+public class KeylethSoundData implements IBudSoundData {
 
     @Override
     public String getAttackSound() {
-        return "SFX_Trork_Exertion";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override
     public String getPassiveSound() {
-        return "SFX_Trork_Alerted";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override
     public String getIdleSound() {
-        return "SFX_Trork_Alerted";
+        return "SFX_Kweebec_Plushie_Impact";
     }
 
     @Override

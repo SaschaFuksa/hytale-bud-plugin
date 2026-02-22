@@ -1,6 +1,6 @@
 package com.bud.npc;
 
-import com.bud.npc.buds.IBudData;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.world.time.Mood;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -10,11 +10,11 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 public class BudInstance {
     private final PlayerRef owner;
     private NPCEntity entity;
-    private final IBudData data;
+    private final IBudProfile data;
     private String lastKnownState;
     private Mood currentMood;
 
-    public BudInstance(PlayerRef owner, NPCEntity entity, IBudData data, String initialState) {
+    public BudInstance(PlayerRef owner, NPCEntity entity, IBudProfile data, String initialState) {
         this.owner = owner;
         this.entity = entity;
         this.data = data;
@@ -30,7 +30,7 @@ public class BudInstance {
         return entity;
     }
 
-    public IBudData getData() {
+    public IBudProfile getData() {
         return data;
     }
 

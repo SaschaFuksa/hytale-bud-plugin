@@ -8,12 +8,12 @@ import com.bud.RegistryManager;
 import com.bud.events.BudCreationEvent;
 import com.bud.interaction.ChatInteraction;
 import com.bud.npc.BudManager;
-import com.bud.npc.buds.BudType;
-import com.bud.npc.buds.GronkhData;
-import com.bud.npc.buds.IBudData;
-import com.bud.npc.buds.KeylethData;
 import com.bud.npc.creation.BudCreation;
 import com.bud.player.PlayerRegistry;
+import com.bud.profile.BudType;
+import com.bud.profile.GronkhProfile;
+import com.bud.profile.IBudProfile;
+import com.bud.profile.KeylethProfile;
 import com.bud.result.IDataListResult;
 import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -66,13 +66,13 @@ public class CreationCommand extends AbstractPlayerCommand {
         } else if (this.keylethFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Keyleth Bud for player " + playerRef.getUsername());
-            IResult result = executeBudAction(playerRef, store, new KeylethData());
+            IResult result = executeBudAction(playerRef, store, new KeylethProfile());
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else if (this.gronkhFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Gronkh Bud for player " + playerRef.getUsername());
-            IResult result = executeBudAction(playerRef, store, new GronkhData());
+            IResult result = executeBudAction(playerRef, store, new GronkhProfile());
             result.printResult();
             this.chatInteraction.sendChatMessage(world, playerRef, result.getMessage());
         } else {
@@ -101,7 +101,7 @@ public class CreationCommand extends AbstractPlayerCommand {
 
     // TODO: MOVE TO OTHER CLASS
     public static IResult executeBudAction(PlayerRef playerRef, Store<EntityStore> store,
-            IBudData missingBud) {
+            IBudProfile missingBud) {
         if (BudManager.getInstance().canBeAdded(playerRef.getUuid(), store,
                 missingBud)) {
             // Create new Bud

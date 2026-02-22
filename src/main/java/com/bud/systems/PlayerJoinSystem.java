@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.components.PlayerBudComponent;
-import com.bud.orchestrator.MessageOrchestrator;
+import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.reaction.tracker.MoodTracker;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.AddReason;

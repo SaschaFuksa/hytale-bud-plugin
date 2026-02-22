@@ -1,46 +1,55 @@
-package com.bud.npc.buds;
+package com.bud.profile;
+
+import javax.annotation.Nonnull;
 
 import com.bud.llm.message.prompt.BudMessage;
 import com.bud.llm.message.prompt.LLMPromptManager;
-import com.bud.npc.buds.sound.IBudSoundData;
-import com.bud.npc.buds.sound.KeylethSoundData;
+import com.bud.profile.sound.IBudSoundData;
+import com.bud.profile.sound.KeylethSoundData;
 import com.bud.reaction.world.time.DayOfWeek;
 
-public class KeylethData implements IBudData {
+public class KeylethProfile implements IBudProfile {
 
-	public static final String NPC_TYPE_ID = "Keyleth_Bud";
-	public static final String NPC_DISPLAY_NAME = "Keyleth";
-	public static final String NPC_DISPLAY_NAME_LOWER = "keyleth";
+	@Nonnull
+	private static final BudType BUD_TYPE_ID = BudType.KEYLETH;
+	@Nonnull
+	private static final String BUD_DISPLAY_NAME = "Keyleth";
+	@Nonnull
 	private static final IBudSoundData budSoundData = new KeylethSoundData();
 
+	@Nonnull
 	@Override
 	public BudMessage getBudMessage() {
-		return LLMPromptManager.getInstance().getBudMessage(NPC_DISPLAY_NAME);
+		return LLMPromptManager.getInstance().getBudMessage(BUD_DISPLAY_NAME);
 	}
 
+	@Nonnull
 	@Override
 	public IBudSoundData getBudSoundData() {
 		return budSoundData;
 	}
 
+	@Nonnull
 	@Override
 	public String getWeaponID() {
 		return "Template_Weapon_Shortbow";
 	}
 
+	@Nonnull
 	@Override
 	public String getArmorID() {
 		return "Armor_Kweebec_Chest";
 	}
 
+	@Nonnull
 	@Override
-	public String getNPCTypeId() {
-		return NPC_TYPE_ID;
+	public BudType getNPCTypeId() {
+		return BUD_TYPE_ID;
 	}
 
 	@Override
 	public String getNPCDisplayName() {
-		return NPC_DISPLAY_NAME;
+		return BUD_DISPLAY_NAME;
 	}
 
 	@Override

@@ -7,7 +7,6 @@ import com.bud.events.ChatEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
@@ -25,11 +24,7 @@ public class BudStateChangeSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        ComponentType<EntityStore, BudComponent> budComponentType = BudComponent.getComponentType();
-        if (budComponentType == null) {
-            return;
-        }
-        BudComponent budComponent = archetypeChunk.getComponent(index, budComponentType);
+        BudComponent budComponent = archetypeChunk.getComponent(index, BudComponent.getComponentType());
         if (budComponent == null) {
             return;
         }
@@ -50,7 +45,7 @@ public class BudStateChangeSystem extends EntityTickingSystem<EntityStore> {
                             + currentStateName);
             budComponent.setCurrentStateName(currentStateName);
             // Trigger LLM -> then ChatEvent
-            ChatEvent.dispatch(budComponent, currentStateName);
+            ChatEvent.dispatch(budComponent.getPlayerRef(), currentStateName);
         }
     }
 

@@ -63,7 +63,11 @@ public class BudComponent implements Component<EntityStore> {
         return bud;
     }
 
+    @Nonnull
     public PlayerRef getPlayerRef() {
+        if (playerRef == null) {
+            throw new IllegalStateException("PlayerRef cannot be null in BudComponent");
+        }
         return playerRef;
     }
 

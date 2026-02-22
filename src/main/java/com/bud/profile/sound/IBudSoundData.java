@@ -1,4 +1,4 @@
-package com.bud.npc.buds.sound;
+package com.bud.profile.sound;
 
 public interface IBudSoundData {
 

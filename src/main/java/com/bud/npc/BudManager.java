@@ -12,11 +12,8 @@ import javax.annotation.Nonnull;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.bud.cleanup.CleanUpHandler;
 import com.bud.components.PlayerBudComponent;
-import com.bud.npc.buds.BudType;
-import com.bud.npc.buds.GronkhData;
-import com.bud.npc.buds.IBudData;
-import com.bud.npc.buds.KeylethData;
-import com.bud.npc.buds.VeriData;
+import com.bud.profile.BudType;
+import com.bud.profile.IBudProfile;
 import com.bud.result.DataListResult;
 import com.bud.result.DataResult;
 import com.bud.result.ErrorResult;
@@ -24,7 +21,6 @@ import com.bud.result.IDataListResult;
 import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
-import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -48,56 +44,23 @@ public class BudManager {
         return INSTANCE;
     }
 
-    private static final Set<IBudData> BUDS = Set.of(
-            new VeriData(),
-            new GronkhData(),
-            new KeylethData());
-
-    public IBudData getBudDataByType(BudType budType) {
-        return BUDS.stream()
-                .filter(b -> b.getNPCTypeId().equals(budType.getName()))
-                .findFirst()
-                .orElse(new GronkhData());
-    }
-
-    public static boolean playerHasBudType(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull BudType budType) {
-        if (playerBudComponent.getLoadedBuds().contains(budType.getName())) {
-            Optional<NPCEntity> existingBud = playerBudComponent.getBuds().stream()
+    public static boolean playerHasValidBud(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull BudType budType) {
+        if (playerBudComponent.getBudTypes().contains(budType)) {
+            Optional<NPCEntity> existingBud = playerBudComponent.getCurrentBuds().stream()
                     .filter(b -> b.getNPCTypeId().equals(budType.getName()))
                     .findFirst();
             if (existingBud.isPresent()) {
                 Ref<EntityStore> ref = existingBud.get().getReference();
                 if (ref != null && ref.isValid()) {
-                    boolean isDead = ref.getStore().getArchetype(ref).contains(DeathComponent.getComponentType());
-                    if (!isDead) {
+                    ComponentType<EntityStore, DeathComponent> deathComponentType = DeathComponent.getComponentType();
+                    if (deathComponentType == null) {
                         return true;
                     }
+                    return !ref.getStore().getArchetype(ref).contains(deathComponentType);
                 }
             }
         }
         return false;
-    }
-
-    public Set<IBudData> getMissingBuds(UUID playerId, Store<EntityStore> store) {
-        Set<IBudData> missingBuds = BUDS.stream().collect(Collectors.toSet());
-        Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
-
-        if (playerBuds.isEmpty()) {
-            return missingBuds;
-        }
-
-        for (BudInstance instance : playerBuds) {
-            Ref<EntityStore> budRef = instance.getRef();
-            if (budRef == null || !budRef.isValid())
-                continue;
-
-            boolean isDead = store.getArchetype(budRef).contains(DeathComponent.getComponentType());
-            if (!isDead) {
-                String typeId = instance.getData().getNPCTypeId();
-                missingBuds.removeIf(b -> b.getNPCTypeId().equals(typeId));
-            }
-        }
-        return missingBuds;
     }
 
     public IDataListResult<NPCEntity> teleportBuds(PlayerRef playerRef, @Nonnull Store<EntityStore> store) {
@@ -125,7 +88,7 @@ public class BudManager {
         return new DataListResult<>(teleportedBuds, "Teleported your buds " + joinedNames);
     }
 
-    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudData budData) {
+    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudProfile budData) {
         Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
         NPCEntity targetBud = ownedBuds.stream()
                 .filter(bud -> bud.getNPCTypeId().equals(budData.getNPCTypeId()))
@@ -174,8 +137,8 @@ public class BudManager {
         }
     }
 
-    public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudData npcData) {
-        Set<IBudData> missingBuds = getMissingBuds(playerId, store);
+    public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudProfile npcData) {
+        Set<IBudProfile> missingBuds = new HashSet<>();
         return missingBuds.stream()
                 .anyMatch(b -> b.getNPCTypeId().equals(npcData.getNPCTypeId()));
     }
@@ -193,11 +156,7 @@ public class BudManager {
     }
 
     public Set<String> getTrackedBudTypes() {
-        Set<String> types = new HashSet<>();
-        for (IBudData budData : BUDS) {
-            types.add(budData.getNPCTypeId());
-        }
-        return types;
+        return new HashSet<>();
     }
 
     public boolean isBudOwnedBy(UUID playerUUID, Ref<EntityStore> npcRef) {

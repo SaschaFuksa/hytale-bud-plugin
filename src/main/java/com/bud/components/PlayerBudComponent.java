@@ -6,10 +6,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.Nonnull;
 
+import com.bud.profile.BudType;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -21,18 +23,21 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, PlayerBudComponent> TYPE;
 
-    // private String[] loadedBuds = new String[0];
-    private Set<String> buddies;
+    private Set<String> budIds;
 
-    private ConcurrentLinkedQueue<NPCEntity> buds = new ConcurrentLinkedQueue<>();
+    private Set<BudType> budTypes;
+
+    private ConcurrentLinkedQueue<NPCEntity> currentBuds = new ConcurrentLinkedQueue<>();
 
     public PlayerBudComponent() {
-        this.buddies = new HashSet<>();
+        this.budIds = new HashSet<>();
+        this.budTypes = new HashSet<>();
     }
 
     public PlayerBudComponent(PlayerBudComponent clone) {
-        this.buds = new ConcurrentLinkedQueue<>(clone.buds);
-        this.buddies = new HashSet<>(clone.buddies);
+        this.currentBuds = new ConcurrentLinkedQueue<>(clone.currentBuds);
+        this.budIds = new HashSet<>(clone.budIds);
+        this.budTypes = new HashSet<>(clone.budTypes);
     }
 
     @Nonnull
@@ -41,9 +46,14 @@ public class PlayerBudComponent implements Component<EntityStore> {
                     PlayerBudComponent.class,
                     PlayerBudComponent::new)
             .append(
-                    new KeyedCodec<>("Buddies", new SetCodec<>(Codec.STRING, HashSet::new, false)),
-                    (component, value) -> component.buddies = value != null ? new HashSet<>(value) : new HashSet<>(),
-                    component -> component.buddies)
+                    new KeyedCodec<>("BudIds", new SetCodec<>(Codec.STRING, HashSet::new, false)),
+                    (component, value) -> component.budIds = value != null ? new HashSet<>(value) : new HashSet<>(),
+                    component -> component.budIds)
+            .add()
+            .append(
+                    new KeyedCodec<>("BudTypes", new SetCodec<>(new EnumCodec<>(BudType.class), HashSet::new, false)),
+                    (component, value) -> component.budTypes = value != null ? new HashSet<>(value) : new HashSet<>(),
+                    component -> component.budTypes)
             .add()
             .build();
 
@@ -63,34 +73,41 @@ public class PlayerBudComponent implements Component<EntityStore> {
         return TYPE;
     }
 
-    public synchronized void addBud(NPCEntity bud) {
-        if (buds.size() >= 3) {
+    public synchronized void addBud(NPCEntity bud, BudType budType) {
+        if (currentBuds.size() >= 3) {
             return;
         }
-        buds.add(bud);
-        String npcTypeId = bud.getNPCTypeId();
-        buddies.add(npcTypeId);
+        LoggerUtil.getLogger().fine(() -> "[BUD] Adding Bud with NPC Type ID: " + budType.getName());
+        currentBuds.add(bud);
+        // String npcTypeId = budType.getName();
+        // budIds.add(npcTypeId);
+        budTypes.add(budType);
     }
 
-    public ConcurrentLinkedQueue<NPCEntity> getBuds() {
-        return buds;
+    public ConcurrentLinkedQueue<NPCEntity> getCurrentBuds() {
+        return currentBuds;
     }
 
-    public synchronized void removeBud(NPCEntity bud) {
-        String npcTypeId = bud.getNPCTypeId();
-        // buddies.remove(npcTypeId);
-        LoggerUtil.getLogger().fine(() -> "[BUD] Removing Bud with NPC Type ID: " + npcTypeId);
-        buds.remove(bud);
+    public synchronized void removeCurrentBud(NPCEntity bud, BudType budType) {
+        LoggerUtil.getLogger().fine(() -> "[BUD] Removing Bud with NPC Type ID: " + budType.getName());
+        // String npcTypeId = bud.getNPCTypeId();
+        // budIds.remove(npcTypeId);
+        currentBuds.remove(bud);
+        budTypes.remove(budType);
     }
 
-    public Set<String> getLoadedBuds() {
-        return new HashSet<>(buddies);
+    public Set<BudType> getBudTypes() {
+        return new HashSet<>(budTypes);
     }
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public Component<EntityStore> clone() {
-        return new PlayerBudComponent(this);
+        try {
+            return (PlayerBudComponent) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package com.bud.orchestrator;
+package com.bud.llm.orchestrator;
 
 /**
  * Defines the message channels for grouping related events.

@@ -17,10 +17,9 @@ public class SoundHandler implements Consumer<SoundEvent> {
 
     @Override
     public void accept(SoundEvent event) {
-        Ref<EntityStore> budRef = event.budComponent().getBud().getReference();
-        if (budRef != null && !budRef.isValid())
+        Ref<EntityStore> budRef = event.ref();
+        if (!budRef.isValid())
             return;
-        @SuppressWarnings("null")
         Store<EntityStore> store = budRef.getStore();
         ComponentType<EntityStore, TransformComponent> transformComponentType = TransformComponent.getComponentType();
         if (transformComponentType == null) {

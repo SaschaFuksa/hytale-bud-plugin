@@ -3,8 +3,8 @@ package com.bud.commands;
 import javax.annotation.Nonnull;
 
 import com.bud.components.PlayerBudComponent;
+import com.bud.profile.BudType;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
@@ -41,22 +41,18 @@ public class DebugCommand extends AbstractPlayerCommand {
                         .severe(() -> "[BUD] PlayerRef reference is null for player " + playerRef.getUsername());
                 return;
             }
-            ComponentType<EntityStore, PlayerBudComponent> componentType = PlayerBudComponent.getComponentType();
-            if (componentType == null) {
-                LoggerUtil.getLogger().severe(() -> "[BUD] PlayerBudComponent type is not set");
-                return;
-            }
-            PlayerBudComponent playerBudComponent = store.getComponent(playerRefReference, componentType);
+            PlayerBudComponent playerBudComponent = store.getComponent(playerRefReference,
+                    PlayerBudComponent.getComponentType());
             if (playerBudComponent == null) {
                 LoggerUtil.getLogger().warning(() -> "[BUD] No PlayerBudComponent found for player "
                         + playerRef.getUsername());
                 return;
             }
-            playerBudComponent.getBuds().forEach(bud -> {
+            playerBudComponent.getCurrentBuds().forEach(bud -> {
                 playerRef.sendMessage(Message.raw("- " + bud.getNPCTypeId()));
             });
-            for (String loadedBud : playerBudComponent.getLoadedBuds()) {
-                playerRef.sendMessage(Message.raw("- " + loadedBud));
+            for (BudType budType : playerBudComponent.getBudTypes()) {
+                playerRef.sendMessage(Message.raw("- " + budType.getName()));
             }
 
         }

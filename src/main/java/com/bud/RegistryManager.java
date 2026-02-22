@@ -3,9 +3,8 @@ package com.bud;
 import com.bud.config.ReactionConfig;
 import com.bud.llm.message.state.LLMStateManager;
 import com.bud.npc.BudRegistry;
-import com.bud.npc.buds.IBudData;
 import com.bud.player.PlayerRegistry;
-import com.bud.reaction.tracker.StateTracker;
+import com.bud.profile.IBudProfile;
 import com.bud.reaction.tracker.WeatherTracker;
 import com.bud.reaction.tracker.WorldTracker;
 import com.bud.reaction.world.WorldInformationUtil;
@@ -37,7 +36,7 @@ public class RegistryManager {
         return INSTANCE;
     }
 
-    public IResult registerBud(PlayerRef owner, NPCEntity bud, IBudData budNPCData) {
+    public IResult registerBud(PlayerRef owner, NPCEntity bud, IBudProfile budNPCData) {
         Ref<EntityStore> budRef = bud.getReference();
         if (budRef == null) {
             return new ErrorResult("Bud NPC has no valid reference");

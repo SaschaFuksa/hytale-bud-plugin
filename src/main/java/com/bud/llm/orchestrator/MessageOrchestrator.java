@@ -1,4 +1,4 @@
-package com.bud.orchestrator;
+package com.bud.llm.orchestrator;
 
 import java.util.Collections;
 import java.util.Map;
