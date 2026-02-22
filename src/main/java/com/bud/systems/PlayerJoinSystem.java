@@ -4,8 +4,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.components.PlayerBudComponent;
-import com.bud.events.BudCreationEvent;
+import com.bud.config.DebugConfig;
+import com.bud.debug.BudDebugInfo;
 import com.bud.llm.orchestrator.MessageOrchestrator;
+import com.bud.profile.BudType;
+import com.bud.queue.creation.BudCreationEntry;
+import com.bud.queue.creation.BudCreationQueue;
 import com.bud.reaction.tracker.MoodTracker;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.AddReason;
@@ -28,6 +32,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
     }
 
     @Override
+    @SuppressWarnings("null")
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason addReason,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
@@ -39,16 +44,22 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent
                 .getComponentType());
         if (playerBudComponent == null) {
-            commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), new PlayerBudComponent());
+            commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), new PlayerBudComponent(playerRef));
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Added PlayerBudComponent for player " + playerRef.getUsername());
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
-            BudCreationEvent.dispatch(ref, playerBudComponent.getBudTypes());
+            for (BudType budType : playerBudComponent.getBudTypes()) {
+                BudCreationQueue.getInstance()
+                        .addToCache(new BudCreationEntry(ref, budType));
+            }
         }
         MoodTracker.getInstance().startPolling();
         MessageOrchestrator.getInstance().start();
+        if (DebugConfig.getInstance().isEnablePlayerInfo()) {
+            BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
+        }
     }
 
     @Override

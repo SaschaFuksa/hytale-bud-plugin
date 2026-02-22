@@ -8,13 +8,13 @@ import javax.annotation.Nonnull;
 
 import com.bud.profile.BudType;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
-import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
@@ -23,21 +23,25 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, PlayerBudComponent> TYPE;
 
-    private Set<String> budIds;
-
     private Set<BudType> budTypes;
+
+    private PlayerRef playerRef;
 
     private ConcurrentLinkedQueue<NPCEntity> currentBuds = new ConcurrentLinkedQueue<>();
 
     public PlayerBudComponent() {
-        this.budIds = new HashSet<>();
         this.budTypes = new HashSet<>();
+    }
+
+    public PlayerBudComponent(PlayerRef playerRef) {
+        this.budTypes = new HashSet<>();
+        this.playerRef = playerRef;
     }
 
     public PlayerBudComponent(PlayerBudComponent clone) {
         this.currentBuds = new ConcurrentLinkedQueue<>(clone.currentBuds);
-        this.budIds = new HashSet<>(clone.budIds);
         this.budTypes = new HashSet<>(clone.budTypes);
+        this.playerRef = clone.playerRef;
     }
 
     @Nonnull
@@ -45,11 +49,6 @@ public class PlayerBudComponent implements Component<EntityStore> {
             .builder(
                     PlayerBudComponent.class,
                     PlayerBudComponent::new)
-            .append(
-                    new KeyedCodec<>("BudIds", new SetCodec<>(Codec.STRING, HashSet::new, false)),
-                    (component, value) -> component.budIds = value != null ? new HashSet<>(value) : new HashSet<>(),
-                    component -> component.budIds)
-            .add()
             .append(
                     new KeyedCodec<>("BudTypes", new SetCodec<>(new EnumCodec<>(BudType.class), HashSet::new, false)),
                     (component, value) -> component.budTypes = value != null ? new HashSet<>(value) : new HashSet<>(),
@@ -66,7 +65,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         if (TYPE == null) {
             TYPE = Universe.get().getEntityStoreRegistry().registerComponent(
                     PlayerBudComponent.class,
-                    "PlayerBuddiesComponent",
+                    "PlayerBudComponent",
                     PlayerBudComponent.CODEC);
             return TYPE;
         }
@@ -96,9 +95,24 @@ public class PlayerBudComponent implements Component<EntityStore> {
         budTypes.remove(budType);
     }
 
+    public synchronized boolean hasBuds() {
+        if (currentBuds.size() != budTypes.size()) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Player has no buds or mismatched bud types.");
+        }
+        return !currentBuds.isEmpty();
+    }
+
     @Nonnull
     public Set<BudType> getBudTypes() {
         return new HashSet<>(budTypes);
+    }
+
+    @Nonnull
+    public PlayerRef getPlayerRef() {
+        if (playerRef == null) {
+            throw new IllegalStateException("PlayerRef cannot be null in PlayerBudComponent");
+        }
+        return playerRef;
     }
 
     @Override

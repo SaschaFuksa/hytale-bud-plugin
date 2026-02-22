@@ -1,14 +1,10 @@
 package com.bud.reaction.teleport;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-import com.bud.npc.BudManager;
-import com.bud.npc.BudRegistry;
-import com.bud.result.IDataListResult;
+import com.bud.components.PlayerBudComponent;
+import com.bud.events.TeleportEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -20,7 +16,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 /**
  * Filter system for detecting player teleportation.
@@ -31,9 +26,6 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
  * This system detects when the Teleport component is added or removed.
  */
 public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport> {
-
-    private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
-    private static final long TELEPORT_DELAY_MS = 25;
 
     @Override
     @Nonnull
@@ -70,7 +62,7 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
     @Override
     public void onComponentSet(
             @Nonnull Ref<EntityStore> ref,
-            Teleport oldComponent,
+            @Nullable Teleport oldComponent,
             @Nonnull Teleport newComponent,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
@@ -90,41 +82,17 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Teleport component,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        Player player = store.getComponent(ref, Player.getComponentType());
-        if (player != null) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Teleport component removed from entity: " + player.getDisplayName());
-        }
         try {
             PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+            PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
 
-            if (playerRef != null && BudRegistry.playerHasBud(playerRef.getUuid())) {
-                // Delay teleport by 25ms to avoid conflicts with the player's teleport
-                SCHEDULER.schedule(() -> {
-                    store.getExternalData().getWorld().execute(() -> {
-                        try {
-                            IDataListResult<NPCEntity> result = BudManager.getInstance().teleportBuds(playerRef, store);
-                            if (result.isSuccess()) {
-                                LoggerUtil.getLogger()
-                                        .fine(() -> "[BUD] Teleported Buds for player: " + playerRef.getUuid());
-                            } else {
-                                LoggerUtil.getLogger()
-                                        .warning(() -> "[BUD] Failed to teleport Buds for player: "
-                                                + playerRef.getUuid() +
-                                                ". Reason: " + result.getMessage());
-                                // TODO: Cleanup
-                                // Create new
-                            }
-                        } catch (Exception e) {
-                            LoggerUtil.getLogger()
-                                    .severe(() -> "[BUD] Error in delayed Bud teleport: " + e.getMessage());
-                        }
-                    });
-                }, TELEPORT_DELAY_MS, TimeUnit.MILLISECONDS);
+            if (playerRef != null && !playerBudComponent.hasBuds()) {
+                TeleportEvent.dispatch(store, playerBudComponent, playerBudComponent.getBudTypes());
             }
         } catch (Exception e) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Error in TeleportFilterSystem.onComponentRemoved: " + e.getMessage());
         }
+
     }
 }

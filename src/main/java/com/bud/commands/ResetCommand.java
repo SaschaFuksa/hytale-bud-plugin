@@ -1,12 +1,13 @@
 package com.bud.commands;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 
-import com.bud.RegistryManager;
 import com.bud.cleanup.CleanUpHandler;
-import com.bud.interaction.ChatInteraction;
-import com.bud.npc.creation.BudCreation;
-import com.bud.result.IDataListResult;
+import com.bud.events.BudCreationEvent;
+import com.bud.events.ChatEvent;
+import com.bud.profile.BudType;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -15,11 +16,8 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class ResetCommand extends AbstractPlayerCommand {
-
-    private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
     public ResetCommand() {
         super("reset", "Reset Bud system.");
@@ -35,14 +33,23 @@ public class ResetCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Resetting Bud system for player: " + playerRef.getUsername());
-        // TODO
-        CleanUpHandler.cleanupOwnerBuds(playerRef, world).printResult();
-        IDataListResult<NPCEntity> creationResult = BudCreation.createBud(store, playerRef);
-        if (creationResult.isSuccess()) {
-            this.chatInteraction.sendChatMessage(world, playerRef,
-                    creationResult.getMessage());
+        this.cleanupBuds(playerRef, store, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
+        this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
+        ChatEvent.dispatch(playerRef, "Reset Buds for " + playerRef.getUsername() + ".");
+    }
+
+    private void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store, Set<BudType> buds) {
+        if (buds.isEmpty()) {
+            return;
         }
-        RegistryManager.getInstance().registerPlayer(playerRef);
+        CleanUpHandler.cleanupBuds(playerRef, store, buds);
+    }
+
+    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<BudType> buds) {
+        if (buds.isEmpty()) {
+            return;
+        }
+        BudCreationEvent.dispatch(ref, buds);
     }
 
 }

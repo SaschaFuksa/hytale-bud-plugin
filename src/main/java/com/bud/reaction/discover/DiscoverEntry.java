@@ -1,6 +1,6 @@
 package com.bud.reaction.discover;
 
-import com.bud.reaction.ICacheEntry;
+import com.bud.queue.ICacheEntry;
 
 /**
  * Represents a discovered zone event entry.

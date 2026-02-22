@@ -11,7 +11,6 @@ import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerInstance;
 import com.bud.player.PlayerRegistry;
 import com.bud.reaction.world.WorldInformationUtil;
-import com.bud.result.IResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;

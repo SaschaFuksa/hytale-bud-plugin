@@ -1,19 +1,24 @@
 package com.bud.handler;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
 import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
+import com.bud.config.DebugConfig;
+import com.bud.debug.BudDebugInfo;
 import com.bud.events.BudCreationEvent;
 import com.bud.mappings.BudProfileMapper;
 import com.bud.npc.BudManager;
 import com.bud.npc.creation.BudSpawner;
 import com.bud.profile.BudType;
 import com.bud.profile.IBudProfile;
-import com.bud.queue.StateChangeEntry;
-import com.bud.queue.StateChangeQueue;
+import com.bud.queue.state.StateChangeEntry;
+import com.bud.queue.state.StateChangeQueue;
+import com.bud.queue.teleport.TeleportEntry;
+import com.bud.queue.teleport.TeleportQueue;
 import com.bud.reaction.state.BudState;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -21,6 +26,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
@@ -33,6 +39,11 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     public void accept(BudCreationEvent event) {
         if (!event.playerRef().isValid())
             return;
+        World world = event.playerRef().getStore().getExternalData().getWorld();
+        world.execute(() -> this.handleEvent(event));
+    }
+
+    private void handleEvent(BudCreationEvent event) {
         Store<EntityStore> store = event.playerRef().getStore();
         PlayerRef playerRef = store.getComponent(event.playerRef(), PlayerRef.getComponentType());
         if (playerRef == null) {
@@ -65,6 +76,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
+            TeleportHandler.handleTeleport(store, playerBudComponent, budType);
             return;
         }
         NPCEntity bud = spawnBud(store, playerRef, budType);
@@ -84,6 +96,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         }
         StateChangeQueue.getInstance()
                 .addToCache(new StateChangeEntry(budComponent, BudState.PET_DEFENSIVE));
+        if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+            BudDebugInfo.getInstance().logBudInfo(bud);
+        }
 
     }
 

@@ -1,37 +1,23 @@
 package com.bud.npc;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.bud.cleanup.CleanUpHandler;
 import com.bud.components.PlayerBudComponent;
 import com.bud.profile.BudType;
-import com.bud.profile.IBudProfile;
-import com.bud.result.DataListResult;
-import com.bud.result.DataResult;
-import com.bud.result.ErrorResult;
-import com.bud.result.IDataListResult;
-import com.bud.result.IDataResult;
-import com.bud.result.IResult;
-import com.bud.result.SuccessResult;
+import com.bud.reaction.state.BudState;
+import static com.bud.reaction.state.BudState.PET_DEFENSIVE;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
-import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
-import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class BudManager {
 
@@ -63,108 +49,18 @@ public class BudManager {
         return false;
     }
 
-    public IDataListResult<NPCEntity> teleportBuds(PlayerRef playerRef, @Nonnull Store<EntityStore> store) {
-        Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
-
-        if (ownedBuds.isEmpty()) {
-            return new DataListResult<>(ownedBuds, "No buds to teleport for player " + playerRef.getUuid());
-        }
-
-        Set<NPCEntity> teleportedBuds = new HashSet<>();
-        for (NPCEntity bud : ownedBuds) {
-            IResult result = teleportBud(bud, playerRef, store);
-            if (result.isSuccess()) {
-                result.printResult();
-                teleportedBuds.add(bud);
-            } else {
-                result.printResult();
-                CleanUpHandler.cleanupBud(playerRef, bud.getWorld(), bud.getUuid());
-            }
-        }
-
-        String joinedNames = teleportedBuds.stream()
-                .map(npc -> npc.getNPCTypeId().split("_")[0])
-                .collect(Collectors.joining(", "));
-        return new DataListResult<>(teleportedBuds, "Teleported your buds " + joinedNames);
-    }
-
-    public IResult teleportBud(PlayerRef playerRef, Store<EntityStore> store, IBudProfile budData) {
-        Set<NPCEntity> ownedBuds = getOwnedBuds(playerRef.getUuid(), store);
-        NPCEntity targetBud = ownedBuds.stream()
-                .filter(bud -> bud.getNPCTypeId().equals(budData.getNPCTypeId()))
-                .findFirst()
-                .orElse(null);
-
-        if (targetBud == null) {
-            return new ErrorResult(
-                    "No bud of type " + budData.getNPCTypeId() + " found for player " + playerRef.getUuid());
-        }
-        IResult result = teleportBud(targetBud, playerRef, store);
-
-        // Force client to re-receive all entities after teleport
-        Ref<EntityStore> viewerRef = playerRef.getReference();
-        if (viewerRef != null && viewerRef.isValid()) {
-            EntityTrackerSystems.despawnAll(viewerRef, store);
-        }
-
-        return result;
-    }
-
-    public Set<NPCEntity> getOwnedBuds(UUID playerId, Store<EntityStore> store) {
-        Set<BudInstance> playerBuds = BudRegistry.getInstance().getByOwner(playerId);
-        return playerBuds.stream()
-                .map(BudInstance::getEntity)
-                .collect(Collectors.toSet());
-    }
-
-    private IResult teleportBud(NPCEntity bud, PlayerRef playerRef, Store<EntityStore> store) {
-        Ref<EntityStore> budRef = bud.getReference();
-        if (budRef == null || !budRef.isValid()) {
-            return new ErrorResult("Invalid Bud reference for teleportation.");
-        }
-        TransformComponent transform = store.getComponent(budRef, TransformComponent.getComponentType());
-
-        if (transform != null) {
-            Vector3d targetPos = getPlayerPositionWithOffset(playerRef);
-            bud.getWorld().execute(() -> {
-                bud.moveTo(budRef, targetPos.getX(), targetPos.getY(), targetPos.getZ(), store);
-                store.addComponent(budRef, Teleport.getComponentType(),
-                        Teleport.createExact(targetPos, transform.getRotation()));
-            });
-            return new SuccessResult("Teleported Bud " + bud.getNPCTypeId().split("_")[0] + " successfully.");
-        } else {
-            return new ErrorResult("Transform component not found for Bud " + bud.getNPCTypeId() + ".");
-        }
-    }
-
-    public boolean canBeAdded(UUID playerId, Store<EntityStore> store, IBudProfile npcData) {
-        Set<IBudProfile> missingBuds = new HashSet<>();
-        return missingBuds.stream()
-                .anyMatch(b -> b.getNPCTypeId().equals(npcData.getNPCTypeId()));
-    }
-
-    public IDataResult<NPCEntity> getNPCEntityByUUID(@Nonnull UUID npcUUID, @Nonnull World world) {
-        try {
-            EntityStore entityStore = world.getEntityStore();
-            Store<EntityStore> store = entityStore.getStore();
-            Ref<EntityStore> ref = entityStore.getRefFromUUID(npcUUID);
-            NPCEntity npc = store.getComponent(ref, NPCEntity.getComponentType());
-            return new DataResult<>(npc, "Found NPCEntity for UUID " + npcUUID);
-        } catch (Exception e) {
-            return new DataResult<>(null, "Failed to find NPCEntity for UUID " + npcUUID);
-        }
-    }
-
-    public Set<String> getTrackedBudTypes() {
-        return new HashSet<>();
-    }
-
-    public boolean isBudOwnedBy(UUID playerUUID, Ref<EntityStore> npcRef) {
-        BudInstance instance = BudRegistry.getInstance().get(npcRef);
-        return instance != null && instance.getOwner().getUuid().equals(playerUUID);
+    @Nonnull
+    public BudState getNextState(BudState currentState) {
+        return switch (currentState) {
+            case PET_DEFENSIVE -> BudState.PET_PASSIVE;
+            case PET_PASSIVE -> BudState.PET_SITTING;
+            case PET_SITTING -> PET_DEFENSIVE;
+            default -> BudState.PET_PASSIVE;
+        };
     }
 
     public NPCEntity getRandomBud(UUID ownerId) {
+        // TODO
         Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
 
         if (buds.isEmpty()) {

@@ -2,7 +2,7 @@ package com.bud.commands;
 
 import javax.annotation.Nonnull;
 
-import com.bud.interaction.ChatInteraction;
+import com.bud.events.ChatEvent;
 import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -19,8 +19,6 @@ public class PromptCommand extends AbstractPlayerCommand {
     private final FlagArg reloadFlag;
 
     private final FlagArg resetFlag;
-
-    private final ChatInteraction chatInteraction = ChatInteraction.getInstance();
 
     public PromptCommand() {
         super("prompt", "Manage Bud prompts.");
@@ -41,17 +39,17 @@ public class PromptCommand extends AbstractPlayerCommand {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Reloading Bud prompts by player: " + playerRef.getUsername());
             LLMPromptManager.getInstance().reloadMissingPrompts();
-            this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
+            ChatEvent.dispatch(playerRef, "Reloaded prompts.");
         } else if (this.resetFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Resetting Bud prompts by player: " + playerRef.getUsername());
             LLMPromptManager.getInstance().resetPrompts();
-            this.chatInteraction.sendChatMessage(world, playerRef, "Reset prompts to default.");
+            ChatEvent.dispatch(playerRef, "Reset prompts to default.");
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Reloading Bud prompts by player: " + playerRef.getUsername());
             LLMPromptManager.getInstance().reloadMissingPrompts();
-            this.chatInteraction.sendChatMessage(world, playerRef, "Reloaded prompts.");
+            ChatEvent.dispatch(playerRef, "Reloaded prompts.");
         }
 
     }

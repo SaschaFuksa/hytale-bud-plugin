@@ -3,8 +3,8 @@ package com.bud.reaction.state;
 import javax.annotation.Nonnull;
 
 import com.bud.components.BudComponent;
-import com.bud.queue.StateChangeEntry;
-import com.bud.queue.StateChangeQueue;
+import com.bud.queue.state.StateChangeEntry;
+import com.bud.queue.state.StateChangeQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;

@@ -45,44 +45,31 @@ public class CreationCommand extends AbstractPlayerCommand {
         if (this.allFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            Set<BudType> buds = Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH);
-            if (buds.isEmpty()) {
-                return;
-            }
-            BudCreationEvent.dispatch(ref, buds);
+            this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
         } else if (this.veriFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Veri Bud for player " + playerRef.getUsername());
-            Set<BudType> veri = Set.of(BudType.VERI);
-            if (veri.isEmpty()) {
-                return;
-            }
-            BudCreationEvent.dispatch(ref, veri);
+            this.dispatchCreation(ref, Set.of(BudType.VERI));
         } else if (this.keylethFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Keyleth Bud for player " + playerRef.getUsername());
-            Set<BudType> keyleth = Set.of(BudType.KEYLETH);
-            if (keyleth.isEmpty()) {
-                return;
-            }
-            BudCreationEvent.dispatch(ref, keyleth);
+            this.dispatchCreation(ref, Set.of(BudType.KEYLETH));
         } else if (this.gronkhFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Gronkh Bud for player " + playerRef.getUsername());
-            Set<BudType> gronkh = Set.of(BudType.GRONKH);
-            if (gronkh.isEmpty()) {
-                return;
-            }
-            BudCreationEvent.dispatch(ref, gronkh);
+            this.dispatchCreation(ref, Set.of(BudType.GRONKH));
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            Set<BudType> buds = Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH);
-            if (buds.isEmpty()) {
-                return;
-            }
-            BudCreationEvent.dispatch(ref, buds);
+            this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
         }
+    }
+
+    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<BudType> buds) {
+        if (buds.isEmpty()) {
+            return;
+        }
+        BudCreationEvent.dispatch(ref, buds);
     }
 
 }

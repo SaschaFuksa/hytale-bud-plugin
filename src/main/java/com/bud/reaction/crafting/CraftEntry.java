@@ -1,6 +1,6 @@
 package com.bud.reaction.crafting;
 
-import com.bud.reaction.ICacheEntry;
+import com.bud.queue.ICacheEntry;
 
 /**
  * Represents a crafting or bench-usage event entry.

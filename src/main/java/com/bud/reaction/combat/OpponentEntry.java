@@ -1,6 +1,6 @@
 package com.bud.reaction.combat;
 
-import com.bud.reaction.ICacheEntry;
+import com.bud.queue.ICacheEntry;
 
 public record OpponentEntry(String roleName, CombatState state) implements ICacheEntry {
 

@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bud.config.OrchestratorConfig;
+import com.bud.queue.ICacheEntry;
 
 public abstract class AbstractCache {
 

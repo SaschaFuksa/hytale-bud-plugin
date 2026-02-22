@@ -1,6 +1,6 @@
 package com.bud.reaction.item;
 
-import com.bud.reaction.ICacheEntry;
+import com.bud.queue.ICacheEntry;
 
 public record ItemEntry(String itemName, int priority, ItemInteraction interaction) implements ICacheEntry {
 

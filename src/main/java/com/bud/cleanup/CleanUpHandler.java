@@ -3,198 +3,117 @@ package com.bud.cleanup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.bud.RegistryManager;
+import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
-import com.bud.npc.BudManager;
-import com.bud.player.persistence.PersistenceManager;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.RemoveReason;
-import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.server.core.HytaleServer;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.bud.npc.BudInstance;
-import com.bud.npc.BudRegistry;
+import com.bud.events.ChatEvent;
 import com.bud.profile.BudType;
 import com.bud.result.ErrorResult;
-import com.bud.result.IDataListResult;
-import com.bud.result.IDataResult;
 import com.bud.result.IResult;
 import com.bud.result.SuccessResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class CleanUpHandler {
 
-    public static IResult cleanupOwnerBuds(@Nonnull PlayerRef playerRef, @Nonnull World world) {
-        IDataListResult<UUID> persistedBudsResult = PersistenceManager.getInstance().getPersistedBudUUIDs(playerRef);
-        persistedBudsResult.printResult();
-        if (!persistedBudsResult.isSuccess()) {
-            return persistedBudsResult;
-        }
-        List<UUID> persistedBuds = persistedBudsResult.getDataList();
-        LoggerUtil.getLogger().fine(() -> "[BUD] Size of persisted buds: " + persistedBuds.size());
-        List<String> errors = new ArrayList<>();
-        for (UUID budUUID : persistedBuds) {
-            IResult result = cleanupBud(playerRef, world, budUUID);
-            if (!result.isSuccess()) {
-                errors.add(result.getMessage());
-            }
-        }
-        persistedBudsResult = PersistenceManager.getInstance().getPersistedBudUUIDs(playerRef);
-        final int sizeAfterCleanup = persistedBudsResult.getDataList().size();
-        LoggerUtil.getLogger().fine(() -> "[BUD] Size of persisted buds after cleanup: " + sizeAfterCleanup);
-        if (!errors.isEmpty()) {
-            return new ErrorResult("Errors occurred while removing owner buds: " + String.join(", ", errors));
-        }
-        return new SuccessResult("Removed all owner buds.");
-    }
-
-    public static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull UUID budUUID) {
-        try {
-            IDataResult<NPCEntity> npcResult = BudManager.getInstance().getNPCEntityByUUID(budUUID, world);
-            npcResult.printResult();
-            if (!npcResult.isSuccess()) {
-                LoggerUtil.getLogger().fine(() -> "[BUD] Maybe Entity already despawned. Try to unregister.");
-            } else {
-                NPCEntity npcEntity = npcResult.getData();
-                RegistryManager.getInstance().unregister(npcEntity, playerRef).printResult();
-                despawnBud(npcEntity).printResult();
-            }
-
-            IResult unpersistResult = PersistenceManager.getInstance().unpersistData(playerRef, budUUID);
-            if (!unpersistResult.isSuccess()) {
-                return unpersistResult;
-            }
-            PlayerBudComponent playerBudComponent = world.getEntityStore().getStore().getComponent(
-                    playerRef.getReference(),
-                    PlayerBudComponent.getComponentType());
-            // TODO: REMOVE uuids
-            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
-            // for (NPCEntity bud : buds) {
-            // if (bud.getUuid().equals(budUUID)) {
-            // playerBudComponent.removeCurrentBud(bud);
-            // break;
-            // }
-            // }
-            return new SuccessResult("Removed owner bud successfully.");
-        } catch (Exception e) {
-            return new ErrorResult("Exception removing owner bud: " + e.getMessage());
-        }
-    }
-
-    public static IResult cleanupBud(@Nonnull PlayerRef playerRef, @Nonnull World world, @Nonnull BudType budType) {
+    public static void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store,
+            @Nonnull Set<BudType> budTypes) {
         try {
             Ref<EntityStore> ref = playerRef.getReference();
             if (ref == null) {
-                return new ErrorResult("Invalid PlayerRef reference.");
+                return;
             }
-            PlayerBudComponent playerBudComponent = world.getEntityStore().getStore().getComponent(ref,
-                    PlayerBudComponent.getComponentType());
+            PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
             ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
+            List<String> removedBuds = new ArrayList<>();
             for (NPCEntity bud : buds) {
-                if (bud.getNPCTypeId().equals(budType.getName())) {
-                    playerBudComponent.removeCurrentBud(bud, budType);
-                    despawnBud(bud).printResult();
-                    break;
+                for (BudType budType : budTypes) {
+                    if (bud.getNPCTypeId().equals(budType.getName())) {
+                        playerBudComponent.removeCurrentBud(bud, budType);
+                        Ref<EntityStore> budRef = bud.getReference();
+                        if (budRef != null) {
+                            despawnBud(budRef, store);
+                        }
+                        removedBuds.add(budType.getName().split("_")[0]);
+                    }
                 }
             }
-            return new SuccessResult("Removed owner bud successfully.");
+            String message = removedBuds.isEmpty() ? "No matching Buds found to remove."
+                    : "Removed Buds: " + String.join(", ", removedBuds);
+            LoggerUtil.getLogger().info(() -> "[BUD] " + message);
+            ChatEvent.dispatch(playerRef, message);
         } catch (Exception e) {
-            return new ErrorResult("Exception removing owner bud: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Exception removing buds: " + e.getMessage());
         }
     }
 
-    public static IResult cleanupAllBuds(World world) {
-        Set<String> typesSnapshot = BudManager.getInstance().getTrackedBudTypes();
-        LoggerUtil.getLogger().fine(
-                () -> "[BUD] Scheduling cleanup for world " + world.getName() + " with bud types: " + typesSnapshot);
-        HytaleServer.SCHEDULED_EXECUTOR.schedule(
-                () -> Thread.ofVirtual().start(() -> {
-                    IResult result = cleanupWorld(world, typesSnapshot);
-                    result.printResult();
-                }),
-                1L,
-                TimeUnit.SECONDS);
-        return new SuccessResult("Scheduled cleanup for world " + world.getName());
+    public static void cleanupAllBuds(World world, Store<EntityStore> store) {
+        ComponentType<EntityStore, NPCEntity> componentType = NPCEntity.getComponentType();
+        if (componentType == null) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] NPCEntity component type not found.");
+            return;
+        }
+        try {
+            ConcurrentLinkedQueue<BudComponent> budsToRemove = new ConcurrentLinkedQueue<>();
+            store.forEachEntityParallel(
+                    BudComponent.getComponentType(),
+                    (index, archetypeChunk, commandBuffer) -> {
+                        LoggerUtil.getLogger()
+                                .fine(() -> "[BUD] Checking entity for cleanup: " + index);
+                        BudComponent budComponent = archetypeChunk.getComponent(index,
+                                BudComponent.getComponentType());
+                        if (budComponent == null) {
+                            return;
+                        }
+                        budsToRemove.add(budComponent);
+                    });
+            for (BudComponent budComponent : budsToRemove) {
+                NPCEntity bud = budComponent.getBud();
+                Ref<EntityStore> ref = bud.getReference();
+                if (ref == null) {
+                    continue;
+                }
+                PlayerRef player = budComponent.getPlayerRef();
+                Ref<EntityStore> playerRef = player.getReference();
+                if (playerRef == null) {
+                    continue;
+                }
+                PlayerBudComponent playerBudComponent = store.getComponent(playerRef,
+                        PlayerBudComponent.getComponentType());
+                if (playerBudComponent != null) {
+                    playerBudComponent.removeCurrentBud(bud, budComponent.getBudType());
+                }
+                despawnBud(ref, store);
+                LoggerUtil.getLogger()
+                        .info(() -> "[BUD] Removing NPC \"" + bud.getNPCTypeId() + "\""
+                                + " for player " + player.getUsername());
+
+            }
+            Universe.get().sendMessage(Message.raw("All buds removed."));
+        } catch (Exception e) {
+            LoggerUtil.getLogger()
+                    .severe(() -> "[BUD] Exception during cleanup of world " + world.getName() + ": " + e.getMessage());
+        }
     }
 
-    public static IResult despawnBud(NPCEntity npcEntity) {
+    private static IResult despawnBud(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         try {
-            Ref<EntityStore> entityRef = npcEntity.getReference();
-            entityRef.getStore().removeEntity(entityRef, RemoveReason.REMOVE);
+            store.removeEntity(ref, RemoveReason.REMOVE);
             return new SuccessResult("Entity removed successfully.");
         } catch (Exception e) {
             return new ErrorResult("Exception checking entity reference: " + e.getMessage());
-        }
-    }
-
-    private static IResult cleanupWorld(World world, Set<String> trackedBudTypes) {
-        LoggerUtil.getLogger()
-                .fine(() -> "[BUD] Cleaning up world " + world.getName() + " for bud types: " + trackedBudTypes);
-        try {
-            Store<EntityStore> store = world.getEntityStore().getStore();
-            // Collection to hold tracked buds for safe unregister/unpersist
-            ConcurrentLinkedQueue<BudInstance> trackedBudsToRemove = new ConcurrentLinkedQueue<>();
-
-            world.execute(() -> {
-                store.forEachEntityParallel(
-                        NPCEntity.getComponentType(),
-                        (index, archetypeChunk, commandBuffer) -> {
-                            NPCEntity npcComponent = archetypeChunk.getComponent(index, NPCEntity.getComponentType());
-                            if (npcComponent == null || !trackedBudTypes.contains(npcComponent.getNPCTypeId())) {
-                                return;
-                            }
-
-                            // Check if it's a tracked bud with an owner
-                            BudInstance instance = BudRegistry.getInstance()
-                                    .get(npcComponent.getReference());
-                            if (instance != null) {
-                                LoggerUtil.getLogger()
-                                        .fine(() -> "[BUD] Marking tracked Bud for removal: " + npcComponent.getUuid());
-                                trackedBudsToRemove.add(instance);
-                            } else {
-                                // Orphan / Untracked: Remove immediately
-                                LoggerUtil.getLogger()
-                                        .fine(() -> "[BUD] Removing orphan/untracked Bud: " + npcComponent.getUuid());
-                                commandBuffer.removeEntity(npcComponent.getReference(), RemoveReason.REMOVE);
-                            }
-                        });
-
-                // Process tracked buds sequentially to ensure thread-safety for data
-                // persistence
-                for (BudInstance instance : trackedBudsToRemove) {
-                    LoggerUtil.getLogger()
-                            .fine(() -> "[BUD] Cleaning up tracked Bud: " + instance.getEntity().getUuid());
-                    try {
-                        NPCEntity npcEntity = instance.getEntity();
-                        PlayerRef owner = instance.getOwner();
-
-                        // Unregister from runtime tracker
-                        RegistryManager.getInstance().unregister(npcEntity, owner).printResult();
-
-                        // Despawn entity (removes from world)
-                        despawnBud(npcEntity).printResult();
-
-                        // Unpersist from player data
-                        if (owner != null && npcEntity != null) {
-                            PersistenceManager.getInstance().unpersistData(owner, npcEntity.getUuid()).printResult();
-                        }
-                    } catch (Exception e) {
-                        LoggerUtil.getLogger().severe(() -> "[BUD] Error cleaning up tracked bud: " + e.getMessage());
-                    }
-                }
-            });
-            return new SuccessResult("Cleaned up world " + world.getName());
-        } catch (Exception e) {
-            return new ErrorResult("Exception during cleanup of world " + world.getName() + ": " + e.getMessage());
         }
     }
 

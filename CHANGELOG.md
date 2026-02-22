@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - Updated server version
 - Reduced token size
 - Config Code rework
+- Much code rework for better structure and maintainability.
+- Bud respawn after player login.
 
 
 ---

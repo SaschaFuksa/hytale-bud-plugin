@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import com.bud.commands.BudCommandCollection;
 import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
+import com.bud.config.DebugConfig;
 import com.bud.config.LLMConfig;
 import com.bud.config.OrchestratorConfig;
 import com.bud.config.ReactionConfig;
@@ -13,10 +14,12 @@ import com.bud.events.BudCreationEvent;
 import com.bud.events.ChatEvent;
 import com.bud.events.SoundEvent;
 import com.bud.events.StateChangeEvent;
+import com.bud.events.TeleportEvent;
 import com.bud.handler.BudCreationHandler;
 import com.bud.handler.ChatHandler;
 import com.bud.handler.SoundHandler;
 import com.bud.handler.StateChangeHandler;
+import com.bud.handler.TeleportHandler;
 import com.bud.llm.messages.prompt.LLMPromptManager;
 import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
@@ -46,6 +49,7 @@ public class BudPlugin extends JavaPlugin {
     private final Config<LLMConfig> llmConfig;
     private final Config<ReactionConfig> reactionConfig;
     private final Config<OrchestratorConfig> orchestratorConfig;
+    private final Config<DebugConfig> debugConfig;
 
     private ComponentType<EntityStore, PlayerData> budPlayerData;
 
@@ -56,6 +60,7 @@ public class BudPlugin extends JavaPlugin {
         this.llmConfig = this.withConfig("LLM", LLMConfig.CODEC);
         this.reactionConfig = this.withConfig("Reaction", ReactionConfig.CODEC);
         this.orchestratorConfig = this.withConfig("Orchestrator", OrchestratorConfig.CODEC);
+        this.debugConfig = this.withConfig("Debug", DebugConfig.CODEC);
     }
 
     @Override
@@ -66,12 +71,6 @@ public class BudPlugin extends JavaPlugin {
         this.setupLogging();
         this.setupConfig();
         LLMPromptManager.getInstance().reloadMissingPrompts();
-
-        // Register persistent data
-        this.budPlayerData = this.getEntityStoreRegistry().registerComponent(
-                PlayerData.class,
-                "BudPlayerData",
-                PlayerData.CODEC);
 
         // Register BudComponent for state tracking
         ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(
@@ -84,12 +83,11 @@ public class BudPlugin extends JavaPlugin {
         ComponentType<EntityStore, PlayerBudComponent> playerBudComponentType = this.getEntityStoreRegistry()
                 .registerComponent(
                         PlayerBudComponent.class,
-                        "PlayerBuddiesComponent",
+                        "PlayerBudComponent",
                         PlayerBudComponent.CODEC);
         PlayerBudComponent.setComponentType(playerBudComponentType);
 
         // Register commands
-        // TODO: REMOVE this.getCommandRegistry().registerCommand(new BudCommand(this));
         this.getCommandRegistry().registerCommand(new BudCommandCollection());
         this.registerEvents();
     }
@@ -108,6 +106,8 @@ public class BudPlugin extends JavaPlugin {
         this.reactionConfig.save();
         OrchestratorConfig.setInstance(this.orchestratorConfig.get());
         this.orchestratorConfig.save();
+        DebugConfig.setInstance(this.debugConfig.get());
+        this.debugConfig.save();
     }
 
     private void registerEvents() {
@@ -148,7 +148,7 @@ public class BudPlugin extends JavaPlugin {
         this.getEventRegistry().register(SoundEvent.class, new SoundHandler());
         this.getEventRegistry().register(BudCreationEvent.class, new BudCreationHandler());
         this.getEventRegistry().register(StateChangeEvent.class, new StateChangeHandler());
-
+        this.getEventRegistry().register(TeleportEvent.class, new TeleportHandler());
     }
 
     public static BudPlugin getInstance() {

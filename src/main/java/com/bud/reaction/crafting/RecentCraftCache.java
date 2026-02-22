@@ -7,8 +7,8 @@ import com.bud.llm.messages.craft.LLMCraftManager;
 import com.bud.llm.orchestrator.MessageChannel;
 import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.llm.orchestrator.QueuedEvent;
+import com.bud.queue.ICacheEntry;
 import com.bud.reaction.AbstractCache;
-import com.bud.reaction.ICacheEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
