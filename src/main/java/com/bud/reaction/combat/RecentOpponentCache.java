@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.bud.llm.messages.combat.LLMCombatManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -29,7 +29,7 @@ public class RecentOpponentCache extends AbstractCache {
      * @param entry    OpponentEntry containing opponent information
      */
     @Override
-    public void add(UUID playerId, ICacheEntry entry) {
+    public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof OpponentEntry opponentEntry)) {
             LoggerUtil.getLogger().severe(() -> "[BUD-Cache] Invalid entry type for RecentOpponentCache: " + entry);
             return;
@@ -71,8 +71,8 @@ public class RecentOpponentCache extends AbstractCache {
 
         // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
-            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                    MessageChannel.COMBAT, 1, "combat",
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.COMBAT, 1, "combat",
                     new LLMCombatManager(), playerId, System.currentTimeMillis()));
         }
     }

@@ -6,11 +6,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bud.config.OrchestratorConfig;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
 
 public abstract class AbstractCache {
 
-    protected final Map<UUID, LinkedList<ICacheEntry>> cache = new ConcurrentHashMap<>();
+    protected final Map<UUID, LinkedList<IQueueEntry>> cache = new ConcurrentHashMap<>();
     protected static final int MAX_HISTORY = 3;
 
     /**
@@ -22,12 +22,12 @@ public abstract class AbstractCache {
     private final Map<UUID, Long> lastEnqueueTime = new ConcurrentHashMap<>();
     private final long enqueueCooldownMs = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
 
-    public LinkedList<ICacheEntry> getHistory(UUID playerId) {
+    public LinkedList<IQueueEntry> getHistory(UUID playerId) {
         return new LinkedList<>(cache.getOrDefault(playerId, new LinkedList<>()));
     }
 
-    public ICacheEntry pollHistory(UUID playerId) {
-        final ICacheEntry[] result = new ICacheEntry[1];
+    public IQueueEntry pollHistory(UUID playerId) {
+        final IQueueEntry[] result = new IQueueEntry[1];
         cache.computeIfPresent(playerId, (id, list) -> {
             if (!list.isEmpty()) {
                 result[0] = list.removeFirst();
@@ -53,5 +53,5 @@ public abstract class AbstractCache {
         return false;
     }
 
-    public abstract void add(UUID playerId, ICacheEntry entry);
+    public abstract void add(UUID playerId, IQueueEntry entry);
 }

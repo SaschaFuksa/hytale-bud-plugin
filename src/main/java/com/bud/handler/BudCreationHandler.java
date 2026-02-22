@@ -1,6 +1,5 @@
 package com.bud.handler;
 
-import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -15,10 +14,9 @@ import com.bud.npc.BudManager;
 import com.bud.npc.creation.BudSpawner;
 import com.bud.profile.BudType;
 import com.bud.profile.IBudProfile;
+import com.bud.queue.InteractionEntry;
 import com.bud.queue.state.StateChangeEntry;
 import com.bud.queue.state.StateChangeQueue;
-import com.bud.queue.teleport.TeleportEntry;
-import com.bud.queue.teleport.TeleportQueue;
 import com.bud.reaction.state.BudState;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -94,8 +92,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                     .warning(() -> "[BUD] Failed to register BudComponent for Bud of type " + budType);
             return;
         }
+        InteractionEntry interactionEntry = new InteractionEntry(null, null, budComponent);
         StateChangeQueue.getInstance()
-                .addToCache(new StateChangeEntry(budComponent, BudState.PET_DEFENSIVE));
+                .addToCache(new StateChangeEntry(BudState.PET_DEFENSIVE, interactionEntry));
         if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }

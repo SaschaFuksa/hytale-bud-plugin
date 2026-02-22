@@ -11,9 +11,6 @@ import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
 import com.bud.events.ChatEvent;
 import com.bud.profile.BudType;
-import com.bud.result.ErrorResult;
-import com.bud.result.IResult;
-import com.bud.result.SuccessResult;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -108,12 +105,11 @@ public class CleanUpHandler {
         }
     }
 
-    private static IResult despawnBud(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+    private static void despawnBud(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         try {
             store.removeEntity(ref, RemoveReason.REMOVE);
-            return new SuccessResult("Entity removed successfully.");
         } catch (Exception e) {
-            return new ErrorResult("Exception checking entity reference: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Exception checking entity reference: " + e.getMessage());
         }
     }
 

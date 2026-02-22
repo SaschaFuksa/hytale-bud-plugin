@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.bud.llm.messages.craft.LLMCraftManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -27,7 +27,7 @@ public class RecentCraftCache extends AbstractCache {
     }
 
     @Override
-    public void add(UUID playerId, ICacheEntry entry) {
+    public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof CraftEntry craftEntry)) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD-Cache] Invalid entry type for RecentCraftCache: " + entry);
@@ -60,8 +60,8 @@ public class RecentCraftCache extends AbstractCache {
         // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
             int priority = (craftEntry.interaction() == CraftInteraction.CRAFTED) ? 1 : 2;
-            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                    MessageChannel.ACTIVITY, priority, "craft",
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.ACTIVITY, priority, "craft",
                     LLMCraftManager.getInstance(), playerId, System.currentTimeMillis()));
         }
     }

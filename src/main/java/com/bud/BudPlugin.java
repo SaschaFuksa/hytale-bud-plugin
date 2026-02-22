@@ -21,7 +21,6 @@ import com.bud.handler.SoundHandler;
 import com.bud.handler.StateChangeHandler;
 import com.bud.handler.TeleportHandler;
 import com.bud.llm.messages.prompt.LLMPromptManager;
-import com.bud.player.persistence.PlayerData;
 import com.bud.reaction.block.BlockBreakFilterSystem;
 import com.bud.reaction.block.BlockPlaceFilterSystem;
 import com.bud.reaction.combat.DamageFilterSystem;
@@ -51,8 +50,6 @@ public class BudPlugin extends JavaPlugin {
     private final Config<OrchestratorConfig> orchestratorConfig;
     private final Config<DebugConfig> debugConfig;
 
-    private ComponentType<EntityStore, PlayerData> budPlayerData;
-
     @SuppressWarnings("null")
     public BudPlugin(JavaPluginInit init) {
         super(init);
@@ -64,7 +61,6 @@ public class BudPlugin extends JavaPlugin {
     }
 
     @Override
-    @SuppressWarnings("null")
     protected void setup() {
         super.setup();
 
@@ -153,9 +149,5 @@ public class BudPlugin extends JavaPlugin {
 
     public static BudPlugin getInstance() {
         return instance;
-    }
-
-    public ComponentType<EntityStore, PlayerData> getBudPlayerDataComponent() {
-        return this.budPlayerData;
     }
 }

@@ -46,7 +46,7 @@ public class TeleportQueue extends AbstractQueue {
     @SuppressWarnings("null")
     private void handleTeleport(@Nonnull TeleportEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budTypes());
-        BudComponent budComponent = entry.getBudComponent();
+        BudComponent budComponent = entry.getInteractionEntry().budComponent();
         TeleportEvent.dispatch(entry.store(), entry.playerBudComponent(), entry.budTypes());
 
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();

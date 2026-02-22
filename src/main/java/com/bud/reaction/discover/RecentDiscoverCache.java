@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.bud.llm.messages.discover.LLMDiscoverManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -27,7 +27,7 @@ public class RecentDiscoverCache extends AbstractCache {
     }
 
     @Override
-    public void add(UUID playerId, ICacheEntry entry) {
+    public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof DiscoverEntry discoverEntry)) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD-Cache] Invalid entry type for RecentDiscoverCache: " + entry);
@@ -58,8 +58,8 @@ public class RecentDiscoverCache extends AbstractCache {
 
         // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
-            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                    MessageChannel.AMBIENT, 1, "discover",
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.AMBIENT, 1, "discover",
                     LLMDiscoverManager.getInstance(), playerId, System.currentTimeMillis()));
         }
     }

@@ -13,6 +13,7 @@ import com.bud.components.PlayerBudComponent;
 import com.bud.events.TeleportEvent;
 import com.bud.npc.BudManager;
 import com.bud.profile.BudType;
+import com.bud.queue.InteractionEntry;
 import com.bud.queue.teleport.TeleportEntry;
 import com.bud.queue.teleport.TeleportQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -71,8 +72,9 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         BudComponent budComponent = store.getComponent(budRef, BudComponent.getComponentType());
         Set<BudType> budTypes = Set.of(budType);
         if (!budTypes.isEmpty()) {
+            InteractionEntry interactionEntry = new InteractionEntry(null, null, budComponent);
             TeleportQueue.getInstance()
-                    .addToCache(new TeleportEntry(playerBudComponent, budComponent, budTypes, store));
+                    .addToCache(new TeleportEntry(playerBudComponent, budTypes, store, interactionEntry));
         }
     }
 

@@ -1,6 +1,6 @@
 package com.bud.reaction.discover;
 
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
 
 /**
  * Represents a discovered zone event entry.
@@ -9,7 +9,7 @@ import com.bud.queue.ICacheEntry;
  * @param regionName The region name (e.g. "Zone1_Shore")
  * @param major      Whether this is a major discovery
  */
-public record DiscoverEntry(String zoneName, String regionName, boolean major) implements ICacheEntry {
+public record DiscoverEntry(String zoneName, String regionName, boolean major) implements IQueueEntry {
     @Override
     public String getName() {
         return zoneName;

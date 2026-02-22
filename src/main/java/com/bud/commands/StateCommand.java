@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import com.bud.components.BudComponent;
 import com.bud.components.PlayerBudComponent;
 import com.bud.npc.BudManager;
+import com.bud.queue.InteractionEntry;
 import com.bud.queue.state.StateChangeEntry;
 import com.bud.queue.state.StateChangeQueue;
 import com.bud.reaction.state.BudState;
@@ -76,11 +77,14 @@ public class StateCommand extends AbstractPlayerCommand {
             if (budComponent == null) {
                 continue;
             }
+            InteractionEntry interactionEntry = new InteractionEntry(null, null, budComponent);
             if (newState == null) {
                 newState = BudManager.getInstance().getNextState(budComponent.getCurrentState());
-                StateChangeQueue.getInstance().addToCache(new StateChangeEntry(budComponent, newState));
+                StateChangeQueue.getInstance()
+                        .addToCache(new StateChangeEntry(newState, interactionEntry));
             } else {
-                StateChangeQueue.getInstance().addToCache(new StateChangeEntry(budComponent, newState));
+                StateChangeQueue.getInstance()
+                        .addToCache(new StateChangeEntry(newState, interactionEntry));
             }
         }
     }

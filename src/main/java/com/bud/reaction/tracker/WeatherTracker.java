@@ -6,12 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.config.ReactionConfig;
 import com.bud.llm.messages.weather.LLMWeatherManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
 import com.bud.npc.BudRegistry;
 import com.bud.player.PlayerInstance;
 import com.bud.player.PlayerRegistry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.world.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -64,8 +64,8 @@ public class WeatherTracker extends AbstractTracker {
                 world.execute(() -> {
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
                     String weatherId = weather != null ? weather.getId() : "unknown";
-                    MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                            MessageChannel.AMBIENT, 2, "weather",
+                    Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                            OrchestratorChannel.AMBIENT, 2, "weather",
                             new LLMWeatherManager(weatherId), owner, System.currentTimeMillis()));
                 });
             } catch (Exception e) {

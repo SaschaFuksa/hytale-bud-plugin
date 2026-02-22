@@ -16,9 +16,9 @@ public abstract class AbstractQueue {
 
     private volatile ScheduledFuture<?> pollingTask;
 
-    protected final ConcurrentLinkedQueue<ICacheEntry> cache = new ConcurrentLinkedQueue<>();
+    protected final ConcurrentLinkedQueue<IQueueEntry> cache = new ConcurrentLinkedQueue<>();
 
-    public void addToCache(@Nonnull ICacheEntry entry) {
+    public void addToCache(@Nonnull IQueueEntry entry) {
         cache.add(entry);
         if (!isPolling()) {
             startPolling();

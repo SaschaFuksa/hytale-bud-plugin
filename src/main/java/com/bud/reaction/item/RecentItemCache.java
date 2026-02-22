@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.bud.llm.messages.item.LLMItemManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -34,7 +34,7 @@ public class RecentItemCache extends AbstractCache {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void add(UUID playerId, ICacheEntry entry) {
+    public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof ItemEntry itemEntry)) {
             LoggerUtil.getLogger().severe(() -> "[BUD-Cache] Invalid entry type for RecentItemCache: " + entry);
             return;
@@ -45,9 +45,9 @@ public class RecentItemCache extends AbstractCache {
                     : (LinkedList<ItemEntry>) (LinkedList<?>) list;
 
             // If item is already tracked, no need to add it again
-            for (ICacheEntry existingEntry : currentList) {
+            for (IQueueEntry existingEntry : currentList) {
                 if (existingEntry.getName().equals(itemEntry.getName())) {
-                    return (LinkedList<ICacheEntry>) (LinkedList<?>) currentList;
+                    return (LinkedList<IQueueEntry>) (LinkedList<?>) currentList;
                 }
             }
 
@@ -63,13 +63,13 @@ public class RecentItemCache extends AbstractCache {
 
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD-Cache] Player " + playerId + " picked up item: " + itemEntry.itemName());
-            return (LinkedList<ICacheEntry>) (LinkedList<?>) currentList;
+            return (LinkedList<IQueueEntry>) (LinkedList<?>) currentList;
         });
 
         // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
-            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                    MessageChannel.ACTIVITY, 3, "item",
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.ACTIVITY, 3, "item",
                     new LLMItemManager(), playerId, System.currentTimeMillis()));
         }
     }

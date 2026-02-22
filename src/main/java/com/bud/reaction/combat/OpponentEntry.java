@@ -1,8 +1,8 @@
 package com.bud.reaction.combat;
 
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
 
-public record OpponentEntry(String roleName, CombatState state) implements ICacheEntry {
+public record OpponentEntry(String roleName, CombatState state) implements IQueueEntry {
 
     @Override
     public String getName() {

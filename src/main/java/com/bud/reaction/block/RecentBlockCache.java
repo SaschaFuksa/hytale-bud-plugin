@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.bud.llm.messages.block.LLMBlockManager;
-import com.bud.llm.orchestrator.MessageChannel;
-import com.bud.llm.orchestrator.MessageOrchestrator;
-import com.bud.llm.orchestrator.QueuedEvent;
-import com.bud.queue.ICacheEntry;
+import com.bud.queue.IQueueEntry;
+import com.bud.queue.orchestrator.OrchestratorChannel;
+import com.bud.queue.orchestrator.Orchestrator;
+import com.bud.queue.orchestrator.OrchestratorQueue;
 import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
@@ -33,7 +33,7 @@ public class RecentBlockCache extends AbstractCache {
      * @param entry    BlockEntry containing block information
      */
     @Override
-    public void add(UUID playerId, ICacheEntry entry) {
+    public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof BlockEntry blockEntry)) {
             LoggerUtil.getLogger().severe(() -> "[BUD-Cache] Invalid entry type for RecentBlockCache: " + entry);
             return;
@@ -64,8 +64,8 @@ public class RecentBlockCache extends AbstractCache {
 
         // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
-            MessageOrchestrator.getInstance().enqueue(new QueuedEvent(
-                    MessageChannel.ACTIVITY, 4, "block",
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.ACTIVITY, 4, "block",
                     LLMBlockManager.getInstance(), playerId, System.currentTimeMillis()));
         }
     }

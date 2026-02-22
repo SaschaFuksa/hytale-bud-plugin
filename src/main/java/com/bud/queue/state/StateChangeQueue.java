@@ -7,7 +7,6 @@ import com.bud.events.StateChangeEvent;
 import com.bud.interaction.InteractionManager;
 import com.bud.llm.messages.state.LLMStateContext;
 import com.bud.llm.messages.state.LLMStateMessageCreation;
-import com.bud.mappings.BudProfileMapper;
 import com.bud.profile.IBudProfile;
 import com.bud.queue.AbstractQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -45,7 +44,7 @@ public class StateChangeQueue extends AbstractQueue {
 
     private void handleStateChange(@Nonnull StateChangeEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling state change: " + entry);
-        BudComponent budComponent = entry.getBudComponent();
+        BudComponent budComponent = entry.getInteractionEntry().budComponent();
         StateChangeEvent.dispatch(budComponent.getBud(), budComponent.getPlayerRef(), entry.newState());
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {
@@ -53,12 +52,7 @@ public class StateChangeQueue extends AbstractQueue {
                     .warning(() -> "[BUD] Entity reference is null for Bud: " + budComponent.getBud());
             return;
         }
-        IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
-        if (budProfile == null) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] No profile found for Bud type: " + budComponent.getBudType());
-            return;
-        }
+        IBudProfile budProfile = entry.getInteractionEntry().getBudProfile();
         LLMStateContext context = LLMStateContext.from(budComponent, budProfile);
         if (context == null) {
             LoggerUtil.getLogger()

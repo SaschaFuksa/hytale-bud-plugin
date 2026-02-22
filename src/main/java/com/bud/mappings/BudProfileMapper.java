@@ -2,6 +2,8 @@ package com.bud.mappings;
 
 import java.util.HashMap;
 
+import javax.annotation.Nonnull;
+
 import com.bud.profile.BudType;
 import com.bud.profile.GronkhProfile;
 import com.bud.profile.IBudProfile;
@@ -22,6 +24,8 @@ public class BudProfileMapper {
         return INSTANCE;
     }
 
+    @Nonnull
+    @SuppressWarnings("null")
     public IBudProfile getProfileForBudType(BudType budType) {
         return profileCache.computeIfAbsent(budType, bt -> switch (bt) {
             case GRONKH -> new GronkhProfile();

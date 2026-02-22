@@ -1,15 +1,14 @@
 package com.bud.systems;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.bud.components.PlayerBudComponent;
 import com.bud.config.DebugConfig;
 import com.bud.debug.BudDebugInfo;
-import com.bud.llm.orchestrator.MessageOrchestrator;
 import com.bud.profile.BudType;
 import com.bud.queue.creation.BudCreationEntry;
 import com.bud.queue.creation.BudCreationQueue;
+import com.bud.queue.orchestrator.Orchestrator;
 import com.bud.reaction.tracker.MoodTracker;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.AddReason;
@@ -26,7 +25,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 public class PlayerJoinSystem extends RefSystem<EntityStore> {
 
     @Override
-    @Nullable
     public Query<EntityStore> getQuery() {
         return Archetype.of(PlayerRef.getComponentType());
     }
@@ -56,7 +54,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             }
         }
         MoodTracker.getInstance().startPolling();
-        MessageOrchestrator.getInstance().start();
+        Orchestrator.getInstance().start();
         if (DebugConfig.getInstance().isEnablePlayerInfo()) {
             BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
         }
@@ -69,7 +67,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
                 .fine(() -> "[BUD] PlayerJoinSystem detected player removal with reason: " + removeReason);
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef != null) {
-            MessageOrchestrator.getInstance().clearPlayer(playerRef.getUuid());
+            Orchestrator.getInstance().clearPlayer(playerRef.getUuid());
         }
     }
 

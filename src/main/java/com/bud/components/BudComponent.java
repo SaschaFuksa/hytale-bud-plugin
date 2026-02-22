@@ -1,7 +1,6 @@
 package com.bud.components;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.bud.profile.BudType;
 import com.bud.reaction.state.BudState;
@@ -25,10 +24,8 @@ public class BudComponent implements Component<EntityStore> {
     @Nonnull
     private BudType budType = BudType.VERI;
 
-    @Nullable
     private NPCEntity bud;
 
-    @Nullable
     private PlayerRef playerRef;
 
     /**
