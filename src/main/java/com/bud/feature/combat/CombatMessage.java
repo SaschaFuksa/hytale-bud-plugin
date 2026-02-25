@@ -1,0 +1,31 @@
+package com.bud.feature.combat;
+
+import com.bud.llm.messages.AbstractYamlMessage;
+
+public class CombatMessage extends AbstractYamlMessage {
+
+    private String combatInfo;
+    private String targetInfoTemplate;
+    private String allyInfoTemplate;
+    private String noInfoAvailable;
+
+    public String getCombatInfo() {
+        return combatInfo;
+    }
+
+    public String getTargetInfoTemplate() {
+        return targetInfoTemplate;
+    }
+
+    public String getAllyInfoTemplate() {
+        return allyInfoTemplate;
+    }
+
+    public String getNoInfoAvailable() {
+        return noInfoAvailable;
+    }
+
+    public static CombatMessage load(java.nio.file.Path path) {
+        return loadFromFile(CombatMessage.class, path);
+    }
+}

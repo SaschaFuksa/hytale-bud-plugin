@@ -1,0 +1,109 @@
+package com.bud.feature.bud;
+
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import com.bud.core.config.ReactionConfig;
+import com.bud.core.types.DayOfWeek;
+import com.bud.core.types.Mood;
+import com.bud.llm.interaction.LLMInteractionManager;
+import com.bud.llm.messages.favoriteday.LLMFavoriteDayManager;
+import com.bud.feature.data.npc.BudInstance;
+import com.bud.feature.data.npc.BudRegistry;
+import com.bud.feature.world.time.TimeInformationUtil;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.server.core.HytaleServer;
+
+public class MoodTracker extends AbstractTracker {
+
+    private static final MoodTracker INSTANCE = new MoodTracker();
+
+    private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
+
+    private static final LLMFavoriteDayManager llmFavoriteDayManager = new LLMFavoriteDayManager();
+
+    private MoodTracker() {
+    }
+
+    private DayOfWeek lastPollDay;
+
+    public static MoodTracker getInstance() {
+        return INSTANCE;
+    }
+
+    @Override
+    public synchronized void startPolling() {
+        if (isPolling()) {
+            return;
+        }
+        long interval = ReactionConfig.getInstance().getMoodReactionPeriod();
+        lastPollDay = TimeInformationUtil.getDayOfWeek();
+        setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
+                this::changeMood, interval, interval, TimeUnit.SECONDS));
+        LoggerUtil.getLogger().info(() -> "[BUD] Mood tracker started.");
+    }
+
+    private void changeMood() {
+        BudRegistry budRegistry = BudRegistry.getInstance();
+        Set<UUID> owners = budRegistry.getAllOwners();
+        if (owners.isEmpty()) {
+            return;
+        }
+
+        boolean isDayTransition = false;
+        DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek();
+        if (currentPollDay == null) {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] Could not determine current day of week. Skipping mood change.");
+            return;
+        }
+        if (!lastPollDay.equals(currentPollDay)) {
+            isDayTransition = true;
+            lastPollDay = currentPollDay;
+        }
+
+        for (UUID owner : owners) {
+            Set<BudInstance> buds = budRegistry.getByOwner(owner);
+            for (BudInstance budInstance : buds) {
+                changeBudMood(budInstance, currentPollDay, isDayTransition);
+            }
+        }
+    }
+
+    private void changeBudMood(BudInstance budInstance, DayOfWeek currentPollDay,
+            boolean isDayTransition) {
+        DayOfWeek favDay = budInstance.getData().getFavoriteDay();
+        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budInstance.getData().getNPCTypeId()
+                + ". Current day: " + currentPollDay + ", Favorite day: " + favDay);
+
+        if (currentPollDay.equals(favDay)) {
+            if (isDayTransition) {
+                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+                LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
+                        + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
+                Thread.ofVirtual().start(() -> {
+                    // TODO
+                    // interactionManager.processInteractionForBuds(Set.of(budInstance),
+                    // llmFavoriteDayManager);
+                });
+            } else if (!budInstance.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
+                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+                LoggerUtil.getLogger().info(() -> "[BUD] Favorite day detected for "
+                        + budInstance.getData().getNPCTypeId() + ". Mood set to OVERMOTIVATED.");
+            }
+        } else {
+            if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+                if (Math.random() < 0.5) {
+                    budInstance.setCurrentMood(Mood.getRandomMood());
+                    LoggerUtil.getLogger().info(() -> "[BUD] Random mood change for "
+                            + budInstance.getData().getNPCTypeId() + ": " + budInstance.getCurrentMood());
+                }
+            } else {
+                budInstance.setCurrentMood(Mood.DEFAULT);
+                LoggerUtil.getLogger().info(() -> "[BUD] Mood reset to DEFAULT for "
+                        + budInstance.getData().getNPCTypeId());
+            }
+        }
+    }
+}

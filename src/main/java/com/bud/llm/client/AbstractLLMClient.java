@@ -4,10 +4,6 @@ import java.io.IOException;
 
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Base class for LLM clients providing shared utility methods for logging and
- * parsing.
- */
 public abstract class AbstractLLMClient implements ILLMClient {
 
     protected void logUsage(String clientName, String jsonResponse) {
@@ -39,13 +35,11 @@ public abstract class AbstractLLMClient implements ILLMClient {
             throw new IOException("Could not find content field in response");
         }
 
-        // Skip past "content": to find the opening quote
         int openQuoteIdx = jsonResponse.indexOf("\"", contentIdx + 10);
         if (openQuoteIdx == -1) {
             throw new IOException("Could not find opening quote after content field");
         }
 
-        // Find the closing quote (handling escaped quotes)
         int closeQuoteIdx = openQuoteIdx + 1;
         while (closeQuoteIdx < jsonResponse.length()) {
             if (jsonResponse.charAt(closeQuoteIdx) == '"' &&

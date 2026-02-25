@@ -8,14 +8,10 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import com.bud.config.LLMConfig;
-import com.bud.llm.messages.Prompt;
+import com.bud.core.config.LLMConfig;
+import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Legacy LLM client implementation.
- * Calls your own LLM server directly.
- */
 public class BudLLMClient extends AbstractLLMClient {
         private final HttpClient httpClient = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_1_1)
