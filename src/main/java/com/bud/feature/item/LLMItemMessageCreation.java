@@ -1,10 +1,10 @@
 package com.bud.feature.item;
 
 import com.bud.llm.messages.AbstractLLMMessageCreation;
+import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.core.types.BudMessage;
 import com.bud.feature.data.npc.BudInstance;
 import com.bud.feature.reaction.world.time.Mood;
 

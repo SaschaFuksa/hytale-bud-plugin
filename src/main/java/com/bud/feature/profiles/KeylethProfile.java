@@ -1,21 +1,23 @@
-package com.bud.core.profiles;
+package com.bud.feature.profiles;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.sound.GronkhSound;
 import com.bud.core.sound.IBudSound;
-import com.bud.core.types.BudMessage;
+import com.bud.core.sound.KeylethSound;
+import com.bud.core.types.BudType;
 import com.bud.core.types.DayOfWeek;
-import com.bud.llm.prompt.LLMPromptManager;
+import com.bud.feature.LLMPromptManager;
+import com.bud.llm.messages.BudMessage;
+import com.bud.llm.profiles.IBudProfile;
 
-public class GronkhProfile implements IBudProfile {
+public class KeylethProfile implements IBudProfile {
 
 	@Nonnull
-	public static final BudType BUD_TYPE_ID = BudType.GRONKH;
+	private static final BudType BUD_TYPE_ID = BudType.KEYLETH;
 	@Nonnull
-	public static final String BUD_DISPLAY_NAME = "Gronkh";
+	private static final String BUD_DISPLAY_NAME = "Keyleth";
 	@Nonnull
-	private static final IBudSound budSoundData = new GronkhSound();
+	private static final IBudSound budSoundData = new KeylethSound();
 
 	@Nonnull
 	@Override
@@ -32,13 +34,13 @@ public class GronkhProfile implements IBudProfile {
 	@Nonnull
 	@Override
 	public String getWeaponID() {
-		return "Weapon_Mace_Stone_Trork";
+		return "Template_Weapon_Shortbow";
 	}
 
 	@Nonnull
 	@Override
 	public String getArmorID() {
-		return "Armor_Trork_Chest";
+		return "Armor_Kweebec_Chest";
 	}
 
 	@Nonnull
@@ -56,6 +58,7 @@ public class GronkhProfile implements IBudProfile {
 	@Nonnull
 	@Override
 	public DayOfWeek getFavoriteDay() {
-		return DayOfWeek.FRIDAY;
+		return DayOfWeek.WEDNESDAY;
 	}
+
 }

@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
-import com.bud.core.profiles.IBudProfile;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 

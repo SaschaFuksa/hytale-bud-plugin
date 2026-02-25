@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.core.profiles.BudType;
+import com.bud.core.types.BudType;
 import com.bud.feature.chat.ChatEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;

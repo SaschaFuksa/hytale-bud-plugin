@@ -2,8 +2,8 @@ package com.bud.app.commands;
 
 import javax.annotation.Nonnull;
 
+import com.bud.feature.LLMPromptManager;
 import com.bud.feature.chat.ChatEvent;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

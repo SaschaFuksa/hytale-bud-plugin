@@ -2,8 +2,8 @@ package com.bud.core.components;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.profiles.BudType;
 import com.bud.core.types.BudState;
+import com.bud.core.types.BudType;
 import com.bud.core.types.Mood;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;

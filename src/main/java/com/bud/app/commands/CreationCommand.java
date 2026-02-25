@@ -4,7 +4,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.profiles.BudType;
+import com.bud.core.types.BudType;
 import com.bud.feature.bud.creation.BudCreationEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;

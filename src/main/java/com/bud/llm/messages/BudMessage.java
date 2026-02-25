@@ -1,9 +1,7 @@
-package com.bud.core.types;
+package com.bud.llm.messages;
 
 import java.nio.file.Path;
 import java.util.Map;
-
-import com.bud.llm.messages.AbstractYamlMessage;
 
 public class BudMessage extends AbstractYamlMessage {
 

@@ -1,5 +1,11 @@
-package com.bud.app.commands;
+package com.bud.app;
 
+import com.bud.app.commands.CreationCommand;
+import com.bud.app.commands.DebugCommand;
+import com.bud.app.commands.DeletionCommand;
+import com.bud.app.commands.PromptCommand;
+import com.bud.app.commands.ResetCommand;
+import com.bud.app.commands.StateCommand;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
 
 public class BudCommandCollection extends AbstractCommandCollection {

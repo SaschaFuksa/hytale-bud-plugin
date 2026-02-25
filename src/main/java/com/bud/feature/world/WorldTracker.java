@@ -5,17 +5,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.core.config.ReactionConfig;
-import com.bud.llm.interaction.LLMInteractionManager;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.data.npc.BudRegistry;
+import com.bud.old.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
 public class WorldTracker extends AbstractTracker {
 
     private static final WorldTracker INSTANCE = new WorldTracker();
-
-    private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
 
     private WorldTracker() {
     }

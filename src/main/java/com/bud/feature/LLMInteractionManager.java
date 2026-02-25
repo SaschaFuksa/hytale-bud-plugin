@@ -1,4 +1,4 @@
-package com.bud.llm.interaction;
+package com.bud.feature;
 
 import javax.annotation.Nonnull;
 

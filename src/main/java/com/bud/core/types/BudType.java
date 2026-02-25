@@ -1,4 +1,4 @@
-package com.bud.core.profiles;
+package com.bud.core.types;
 
 public enum BudType {
 

@@ -3,7 +3,7 @@ package com.bud;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.bud.app.commands.BudCommandCollection;
+import com.bud.app.BudCommandCollection;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;

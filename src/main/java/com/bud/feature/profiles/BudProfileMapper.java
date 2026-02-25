@@ -1,14 +1,11 @@
-package com.bud.core.profiles.mappings;
+package com.bud.feature.profiles;
 
 import java.util.HashMap;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.profiles.BudType;
-import com.bud.core.profiles.GronkhProfile;
-import com.bud.core.profiles.IBudProfile;
-import com.bud.core.profiles.KeylethProfile;
-import com.bud.core.profiles.VeriProfile;
+import com.bud.core.types.BudType;
+import com.bud.llm.profiles.IBudProfile;
 
 public class BudProfileMapper {
 

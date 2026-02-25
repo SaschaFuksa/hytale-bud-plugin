@@ -3,7 +3,7 @@ package com.bud.app.commands;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.core.profiles.BudType;
+import com.bud.core.types.BudType;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

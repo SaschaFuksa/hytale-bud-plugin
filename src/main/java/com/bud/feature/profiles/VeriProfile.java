@@ -1,12 +1,14 @@
-package com.bud.core.profiles;
+package com.bud.feature.profiles;
 
 import javax.annotation.Nonnull;
 
 import com.bud.core.sound.IBudSound;
 import com.bud.core.sound.VeriSound;
-import com.bud.core.types.BudMessage;
+import com.bud.core.types.BudType;
 import com.bud.core.types.DayOfWeek;
-import com.bud.llm.prompt.LLMPromptManager;
+import com.bud.feature.LLMPromptManager;
+import com.bud.llm.messages.BudMessage;
+import com.bud.llm.profiles.IBudProfile;
 
 public class VeriProfile implements IBudProfile {
 

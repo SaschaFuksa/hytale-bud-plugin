@@ -1,4 +1,4 @@
-package com.bud.llm.prompt;
+package com.bud.feature;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,8 +11,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import com.bud.BudPlugin;
-import com.bud.core.types.BudMessage;
-import com.bud.feature.SystemPromptMessage;
 import com.bud.feature.bud.MoodMessage;
 import com.bud.feature.combat.CombatMessage;
 import com.bud.feature.combat.EntityCategoriesMessage;
@@ -20,6 +18,7 @@ import com.bud.feature.item.ItemMessage;
 import com.bud.feature.world.env.WorldMessage;
 import com.bud.feature.world.env.ZoneMessage;
 import com.bud.feature.world.time.TimeMessage;
+import com.bud.llm.messages.BudMessage;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class LLMPromptManager {
