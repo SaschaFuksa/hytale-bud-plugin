@@ -16,6 +16,7 @@ public class BudMessage extends AbstractYamlMessage {
     private String itemView;
     private String discoverView;
     private String craftView;
+    private String teleportView;
 
     public String getCharacteristics() {
         return characteristics;
@@ -87,6 +88,10 @@ public class BudMessage extends AbstractYamlMessage {
 
     public String getPersonalCraftView() {
         return craftView;
+    }
+
+    public String getPersonalTeleportView() {
+        return teleportView;
     }
 
     public static BudMessage load(Path path) {

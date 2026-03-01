@@ -67,9 +67,7 @@ public class WorldTracker extends AbstractTracker {
                                 LLMWorldMessageCreation.getInstance(),
                                 new LLMWorldContext(null, null, null, weatherId, budComponent),
                                 budComponent);
-                        interactionManager.processInteraction(
-                                Set.of(playerComponent.getPlayerRef().getOwner()),
-                                new LLMWorldManager(weatherId));
+                        interactionManager.processInteraction(entry);
                     });
                 });
             } catch (Exception e) {

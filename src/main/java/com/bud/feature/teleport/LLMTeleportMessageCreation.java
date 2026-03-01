@@ -33,7 +33,7 @@ public class LLMTeleportMessageCreation extends AbstractLLMMessageCreation {
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
-        String teleportInfo = npcMessage.getTeleportInformation();
+        String teleportInfo = npcMessage.getPersonalTeleportView();
 
         StringBuilder systemPromptBuilder = new StringBuilder();
         systemPromptBuilder.append(manager.getSystemPrompt("teleport")).append("\n")

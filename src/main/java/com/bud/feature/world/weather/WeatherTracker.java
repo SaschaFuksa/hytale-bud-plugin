@@ -4,13 +4,17 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.feature.AbstractTracker;
+import com.bud.feature.LLMContextFactory;
+import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.WorldInformationUtil;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
@@ -49,15 +53,32 @@ public class WeatherTracker extends AbstractTracker {
             World world = WorldInformationUtil.resolveWorld(playerComponent.getPlayerRef());
             if (world == null)
                 continue;
+            BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
+            if (budComponent == null) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
+                        + playerComponent.getPlayerRef().getUsername());
+                continue;
+            }
             try {
                 world.execute(() -> {
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
-                    String weatherId = weather != null ? weather.getId() : "unknown";
+                    if (weather == null) {
+                        return;
+                    }
+                    String weatherId = weather.getId();
+                    if (weatherId == null) {
+                        return;
+                    }
+
+                    IQueueEntry entry = new WeatherEntry(weatherId, budComponent);
                     Orchestrator.getInstance().enqueue(new OrchestratorQueue(
                             OrchestratorChannel.AMBIENT,
-                            2,
+                            entry,
                             "weather",
                             playerComponent.getPlayerRef().getUsername(),
+                            new LLMInteractionEntry(LLMWeatherMessageCreation.getInstance(),
+                                    LLMContextFactory.createContext(entry),
+                                    entry.getBudComponent()),
                             System.currentTimeMillis()));
                 });
             } catch (Exception e) {

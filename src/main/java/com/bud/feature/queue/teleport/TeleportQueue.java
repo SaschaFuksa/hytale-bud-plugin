@@ -3,12 +3,12 @@ package com.bud.feature.queue.teleport;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
-import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.queue.AbstractQueue;
 import com.bud.feature.teleport.LLMTeleportContext;
 import com.bud.feature.teleport.LLMTeleportMessageCreation;
 import com.bud.feature.teleport.TeleportEvent;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -55,11 +55,6 @@ public class TeleportQueue extends AbstractQueue {
             return;
         }
         LLMTeleportContext context = LLMTeleportContext.from(budComponent);
-        if (context == null) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] Failed to create LLMTeleportContext for Bud: " + budComponent.getBud());
-            return;
-        }
         LLMInteractionManager.getInstance().processInteraction(
                 new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(), context, budComponent));
     }
