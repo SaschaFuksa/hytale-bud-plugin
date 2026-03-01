@@ -2,24 +2,25 @@ package com.bud.feature.combat;
 
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
+import com.bud.feature.LLMPromptManager;
+import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
-import com.bud.feature.profile.IBudProfile;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 
-public record LLMCombatContext(String combatContext, String targetName, PlayerRef player) implements IPromptContext {
+public record LLMCombatContext(String combatContext, String targetName, BudComponent budComponent)
+        implements IPromptContext {
 
-    public static LLMCombatContext from(OpponentEntry entry, PlayerRef player) {
-        String cleanName = entry.roleName().replace("_Bud", "").replace("_", " ");
-        if (cleanName.equalsIgnoreCase(player.getUsername())) {
-            cleanName = "player";
-        }
+    @Nonnull
+    public static LLMCombatContext from(@Nonnull OpponentEntry entry, @Nonnull BudComponent budComponent) {
+        String cleanName = entry.entityName().replace("_Bud", "").replace("_", " ");
         String combatContext = switch (entry.state()) {
             case ATTACKED -> "Your Buddy has attacked " + cleanName + ".";
             case WAS_ATTACKED -> "Your Buddy was attacked by " + cleanName + ".";
         };
-        return new LLMCombatContext(combatContext, cleanName, player);
+        return new LLMCombatContext(combatContext, cleanName, budComponent);
     }
 
     public String getEntityInformation() {
@@ -33,9 +34,6 @@ public record LLMCombatContext(String combatContext, String targetName, PlayerRe
         return findAndFormatMatch(entityData, manager.getCombatInfoTemplate());
     }
 
-    /**
-     * Iterates through categories to find a matching entity and formats the result.
-     */
     private String findAndFormatMatch(EntityCategoriesMessage entityData, CombatMessage template) {
         String lowerTarget = this.targetName.toLowerCase();
 
@@ -52,9 +50,6 @@ public record LLMCombatContext(String combatContext, String targetName, PlayerRe
         return null;
     }
 
-    /**
-     * Checks if any entity keyword in the category matches the target name.
-     */
     private String findSpecificInfo(EntityCategoriesMessage.CategoryData data, String lowerTarget) {
         if (data.getEntities() == null) {
             return null;
@@ -68,9 +63,6 @@ public record LLMCombatContext(String combatContext, String targetName, PlayerRe
         return null;
     }
 
-    /**
-     * Formats the final string based on the category type.
-     */
     private String formatOutput(CombatMessage template, String category, String catInfo, String specInfo) {
         if (template == null)
             return null;
@@ -83,13 +75,12 @@ public record LLMCombatContext(String combatContext, String targetName, PlayerRe
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return budComponent;
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
+
 }

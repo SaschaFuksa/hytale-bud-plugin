@@ -8,13 +8,13 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudType;
-import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.old.BudManager;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;

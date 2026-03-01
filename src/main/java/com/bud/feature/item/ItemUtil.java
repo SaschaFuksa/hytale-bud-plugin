@@ -2,6 +2,8 @@ package com.bud.feature.item;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 public class ItemUtil {
 
     private static final Map<String, String> ITEM_NAME_MAP = Map.of(
@@ -15,19 +17,24 @@ public class ItemUtil {
             "Stamina2", "Stormcap Mushroom",
             "Stamina3", "Storm Sapling");
 
-    public static String getDisplayName(String id) {
+    @Nonnull
+    public static String getDisplayName(@Nonnull String id) {
+        String displayName = "";
         if (id.contains(":")) {
-            id = id.split(":")[1];
+            displayName = id.split(":")[1];
         }
-        id = id.replaceAll("_", " ");
+        displayName = displayName.replaceAll("_", " ");
 
         for (Map.Entry<String, String> entry : ITEM_NAME_MAP.entrySet()) {
-            if (id.toLowerCase().contains(entry.getKey().toLowerCase())) {
-                return entry.getValue();
+            if (displayName.toLowerCase().contains(entry.getKey().toLowerCase())) {
+                String value = entry.getValue();
+                if (value != null) {
+                    return value;
+                }
             }
         }
 
-        return id;
+        return displayName != null ? displayName : "";
     }
 
 }

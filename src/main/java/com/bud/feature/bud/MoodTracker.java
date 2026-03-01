@@ -1,18 +1,19 @@
 package com.bud.feature.bud;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.time.TimeInformationUtil;
-import com.bud.old.BudInstance;
-import com.bud.old.BudRegistry;
-import com.bud.old.LLMFavoriteDayManager;
+import com.bud.llm.interaction.LLMInteractionEntry;
+import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
@@ -21,8 +22,6 @@ public class MoodTracker extends AbstractTracker {
     private static final MoodTracker INSTANCE = new MoodTracker();
 
     private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
-
-    private static final LLMFavoriteDayManager llmFavoriteDayManager = new LLMFavoriteDayManager();
 
     private MoodTracker() {
     }
@@ -46,9 +45,8 @@ public class MoodTracker extends AbstractTracker {
     }
 
     private void changeMood() {
-        BudRegistry budRegistry = BudRegistry.getInstance();
-        Set<UUID> owners = budRegistry.getAllOwners();
-        if (owners.isEmpty()) {
+        Set<BudComponent> allBuds = BudManager.getInstance().getAllBuds();
+        if (allBuds.isEmpty()) {
             return;
         }
 
@@ -64,46 +62,44 @@ public class MoodTracker extends AbstractTracker {
             lastPollDay = currentPollDay;
         }
 
-        for (UUID owner : owners) {
-            Set<BudInstance> buds = budRegistry.getByOwner(owner);
-            for (BudInstance budInstance : buds) {
-                changeBudMood(budInstance, currentPollDay, isDayTransition);
-            }
+        for (BudComponent budComponent : allBuds) {
+            changeBudMood(budComponent, currentPollDay, isDayTransition);
         }
     }
 
-    private void changeBudMood(BudInstance budInstance, DayOfWeek currentPollDay,
+    private void changeBudMood(BudComponent budComponent, DayOfWeek currentPollDay,
             boolean isDayTransition) {
-        DayOfWeek favDay = budInstance.getData().getFavoriteDay();
-        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budInstance.getData().getNPCTypeId()
+        IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
+        DayOfWeek favDay = budProfile.getFavoriteDay();
+        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budProfile.getNPCDisplayName()
                 + ". Current day: " + currentPollDay + ", Favorite day: " + favDay);
 
         if (currentPollDay.equals(favDay)) {
             if (isDayTransition) {
-                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+                budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
-                        + budInstance.getData().getNPCTypeId() + ". Ready for interaction.");
+                        + budProfile.getNPCDisplayName() + ". Ready for interaction.");
+                LLMInteractionEntry interactionEntry = new LLMInteractionEntry(new LLMFavoriteDayMessageCreation(),
+                        new LLMFavoriteDayContext(budComponent), budComponent);
                 Thread.ofVirtual().start(() -> {
-                    // TODO
-                    // interactionManager.processInteractionForBuds(Set.of(budInstance),
-                    // llmFavoriteDayManager);
+                    interactionManager.processInteraction(interactionEntry);
                 });
-            } else if (!budInstance.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
-                budInstance.setCurrentMood(Mood.OVERMOTIVATED);
+            } else if (!budComponent.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
+                budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day detected for "
-                        + budInstance.getData().getNPCTypeId() + ". Mood set to OVERMOTIVATED.");
+                        + budProfile.getNPCDisplayName() + ". Mood set to OVERMOTIVATED.");
             }
         } else {
-            if (budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+            if (budComponent.getCurrentMood().equals(Mood.DEFAULT)) {
                 if (Math.random() < 0.5) {
-                    budInstance.setCurrentMood(Mood.getRandomMood());
+                    budComponent.setCurrentMood(Mood.getRandomMood());
                     LoggerUtil.getLogger().info(() -> "[BUD] Random mood change for "
-                            + budInstance.getData().getNPCTypeId() + ": " + budInstance.getCurrentMood());
+                            + budProfile.getNPCDisplayName() + ": " + budComponent.getCurrentMood());
                 }
             } else {
-                budInstance.setCurrentMood(Mood.DEFAULT);
+                budComponent.setCurrentMood(Mood.DEFAULT);
                 LoggerUtil.getLogger().info(() -> "[BUD] Mood reset to DEFAULT for "
-                        + budInstance.getData().getNPCTypeId());
+                        + budProfile.getNPCDisplayName());
             }
         }
     }

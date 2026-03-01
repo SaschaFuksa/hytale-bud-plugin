@@ -1,14 +1,14 @@
 package com.bud.feature.combat;
 
 import java.util.LinkedList;
-import java.util.UUID;
 
 import com.bud.feature.AbstractCache;
+import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
-import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
-import com.bud.old.LLMCombatManager;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class RecentOpponentCache extends AbstractCache {
@@ -22,19 +22,13 @@ public class RecentOpponentCache extends AbstractCache {
         return INSTANCE;
     }
 
-    /**
-     * Adds an opponent to the cache or updates the status.
-     * 
-     * @param playerId Player UUID
-     * @param entry    OpponentEntry containing opponent information
-     */
     @Override
-    public void add(UUID playerId, IQueueEntry entry) {
+    public void add(String playerName, IQueueEntry entry) {
         if (!(entry instanceof OpponentEntry opponentEntry)) {
             LoggerUtil.getLogger().severe(() -> "[BUD-Cache] Invalid entry type for RecentOpponentCache: " + entry);
             return;
         }
-        cache.compute(playerId, (key, list) -> {
+        cache.compute(playerName, (key, list) -> {
             if (list == null) {
                 list = new LinkedList<>();
             }
@@ -42,13 +36,13 @@ public class RecentOpponentCache extends AbstractCache {
             if (!list.isEmpty()) {
                 OpponentEntry lastEntry = (OpponentEntry) list.getLast();
 
-                if (lastEntry.getName().equals(opponentEntry.getName())) {
-                    if (opponentEntry.isAttacked() && lastEntry.isWasAttacked()) {
+                if (lastEntry.getEntryName().equals(opponentEntry.getEntryName())) {
+                    if (opponentEntry.isAttacked() && lastEntry.wasAttacked()) {
                         list.removeLast();
                         list.addLast(opponentEntry);
                         LoggerUtil.getLogger()
-                                .fine(() -> "[BUD-Cache] Updated interaction with " + opponentEntry.getName()
-                                        + " to ATTACKED for " + playerId);
+                                .fine(() -> "[BUD-Cache] Updated interaction with " + opponentEntry.getEntryName()
+                                        + " to ATTACKED for " + playerName);
                     }
                     return list;
                 }
@@ -57,23 +51,25 @@ public class RecentOpponentCache extends AbstractCache {
             list.addLast(opponentEntry);
 
             final int size = list.size();
-            // Limit size
             if (size > MAX_HISTORY) {
                 list.removeFirst();
             }
-
-            // Debug output
             LoggerUtil.getLogger().fine(
-                    () -> "[BUD-Cache] Added " + opponentEntry.getName() + " (" + opponentEntry.state() + ") for "
-                            + playerId + ". History: " + size);
+                    () -> "[BUD-Cache] Added " + opponentEntry.getEntryName() + " (" + opponentEntry.state() + ") for "
+                            + playerName + ". History: " + size);
             return list;
         });
 
-        // Enqueue to orchestrator (throttled to channel cooldown)
-        if (shouldEnqueue(playerId)) {
+        if (shouldEnqueue(playerName)) {
             Orchestrator.getInstance().enqueue(new OrchestratorQueue(
-                    OrchestratorChannel.COMBAT, 1, "combat",
-                    new LLMCombatManager(), playerId, System.currentTimeMillis()));
+                    OrchestratorChannel.COMBAT,
+                    entry,
+                    "combat",
+                    playerName,
+                    new LLMInteractionEntry(LLMCombatMessageCreation.getInstance(),
+                            LLMContextFactory.createContext(entry),
+                            entry.getBudComponent()),
+                    System.currentTimeMillis()));
         }
     }
 

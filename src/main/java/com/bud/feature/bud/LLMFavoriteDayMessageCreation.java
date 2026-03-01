@@ -1,17 +1,22 @@
 package com.bud.feature.bud;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.types.Mood;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.Prompt;
-import com.bud.old.BudInstance;
 
 public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
 
-        public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
-                BudMessage npcMessage = budInstance.getData().getBudMessage();
+        @Override
+        public Prompt createLLMPrompt(@Nonnull IPromptContext context) {
+                if (!(context instanceof LLMFavoriteDayContext favDayContext)) {
+                        throw new IllegalArgumentException("Context must be of type LLMFavoriteDayContext");
+                }
+                BudMessage npcMessage = favDayContext.getBudProfile().getBudMessage();
 
                 LLMPromptManager manager = LLMPromptManager.getInstance();
 
@@ -27,11 +32,12 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
                 messageBuilder.append(favoriteDayInfo).append("\n")
                                 .append(manager.getSystemPrompt("final"));
 
-                if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+                if (!favDayContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
-                                                        budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                                                        favDayContext.budComponent().getCurrentMood().getDisplayName()
+                                                                        .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
 
@@ -42,15 +48,13 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
         }
 
         @Override
-        protected Prompt createLLMPrompt(IPromptContext context) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
-        }
-
-        @Override
-        protected Prompt createFallbackPrompt(IPromptContext context) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
+        protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
+                if (!(context instanceof LLMFavoriteDayContext favDayContext)) {
+                        throw new IllegalArgumentException("Context must be of type LLMFavoriteDayContext");
+                }
+                String message = favDayContext.getBudProfile().getBudMessage()
+                                .getFallback("favoriteDayView");
+                return new Prompt(message, message);
         }
 
 }

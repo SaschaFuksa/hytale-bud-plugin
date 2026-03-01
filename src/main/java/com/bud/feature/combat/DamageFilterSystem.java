@@ -1,9 +1,14 @@
 package com.bud.feature.combat;
 
-import java.util.UUID;
+import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.SystemGroup;
@@ -13,11 +18,6 @@ import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-
-import javax.annotation.Nonnull;
-
-import com.bud.feature.data.npc.BudRegistry;
-import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class DamageFilterSystem extends DamageEventSystem {
@@ -37,6 +37,11 @@ public class DamageFilterSystem extends DamageEventSystem {
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
             @Nonnull Damage damage) {
         try {
+            ComponentType<EntityStore, NPCEntity> npcComponentType = NPCEntity.getComponentType();
+            if (npcComponentType == null) {
+                LoggerUtil.getLogger().severe(() -> "[BUD] NPCEntity component type is not available.");
+                return;
+            }
             Ref<EntityStore> targetRef = archetypeChunk.getReferenceTo(index);
 
             Damage.Source source = damage.getSource();
@@ -46,44 +51,57 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             Ref<EntityStore> attackerRef = entitySource.getRef();
 
-            // Resolve Entities
             Player attackerPlayer = store.getComponent(attackerRef, Player.getComponentType());
-            NPCEntity targetNPC = store.getComponent(targetRef, NPCEntity.getComponentType());
+            NPCEntity targetNPC = store.getComponent(targetRef, npcComponentType);
 
-            // Case 1: Player attacks NPC
-            if (attackerPlayer != null && targetNPC != null && playerHasBud(attackerPlayer.getUuid())) {
-                RecentOpponentCache.getInstance().add(
-                        attackerPlayer.getUuid(),
-                        new OpponentEntry(
-                                targetNPC.getRoleName(),
-                                CombatState.ATTACKED));
-                LoggerUtil.getLogger()
-                        .finer(() -> "[BUD] Damage Event: " + attackerPlayer.getDisplayName() + " attacked NPC "
-                                + targetNPC.getRoleName());
-                return;
+            if (attackerPlayer != null && targetNPC != null) {
+                handle(store, attackerRef, targetNPC, CombatState.ATTACKED);
             }
 
-            NPCEntity attackerNPC = store.getComponent(attackerRef, NPCEntity.getComponentType());
+            NPCEntity attackerNPC = store.getComponent(attackerRef, npcComponentType);
             Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
 
-            // Case 2: NPC attacks Player
-            if (attackerNPC != null && targetPlayer != null && playerHasBud(targetPlayer.getUuid())) {
-                RecentOpponentCache.getInstance().add(
-                        targetPlayer.getUuid(),
-                        new OpponentEntry(
-                                attackerNPC.getRoleName(),
-                                CombatState.WAS_ATTACKED));
-                LoggerUtil.getLogger()
-                        .finer(() -> "[BUD] Damage Event: " + attackerNPC.getRoleName() + " attacked player "
-                                + targetPlayer.getDisplayName());
+            if (attackerNPC != null && targetPlayer != null) {
+                Ref<EntityStore> playerRef = targetPlayer.getReference();
+                if (playerRef == null) {
+                    LoggerUtil.getLogger().severe(() -> "[BUD] Target player reference is null.");
+                    return;
+                }
+                handle(store, playerRef, attackerNPC, CombatState.WAS_ATTACKED);
             }
 
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in BudDamageFilterSystem: " + e.getMessage());
         }
     }
 
-    private boolean playerHasBud(UUID playerId) {
-        return !BudRegistry.getInstance().getByOwner(playerId).isEmpty();
+    private void handle(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> playerRef, @Nonnull NPCEntity npc,
+            @Nonnull CombatState state) {
+        PlayerBudComponent playerBudComponent = store.getComponent(playerRef,
+                PlayerBudComponent.getComponentType());
+        if (playerBudComponent == null || !playerBudComponent.hasBuds()) {
+            return;
+        }
+        BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
+        if (budComponent == null) {
+            return;
+        }
+        String entityName = npc.getRoleName() != null ? npc.getRoleName() : "Unknown NPC";
+        if (entityName == null) {
+            return;
+        }
+        RecentOpponentCache.getInstance().add(
+                playerBudComponent.getPlayerRef().getUsername(),
+                new OpponentEntry(
+                        entityName,
+                        state,
+                        budComponent));
+        LoggerUtil.getLogger()
+                .finer(() -> "[BUD] Damage Event: " + playerBudComponent.getPlayerRef().getUsername() + " with state "
+                        + state + " by NPC "
+                        + entityName);
     }
+
 }

@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
@@ -15,7 +16,6 @@ import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
 import com.bud.feature.teleport.TeleportHandler;
 import com.bud.llm.profiles.IBudProfile;
-import com.bud.old.BudManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

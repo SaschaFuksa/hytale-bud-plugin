@@ -1,5 +1,8 @@
 package com.bud.feature.block;
 
+import javax.annotation.Nonnull;
+
+import com.bud.core.types.Mood;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
@@ -8,28 +11,35 @@ import com.bud.llm.prompt.Prompt;
 
 public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
+    @Nonnull
+    private static final LLMBlockMessageCreation INSTANCE = new LLMBlockMessageCreation();
+
+    private LLMBlockMessageCreation() {
+    }
+
+    @Nonnull
+    public static LLMBlockMessageCreation getInstance() {
+        return INSTANCE;
+    }
+
     @Override
-    public Prompt createPrompt(IPromptContext context) {
+    protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
         if (!(context instanceof LLMBlockContext blockContext)) {
             throw new IllegalArgumentException("Context must be of type LLMBlockContext");
         }
-        // BudMessage npcMessage = budInstance.getData().getBudMessage();
-        BudMessage npcMessage = null;
+        BudMessage npcMessage = blockContext.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        String playerName = blockContext.player().getUsername();
+        String playerName = blockContext.budComponent().getPlayerRef().getUsername();
         String blockName = blockContext.blockName();
         BlockInteraction interaction = blockContext.interaction();
 
-        // Simple context message for the LLM
         String interactionInfo = String.format("Your friend %s just %s a block: %s.", playerName,
                 interaction.name().toLowerCase(), blockName);
 
         String budInfo = npcMessage.getCharacteristics();
         String personalView = npcMessage.getPersonalBlockView();
-        if (personalView == null)
-            personalView = npcMessage.getPersonalWorldView(); // Fallback
 
         StringBuilder systemPromptBuilder = new StringBuilder();
         systemPromptBuilder.append(manager.getSystemPrompt("block")).append("\n")
@@ -41,13 +51,14 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(interactionInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        // if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
-        // systemPromptBuilder.append("\n")
-        // .append(manager.getMoodPrompt("instruction"));
-        // systemPromptBuilder.append("\n")
-        // .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
-        // messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
-        // }
+        if (!blockContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt("instruction"));
+            systemPromptBuilder.append("\n")
+                    .append(manager.getMoodPrompt(
+                            blockContext.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+            messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
+        }
 
         String systemPrompt = systemPromptBuilder.toString();
         String message = messageBuilder.toString();
@@ -55,12 +66,12 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
     }
 
     @Override
-    protected Prompt createLLMPrompt(IPromptContext context) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    protected Prompt createFallbackPrompt(IPromptContext context) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
+        if (!(context instanceof LLMBlockContext blockContext)) {
+            throw new IllegalArgumentException("Context must be of type LLMBlockContext");
+        }
+        String message = blockContext.getBudProfile().getBudMessage()
+                .getFallback("block");
+        return new Prompt(message, message);
     }
 }

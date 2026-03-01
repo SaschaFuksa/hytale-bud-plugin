@@ -2,13 +2,12 @@ package com.bud.app.commands;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
-import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.old.BudManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;

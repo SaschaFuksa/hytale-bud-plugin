@@ -1,21 +1,26 @@
-package com.bud.old;
+package com.bud.core;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
 import com.bud.core.types.BudType;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
@@ -37,13 +42,7 @@ public class BudManager {
                     .findFirst();
             if (existingBud.isPresent()) {
                 Ref<EntityStore> ref = existingBud.get().getReference();
-                if (ref != null && ref.isValid()) {
-                    ComponentType<EntityStore, DeathComponent> deathComponentType = DeathComponent.getComponentType();
-                    if (deathComponentType == null) {
-                        return true;
-                    }
-                    return !ref.getStore().getArchetype(ref).contains(deathComponentType);
-                }
+                return isValidBud(ref);
             }
         }
         return false;
@@ -59,23 +58,28 @@ public class BudManager {
         };
     }
 
-    public NPCEntity getRandomBud(UUID ownerId) {
-        // TODO
-        Set<BudInstance> buds = BudRegistry.getInstance().getByOwner(ownerId);
-
-        if (buds.isEmpty()) {
+    public BudComponent getRandomBudComponent(PlayerBudComponent playerBudComponent) {
+        if (!playerBudComponent.hasBuds()) {
             return null;
         }
-
+        ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
         int size = buds.size();
         int item = new java.util.Random().nextInt(size);
         int i = 0;
-        for (BudInstance instance : buds) {
+        for (NPCEntity bud : buds) {
             if (i == item)
-                return instance.getEntity();
+                return getBudComponent(bud);
             i++;
         }
         return null;
+    }
+
+    public BudComponent getBudComponent(NPCEntity bud) {
+        Ref<EntityStore> ref = bud.getReference();
+        if (ref == null || !isValidBud(ref)) {
+            return null;
+        }
+        return ref.getStore().getComponent(ref, BudComponent.getComponentType());
     }
 
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
@@ -89,6 +93,39 @@ public class BudManager {
 
     public Vector3d getPlayerPosition(PlayerRef playerRef) {
         return playerRef.getTransform().getPosition();
+    }
+
+    public Set<BudComponent> getAllBuds() {
+        World world = Universe.get().getDefaultWorld();
+        if (world == null) {
+            return Set.of();
+        }
+        Store<EntityStore> entityStore = world.getEntityStore().getStore();
+        ConcurrentLinkedQueue<BudComponent> allBudComponents = new ConcurrentLinkedQueue<>();
+        entityStore.forEachEntityParallel(
+                BudComponent.getComponentType(),
+                (index, archetypeChunk, commandBuffer) -> {
+                    LoggerUtil.getLogger()
+                            .fine(() -> "[BUD] Checking entity for cleanup: " + index);
+                    BudComponent budComponent = archetypeChunk.getComponent(index,
+                            BudComponent.getComponentType());
+                    if (budComponent == null) {
+                        return;
+                    }
+                    allBudComponents.add(budComponent);
+                });
+        return Set.copyOf(allBudComponents);
+    }
+
+    private static boolean isValidBud(Ref<EntityStore> budRef) {
+        if (budRef != null && budRef.isValid()) {
+            ComponentType<EntityStore, DeathComponent> deathComponentType = DeathComponent.getComponentType();
+            if (deathComponentType == null) {
+                return true;
+            }
+            return !budRef.getStore().getArchetype(budRef).contains(deathComponentType);
+        }
+        return false;
     }
 
 }

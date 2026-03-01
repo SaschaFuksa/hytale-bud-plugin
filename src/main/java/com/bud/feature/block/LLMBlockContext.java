@@ -1,27 +1,28 @@
 package com.bud.feature.block;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 
-public record LLMBlockContext(String blockName, BlockInteraction interaction, PlayerRef player)
+public record LLMBlockContext(String blockName, BlockInteraction interaction, BudComponent budComponent)
         implements IPromptContext {
 
-    public static LLMBlockContext from(String blockName, BlockInteraction interaction, PlayerRef player) {
-        return new LLMBlockContext(blockName, interaction, player);
+    @Nonnull
+    public static LLMBlockContext from(String blockName, BlockInteraction interaction, BudComponent budComponent) {
+        return new LLMBlockContext(blockName, interaction, budComponent);
     }
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return budComponent;
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 
 }

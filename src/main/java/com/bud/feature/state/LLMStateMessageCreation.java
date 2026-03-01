@@ -25,7 +25,7 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
     }
 
     @Override
-    protected Prompt createLLMPrompt(IPromptContext context) {
+    protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
         if (!(context instanceof LLMStateContext stateContext)) {
             throw new IllegalArgumentException("Context must be of type LLMStateContext");
         }
@@ -61,7 +61,7 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
     }
 
     @Override
-    protected Prompt createFallbackPrompt(IPromptContext context) {
+    protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
         if (!(context instanceof LLMStateContext stateContext)) {
             throw new IllegalArgumentException("Context must be of type LLMStateContext");
         }

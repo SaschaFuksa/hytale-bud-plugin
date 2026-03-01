@@ -1,25 +1,28 @@
 package com.bud.feature.bud;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMFavoriteDayContext() implements IPromptContext {
+public record LLMFavoriteDayContext(BudComponent budComponent) implements IPromptContext {
 
-    public static LLMFavoriteDayContext from() {
-        return new LLMFavoriteDayContext();
+    @Nonnull
+    public static LLMFavoriteDayContext from(@Nonnull BudComponent budComponent) {
+        return new LLMFavoriteDayContext(budComponent);
     }
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return budComponent;
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 
 }
