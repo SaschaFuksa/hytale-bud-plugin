@@ -160,8 +160,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
-- [ ] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent). Better cooldown management for reactions to avoid too many messages.
+- [x] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent).
 - [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?

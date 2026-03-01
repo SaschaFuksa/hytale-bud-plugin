@@ -2,8 +2,6 @@ package com.bud.feature.block;
 
 import java.util.UUID;
 
-import com.bud.feature.data.npc.BudRegistry;
-import com.bud.reaction.ItemUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -17,10 +15,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
-/**
- * Filter system for block placing events.
- * Captures when players place blocks to provide context for Buds.
- */
 public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
 
     public BlockPlaceFilterSystem() {
@@ -39,21 +33,22 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
-            // Try to see if the entity placing the block is a player
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             if (player != null) {
                 UUID playerId = player.getUuid();
 
-                // Only care if the player has a Bud
-                if (BudRegistry.playerHasBud(playerId)) {
-                    String blockName = ItemUtil.getDisplayName(event.getItemInHand().getItem().getBlockId());
+                // if (BudRegistry.playerHasBud(playerId)) {
+                // String blockName =
+                // ItemUtil.getDisplayName(event.getItemInHand().getItem().getBlockId());
 
-                    LoggerUtil.getLogger()
-                            .finer(() -> "[BUD] Block Place Event: " + player.getDisplayName() + " placed "
-                                    + blockName);
-                    RecentBlockCache.getInstance().add(playerId, new BlockEntry(blockName, BlockInteraction.PLACE));
-                }
+                // LoggerUtil.getLogger()
+                // .finer(() -> "[BUD] Block Place Event: " + player.getDisplayName() + " placed
+                // "
+                // + blockName);
+                // RecentBlockCache.getInstance().add(playerId, new BlockEntry(blockName,
+                // BlockInteraction.PLACE));
+                // }
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in BlockPlaceFilterSystem: " + e.getMessage());

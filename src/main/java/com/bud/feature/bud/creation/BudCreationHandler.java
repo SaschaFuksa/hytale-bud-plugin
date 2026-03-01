@@ -9,14 +9,13 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudState;
-import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.feature.data.npc.BudManager;
-import com.bud.feature.data.npc.creation.BudSpawner;
-import com.bud.feature.profile.BudType;
-import com.bud.feature.profile.IBudProfile;
-import com.bud.feature.profiles.mappings.BudProfileMapper;
+import com.bud.core.types.BudType;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
+import com.bud.feature.teleport.TeleportHandler;
+import com.bud.llm.profiles.IBudProfile;
+import com.bud.old.BudManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -91,9 +90,8 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                     .warning(() -> "[BUD] Failed to register BudComponent for Bud of type " + budType);
             return;
         }
-        LLMInteractionEntry interactionEntry = new LLMInteractionEntry(null, null, budComponent);
         StateChangeQueue.getInstance()
-                .addToCache(new StateChangeEntry(BudState.PET_DEFENSIVE, interactionEntry));
+                .addToCache(new StateChangeEntry(BudState.PET_DEFENSIVE, budComponent));
         if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }

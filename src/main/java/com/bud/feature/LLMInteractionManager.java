@@ -4,8 +4,11 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.config.LLMConfig;
 import com.bud.feature.chat.ChatEvent;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.llm.LLMCaller;
+import com.bud.llm.interaction.LLMInteractionEntry;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -24,6 +27,8 @@ public class LLMInteractionManager {
 
     public void processInteraction(@Nonnull LLMInteractionEntry interactionEntry) {
         Ref<EntityStore> entityRef = interactionEntry.budComponent().getBud().getReference();
+        IBudProfile budProfile = BudProfileMapper.getInstance()
+                .getProfileForBudType(interactionEntry.budComponent().getBudType());
         if (entityRef == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Entity reference is null for Bud: "
@@ -38,7 +43,7 @@ public class LLMInteractionManager {
         }
         String message;
         if (LLMConfig.getInstance().isEnableLLM()) {
-            message = LLMCaller.getInstance().callLLM(prompt, interactionEntry.getBudProfile()).join();
+            message = LLMCaller.getInstance().callLLM(prompt, budProfile).join();
         } else {
             message = prompt.systemPrompt();
         }
@@ -48,7 +53,7 @@ public class LLMInteractionManager {
             return;
         }
         ChatEvent.dispatch(interactionEntry.budComponent().getPlayerRef(), message);
-        SoundEvent.dispatch(entityRef, interactionEntry.getBudProfile().getBudSoundData().getPassiveSound());
+        SoundEvent.dispatch(entityRef, budProfile.getBudSoundData().getPassiveSound());
         LoggerUtil.getLogger().fine(() -> "[BUD] Processing interaction for: "
                 + interactionEntry.budComponent().getBud().getNPCTypeId());
     }

@@ -1,8 +1,8 @@
 package com.bud.feature.teleport;
 
 import com.bud.core.components.BudComponent;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.feature.profile.IBudProfile;
 
 public record LLMTeleportContext(BudComponent budComponent, IBudProfile budProfile) implements IPromptContext {
 

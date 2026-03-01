@@ -1,12 +1,12 @@
 package com.bud.feature.world.env;
 
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
+import com.bud.old.BudInstance;
 
 public class LLMWorldMessageCreation extends AbstractLLMMessageCreation {
 

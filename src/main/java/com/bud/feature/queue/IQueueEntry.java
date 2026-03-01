@@ -11,4 +11,7 @@ public interface IQueueEntry {
     @Nonnull
     BudComponent getBudComponent();
 
+    @Nonnull
+    String getEntryName();
+
 }

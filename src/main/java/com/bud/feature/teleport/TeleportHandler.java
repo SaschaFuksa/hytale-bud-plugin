@@ -10,10 +10,9 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.types.BudType;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.feature.data.npc.BudManager;
-import com.bud.feature.events.TeleportEvent;
-import com.bud.feature.profile.BudType;
+import com.bud.old.BudManager;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;

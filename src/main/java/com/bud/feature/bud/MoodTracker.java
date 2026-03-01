@@ -7,11 +7,12 @@ import java.util.concurrent.TimeUnit;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
-import com.bud.llm.interaction.LLMInteractionManager;
-import com.bud.llm.messages.favoriteday.LLMFavoriteDayManager;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.data.npc.BudRegistry;
+import com.bud.feature.AbstractTracker;
+import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.world.time.TimeInformationUtil;
+import com.bud.old.BudInstance;
+import com.bud.old.BudRegistry;
+import com.bud.old.LLMFavoriteDayManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 

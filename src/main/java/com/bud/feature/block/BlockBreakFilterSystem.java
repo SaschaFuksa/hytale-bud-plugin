@@ -2,8 +2,6 @@ package com.bud.feature.block;
 
 import java.util.UUID;
 
-import com.bud.feature.data.npc.BudRegistry;
-import com.bud.reaction.ItemUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -17,10 +15,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 
-/**
- * Filter system for block breaking events.
- * Captures when players break blocks to provide context for Buds.
- */
+import com.bud.core.components.PlayerBudComponent;
+import com.bud.feature.item.ItemUtil;
+
 public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
 
     public BlockBreakFilterSystem() {
@@ -39,23 +36,24 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
-            // Try to see if the entity breaking the block is a player
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             if (player != null) {
-                UUID playerId = player.getUuid();
+                PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
+                        PlayerBudComponent.getComponentType());
 
-                // Only care if the player has a Bud
-                if (BudRegistry.playerHasBud(playerId)) {
+                if (playerBudComponent.hasBuds()) {
                     if (event.getBlockType().getId().contains("Empty")) {
                         return;
                     }
 
                     final String blockName = ItemUtil.getDisplayName(event.getBlockType().getId());
 
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " + player.getDisplayName() + " broke "
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " +
+                            player.getDisplayName() + " broke "
                             + blockName);
-                    RecentBlockCache.getInstance().add(playerId, new BlockEntry(blockName, BlockInteraction.BREAK));
+                    RecentBlockCache.getInstance().add(player.getDisplayName(), new BlockEntry(blockName,
+                            BlockInteraction.BREAK));
                 }
             }
         } catch (Exception e) {

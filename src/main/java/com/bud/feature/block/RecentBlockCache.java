@@ -3,17 +3,13 @@ package com.bud.feature.block;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.feature.AbstractCache;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
-import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Cache for recently broken or added blocks by players.
- * Used to provide context for Bud interactions.
- */
 public class RecentBlockCache extends AbstractCache {
 
     private static final RecentBlockCache INSTANCE = new RecentBlockCache();
@@ -25,12 +21,6 @@ public class RecentBlockCache extends AbstractCache {
         return INSTANCE;
     }
 
-    /**
-     * Adds a block interaction to the cache.
-     * 
-     * @param playerId Player UUID
-     * @param entry    BlockEntry containing block information
-     */
     @Override
     public void add(UUID playerId, IQueueEntry entry) {
         if (!(entry instanceof BlockEntry blockEntry)) {
@@ -42,9 +32,8 @@ public class RecentBlockCache extends AbstractCache {
                 list = new LinkedList<>();
             }
 
-            // Avoid duplicate consecutive entries of the same block type
             if (!list.isEmpty() && list.getLast() instanceof BlockEntry lastEntry
-                    && lastEntry.getName().equals(blockEntry.getName())
+                    && lastEntry.getEntryName().equals(blockEntry.getEntryName())
                     && lastEntry.interaction() == blockEntry.interaction()) {
                 return list;
             }
@@ -61,7 +50,6 @@ public class RecentBlockCache extends AbstractCache {
             return list;
         });
 
-        // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
             Orchestrator.getInstance().enqueue(new OrchestratorQueue(
                     OrchestratorChannel.ACTIVITY, 4, "block",

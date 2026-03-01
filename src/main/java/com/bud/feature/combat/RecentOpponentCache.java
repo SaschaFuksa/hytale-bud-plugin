@@ -3,12 +3,12 @@ package com.bud.feature.combat;
 import java.util.LinkedList;
 import java.util.UUID;
 
-import com.bud.llm.messages.combat.LLMCombatManager;
+import com.bud.feature.AbstractCache;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
-import com.bud.reaction.AbstractCache;
+import com.bud.old.LLMCombatManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class RecentOpponentCache extends AbstractCache {

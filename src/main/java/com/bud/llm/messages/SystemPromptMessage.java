@@ -1,9 +1,7 @@
-package com.bud.feature;
+package com.bud.llm.messages;
 
 import java.nio.file.Path;
 import java.util.Map;
-
-import com.bud.llm.messages.AbstractYamlMessage;
 
 public class SystemPromptMessage extends AbstractYamlMessage {
 

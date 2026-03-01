@@ -1,20 +1,20 @@
 package com.bud.feature.block;
 
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
 
 public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
-    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
+    @Override
+    public Prompt createPrompt(IPromptContext context) {
         if (!(context instanceof LLMBlockContext blockContext)) {
             throw new IllegalArgumentException("Context must be of type LLMBlockContext");
         }
-        BudMessage npcMessage = budInstance.getData().getBudMessage();
+        // BudMessage npcMessage = budInstance.getData().getBudMessage();
+        BudMessage npcMessage = null;
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
@@ -41,13 +41,13 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(interactionInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
-            systemPromptBuilder.append("\n")
-                    .append(manager.getMoodPrompt("instruction"));
-            systemPromptBuilder.append("\n")
-                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
-            messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
-        }
+        // if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+        // systemPromptBuilder.append("\n")
+        // .append(manager.getMoodPrompt("instruction"));
+        // systemPromptBuilder.append("\n")
+        // .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+        // messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
+        // }
 
         String systemPrompt = systemPromptBuilder.toString();
         String message = messageBuilder.toString();

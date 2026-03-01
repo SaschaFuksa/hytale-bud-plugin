@@ -2,12 +2,12 @@ package com.bud.feature.state;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.reaction.world.time.Mood;
 
 public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
 

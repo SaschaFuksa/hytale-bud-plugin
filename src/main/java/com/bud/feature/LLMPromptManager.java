@@ -19,6 +19,7 @@ import com.bud.feature.world.env.WorldMessage;
 import com.bud.feature.world.env.ZoneMessage;
 import com.bud.feature.world.time.TimeMessage;
 import com.bud.llm.messages.BudMessage;
+import com.bud.llm.messages.SystemPromptMessage;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class LLMPromptManager {

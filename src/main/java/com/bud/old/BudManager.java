@@ -1,7 +1,5 @@
 package com.bud.old;
 
-import static com.bud.core.types.BudState.PET_DEFENSIVE;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -11,7 +9,8 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
-import com.bud.feature.profile.BudType;
+import static com.bud.core.types.BudState.PET_DEFENSIVE;
+import com.bud.core.types.BudType;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;

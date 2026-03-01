@@ -2,7 +2,6 @@ package com.bud.feature.state;
 
 import java.util.function.Consumer;
 
-import com.bud.feature.events.StateChangeEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;

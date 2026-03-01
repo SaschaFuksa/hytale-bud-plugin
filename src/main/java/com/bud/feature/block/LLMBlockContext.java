@@ -1,8 +1,8 @@
 package com.bud.feature.block;
 
 import com.bud.core.components.BudComponent;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.feature.profile.IBudProfile;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public record LLMBlockContext(String blockName, BlockInteraction interaction, PlayerRef player)
@@ -23,4 +23,5 @@ public record LLMBlockContext(String blockName, BlockInteraction interaction, Pl
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
     }
+
 }

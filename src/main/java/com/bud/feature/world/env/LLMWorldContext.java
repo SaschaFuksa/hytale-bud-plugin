@@ -3,14 +3,14 @@ package com.bud.feature.world.env;
 import java.util.Map.Entry;
 
 import com.bud.core.components.BudComponent;
-import com.bud.llm.messages.weather.LLMWeatherContext;
-import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
-import com.bud.feature.profile.IBudProfile;
-import com.bud.feature.reaction.world.time.TimeInformationUtil;
-import com.bud.feature.reaction.world.time.TimeOfDay;
+import com.bud.core.types.TimeOfDay;
+import com.bud.feature.LLMPromptManager;
 import com.bud.feature.world.WorldInformationUtil;
+import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.feature.world.time.TimeMessage;
+import com.bud.feature.world.weather.LLMWeatherContext;
+import com.bud.llm.profiles.IBudProfile;
+import com.bud.llm.prompt.IPromptContext;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
@@ -55,13 +55,11 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
 
     public String getBiomeInfo(ZoneMessage zoneMessage) {
         String biomeName = this.currentBiome().getName();
-        // Try to find the biome in the map (case-insensitive key search)
         String biomeInfo = zoneMessage.getBiomes().entrySet().stream()
                 .filter(e -> biomeName.toLowerCase().contains(e.getKey().toLowerCase()))
                 .map(Entry::getValue)
                 .findFirst()
                 .orElseGet(() -> {
-                    // Default backup logic for biomes
                     return zoneMessage.getBiomes().getOrDefault("default", biomeName);
                 });
         return biomeInfo;

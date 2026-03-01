@@ -2,7 +2,7 @@ package com.bud.feature.crafting;
 
 import javax.annotation.Nonnull;
 
-import com.bud.feature.data.npc.BudRegistry;
+import com.bud.old.BudRegistry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -16,10 +16,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import java.util.UUID;
 
-/**
- * Filter system for CraftRecipeEvent.Post.
- * Captures when players craft items to provide context for Buds.
- */
 public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, CraftRecipeEvent.Post> {
 
     public CraftRecipeFilterSystem() {

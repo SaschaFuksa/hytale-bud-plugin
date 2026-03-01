@@ -6,10 +6,11 @@ import javax.annotation.Nonnull;
 
 import org.jspecify.annotations.NonNull;
 
+import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.feature.profile.BudType;
-import com.bud.llm.interaction.LLMInteractionEntry;
+import com.bud.core.types.BudType;
 import com.bud.feature.queue.IQueueEntry;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -23,9 +24,16 @@ public record TeleportEntry(@NonNull PlayerBudComponent playerBudComponent,
         return 3;
     }
 
+    @Nonnull
     @Override
-    public LLMInteractionEntry getInteractionEntry() {
-        return interactionEntry;
+    public BudComponent getBudComponent() {
+        return interactionEntry.budComponent();
+    }
+
+    @Override
+    @Nonnull
+    public String getEntryName() {
+        return "teleport";
     }
 
 }

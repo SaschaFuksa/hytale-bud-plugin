@@ -3,14 +3,10 @@ package com.bud.feature.crafting;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.bud.feature.AbstractCache;
 import com.bud.feature.queue.IQueueEntry;
-import com.bud.reaction.AbstractCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Cache for recently crafted items by players.
- * Used to provide context for Bud interactions.
- */
 public class RecentCraftCache extends AbstractCache {
 
     private static final RecentCraftCache INSTANCE = new RecentCraftCache();
@@ -34,8 +30,6 @@ public class RecentCraftCache extends AbstractCache {
                 list = new LinkedList<>();
             }
 
-            // Deduplicate: don't add if last entry has the same item ID and interaction
-            // type
             if (!list.isEmpty() && list.getLast() instanceof CraftEntry lastEntry
                     && lastEntry.itemId().equals(craftEntry.itemId())
                     && lastEntry.interaction() == craftEntry.interaction()) {
@@ -53,7 +47,6 @@ public class RecentCraftCache extends AbstractCache {
             return list;
         });
 
-        // Enqueue to orchestrator (throttled to channel cooldown)
         if (shouldEnqueue(playerId)) {
             int priority = (craftEntry.interaction() == CraftInteraction.CRAFTED) ? 1 : 2;
             // TODO

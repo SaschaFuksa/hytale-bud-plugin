@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.events.TeleportEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -17,20 +16,11 @@ import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-/**
- * Filter system for detecting player teleportation.
- * 
- * Hytale uses ECS (Entity Component System) and when teleporting,
- * a Teleport component is briefly added to the entity and removed after
- * teleportation.
- * This system detects when the Teleport component is added or removed.
- */
 public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport> {
 
     @Override
     @Nonnull
     public Query<EntityStore> getQuery() {
-        // Use Query.and(PlayerRef) to match only player entities
         return Query.and(PlayerRef.getComponentType());
     }
 
@@ -40,10 +30,6 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
         return Teleport.getComponentType();
     }
 
-    /**
-     * Called when the Teleport component is added to an entity.
-     * This indicates the entity is about to be teleported.
-     */
     @Override
     public void onComponentAdded(
             @Nonnull Ref<EntityStore> ref,
@@ -56,9 +42,6 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
         }
     }
 
-    /**
-     * Called when the Teleport component is updated (set) on an entity.
-     */
     @Override
     public void onComponentSet(
             @Nonnull Ref<EntityStore> ref,
@@ -72,10 +55,6 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
         }
     }
 
-    /**
-     * Called when the Teleport component is removed from an entity.
-     * This indicates the teleportation has completed.
-     */
     @Override
     public void onComponentRemoved(
             @Nonnull Ref<EntityStore> ref,

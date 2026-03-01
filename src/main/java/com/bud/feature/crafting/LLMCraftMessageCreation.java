@@ -1,17 +1,13 @@
 package com.bud.feature.crafting;
 
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
+import com.bud.old.BudInstance;
 
-/**
- * Creates LLM prompts for crafting events.
- * Uses the crafted item information and bud personality craft views.
- */
 public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
 
     public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
@@ -21,7 +17,6 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
         BudMessage npcMessage = budInstance.getData().getBudMessage();
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        // Build crafting information
         String craftingInfo = craftContext.getCraftingInformation();
 
         String budInfo = npcMessage.getCharacteristics();

@@ -4,8 +4,11 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.interaction.LLMInteractionManager;
+import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.queue.AbstractQueue;
+import com.bud.feature.teleport.LLMTeleportContext;
+import com.bud.feature.teleport.LLMTeleportMessageCreation;
+import com.bud.feature.teleport.TeleportEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -42,7 +45,7 @@ public class TeleportQueue extends AbstractQueue {
     @SuppressWarnings("null")
     private void handleTeleport(@Nonnull TeleportEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budTypes());
-        BudComponent budComponent = entry.getInteractionEntry().budComponent();
+        BudComponent budComponent = entry.interactionEntry().budComponent();
         TeleportEvent.dispatch(entry.store(), entry.playerBudComponent(), entry.budTypes());
 
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();

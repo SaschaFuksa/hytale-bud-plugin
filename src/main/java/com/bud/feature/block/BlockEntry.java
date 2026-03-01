@@ -1,6 +1,8 @@
 package com.bud.feature.block;
 
-import com.bud.llm.interaction.LLMInteractionEntry;
+import javax.annotation.Nonnull;
+
+import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.IQueueEntry;
 
 public record BlockEntry(String blockName, BlockInteraction interaction) implements IQueueEntry {
@@ -12,9 +14,10 @@ public record BlockEntry(String blockName, BlockInteraction interaction) impleme
     }
 
     @Override
-    public LLMInteractionEntry getInteractionEntry() {
+    @Nonnull
+    public BudComponent getBudComponent() {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInteractionEntry'");
+        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
     }
 
 }
