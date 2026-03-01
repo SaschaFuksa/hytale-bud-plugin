@@ -1,16 +1,34 @@
 package com.bud.feature.world.weather;
 
+import javax.annotation.Nonnull;
+
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
+
+import org.jetbrains.annotations.NonNls;
+
+import com.bud.feature.crafting.LLMCraftContext;
 import com.bud.feature.data.npc.BudInstance;
 import com.bud.feature.reaction.world.time.Mood;
 
 public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 
-    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
+    @Nonnull
+    private static final LLMWeatherMessageCreation INSTANCE = new LLMWeatherMessageCreation();
+
+    private LLMWeatherMessageCreation() {
+    }
+
+    @Nonnull
+    public static LLMWeatherMessageCreation getInstance() {
+        return INSTANCE;
+    }
+
+    @Override
+    protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
         if (!(context instanceof LLMWeatherContext weatherContext)) {
             throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
         }
@@ -45,14 +63,12 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
     }
 
     @Override
-    protected Prompt createLLMPrompt(IPromptContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
-    }
-
-    @Override
-    protected Prompt createFallbackPrompt(IPromptContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
+    protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
+        if (!(context instanceof LLMWeatherContext weatherContext)) {
+            throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
+        }
+        String message = weatherContext.getBudProfile().getBudMessage()
+                .getFallback("weatherView");
+        return new Prompt(message, message);
     }
 }

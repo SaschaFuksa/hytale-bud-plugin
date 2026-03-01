@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.TimeOfDay;
 import com.bud.feature.LLMPromptManager;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.feature.world.time.TimeMessage;
@@ -21,11 +22,11 @@ import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome,
-        LLMWeatherContext weatherContext)
+        LLMWeatherContext weatherContext, BudComponent budComponent)
         implements IPromptContext {
 
     public static LLMWorldContext from(PlayerRef owner, World world,
-            Store<EntityStore> store, LLMWeatherContext weatherContext) {
+            Store<EntityStore> store, LLMWeatherContext weatherContext, BudComponent budComponent) {
         Vector3d pos = owner.getTransform().getPosition();
         TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(store);
         LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
@@ -33,7 +34,7 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         LoggerUtil.getLogger().fine(() -> "[BUD] current biome: " + biome.getName());
         Zone zone = WorldInformationUtil.getCurrentZone(world, pos);
         LoggerUtil.getLogger().fine(() -> "[BUD] current zone: " + zone.name());
-        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext);
+        return new LLMWorldContext(timeOfDay, zone, biome, weatherContext, budComponent);
     }
 
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
@@ -83,13 +84,11 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return this.budComponent;
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 }

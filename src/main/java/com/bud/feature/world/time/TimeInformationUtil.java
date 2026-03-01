@@ -8,13 +8,19 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TimeInformationUtil {
 
     public static TimeOfDay getTimeOfDay() {
         try {
-            return getTimeOfDay(Universe.get().getDefaultWorld().getEntityStore().getStore());
+            World world = Universe.get().getDefaultWorld();
+            if (world == null) {
+                return TimeOfDay.DAY;
+            }
+            EntityStore entityStore = world.getEntityStore();
+            return getTimeOfDay(entityStore.getStore());
         } catch (Exception e) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());
@@ -48,7 +54,12 @@ public class TimeInformationUtil {
 
     public static DayOfWeek getDayOfWeek() {
         try {
-            return getDayOfWeek(Universe.get().getDefaultWorld().getEntityStore().getStore());
+            World world = Universe.get().getDefaultWorld();
+            if (world == null) {
+                return DayOfWeek.MONDAY;
+            }
+            EntityStore entityStore = world.getEntityStore();
+            return getDayOfWeek(entityStore.getStore());
         } catch (Exception e) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());

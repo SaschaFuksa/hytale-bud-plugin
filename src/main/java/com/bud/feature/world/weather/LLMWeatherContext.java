@@ -1,14 +1,15 @@
 package com.bud.feature.world.weather;
 
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.feature.profile.IBudProfile;
 
-public record LLMWeatherContext(String weatherName) implements IPromptContext {
+public record LLMWeatherContext(String weatherName, BudComponent budComponent) implements IPromptContext {
 
-    public static LLMWeatherContext from(String weatherId) {
+    public static LLMWeatherContext from(String weatherId, BudComponent budComponent) {
         final String weatherName = getWeatherName(weatherId);
-        return new LLMWeatherContext(weatherName);
+        return new LLMWeatherContext(weatherName, budComponent);
     }
 
     public String getWeatherInformation() {
@@ -26,14 +27,12 @@ public record LLMWeatherContext(String weatherName) implements IPromptContext {
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return this.budComponent;
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 
 }
