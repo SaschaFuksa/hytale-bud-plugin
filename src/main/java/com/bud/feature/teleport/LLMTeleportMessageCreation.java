@@ -29,7 +29,7 @@ public class LLMTeleportMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMTeleportContext teleportContext)) {
             throw new IllegalArgumentException("Context must be of type LLMTeleportContext");
         }
-        BudMessage npcMessage = teleportContext.budProfile().getBudMessage();
+        BudMessage npcMessage = teleportContext.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
@@ -63,7 +63,7 @@ public class LLMTeleportMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMTeleportContext teleportContext)) {
             throw new IllegalArgumentException("Context must be of type LLMTeleportContext");
         }
-        String message = teleportContext.budProfile().getBudMessage()
+        String message = teleportContext.getBudProfile().getBudMessage()
                 .getFallback("teleport");
         return new Prompt(message, message);
     }

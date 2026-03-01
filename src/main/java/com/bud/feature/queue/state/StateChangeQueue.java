@@ -3,13 +3,12 @@ package com.bud.feature.queue.state;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
-import com.bud.feature.profile.IBudProfile;
-import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.interaction.LLMInteractionManager;
-import com.bud.llm.messages.state.LLMStateContext;
-import com.bud.llm.messages.state.LLMStateMessageCreation;
-import com.bud.feature.events.StateChangeEvent;
+import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.queue.AbstractQueue;
+import com.bud.feature.state.LLMStateContext;
+import com.bud.feature.state.LLMStateMessageCreation;
+import com.bud.feature.state.StateChangeEvent;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -45,7 +44,7 @@ public class StateChangeQueue extends AbstractQueue {
 
     private void handleStateChange(@Nonnull StateChangeEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling state change: " + entry);
-        BudComponent budComponent = entry.getInteractionEntry().budComponent();
+        BudComponent budComponent = entry.getBudComponent();
         StateChangeEvent.dispatch(budComponent.getBud(), budComponent.getPlayerRef(), entry.newState());
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {
@@ -53,8 +52,7 @@ public class StateChangeQueue extends AbstractQueue {
                     .warning(() -> "[BUD] Entity reference is null for Bud: " + budComponent.getBud());
             return;
         }
-        IBudProfile budProfile = entry.getInteractionEntry().getBudProfile();
-        LLMStateContext context = LLMStateContext.from(budComponent, budProfile);
+        LLMStateContext context = LLMStateContext.from(budComponent);
         if (context == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Failed to create LLMStateContext for Bud: " + budComponent.getBud());

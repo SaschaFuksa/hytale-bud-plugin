@@ -54,7 +54,7 @@ public class TeleportQueue extends AbstractQueue {
                     .warning(() -> "[BUD] Entity reference is null for Bud: " + budComponent.getBud());
             return;
         }
-        LLMTeleportContext context = LLMTeleportContext.from(budComponent, budProfile);
+        LLMTeleportContext context = LLMTeleportContext.from(budComponent);
         if (context == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Failed to create LLMTeleportContext for Bud: " + budComponent.getBud());

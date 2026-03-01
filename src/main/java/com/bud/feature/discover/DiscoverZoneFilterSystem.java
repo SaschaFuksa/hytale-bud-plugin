@@ -5,9 +5,6 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.feature.crafting.CraftEntry;
-import com.bud.feature.crafting.CraftInteraction;
-import com.bud.feature.crafting.RecentCraftCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -19,8 +16,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.DiscoverZoneEvent;
 import com.hypixel.hytale.server.core.universe.world.WorldMapTracker.ZoneDiscoveryInfo;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-
-import java.util.UUID;
 
 public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, DiscoverZoneEvent.Display> {
 

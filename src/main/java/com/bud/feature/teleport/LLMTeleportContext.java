@@ -1,13 +1,17 @@
 package com.bud.feature.teleport;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMTeleportContext(BudComponent budComponent, IBudProfile budProfile) implements IPromptContext {
+public record LLMTeleportContext(BudComponent budComponent) implements IPromptContext {
 
-    public static LLMTeleportContext from(BudComponent budComponent, IBudProfile budProfile) {
-        return new LLMTeleportContext(budComponent, budProfile);
+    @Nonnull
+    public static LLMTeleportContext from(BudComponent budComponent) {
+        return new LLMTeleportContext(budComponent);
     }
 
     @Override
@@ -17,7 +21,7 @@ public record LLMTeleportContext(BudComponent budComponent, IBudProfile budProfi
 
     @Override
     public IBudProfile getBudProfile() {
-        return budProfile;
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 
 }

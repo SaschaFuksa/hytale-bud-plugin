@@ -1,5 +1,7 @@
 package com.bud.core.types;
 
+import javax.annotation.Nonnull;
+
 public enum BudState {
 
     PET_DEFENSIVE("PetDefensive"),
@@ -12,7 +14,11 @@ public enum BudState {
         this.stateName = stateName;
     }
 
+    @Nonnull
     public String getStateName() {
+        if (stateName == null) {
+            throw new IllegalStateException("State name cannot be null");
+        }
         return stateName;
     }
 

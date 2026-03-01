@@ -23,7 +23,7 @@ public record StateChangeEntry(@Nonnull BudState newState, @Nonnull BudComponent
     @Override
     @Nonnull
     public String getEntryName() {
-
+        return newState.getStateName();
     }
 
 }

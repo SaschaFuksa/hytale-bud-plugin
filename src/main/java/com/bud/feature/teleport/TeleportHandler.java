@@ -69,10 +69,16 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
             return;
         }
         BudComponent budComponent = store.getComponent(budRef, BudComponent.getComponentType());
+        if (budComponent == null) {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] BudComponent not found for bud of type " + budType.getName() + " for player "
+                            + playerBudComponent.getPlayerRef().getUuid());
+            return;
+        }
         Set<BudType> budTypes = Set.of(budType);
         if (!budTypes.isEmpty()) {
             LLMInteractionEntry interactionEntry = new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(),
-                    LLMTeleportContext.from(budComponent, budProfile));
+                    LLMTeleportContext.from(budComponent), budComponent);
             TeleportQueue.getInstance()
                     .addToCache(new TeleportEntry(playerBudComponent, budTypes, store, interactionEntry));
         }
