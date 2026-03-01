@@ -10,17 +10,17 @@ import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMCombatContext(String combatContext, String targetName, BudComponent budComponent)
+public record LLMCombatContext(@Nonnull OpponentEntry opponentEntry, @Nonnull String combatContext)
         implements IPromptContext {
 
     @Nonnull
-    public static LLMCombatContext from(@Nonnull OpponentEntry entry, @Nonnull BudComponent budComponent) {
+    public static LLMCombatContext from(@Nonnull OpponentEntry entry) {
         String cleanName = entry.entityName().replace("_Bud", "").replace("_", " ");
         String combatContext = switch (entry.state()) {
             case ATTACKED -> "Your Buddy has attacked " + cleanName + ".";
             case WAS_ATTACKED -> "Your Buddy was attacked by " + cleanName + ".";
         };
-        return new LLMCombatContext(combatContext, cleanName, budComponent);
+        return new LLMCombatContext(entry, combatContext);
     }
 
     public String getEntityInformation() {
@@ -35,7 +35,7 @@ public record LLMCombatContext(String combatContext, String targetName, BudCompo
     }
 
     private String findAndFormatMatch(EntityCategoriesMessage entityData, CombatMessage template) {
-        String lowerTarget = this.targetName.toLowerCase();
+        String lowerTarget = this.opponentEntry.entityName().toLowerCase();
 
         for (Entry<String, EntityCategoriesMessage.CategoryData> categoryEntry : entityData.getCategories()
                 .entrySet()) {
@@ -75,12 +75,12 @@ public record LLMCombatContext(String combatContext, String targetName, BudCompo
 
     @Override
     public BudComponent getBudComponent() {
-        return budComponent;
+        return opponentEntry.getBudComponent();
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
+        return BudProfileMapper.getInstance().getProfileForBudType(opponentEntry.getBudComponent().getBudType());
     }
 
 }

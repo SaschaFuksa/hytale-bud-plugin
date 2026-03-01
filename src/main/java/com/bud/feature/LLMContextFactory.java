@@ -6,6 +6,8 @@ import com.bud.feature.block.BlockEntry;
 import com.bud.feature.block.LLMBlockContext;
 import com.bud.feature.combat.LLMCombatContext;
 import com.bud.feature.combat.OpponentEntry;
+import com.bud.feature.crafting.CraftEntry;
+import com.bud.feature.crafting.LLMCraftContext;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.llm.prompt.IPromptContext;
 
@@ -16,13 +18,14 @@ public class LLMContextFactory {
         switch (entry) {
             case null -> throw new IllegalArgumentException("Entry cannot be null");
             case BlockEntry blockEntry -> {
-                return LLMBlockContext.from(blockEntry.getEntryName(), blockEntry.interaction(),
-                        blockEntry.getBudComponent());
+                return LLMBlockContext.from(blockEntry);
 
             }
             case OpponentEntry opponentEntry -> {
-                return LLMCombatContext.from(opponentEntry,
-                        opponentEntry.getBudComponent());
+                return LLMCombatContext.from(opponentEntry);
+            }
+            case CraftEntry craftEntry -> {
+                return LLMCraftContext.from(craftEntry);
             }
             default -> {
                 throw new IllegalArgumentException("Unsupported entry type: " + entry.getClass().getName());

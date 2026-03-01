@@ -1,13 +1,13 @@
 package com.bud.feature.crafting;
 
 import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.config.ReactionConfig;
-import com.bud.llm.prompt.LLMPromptManager;
-import com.bud.feature.data.npc.BudRegistry;
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
+import com.bud.feature.LLMPromptManager;
 import com.bud.feature.item.ItemMessage;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
@@ -20,11 +20,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-/**
- * Filter system for UseBlockEvent.Post.
- * Detects when players use processing benches (cooking, alchemy, etc.)
- * and adds USED entries to the RecentCraftCache.
- */
 public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Post> {
 
     private final ItemMessage itemPromptMessage = LLMPromptManager.getInstance().getItemPromptMessage();
@@ -48,20 +43,14 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
             @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer,
             @Nonnull UseBlockEvent.Post event) {
         try {
-            if (!ReactionConfig.getInstance().isEnableCraftingReactions()) {
-                return;
-            }
-
             String blockTypeId = event.getBlockType().getId();
             String blockIdLower = blockTypeId.toLowerCase();
             System.out.println("UseBlockFilterSystem detected: " + blockTypeId);
 
-            // Must contain "bench" to be relevant at all
             if (!blockIdLower.contains("bench")) {
                 return;
             }
 
-            // Find matching keyword (e.g. "cooking", "alchemy", "weapon")
             String matchedKeyword = null;
             for (String keyword : benchKeywords.keySet()) {
                 if (blockIdLower.contains(keyword)) {
@@ -76,21 +65,19 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
-            if (player == null) {
-                return;
+            if (player != null) {
+                PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
+                        PlayerBudComponent.getComponentType());
+                BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
+                if (budComponent != null) {
+                    final String benchKey = matchedKeyword;
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getDisplayName()
+                            + " used bench=" + blockTypeId + " (keyword=" + benchKey + ")");
+
+                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                            new CraftEntry(benchKey, CraftInteraction.USED, budComponent));
+                }
             }
-
-            UUID playerId = player.getUuid();
-            if (!BudRegistry.playerHasBud(playerId)) {
-                return;
-            }
-
-            final String benchKey = matchedKeyword;
-            LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getDisplayName()
-                    + " used bench=" + blockTypeId + " (keyword=" + benchKey + ")");
-
-            RecentCraftCache.getInstance().add(playerId,
-                    new CraftEntry(benchKey, CraftInteraction.USED));
 
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in UseBlockFilterSystem: " + e.getMessage());

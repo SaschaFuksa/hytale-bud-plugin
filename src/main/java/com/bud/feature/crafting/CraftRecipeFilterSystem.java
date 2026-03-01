@@ -2,7 +2,9 @@ package com.bud.feature.crafting;
 
 import javax.annotation.Nonnull;
 
-import com.bud.old.BudRegistry;
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -13,8 +15,6 @@ import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.CraftRecipeEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-
-import java.util.UUID;
 
 public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, CraftRecipeEvent.Post> {
 
@@ -33,18 +33,25 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
             @Nonnull CraftRecipeEvent.Post event) {
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
+
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             if (player != null) {
-                UUID playerId = player.getUuid();
-                if (BudRegistry.playerHasBud(playerId)) {
+                PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
+                        PlayerBudComponent.getComponentType());
+                BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
+                if (budComponent != null) {
                     String itemId = event.getCraftedRecipe().getPrimaryOutput().getItemId();
+                    if (itemId == null) {
+                        return;
+                    }
                     System.out.println("DEBUG: Player " + player.getDisplayName() + " crafted item " + itemId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getDisplayName()
                             + " crafted item=" + itemId);
 
-                    RecentCraftCache.getInstance().add(playerId, new CraftEntry(itemId, CraftInteraction.CRAFTED));
+                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                            new CraftEntry(itemId, CraftInteraction.CRAFTED, budComponent));
                 }
             }
         } catch (Exception e) {

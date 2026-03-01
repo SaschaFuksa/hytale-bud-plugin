@@ -2,15 +2,19 @@ package com.bud.feature.crafting;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
 import com.bud.feature.LLMPromptManager;
 import com.bud.feature.item.ItemMessage;
 import com.bud.feature.item.ItemUtil;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
 public record LLMCraftContext(CraftEntry craftEntry) implements IPromptContext {
 
+    @Nonnull
     public static LLMCraftContext from(CraftEntry entry) {
         return new LLMCraftContext(entry);
     }
@@ -35,13 +39,11 @@ public record LLMCraftContext(CraftEntry craftEntry) implements IPromptContext {
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return craftEntry.getBudComponent();
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(craftEntry.getBudComponent().getBudType());
     }
 }

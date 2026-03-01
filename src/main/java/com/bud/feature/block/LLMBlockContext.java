@@ -7,22 +7,22 @@ import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMBlockContext(String blockName, BlockInteraction interaction, BudComponent budComponent)
+public record LLMBlockContext(@Nonnull BlockEntry blockEntry)
         implements IPromptContext {
 
     @Nonnull
-    public static LLMBlockContext from(String blockName, BlockInteraction interaction, BudComponent budComponent) {
-        return new LLMBlockContext(blockName, interaction, budComponent);
+    public static LLMBlockContext from(@Nonnull BlockEntry blockEntry) {
+        return new LLMBlockContext(blockEntry);
     }
 
     @Override
     public BudComponent getBudComponent() {
-        return budComponent;
+        return blockEntry.getBudComponent();
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
+        return BudProfileMapper.getInstance().getProfileForBudType(blockEntry.getBudComponent().getBudType());
     }
 
 }

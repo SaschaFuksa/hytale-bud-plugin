@@ -1,19 +1,27 @@
 package com.bud.feature.crafting;
 
-import com.bud.llm.interaction.LLMInteractionEntry;
+import javax.annotation.Nonnull;
+
+import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.IQueueEntry;
 
-public record CraftEntry(String itemId, CraftInteraction interaction) implements IQueueEntry {
+public record CraftEntry(@Nonnull String itemId, @Nonnull CraftInteraction interaction,
+        @Nonnull BudComponent budComponent) implements IQueueEntry {
 
     @Override
     public int getPriority() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPriority'");
+        return (interaction == CraftInteraction.CRAFTED) ? 1 : 2;
     }
 
+    @Nonnull
     @Override
-    public LLMInteractionEntry getInteractionEntry() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInteractionEntry'");
+    public BudComponent getBudComponent() {
+        return budComponent;
+    }
+
+    @Nonnull
+    @Override
+    public String getEntryName() {
+        return itemId;
     }
 }

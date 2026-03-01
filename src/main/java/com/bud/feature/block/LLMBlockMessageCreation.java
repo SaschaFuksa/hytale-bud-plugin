@@ -31,9 +31,9 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        String playerName = blockContext.budComponent().getPlayerRef().getUsername();
-        String blockName = blockContext.blockName();
-        BlockInteraction interaction = blockContext.interaction();
+        String playerName = blockContext.blockEntry().budComponent().getPlayerRef().getUsername();
+        String blockName = blockContext.blockEntry().blockName();
+        BlockInteraction interaction = blockContext.blockEntry().interaction();
 
         String interactionInfo = String.format("Your friend %s just %s a block: %s.", playerName,
                 interaction.name().toLowerCase(), blockName);
@@ -51,12 +51,12 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(interactionInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!blockContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!blockContext.blockEntry().budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            blockContext.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            blockContext.blockEntry().budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

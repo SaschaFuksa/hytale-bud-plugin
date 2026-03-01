@@ -1,10 +1,14 @@
 package com.bud.feature.crafting;
 
 import java.util.LinkedList;
-import java.util.UUID;
 
 import com.bud.feature.AbstractCache;
+import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class RecentCraftCache extends AbstractCache {
@@ -19,13 +23,13 @@ public class RecentCraftCache extends AbstractCache {
     }
 
     @Override
-    public void add(UUID playerId, IQueueEntry entry) {
+    public void add(String playerName, IQueueEntry entry) {
         if (!(entry instanceof CraftEntry craftEntry)) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD-Cache] Invalid entry type for RecentCraftCache: " + entry);
             return;
         }
-        cache.compute(playerId, (key, list) -> {
+        cache.compute(playerName, (key, list) -> {
             if (list == null) {
                 list = new LinkedList<>();
             }
@@ -42,17 +46,21 @@ public class RecentCraftCache extends AbstractCache {
             }
 
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD-Cache] Player " + playerId + " " + craftEntry.interaction().name().toLowerCase()
+                    .fine(() -> "[BUD-Cache] Player " + playerName + " " + craftEntry.interaction().name().toLowerCase()
                             + " item: " + craftEntry.itemId());
             return list;
         });
 
-        if (shouldEnqueue(playerId)) {
-            int priority = (craftEntry.interaction() == CraftInteraction.CRAFTED) ? 1 : 2;
-            // TODO
-            // Orchestrator.getInstance().enqueue(new OrchestratorQueue(
-            // OrchestratorChannel.ACTIVITY, priority, "craft",
-            // LLMCraftManager.getInstance(), playerId, System.currentTimeMillis()));
+        if (shouldEnqueue(playerName)) {
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.ACTIVITY,
+                    entry,
+                    "craft",
+                    playerName,
+                    new LLMInteractionEntry(LLMCraftMessageCreation.getInstance(),
+                            LLMContextFactory.createContext(entry),
+                            entry.getBudComponent()),
+                    System.currentTimeMillis()));
         }
     }
 }
