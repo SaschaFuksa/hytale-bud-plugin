@@ -1,33 +1,39 @@
 package com.bud.feature.discover;
 
+import javax.annotation.Nonnull;
+
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
+import com.bud.feature.world.env.ZoneMessage;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
-import com.bud.feature.world.env.ZoneMessage;
 
-/**
- * Creates LLM prompts for zone discovery events.
- * Uses the zone description from the existing zone YAML files
- * and matches the regionName to known biomes.
- */
 public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
 
-    public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
+    @Nonnull
+    private static final LLMDiscoverMessageCreation INSTANCE = new LLMDiscoverMessageCreation();
+
+    private LLMDiscoverMessageCreation() {
+    }
+
+    @Nonnull
+    public static LLMDiscoverMessageCreation getInstance() {
+        return INSTANCE;
+    }
+
+    @Override
+    protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
         if (!(context instanceof LLMDiscoverContext discoverContext)) {
             throw new IllegalArgumentException("Context must be of type LLMDiscoverContext");
         }
-        BudMessage npcMessage = budInstance.getData().getBudMessage();
+        BudMessage npcMessage = discoverContext.getBudProfile().getBudMessage();
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        // Get zone description from existing zone YAMLs
         ZoneMessage zoneMessage = discoverContext.getZoneInfo(manager);
         String zoneDescription = (zoneMessage != null) ? zoneMessage.getZone() : "an unknown area";
 
-        // Build discovery information
         String discoveryInfo = discoverContext.getDiscoveryInformation();
 
         String budInfo = npcMessage.getCharacteristics();
@@ -47,10 +53,11 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
                 .append("Zone description: ").append(zoneDescription).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!discoverContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
-                    .append(manager.getMoodPrompt(budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                    .append(manager.getMoodPrompt(
+                            discoverContext.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -61,14 +68,12 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
     }
 
     @Override
-    protected Prompt createLLMPrompt(IPromptContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
-    }
-
-    @Override
-    protected Prompt createFallbackPrompt(IPromptContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
+    protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
+        if (!(context instanceof LLMDiscoverContext discoverContext)) {
+            throw new IllegalArgumentException("Context must be of type LLMDiscoverContext");
+        }
+        String message = discoverContext.getBudProfile().getBudMessage()
+                .getFallback("discoverView");
+        return new Prompt(message, message);
     }
 }

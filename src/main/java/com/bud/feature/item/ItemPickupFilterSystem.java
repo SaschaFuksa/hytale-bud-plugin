@@ -1,13 +1,15 @@
 package com.bud.feature.item;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.bud.llm.prompt.LLMPromptManager;
-import com.bud.feature.data.npc.BudRegistry;
-import com.bud.reaction.ItemUtil;
+import javax.annotation.Nonnull;
+
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
+import com.bud.feature.LLMPromptManager;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -19,12 +21,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.InteractivelyPickupItemEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import javax.annotation.Nonnull;
-
-/**
- * Filter system for item pickup events.
- * Captures when players pick up items to provide context for Buds.
- */
 public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, InteractivelyPickupItemEvent> {
 
     private final ItemMessage itemPromptMessage = LLMPromptManager.getInstance().getItemPromptMessage();
@@ -57,34 +53,32 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             String itemName = event.getItemStack().getItem().getId();
+            if (itemName == null) {
+                return;
+            }
             String displayName = ItemUtil.getDisplayName(itemName);
             System.out.println("DEBUG: Player " + player.getDisplayName() + " picked up item " + displayName);
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
-            UUID playerId = player.getUuid();
 
-            // Only care if the player has a Bud
-            if (relevantItem && BudRegistry.playerHasBud(playerId)) {
+            Ref<EntityStore> playerRef = player.getReference();
+            if (playerRef == null) {
                 LoggerUtil.getLogger()
-                        .finer(() -> "[BUD] Item Pickup Event: " + player.getDisplayName() + " picked up "
-                                + displayName);
-                RecentItemCache.getInstance().add(playerId,
-                        new ItemEntry(displayName, getPriority(displayName.toLowerCase()), ItemInteraction.PICKUP));
+                        .warning(() -> "[BUD] Player reference is null for player: " + player.getDisplayName());
+                return;
+            }
+            PlayerBudComponent playerBudComponent = playerRef.getStore().getComponent(playerRef,
+                    PlayerBudComponent.getComponentType());
+            BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
+            if (relevantItem && budComponent != null) {
+                LoggerUtil.getLogger()
+                        .finer(() -> "[BUD] Inventory Change (ADD): " + player.getDisplayName()
+                                + " received " + displayName);
+                RecentItemCache.getInstance().add(player.getDisplayName(),
+                        new ItemEntry(displayName, ItemInteraction.PICKUP, budComponent));
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Error in ItemPickupFilterSystem: " + e.getMessage());
         }
-    }
-
-    private static int getPriority(String itemName) {
-        // Simple priority logic based on item type keywords
-        if (itemName.contains("blood leaf") || itemName.contains("kelp") || itemName.contains("storm sapling")) {
-            return 3;
-        } else if (itemName.contains("bloodcap") || itemName.contains("azurecap") || itemName.contains("stormcap")) {
-            return 2;
-        } else if (itemName.contains("rose") || itemName.contains("fern") || itemName.contains("thistle")) {
-            return 1;
-        }
-        return 0; // Default priority for other items
     }
 }

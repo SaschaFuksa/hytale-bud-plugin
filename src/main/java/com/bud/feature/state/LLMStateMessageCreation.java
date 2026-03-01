@@ -29,7 +29,7 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMStateContext stateContext)) {
             throw new IllegalArgumentException("Context must be of type LLMStateContext");
         }
-        BudMessage npcMessage = stateContext.budProfile().getBudMessage();
+        BudMessage npcMessage = stateContext.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
@@ -65,7 +65,7 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMStateContext stateContext)) {
             throw new IllegalArgumentException("Context must be of type LLMStateContext");
         }
-        String message = stateContext.budProfile().getBudMessage()
+        String message = stateContext.getBudProfile().getBudMessage()
                 .getFallback(stateContext.getBudComponent().getCurrentState().getStateName());
         return new Prompt(message, message);
     }

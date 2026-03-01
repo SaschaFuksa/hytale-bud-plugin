@@ -1,31 +1,25 @@
 package com.bud.feature.discover;
 
-import com.bud.core.components.BudComponent;
-import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
-import com.bud.feature.profile.IBudProfile;
-import com.bud.feature.world.env.ZoneMessage;
+import javax.annotation.Nonnull;
 
-/**
- * Context for discover zone LLM prompts.
- * Resolves zone/region names to existing zone descriptions.
- */
+import com.bud.core.components.BudComponent;
+import com.bud.feature.LLMPromptManager;
+import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.feature.world.env.ZoneMessage;
+import com.bud.llm.profiles.IBudProfile;
+import com.bud.llm.prompt.IPromptContext;
+
 public record LLMDiscoverContext(DiscoverEntry discoverEntry) implements IPromptContext {
 
+    @Nonnull
     public static LLMDiscoverContext from(DiscoverEntry entry) {
         return new LLMDiscoverContext(entry);
     }
 
-    /**
-     * Attempts to match the regionName (e.g. "Zone1_Shore") to an existing zone
-     * description.
-     * Uses the same mapping logic as LLMWorldContext.getZoneInfo().
-     */
     public ZoneMessage getZoneInfo(LLMPromptManager manager) {
         String regionLower = this.discoverEntry.regionName().toLowerCase();
         String zoneLower = this.discoverEntry.zoneName().toLowerCase();
 
-        // Try matching by region name first (e.g. "Zone1_Shore" → emerald_grove)
         if (regionLower.contains("zone1") || zoneLower.contains("emerald")) {
             return manager.getZoneMessage("emerald_grove");
         }
@@ -44,31 +38,23 @@ public record LLMDiscoverContext(DiscoverEntry discoverEntry) implements IPrompt
         return manager.getZoneMessage("fallback");
     }
 
-    /**
-     * Creates the discovery notification text for the user prompt.
-     */
     public String getDiscoveryInformation() {
         String prefix = this.discoverEntry.major() ? "Your Buddy just discovered a major new area: "
                 : "Your Buddy just entered a new area: ";
         return prefix + formatZoneName(this.discoverEntry.zoneName()) + ".";
     }
 
-    /**
-     * Formats a zone name like "Emerald_Wilds" → "Emerald Wilds".
-     */
     private static String formatZoneName(String zoneName) {
         return zoneName.replace("_", " ");
     }
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return discoverEntry.budComponent();
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(discoverEntry.budComponent().getBudType());
     }
 }

@@ -1,21 +1,33 @@
 package com.bud.feature.item;
 
+import javax.annotation.Nonnull;
+
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
 
 public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
 
-        public Prompt createPrompt(IPromptContext context, BudInstance budInstance) {
+        @Nonnull
+        private static final LLMItemMessageCreation INSTANCE = new LLMItemMessageCreation();
+
+        private LLMItemMessageCreation() {
+        }
+
+        @Nonnull
+        public static LLMItemMessageCreation getInstance() {
+                return INSTANCE;
+        }
+
+        @Override
+        protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
                 if (!(context instanceof LLMItemContext itemContext)) {
                         throw new IllegalArgumentException("Context must be of type LLMItemContext");
                 }
-                BudMessage npcMessage = budInstance.getData().getBudMessage();
-
+                BudMessage npcMessage = itemContext.getBudProfile().getBudMessage();
                 LLMPromptManager manager = LLMPromptManager.getInstance();
 
                 String collectInformation = itemContext.getCollectInformation();
@@ -44,11 +56,12 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
                                 .append(itemInformation).append("\n")
                                 .append(manager.getSystemPrompt("final"));
 
-                if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+                if (!itemContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
-                                                        budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                                                        itemContext.getBudComponent().getCurrentMood().getDisplayName()
+                                                                        .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
 
@@ -59,15 +72,13 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
         }
 
         @Override
-        protected Prompt createLLMPrompt(IPromptContext context) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'createLLMPrompt'");
-        }
-
-        @Override
-        protected Prompt createFallbackPrompt(IPromptContext context) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'createFallbackPrompt'");
+        protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
+                if (!(context instanceof LLMItemContext itemContext)) {
+                        throw new IllegalArgumentException("Context must be of type LLMItemContext");
+                }
+                String message = itemContext.getBudProfile().getBudMessage()
+                                .getFallback("itemView");
+                return new Prompt(message, message);
         }
 
 }

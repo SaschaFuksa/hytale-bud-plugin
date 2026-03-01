@@ -20,4 +20,10 @@ public record StateChangeEntry(@Nonnull BudState newState, @Nonnull BudComponent
         return budComponent;
     }
 
+    @Override
+    @Nonnull
+    public String getEntryName() {
+
+    }
+
 }

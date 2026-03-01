@@ -1,11 +1,15 @@
 package com.bud.feature.item;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.feature.profile.IBudProfile;
 
 public record LLMItemContext(ItemEntry itemEntry) implements IPromptContext {
 
+    @Nonnull
     public static LLMItemContext from(ItemEntry itemEntry) {
         return new LLMItemContext(itemEntry);
     }
@@ -16,14 +20,12 @@ public record LLMItemContext(ItemEntry itemEntry) implements IPromptContext {
 
     @Override
     public BudComponent getBudComponent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudComponent'");
+        return itemEntry.getBudComponent();
     }
 
     @Override
     public IBudProfile getBudProfile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getBudProfile'");
+        return BudProfileMapper.getInstance().getProfileForBudType(getBudComponent().getBudType());
     }
 
 }

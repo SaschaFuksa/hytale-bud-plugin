@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.BudState;
-import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -52,7 +51,7 @@ public class StateChangeSystem extends EntityTickingSystem<EntityStore> {
             }
             budComponent.setCurrentState(newState);
             StateChangeQueue.getInstance()
-                    .addToCache(new StateChangeEntry(newState, new LLMInteractionEntry(null, null, budComponent)));
+                    .addToCache(new StateChangeEntry(newState, budComponent));
         }
     }
 

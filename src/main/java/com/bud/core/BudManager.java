@@ -117,6 +117,28 @@ public class BudManager {
         return Set.copyOf(allBudComponents);
     }
 
+    public Set<PlayerBudComponent> getAllPlayers() {
+        World world = Universe.get().getDefaultWorld();
+        if (world == null) {
+            return Set.of();
+        }
+        Store<EntityStore> entityStore = world.getEntityStore().getStore();
+        ConcurrentLinkedQueue<PlayerBudComponent> allPlayerBudComponents = new ConcurrentLinkedQueue<>();
+        entityStore.forEachEntityParallel(
+                PlayerBudComponent.getComponentType(),
+                (index, archetypeChunk, commandBuffer) -> {
+                    LoggerUtil.getLogger()
+                            .fine(() -> "[BUD] Checking entity for cleanup: " + index);
+                    PlayerBudComponent playerBudComponent = archetypeChunk.getComponent(index,
+                            PlayerBudComponent.getComponentType());
+                    if (playerBudComponent == null) {
+                        return;
+                    }
+                    allPlayerBudComponents.add(playerBudComponent);
+                });
+        return Set.copyOf(allPlayerBudComponents);
+    }
+
     private static boolean isValidBud(Ref<EntityStore> budRef) {
         if (budRef != null && budRef.isValid()) {
             ComponentType<EntityStore, DeathComponent> deathComponentType = DeathComponent.getComponentType();

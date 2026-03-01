@@ -2,7 +2,12 @@ package com.bud.feature.discover;
 
 import javax.annotation.Nonnull;
 
-import com.bud.feature.data.npc.BudRegistry;
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
+import com.bud.feature.crafting.CraftEntry;
+import com.bud.feature.crafting.CraftInteraction;
+import com.bud.feature.crafting.RecentCraftCache;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -12,14 +17,11 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.DiscoverZoneEvent;
+import com.hypixel.hytale.server.core.universe.world.WorldMapTracker.ZoneDiscoveryInfo;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import java.util.UUID;
 
-/**
- * Filter system for DiscoverZoneEvent.Display.
- * Captures when players discover new zones to provide context for Buds.
- */
 public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, DiscoverZoneEvent.Display> {
 
     public DiscoverZoneFilterSystem() {
@@ -40,9 +42,11 @@ public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, Dis
             Player player = store.getComponent(entityRef, Player.getComponentType());
 
             if (player != null) {
-                UUID playerId = player.getUuid();
-                if (BudRegistry.playerHasBud(playerId)) {
-                    var info = event.getDiscoveryInfo();
+                PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
+                        PlayerBudComponent.getComponentType());
+                BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
+                if (budComponent != null) {
+                    ZoneDiscoveryInfo info = event.getDiscoveryInfo();
                     String zoneName = info.zoneName();
                     String regionName = info.regionName();
                     boolean major = info.major();
@@ -50,8 +54,8 @@ public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, Dis
                     LoggerUtil.getLogger().finer(() -> "[BUD] Discover Zone Event: " + player.getDisplayName()
                             + " discovered zone=" + zoneName + " region=" + regionName + " major=" + major);
 
-                    RecentDiscoverCache.getInstance().add(playerId,
-                            new DiscoverEntry(zoneName, regionName, major));
+                    RecentDiscoverCache.getInstance().add(player.getDisplayName(),
+                            new DiscoverEntry(zoneName, regionName, major, budComponent));
                 }
             }
         } catch (Exception e) {

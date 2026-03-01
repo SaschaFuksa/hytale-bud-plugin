@@ -1,13 +1,14 @@
 package com.bud.feature.state;
 
 import com.bud.core.components.BudComponent;
+import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.feature.profile.IBudProfile;
 
-public record LLMStateContext(BudComponent budComponent, IBudProfile budProfile) implements IPromptContext {
+public record LLMStateContext(BudComponent budComponent) implements IPromptContext {
 
-    public static LLMStateContext from(BudComponent budComponent, IBudProfile budProfile) {
-        return new LLMStateContext(budComponent, budProfile);
+    public static LLMStateContext from(BudComponent budComponent) {
+        return new LLMStateContext(budComponent);
     }
 
     public String getStateInformation() {
@@ -21,7 +22,7 @@ public record LLMStateContext(BudComponent budComponent, IBudProfile budProfile)
 
     @Override
     public IBudProfile getBudProfile() {
-        return budProfile;
+        return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
     }
 
 }

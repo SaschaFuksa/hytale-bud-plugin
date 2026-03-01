@@ -1,16 +1,16 @@
 package com.bud.feature.discover;
 
 import java.util.LinkedList;
-import java.util.UUID;
 
+import com.bud.feature.AbstractCache;
+import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
-import com.bud.reaction.AbstractCache;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Cache for recently discovered zones by players.
- * Used to provide context for Bud interactions.
- */
 public class RecentDiscoverCache extends AbstractCache {
 
     private static final RecentDiscoverCache INSTANCE = new RecentDiscoverCache();
@@ -23,13 +23,13 @@ public class RecentDiscoverCache extends AbstractCache {
     }
 
     @Override
-    public void add(UUID playerId, IQueueEntry entry) {
+    public void add(String playerName, IQueueEntry entry) {
         if (!(entry instanceof DiscoverEntry discoverEntry)) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD-Cache] Invalid entry type for RecentDiscoverCache: " + entry);
             return;
         }
-        cache.compute(playerId, (key, list) -> {
+        cache.compute(playerName, (key, list) -> {
             if (list == null) {
                 list = new LinkedList<>();
             }
@@ -47,16 +47,21 @@ public class RecentDiscoverCache extends AbstractCache {
             }
 
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD-Cache] Player " + playerId + " discovered zone: "
+                    .fine(() -> "[BUD-Cache] Player " + playerName + " discovered zone: "
                             + discoverEntry.zoneName() + " region: " + discoverEntry.regionName());
             return list;
         });
 
-        // Enqueue to orchestrator (throttled to channel cooldown)
-        // if (shouldEnqueue(playerId)) {
-        // Orchestrator.getInstance().enqueue(new OrchestratorQueue(
-        // OrchestratorChannel.AMBIENT, 1, "discover",
-        // LLMDiscoverManager.getInstance(), playerId, System.currentTimeMillis()));
-        // }
+        if (shouldEnqueue(playerName)) {
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.AMBIENT,
+                    entry,
+                    "discover",
+                    playerName,
+                    new LLMInteractionEntry(LLMDiscoverMessageCreation.getInstance(),
+                            LLMContextFactory.createContext(entry),
+                            entry.getBudComponent()),
+                    System.currentTimeMillis()));
+        }
     }
 }

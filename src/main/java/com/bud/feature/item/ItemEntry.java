@@ -1,20 +1,36 @@
 package com.bud.feature.item;
 
-import com.bud.llm.interaction.LLMInteractionEntry;
+import javax.annotation.Nonnull;
+
+import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.IQueueEntry;
 
-public record ItemEntry(String itemName, int priority, ItemInteraction interaction) implements IQueueEntry {
+public record ItemEntry(@Nonnull String itemName, @Nonnull ItemInteraction interaction,
+        @Nonnull BudComponent budComponent)
+        implements IQueueEntry {
 
     @Override
     public int getPriority() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPriority'");
+        if (itemName.contains("gem")) {
+            return 3;
+        } else if (itemName.contains("ingot")) {
+            return 2;
+        } else if (itemName.contains("ore")) {
+            return 1;
+        }
+        return 0;
     }
 
     @Override
-    public LLMInteractionEntry getInteractionEntry() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInteractionEntry'");
+    @Nonnull
+    public BudComponent getBudComponent() {
+        return budComponent;
+    }
+
+    @Override
+    @Nonnull
+    public String getEntryName() {
+        return itemName;
     }
 
 }

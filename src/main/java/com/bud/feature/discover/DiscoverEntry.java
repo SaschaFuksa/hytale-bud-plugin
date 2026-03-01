@@ -1,26 +1,28 @@
 package com.bud.feature.discover;
 
-import com.bud.llm.interaction.LLMInteractionEntry;
+import javax.annotation.Nonnull;
+
+import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.IQueueEntry;
 
-/**
- * Represents a discovered zone event entry.
- * 
- * @param zoneName   The zone name (e.g. "Emerald_Wilds")
- * @param regionName The region name (e.g. "Zone1_Shore")
- * @param major      Whether this is a major discovery
- */
-public record DiscoverEntry(String zoneName, String regionName, boolean major) implements IQueueEntry {
+public record DiscoverEntry(@Nonnull String zoneName, @Nonnull String regionName, boolean major,
+        @Nonnull BudComponent budComponent)
+        implements IQueueEntry {
 
     @Override
     public int getPriority() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPriority'");
+        return 5;
     }
 
+    @Nonnull
     @Override
-    public LLMInteractionEntry getInteractionEntry() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInteractionEntry'");
+    public BudComponent getBudComponent() {
+        return budComponent;
+    }
+
+    @Nonnull
+    @Override
+    public String getEntryName() {
+        return zoneName;
     }
 }
