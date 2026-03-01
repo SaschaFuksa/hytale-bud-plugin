@@ -5,14 +5,9 @@ import javax.annotation.Nonnull;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
-import com.bud.llm.prompt.LLMPromptManager;
 import com.bud.llm.prompt.Prompt;
-
-import org.jetbrains.annotations.NonNls;
-
-import com.bud.feature.crafting.LLMCraftContext;
-import com.bud.feature.data.npc.BudInstance;
-import com.bud.feature.reaction.world.time.Mood;
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 
 public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 
@@ -32,7 +27,7 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMWeatherContext weatherContext)) {
             throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
         }
-        BudMessage npcMessage = budInstance.getData().getBudMessage();
+        BudMessage npcMessage = weatherContext.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
@@ -48,11 +43,11 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(weatherInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!budInstance.getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!weatherContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            budInstance.getCurrentMood().getDisplayName().toLowerCase()));
+                            weatherContext.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

@@ -1,18 +1,27 @@
 package com.bud.feature.world;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.feature.AbstractTracker;
-import com.bud.old.BudRegistry;
+import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.world.env.LLMWorldContext;
+import com.bud.feature.world.env.LLMWorldMessageCreation;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 public class WorldTracker extends AbstractTracker {
 
     private static final WorldTracker INSTANCE = new WorldTracker();
+
+    private static final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
 
     private WorldTracker() {
     }
@@ -26,10 +35,6 @@ public class WorldTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        BudRegistry budRegistry = BudRegistry.getInstance();
-        if (budRegistry.getAllOwners().isEmpty()) {
-            return;
-        }
         long interval = ReactionConfig.getInstance().getWorldReactionPeriod();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
                 interval,
@@ -38,36 +43,35 @@ public class WorldTracker extends AbstractTracker {
     }
 
     private void triggerWorldMessage() {
-        BudRegistry budRegistry = BudRegistry.getInstance();
-        if (budRegistry.getAllOwners().isEmpty()) {
+        Set<PlayerBudComponent> players = BudManager.getInstance().getAllPlayers();
+        if (players.isEmpty()) {
             return;
         }
-        Set<UUID> owners = budRegistry.getAllOwners();
-        for (UUID owner : owners) {
-            // PlayerInstance playerInstance =
-            // PlayerRegistry.getInstance().getByOwner(owner);
-            // if (playerInstance == null) {
-            // LoggerUtil.getLogger().warning(() -> "[BUD] No PlayerInstance found for
-            // owner: " + owner);
-            // continue;
-            // }
-            // World world =
-            // WorldInformationUtil.resolveWorld(playerInstance.getPlayerRef());
-            // if (world == null)
-            // continue;
+
+        for (PlayerBudComponent playerComponent : players) {
+            World world = WorldInformationUtil.resolveWorld(playerComponent.getPlayerRef());
+            if (world == null)
+                continue;
+            BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
+            if (budComponent == null) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
+                        + playerComponent.getPlayerRef().getUsername());
+                continue;
+            }
             try {
-                // world.execute(() -> {
-                // Weather weather =
-                // WorldInformationUtil.getCurrentWeather(playerInstance.getPlayerRef());
-                // String weatherId = weather != null ? weather.getId() : "unknown";
-                // Thread.ofVirtual().start(() -> {
-                // IResult result = interactionManager.processInteraction(Set.of(owner),
-                // new LLMWorldManager(weatherId));
-                // if (!result.isSuccess()) {
-                // result.printResult();
-                // }
-                // });
-                // });
+                world.execute(() -> {
+                    Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
+                    String weatherId = weather != null ? weather.getId() : "unknown";
+                    Thread.ofVirtual().start(() -> {
+                        LLMInteractionEntry entry = new LLMInteractionEntry(
+                                LLMWorldMessageCreation.getInstance(),
+                                new LLMWorldContext(null, null, null, weatherId, budComponent),
+                                budComponent);
+                        interactionManager.processInteraction(
+                                Set.of(playerComponent.getPlayerRef().getOwner()),
+                                new LLMWorldManager(weatherId));
+                    });
+                });
             } catch (Exception e) {
                 LoggerUtil.getLogger()
                         .warning(() -> "[BUD] World tracker could not execute on world thread: " + e.getMessage());

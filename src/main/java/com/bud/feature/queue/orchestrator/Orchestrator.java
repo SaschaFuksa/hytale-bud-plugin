@@ -8,10 +8,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.core.config.OrchestratorConfig;
+import com.bud.feature.LLMInteractionManager;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.interaction.LLMInteractionManager;
-import com.bud.llm.messages.AbstractLLMMessageCreation;
-import com.bud.llm.prompt.IPromptContext;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 
@@ -39,7 +37,7 @@ public class Orchestrator {
     }
 
     public void enqueue(OrchestratorQueue event) {
-        UUID playerId = event.cacheEntry().getInteractionEntry().getPlayerId();
+        UUID playerId = event.interactionEntry().getPlayerId();
         PriorityQueue<OrchestratorQueue> queue = getOrCreateQueue(playerId, event.channel());
         int maxDepth = OrchestratorConfig.getInstance().getOrchestratorMaxQueueDepth();
 
@@ -52,12 +50,12 @@ public class Orchestrator {
 
             if (queue.size() >= maxDepth) {
                 OrchestratorQueue lowest = findLowestPriority(queue);
-                if (lowest != null && event.cacheEntry().getPriority() < lowest.cacheEntry().getPriority()) {
+                if (lowest != null && event.entry().getPriority() < lowest.entry().getPriority()) {
                     queue.remove(lowest);
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Dropped event " + lowest.eventType()
                             + " for player " + playerId
                             + " in channel " + event.channel());
-                } else if (lowest != null && event.cacheEntry().getPriority() >= lowest.cacheEntry().getPriority()) {
+                } else if (lowest != null && event.entry().getPriority() >= lowest.entry().getPriority()) {
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Queue full, dropping incoming event "
                             + event.eventType() + " for player "
                             + playerId);
@@ -161,7 +159,6 @@ public class Orchestrator {
                 continue;
             }
 
-            // Channel cooldown check
             long lastTime = channelTimestamps.getOrDefault(channel, 0L);
             if (now - lastTime < channelCooldown) {
                 continue;
@@ -177,12 +174,11 @@ public class Orchestrator {
 
             boolean isAlternate = !channel.equals(lastServed);
 
-            // Prefer: alternate channel > higher priority head event
             if (bestChannel == null
                     || (isAlternate && !bestIsAlternate)
-                    || (isAlternate == bestIsAlternate && head.cacheEntry().getPriority() < bestPriority)) {
+                    || (isAlternate == bestIsAlternate && head.entry().getPriority() < bestPriority)) {
                 bestChannel = channel;
-                bestPriority = head.cacheEntry().getPriority();
+                bestPriority = head.entry().getPriority();
                 bestIsAlternate = isAlternate;
             }
         }
@@ -190,33 +186,19 @@ public class Orchestrator {
         return bestChannel;
     }
 
-    /**
-     * Dispatch an event: calls InteractionManager on a virtual thread.
-     */
     private void dispatch(OrchestratorQueue event) {
         Thread.ofVirtual().start(() -> {
             try {
-                LLMInteractionEntry interactionEntry = event.cacheEntry().getInteractionEntry();
-                assert interactionEntry.llmMessageCreation() != null;
-                AbstractLLMMessageCreation llmMessageCreation = interactionEntry.llmMessageCreation();
-                if (llmMessageCreation == null) {
-                    LoggerUtil.getLogger().warning(() -> "[Orchestrator] Missing LLMMessageCreation for event "
-                            + event.eventType());
+                LLMInteractionEntry entry = event.interactionEntry();
+                if (entry == null) {
+                    LoggerUtil.getLogger().severe(() -> "[Orchestrator] Missing interaction entry for event: " + event);
                     return;
                 }
-                IPromptContext promptContext = interactionEntry.promptContext();
-                if (promptContext == null) {
-                    LoggerUtil.getLogger().warning(() -> "[Orchestrator] Missing prompt context for event "
-                            + event.eventType());
-                    return;
-                }
-                interactionManager.processInteraction(llmMessageCreation,
-                        promptContext, interactionEntry.budComponent(),
-                        interactionEntry.getBudProfile());
+                interactionManager.processInteraction(entry);
             } catch (Exception e) {
                 LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error dispatching " + event.eventType()
                         + " for player "
-                        + event.cacheEntry().getInteractionEntry().budComponent().getPlayerRef().getUsername() + ": "
+                        + event.interactionEntry().budComponent().getPlayerRef().getUsername() + ": "
                         + e.getMessage());
             }
         });
@@ -238,7 +220,7 @@ public class Orchestrator {
     private OrchestratorQueue findLowestPriority(PriorityQueue<OrchestratorQueue> queue) {
         OrchestratorQueue lowest = null;
         for (OrchestratorQueue e : queue) {
-            if (lowest == null || e.cacheEntry().getPriority() > lowest.cacheEntry().getPriority()) {
+            if (lowest == null || e.entry().getPriority() > lowest.entry().getPriority()) {
                 lowest = e;
             }
         }
