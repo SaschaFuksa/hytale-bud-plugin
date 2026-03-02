@@ -76,6 +76,7 @@ Gronkh:
 *   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
 *   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
 *   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
+*   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
 
 <br>
 
@@ -116,6 +117,7 @@ To enable the AI features, edit the `HytaleBud.json` in your server's mod folder
 | `EnableItemReactions` | Enable or disable item reaction messages | `true` |
 | `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
 | `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
+| `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |

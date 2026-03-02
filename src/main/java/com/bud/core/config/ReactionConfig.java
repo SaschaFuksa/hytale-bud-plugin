@@ -19,6 +19,7 @@ public class ReactionConfig {
     private long weatherReactionPeriod = 5L; // seconds
     private boolean enableMoodReactions = true;
     private long moodReactionPeriod = 180L; // seconds
+    private boolean enablePlayerChatReactions = true;
 
     private static volatile ReactionConfig instance;
 
@@ -78,6 +79,10 @@ public class ReactionConfig {
         return this.enableCraftingReactions;
     }
 
+    public boolean isEnablePlayerChatReactions() {
+        return this.enablePlayerChatReactions;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ReactionConfig.class, ReactionConfig::new)
                 .append(new KeyedCodec<>("EnableCombatReactions", Codec.BOOLEAN),
@@ -123,6 +128,10 @@ public class ReactionConfig {
                 .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
                         (config, value) -> config.moodReactionPeriod = value,
                         config -> config.moodReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("EnablePlayerChatReactions", Codec.BOOLEAN),
+                    (config, value) -> config.enablePlayerChatReactions = value,
+                    config -> config.enablePlayerChatReactions)
                 .add()
                 .build();
     }

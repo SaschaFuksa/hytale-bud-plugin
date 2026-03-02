@@ -18,6 +18,7 @@ import com.bud.feature.bud.creation.BudCreationEvent;
 import com.bud.feature.bud.creation.BudCreationHandler;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.ChatHandler;
+import com.bud.feature.chat.player.PlayerChatReactionHandler;
 import com.bud.feature.combat.DamageFilterSystem;
 import com.bud.feature.crafting.CraftRecipeFilterSystem;
 import com.bud.feature.crafting.UseBlockFilterSystem;
@@ -36,6 +37,7 @@ import com.bud.feature.teleport.TeleportHandler;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -132,6 +134,9 @@ public class BudPlugin extends JavaPlugin {
         if (this.reactionConfig.get().isEnableCraftingReactions()) {
             this.getEntityStoreRegistry().registerSystem(new CraftRecipeFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new UseBlockFilterSystem());
+        }
+        if (this.reactionConfig.get().isEnablePlayerChatReactions()) {
+            this.getEventRegistry().registerGlobal(PlayerChatEvent.class, new PlayerChatReactionHandler());
         }
 
         // Register Teleport Filter System (always enabled for debugging)

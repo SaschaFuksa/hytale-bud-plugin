@@ -65,6 +65,11 @@ prompts:
     First, you get some details about your personality.
     Second, you get information about your personal view on fast travelling.
     Finally, say something reactive about fast travelling.
+  playerChat: |
+    Your friend is talking directly to you.
+    First, you get some details about your personality.
+    Second, you get the player's chat message.
+    Finally, answer very briefly in character as if you directly respond to the player.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

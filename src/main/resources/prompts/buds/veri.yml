@@ -68,3 +68,4 @@ fallbacks:
   craftViewCrafted: Oh! Crafted something new! I hope it glitters!
   craftViewUsed: Oh! This station is fun! Maybe it can make shiny things!
   teleportView: Oh! We moved so fast my fur is all ruffled! I hope there are shiny things here too!
+    playerChatView: Oh! You are talking to me? Tell me if you found something shiny!
