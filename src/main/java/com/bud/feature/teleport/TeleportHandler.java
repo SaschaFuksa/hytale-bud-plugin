@@ -17,7 +17,6 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
-import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -71,12 +70,6 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
             store.addComponent(budRef, Teleport.getComponentType(),
                     Teleport.createExact(targetPos, transform.getRotation()));
         });
-
-        // Force client to re-receive all entities after teleport
-        Ref<EntityStore> viewerRef = playerRef.getReference();
-        if (viewerRef != null && viewerRef.isValid()) {
-            EntityTrackerSystems.despawnAll(viewerRef, store);
-        }
         LLMInteractionEntry interactionEntry = new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(),
                 LLMTeleportContext.from(budComponent));
         TeleportQueue.getInstance()

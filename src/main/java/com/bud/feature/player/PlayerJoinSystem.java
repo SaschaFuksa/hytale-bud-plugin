@@ -34,8 +34,6 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason addReason,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        if (addReason != AddReason.LOAD)
-            return;
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef == null)
             return;
