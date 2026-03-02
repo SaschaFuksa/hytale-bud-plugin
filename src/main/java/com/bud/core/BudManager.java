@@ -2,8 +2,10 @@ package com.bud.core;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
@@ -106,6 +108,35 @@ public class BudManager {
         if (world == null) {
             return Set.of();
         }
+        try {
+            return collectAllBudComponents(world);
+        } catch (IllegalStateException exception) {
+            if (!isThreadAssertion(exception)) {
+                throw exception;
+            }
+            LoggerUtil.getLogger().finer(() -> "[BUD] getAllBuds called off world thread. Retrying on world thread.");
+            return executeOnWorldThread(world, () -> collectAllBudComponents(world));
+        }
+    }
+
+    public Set<PlayerBudComponent> getAllPlayers() {
+        World world = Universe.get().getDefaultWorld();
+        if (world == null) {
+            return Set.of();
+        }
+        try {
+            return collectAllPlayerComponents(world);
+        } catch (IllegalStateException exception) {
+            if (!isThreadAssertion(exception)) {
+                throw exception;
+            }
+            LoggerUtil.getLogger()
+                    .finer(() -> "[BUD] getAllPlayers called off world thread. Retrying on world thread.");
+            return executeOnWorldThread(world, () -> collectAllPlayerComponents(world));
+        }
+    }
+
+    private static Set<BudComponent> collectAllBudComponents(World world) {
         Store<EntityStore> entityStore = world.getEntityStore().getStore();
         ConcurrentLinkedQueue<BudComponent> allBudComponents = new ConcurrentLinkedQueue<>();
         entityStore.forEachEntityParallel(
@@ -123,11 +154,7 @@ public class BudManager {
         return Set.copyOf(allBudComponents);
     }
 
-    public Set<PlayerBudComponent> getAllPlayers() {
-        World world = Universe.get().getDefaultWorld();
-        if (world == null) {
-            return Set.of();
-        }
+    private static Set<PlayerBudComponent> collectAllPlayerComponents(World world) {
         Store<EntityStore> entityStore = world.getEntityStore().getStore();
         ConcurrentLinkedQueue<PlayerBudComponent> allPlayerBudComponents = new ConcurrentLinkedQueue<>();
         entityStore.forEachEntityParallel(
@@ -143,6 +170,29 @@ public class BudManager {
                     allPlayerBudComponents.add(playerBudComponent);
                 });
         return Set.copyOf(allPlayerBudComponents);
+    }
+
+    private static <T> Set<T> executeOnWorldThread(World world, Supplier<Set<T>> supplier) {
+        CompletableFuture<Set<T>> future = new CompletableFuture<>();
+        try {
+            world.execute(() -> {
+                try {
+                    future.complete(supplier.get());
+                } catch (Exception exception) {
+                    future.completeExceptionally(exception);
+                }
+            });
+            return future.join();
+        } catch (Exception exception) {
+            LoggerUtil.getLogger().warning(
+                    () -> "[BUD] Could not execute entity query on world thread: " + exception.getMessage());
+            return Set.of();
+        }
+    }
+
+    private static boolean isThreadAssertion(IllegalStateException exception) {
+        String message = exception.getMessage();
+        return message != null && message.contains("Assert not in thread");
     }
 
     private static boolean isValidBud(Ref<EntityStore> budRef) {

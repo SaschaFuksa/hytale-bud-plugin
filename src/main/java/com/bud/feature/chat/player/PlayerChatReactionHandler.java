@@ -18,6 +18,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
@@ -33,18 +34,30 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
         if (message.isEmpty() || message.startsWith("/")) {
             return;
         }
+
+        String username = event.getSender().getUsername();
         Ref<EntityStore> entityStoreRef = event.getSender().getReference();
         if (entityStoreRef == null) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Could not get EntityStore for player: "
-                    + event.getSender().getUsername());
+                    + username);
             return;
         }
+
+        Store<EntityStore> entityStore = entityStoreRef.getStore();
+        World world = entityStore.getExternalData().getWorld();
+
+        world.execute(() -> this.handleChatReaction(entityStoreRef, message, username));
+    }
+
+    private void handleChatReaction(@Nonnull Ref<EntityStore> entityStoreRef, @Nonnull String message,
+            @Nonnull String username) {
         Store<EntityStore> entityStore = entityStoreRef.getStore();
         PlayerBudComponent playerBudComponent = entityStore.getComponent(entityStoreRef,
                 PlayerBudComponent.getComponentType());
         if (playerBudComponent == null || !playerBudComponent.hasBuds()) {
             return;
         }
+
         List<BudComponent> allBudComponents = getAllBudComponents(playerBudComponent);
         if (allBudComponents.isEmpty()) {
             return;
@@ -69,7 +82,7 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
 
         final int targetCount = targetBudComponents.size();
         LoggerUtil.getLogger().finer(() -> "[BUD] PlayerChat reaction processed for " + targetCount
-                + " bud(s) from player " + event.getSender().getUsername());
+                + " bud(s) from player " + username);
     }
 
     private static List<BudComponent> getAllBudComponents(@Nonnull PlayerBudComponent playerBudComponent) {

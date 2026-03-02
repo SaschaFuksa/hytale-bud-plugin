@@ -27,6 +27,8 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private PlayerRef playerRef;
 
+    private String lastKnownWeatherId;
+
     private ConcurrentLinkedQueue<NPCEntity> currentBuds = new ConcurrentLinkedQueue<>();
 
     public PlayerBudComponent() {
@@ -113,6 +115,21 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public void setPlayerRef(@Nonnull PlayerRef playerRef) {
         this.playerRef = playerRef;
+    }
+
+    public synchronized boolean updateWeatherIfChanged(String weatherId) {
+        if (weatherId == null || weatherId.isBlank()) {
+            return false;
+        }
+        if (weatherId.equals(lastKnownWeatherId)) {
+            return false;
+        }
+        lastKnownWeatherId = weatherId;
+        return true;
+    }
+
+    public synchronized String getLastKnownWeatherId() {
+        return lastKnownWeatherId;
     }
 
     @Override

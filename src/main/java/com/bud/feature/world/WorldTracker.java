@@ -46,52 +46,59 @@ public class WorldTracker extends AbstractTracker {
     }
 
     private void triggerWorldMessage() {
-        Set<PlayerBudComponent> players = BudManager.getInstance().getAllPlayers();
-        if (players.isEmpty()) {
+        World defaultWorld = WorldInformationUtil.getDefaultWorld();
+        if (defaultWorld == null) {
             return;
         }
 
-        for (PlayerBudComponent playerComponent : players) {
-            World world = WorldInformationUtil.resolveWorld(playerComponent.getPlayerRef());
-            if (world == null)
-                continue;
-            BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
-            if (budComponent == null) {
-                LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
-                        + playerComponent.getPlayerRef().getUsername());
-                continue;
+        defaultWorld.execute(() -> {
+            Set<PlayerBudComponent> players = BudManager.getInstance().getAllPlayers();
+            if (players.isEmpty()) {
+                return;
             }
-            try {
-                world.execute(() -> {
-                    Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
-                    String weatherId = weather != null ? weather.getId() : "unknown";
-                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
-                    Store<EntityStore> entityStore = world.getEntityStore().getStore();
-                    if (entityStore == null) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] Entity store is null for player: "
-                                + playerComponent.getPlayerRef().getUsername());
-                        return;
-                    }
-                    WorldEntry worldEntry = WorldEntry.from(playerComponent.getPlayerRef(), world,
-                            entityStore,
-                            weatherEntry, budComponent);
-                    if (worldEntry == null) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] Could not create WorldEntry for player: "
-                                + playerComponent.getPlayerRef().getUsername());
-                        return;
-                    }
-                    Thread.ofVirtual().start(() -> {
-                        LLMInteractionEntry entry = new LLMInteractionEntry(
-                                LLMWorldMessageCreation.getInstance(),
-                                worldEntry);
-                        interactionManager.processInteraction(entry);
+
+            for (PlayerBudComponent playerComponent : players) {
+                World world = WorldInformationUtil.resolveWorld(playerComponent.getPlayerRef());
+                if (world == null)
+                    continue;
+                BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
+                if (budComponent == null) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
+                            + playerComponent.getPlayerRef().getUsername());
+                    continue;
+                }
+                try {
+                    world.execute(() -> {
+                        Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
+                        String weatherId = weather != null ? weather.getId() : "unknown";
+                        WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
+                        Store<EntityStore> entityStore = world.getEntityStore().getStore();
+                        if (entityStore == null) {
+                            LoggerUtil.getLogger().warning(() -> "[BUD] Entity store is null for player: "
+                                    + playerComponent.getPlayerRef().getUsername());
+                            return;
+                        }
+                        WorldEntry worldEntry = WorldEntry.from(playerComponent.getPlayerRef(), world,
+                                entityStore,
+                                weatherEntry, budComponent);
+                        if (worldEntry == null) {
+                            LoggerUtil.getLogger().warning(() -> "[BUD] Could not create WorldEntry for player: "
+                                    + playerComponent.getPlayerRef().getUsername());
+                            return;
+                        }
+                        Thread.ofVirtual().start(() -> {
+                            LLMInteractionEntry entry = new LLMInteractionEntry(
+                                    LLMWorldMessageCreation.getInstance(),
+                                    worldEntry);
+                            interactionManager.processInteraction(entry);
+                        });
                     });
-                });
-            } catch (Exception e) {
-                LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] World tracker could not execute on world thread: " + e.getMessage());
+                } catch (Exception e) {
+                    LoggerUtil.getLogger().warning(
+                            () -> "[BUD] World tracker could not execute on world thread: " + e.getMessage());
+                }
             }
-        }
+        });
     }
 
 }

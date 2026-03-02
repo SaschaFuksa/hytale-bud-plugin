@@ -7,6 +7,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.universe.world.worldgen.IWorldGen;
@@ -16,6 +17,10 @@ import com.hypixel.hytale.server.worldgen.chunk.ZoneBiomeResult;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 public class WorldInformationUtil {
+
+    public static World getDefaultWorld() {
+        return Universe.get().getDefaultWorld();
+    }
 
     public static Zone getCurrentZone(World world, Vector3d pos) {
         IWorldGen worldGen = world.getChunkStore().getGenerator();
