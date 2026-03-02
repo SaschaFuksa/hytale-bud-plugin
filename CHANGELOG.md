@@ -5,14 +5,15 @@ All notable changes to this project will be documented in this file.
 
 ## [1.7.0]
 ### Added
-- **Command Rework**: Fill rework to use command collection and subcommands.
+- **Command Rework**: Full rework to use command collection and subcommands.
+- **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
+- **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
 
 ### Fixed
 - Updated server version
 - Reduced token size
 - Config Code rework
 - Much code rework for better structure and maintainability.
-- Bud respawn after player login.
 
 
 ---

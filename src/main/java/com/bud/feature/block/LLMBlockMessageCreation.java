@@ -70,8 +70,12 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMBlockContext blockContext)) {
             throw new IllegalArgumentException("Context must be of type LLMBlockContext");
         }
+        String interactionKey = switch (blockContext.blockEntry().interaction()) {
+            case BREAK -> "blockViewBreak";
+            case PLACE -> "blockViewPlace";
+        };
         String message = blockContext.getBudProfile().getBudMessage()
-                .getFallback("block");
+                .getFallback(interactionKey);
         return new Prompt(message, message);
     }
 }

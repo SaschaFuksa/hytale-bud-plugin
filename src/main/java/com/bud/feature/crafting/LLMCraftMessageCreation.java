@@ -67,8 +67,12 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
         if (!(context instanceof LLMCraftContext craftContext)) {
             throw new IllegalArgumentException("Context must be of type LLMCraftContext");
         }
+        String interactionKey = switch (craftContext.craftEntry().interaction()) {
+            case CRAFTED -> "craftViewCrafted";
+            case USED -> "craftViewUsed";
+        };
         String message = craftContext.getBudProfile().getBudMessage()
-                .getFallback("craftView");
+                .getFallback(interactionKey);
         return new Prompt(message, message);
     }
 }

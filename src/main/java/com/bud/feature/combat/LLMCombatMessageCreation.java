@@ -72,8 +72,12 @@ public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
                 if (!(context instanceof LLMCombatContext combatContext)) {
                         throw new IllegalArgumentException("Context must be of type LLMCombatContext");
                 }
+                String stateKey = switch (combatContext.opponentEntry().state()) {
+                        case ATTACKED -> "combatViewAttacked";
+                        case WAS_ATTACKED -> "combatViewWasAttacked";
+                };
                 String message = combatContext.getBudProfile().getBudMessage()
-                                .getFallback("combatView");
+                                .getFallback(stateKey);
                 return new Prompt(message, message);
         }
 

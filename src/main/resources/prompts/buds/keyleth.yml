@@ -57,11 +57,15 @@ fallbacks:
   stay: I shall study the environment while we rest.
   default: Restore the balance, protect the woods.
   worldView: Nature is beautiful, we must protect it!
-  combatView: I don't like fighting, but I'll do my best to protect nature!
-  blockView: Please be careful with the plants, they are alive too!
+  combatViewAttacked: Weeeee... I attacked to protect the balance.
+  combatViewWasAttacked: Weeeee! I was attacked, please stay safe!
+  blockViewBreak: Weeeee... a block was broken, I hope nature recovers quickly.
+  blockViewPlace: Weeeee! A new block placed, maybe we can grow harmony here.
   weatherView: Weeeee, the weather changes, nature is always evolving!
   favoriteDayView: Weeeee, today is my favorite day wednesday! I hope to learn many new things about nature today!
-  itemView: Weeeee, Collect more natural items! They remind me of the beauty of the forest!
+  itemViewPickup: Weeeee! Picked up an item, let's use it wisely.
+  itemViewInventory: Weeeee, inventory time! Let us keep only what nature needs.
   discoverView: Weeeee, a new place to explore! I wonder what nature has in store for us here!
-  craftView: Weeeee, a new creation from nature's gifts! How wonderful!
+  craftViewCrafted: Weeeee! A fresh craft born from gathered resources.
+  craftViewUsed: Weeeee, this station helps us shape nature's gifts with care.
   teleportView: Weeeee, fast travelling is like magic! I hope we find beautiful new places to explore!

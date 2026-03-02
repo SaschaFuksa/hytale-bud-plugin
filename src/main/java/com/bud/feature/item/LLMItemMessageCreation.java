@@ -76,8 +76,12 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
                 if (!(context instanceof LLMItemContext itemContext)) {
                         throw new IllegalArgumentException("Context must be of type LLMItemContext");
                 }
+                String interactionKey = switch (itemContext.itemEntry().interaction()) {
+                        case PICKUP -> "itemViewPickup";
+                        case INVENTORY -> "itemViewInventory";
+                };
                 String message = itemContext.getBudProfile().getBudMessage()
-                                .getFallback("itemView");
+                                .getFallback(interactionKey);
                 return new Prompt(message, message);
         }
 
