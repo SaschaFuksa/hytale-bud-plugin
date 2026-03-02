@@ -3,7 +3,6 @@ package com.bud.feature.crafting;
 import java.util.LinkedList;
 
 import com.bud.feature.AbstractCache;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -58,7 +57,7 @@ public class RecentCraftCache extends AbstractCache {
                     "craft",
                     playerName,
                     new LLMInteractionEntry(LLMCraftMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry)),
+                            craftEntry),
                     System.currentTimeMillis()));
         }
     }

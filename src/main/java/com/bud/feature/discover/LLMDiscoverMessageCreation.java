@@ -25,16 +25,16 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMDiscoverContext discoverContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMDiscoverContext");
+        if (!(context instanceof DiscoverEntry discoverEntry)) {
+            throw new IllegalArgumentException("Context must be of type DiscoverEntry");
         }
-        BudMessage npcMessage = discoverContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = discoverEntry.getBudProfile().getBudMessage();
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        ZoneMessage zoneMessage = discoverContext.getZoneInfo(manager);
+        ZoneMessage zoneMessage = discoverEntry.getZoneInfo(manager);
         String zoneDescription = (zoneMessage != null) ? zoneMessage.getZone() : "an unknown area";
 
-        String discoveryInfo = discoverContext.getDiscoveryInformation();
+        String discoveryInfo = discoverEntry.getDiscoveryInformation();
 
         String budInfo = npcMessage.getCharacteristics();
         String discoverView = npcMessage.getPersonalDiscoverView();
@@ -53,11 +53,11 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
                 .append("Zone description: ").append(zoneDescription).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!discoverContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!discoverEntry.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            discoverContext.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            discoverEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -69,10 +69,10 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMDiscoverContext discoverContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMDiscoverContext");
+        if (!(context instanceof DiscoverEntry discoverEntry)) {
+            throw new IllegalArgumentException("Context must be of type DiscoverEntry");
         }
-        String message = discoverContext.getBudProfile().getBudMessage()
+        String message = discoverEntry.getBudProfile().getBudMessage()
                 .getFallback("discoverView");
         return new Prompt(message, message);
     }

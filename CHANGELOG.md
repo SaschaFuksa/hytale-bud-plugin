@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - **Command Rework**: Full rework to use command collection and subcommands.
 - **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
 - **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
+- **Bud Reaction To Teleport**: Buds will now react to player teleportation, ensuring they are always present for interactions.
 
 ### Fixed
 - Updated server version

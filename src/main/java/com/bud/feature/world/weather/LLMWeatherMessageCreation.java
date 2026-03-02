@@ -24,14 +24,14 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMWeatherContext weatherContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
+        if (!(context instanceof WeatherEntry weatherEntry)) {
+            throw new IllegalArgumentException("Context must be of type WeatherEntry");
         }
-        BudMessage npcMessage = weatherContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = weatherEntry.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
-        String weatherInfo = weatherContext.getWeatherInformation();
+        String weatherInfo = weatherEntry.getWeatherInformation();
         String weatherView = npcMessage.getPersonalWeatherView();
 
         StringBuilder systemPromptBuilder = new StringBuilder();
@@ -43,11 +43,11 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(weatherInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!weatherContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!weatherEntry.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            weatherContext.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            weatherEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -59,10 +59,10 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMWeatherContext weatherContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMWeatherContext");
+        if (!(context instanceof WeatherEntry weatherEntry)) {
+            throw new IllegalArgumentException("Context must be of type WeatherEntry");
         }
-        String message = weatherContext.getBudProfile().getBudMessage()
+        String message = weatherEntry.getBudProfile().getBudMessage()
                 .getFallback("weatherView");
         return new Prompt(message, message);
     }

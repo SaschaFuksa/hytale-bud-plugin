@@ -2,6 +2,8 @@ package com.bud.feature.world.time;
 
 import java.time.LocalDateTime;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.TimeOfDay;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -13,27 +15,20 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class TimeInformationUtil {
 
-    public static TimeOfDay getTimeOfDay() {
-        try {
-            World world = Universe.get().getDefaultWorld();
-            if (world == null) {
-                return TimeOfDay.DAY;
-            }
-            EntityStore entityStore = world.getEntityStore();
-            return getTimeOfDay(entityStore.getStore());
-        } catch (Exception e) {
-            LoggerUtil.getLogger()
-                    .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());
-            return TimeOfDay.DAY;
-        }
-    }
-
+    @Nonnull
     public static TimeOfDay getTimeOfDay(Store<EntityStore> store) {
         LocalDateTime gameTime = readIngameDateTime(store);
-        return getTimeOfDay(gameTime);
+        TimeOfDay timeOfDay = getTimeOfDay(gameTime);
+        if (timeOfDay == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] time of day is null, defaulting to DAY.");
+            return TimeOfDay.DAY;
+        }
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] In-game time: " + gameTime + ", determined time of day: " + timeOfDay);
+        return timeOfDay;
     }
 
-    public static TimeOfDay getTimeOfDay(LocalDateTime gameTime) {
+    private static TimeOfDay getTimeOfDay(LocalDateTime gameTime) {
         if (gameTime == null)
             return TimeOfDay.DAY; // Fallback
 
@@ -67,7 +62,7 @@ public class TimeInformationUtil {
         }
     }
 
-    public static DayOfWeek getDayOfWeek(Store<EntityStore> store) {
+    private static DayOfWeek getDayOfWeek(Store<EntityStore> store) {
         LocalDateTime gameTime = readIngameDateTime(store);
         if (gameTime == null) {
             return DayOfWeek.MONDAY;

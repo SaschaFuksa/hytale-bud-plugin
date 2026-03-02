@@ -24,19 +24,19 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMItemContext itemContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMItemContext");
+                if (!(context instanceof ItemEntry itemEntry)) {
+                        throw new IllegalArgumentException("Context must be of type ItemEntry");
                 }
-                BudMessage npcMessage = itemContext.getBudProfile().getBudMessage();
+                BudMessage npcMessage = itemEntry.getBudProfile().getBudMessage();
                 LLMPromptManager manager = LLMPromptManager.getInstance();
 
-                String collectInformation = itemContext.getCollectInformation();
+                String collectInformation = itemEntry.getCollectInformation();
                 ItemMessage itemPromptMessage = manager.getItemPromptMessage();
-                final String itemInformation = (itemContext.itemEntry().interaction().equals(ItemInteraction.INVENTORY)
+                final String itemInformation = (itemEntry.interaction().equals(ItemInteraction.INVENTORY)
                                 ? itemPromptMessage.getInventory()
                                 : itemPromptMessage.getPickup())
                                 .entrySet().stream()
-                                .filter(entry -> itemContext.itemEntry().itemName().toLowerCase()
+                                .filter(entry -> itemEntry.itemName().toLowerCase()
                                                 .contains(entry.getKey().toLowerCase()))
                                 .map(entry -> "\n" + entry.getValue())
                                 .findFirst()
@@ -56,11 +56,11 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
                                 .append(itemInformation).append("\n")
                                 .append(manager.getSystemPrompt("final"));
 
-                if (!itemContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+                if (!itemEntry.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
-                                                        itemContext.getBudComponent().getCurrentMood().getDisplayName()
+                                                        itemEntry.getBudComponent().getCurrentMood().getDisplayName()
                                                                         .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
@@ -73,14 +73,14 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMItemContext itemContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMItemContext");
+                if (!(context instanceof ItemEntry itemEntry)) {
+                        throw new IllegalArgumentException("Context must be of type ItemEntry");
                 }
-                String interactionKey = switch (itemContext.itemEntry().interaction()) {
+                String interactionKey = switch (itemEntry.interaction()) {
                         case PICKUP -> "itemViewPickup";
                         case INVENTORY -> "itemViewInventory";
                 };
-                String message = itemContext.getBudProfile().getBudMessage()
+                String message = itemEntry.getBudProfile().getBudMessage()
                                 .getFallback(interactionKey);
                 return new Prompt(message, message);
         }

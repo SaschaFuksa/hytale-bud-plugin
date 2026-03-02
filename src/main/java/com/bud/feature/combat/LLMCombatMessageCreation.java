@@ -24,19 +24,19 @@ public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMCombatContext combatContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMCombatContext");
+                if (!(context instanceof OpponentEntry opponentEntry)) {
+                        throw new IllegalArgumentException("Context must be of type OpponentEntry");
                 }
-                BudMessage npcMessage = combatContext.getBudProfile().getBudMessage();
+                BudMessage npcMessage = opponentEntry.getBudProfile().getBudMessage();
 
                 LLMPromptManager manager = LLMPromptManager.getInstance();
                 CombatMessage template = manager.getCombatInfoTemplate();
 
-                String entityInfo = combatContext.getEntityInformation();
-                String playerName = combatContext.getBudComponent().getPlayerRef().getUsername();
+                String entityInfo = opponentEntry.getEntityInformation();
+                String playerName = opponentEntry.getBudComponent().getPlayerRef().getUsername();
                 entityInfo = entityInfo.replace("$player$", playerName);
 
-                String contextInfo = combatContext.combatContext();
+                String contextInfo = opponentEntry.getCombatContext();
                 String combatInfo = template.getCombatInfo().formatted(contextInfo);
                 String budInfo = npcMessage.getCharacteristics();
                 String combatView = npcMessage.getPersonalCombatView();
@@ -52,12 +52,12 @@ public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
                                 .append(entityInfo).append("\n")
                                 .append(manager.getSystemPrompt("final"));
 
-                if (!combatContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+                if (!opponentEntry.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
-                                                        combatContext.getBudComponent().getCurrentMood()
+                                                        opponentEntry.getBudComponent().getCurrentMood()
                                                                         .getDisplayName().toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
@@ -69,14 +69,14 @@ public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMCombatContext combatContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMCombatContext");
+                if (!(context instanceof OpponentEntry opponentEntry)) {
+                        throw new IllegalArgumentException("Context must be of type OpponentEntry");
                 }
-                String stateKey = switch (combatContext.opponentEntry().state()) {
+                String stateKey = switch (opponentEntry.state()) {
                         case ATTACKED -> "combatViewAttacked";
                         case WAS_ATTACKED -> "combatViewWasAttacked";
                 };
-                String message = combatContext.getBudProfile().getBudMessage()
+                String message = opponentEntry.getBudProfile().getBudMessage()
                                 .getFallback(stateKey);
                 return new Prompt(message, message);
         }

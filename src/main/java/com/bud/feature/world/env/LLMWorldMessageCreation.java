@@ -24,21 +24,21 @@ public class LLMWorldMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMWorldContext worldContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMWorldContext");
+        if (!(context instanceof WorldEntry worldEntry)) {
+            throw new IllegalArgumentException("Context must be of type WorldEntry");
         }
-        BudMessage npcMessage = worldContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = worldEntry.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         WorldMessage template = manager.getWorldInfoTemplate();
 
-        ZoneMessage zoneMessage = worldContext.getZoneInfo(manager);
+        ZoneMessage zoneMessage = worldEntry.getZoneInfo(manager);
         String zoneInfo = zoneMessage != null ? zoneMessage.getZone() : "Unknown Zone";
-        String biomeInfo = zoneMessage != null ? worldContext.getBiomeInfo(zoneMessage) : "Unknown Biome";
-        String timeInfo = worldContext.getTimeInfo(manager.getTimeMessage());
+        String biomeInfo = zoneMessage != null ? worldEntry.getBiomeInfo(zoneMessage) : "Unknown Biome";
+        String timeInfo = worldEntry.getTimeInfo(manager.getTimeMessage());
         String budInfo = npcMessage.getCharacteristics();
         String environmentInfo = template.getEnvironmentInfo().formatted(zoneInfo, biomeInfo, timeInfo);
-        String weatherInfo = worldContext.getWeatherInfo();
+        String weatherInfo = worldEntry.getWeatherInfo();
         String personalView = npcMessage.getPersonalWorldView();
 
         StringBuilder systemPromptBuilder = new StringBuilder();
@@ -52,11 +52,11 @@ public class LLMWorldMessageCreation extends AbstractLLMMessageCreation {
                 .append(weatherInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!worldContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!worldEntry.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            worldContext.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            worldEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -68,10 +68,10 @@ public class LLMWorldMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMWorldContext worldContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMWorldContext");
+        if (!(context instanceof WorldEntry worldEntry)) {
+            throw new IllegalArgumentException("Context must be of type WorldEntry");
         }
-        String message = worldContext.getBudProfile().getBudMessage()
+        String message = worldEntry.getBudProfile().getBudMessage()
                 .getFallback("worldView");
         return new Prompt(message, message);
     }

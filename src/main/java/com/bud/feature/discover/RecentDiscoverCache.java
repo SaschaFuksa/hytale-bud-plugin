@@ -3,7 +3,6 @@ package com.bud.feature.discover;
 import java.util.LinkedList;
 
 import com.bud.feature.AbstractCache;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -59,7 +58,7 @@ public class RecentDiscoverCache extends AbstractCache {
                     "discover",
                     playerName,
                     new LLMInteractionEntry(LLMDiscoverMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry)),
+                            discoverEntry),
                     System.currentTimeMillis()));
         }
     }

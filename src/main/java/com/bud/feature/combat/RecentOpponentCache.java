@@ -3,7 +3,6 @@ package com.bud.feature.combat;
 import java.util.LinkedList;
 
 import com.bud.feature.AbstractCache;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -67,7 +66,7 @@ public class RecentOpponentCache extends AbstractCache {
                     "combat",
                     playerName,
                     new LLMInteractionEntry(LLMCombatMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry)),
+                            opponentEntry),
                     System.currentTimeMillis()));
         }
     }

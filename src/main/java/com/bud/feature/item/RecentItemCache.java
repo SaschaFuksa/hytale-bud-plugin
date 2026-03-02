@@ -3,7 +3,6 @@ package com.bud.feature.item;
 import java.util.LinkedList;
 
 import com.bud.feature.AbstractCache;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -60,7 +59,7 @@ public class RecentItemCache extends AbstractCache {
                     "item",
                     playerName,
                     new LLMInteractionEntry(LLMItemMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry)),
+                            itemEntry),
                     System.currentTimeMillis()));
         }
     }

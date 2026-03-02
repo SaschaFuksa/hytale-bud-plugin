@@ -7,20 +7,18 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
-import com.bud.core.types.TimeOfDay;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.LLMInteractionManager;
-import com.bud.feature.world.env.LLMWorldContext;
 import com.bud.feature.world.env.LLMWorldMessageCreation;
-import com.bud.feature.world.time.TimeInformationUtil;
-import com.bud.feature.world.weather.LLMWeatherContext;
+import com.bud.feature.world.env.WorldEntry;
+import com.bud.feature.world.weather.WeatherEntry;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.worldgen.biome.Biome;
-import com.hypixel.hytale.server.worldgen.zone.Zone;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class WorldTracker extends AbstractTracker {
 
@@ -65,18 +63,27 @@ public class WorldTracker extends AbstractTracker {
             }
             try {
                 world.execute(() -> {
-                    TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay();
-                    Zone zone = WorldInformationUtil.getCurrentZone(world,
-                            playerComponent.getPlayerRef().getTransform().getPosition());
-                    Biome biome = WorldInformationUtil.getCurrentBiome(world,
-                            playerComponent.getPlayerRef().getTransform().getPosition());
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
                     String weatherId = weather != null ? weather.getId() : "unknown";
-                    LLMWeatherContext weatherContext = LLMWeatherContext.from(weatherId, budComponent);
+                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
+                    Store<EntityStore> entityStore = world.getEntityStore().getStore();
+                    if (entityStore == null) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] Entity store is null for player: "
+                                + playerComponent.getPlayerRef().getUsername());
+                        return;
+                    }
+                    WorldEntry worldEntry = WorldEntry.from(playerComponent.getPlayerRef(), world,
+                            entityStore,
+                            weatherEntry, budComponent);
+                    if (worldEntry == null) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] Could not create WorldEntry for player: "
+                                + playerComponent.getPlayerRef().getUsername());
+                        return;
+                    }
                     Thread.ofVirtual().start(() -> {
                         LLMInteractionEntry entry = new LLMInteractionEntry(
                                 LLMWorldMessageCreation.getInstance(),
-                                new LLMWorldContext(timeOfDay, zone, biome, weatherContext, budComponent));
+                                worldEntry);
                         interactionManager.processInteraction(entry);
                     });
                 });

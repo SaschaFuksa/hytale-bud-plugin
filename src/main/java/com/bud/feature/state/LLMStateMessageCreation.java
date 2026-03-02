@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.types.Mood;
 import com.bud.feature.LLMPromptManager;
+import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
@@ -26,15 +27,15 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMStateContext stateContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMStateContext");
+        if (!(context instanceof StateChangeEntry stateEntry)) {
+            throw new IllegalArgumentException("Context must be of type StateChangeEntry");
         }
-        BudMessage npcMessage = stateContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = stateEntry.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
         String budInfo = npcMessage.getCharacteristics();
-        String stateInfo = stateContext.getStateInformation();
-        String stateView = npcMessage.getState(stateContext.getBudComponent().getCurrentState().getStateName());
+        String stateInfo = stateEntry.getStateInformation();
+        String stateView = npcMessage.getState(stateEntry.newState().getStateName());
 
         StringBuilder systemPromptBuilder = new StringBuilder();
         systemPromptBuilder.append(manager.getSystemPrompt("state")).append("\n")
@@ -45,11 +46,11 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(stateView).append("\n")
                 .append(stateInfo).append("\n");
 
-        if (!stateContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!stateEntry.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            stateContext.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            stateEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
         messageBuilder.append("\n").append(manager.getSystemPrompt("final"));
@@ -62,11 +63,11 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMStateContext stateContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMStateContext");
+        if (!(context instanceof StateChangeEntry stateEntry)) {
+            throw new IllegalArgumentException("Context must be of type StateChangeEntry");
         }
-        String message = stateContext.getBudProfile().getBudMessage()
-                .getFallback(stateContext.getBudComponent().getCurrentState().getStateName());
+        String message = stateEntry.getBudProfile().getBudMessage()
+                .getFallback(stateEntry.newState().getStateName());
         return new Prompt(message, message);
     }
 

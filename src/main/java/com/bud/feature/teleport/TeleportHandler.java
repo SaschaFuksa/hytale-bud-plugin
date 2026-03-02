@@ -9,7 +9,6 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
-import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -70,10 +69,8 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
             store.addComponent(budRef, Teleport.getComponentType(),
                     Teleport.createExact(targetPos, transform.getRotation()));
         });
-        LLMInteractionEntry interactionEntry = new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(),
-                LLMTeleportContext.from(budComponent));
         TeleportQueue.getInstance()
-                .addToCache(new TeleportEntry(budComponent, store, interactionEntry));
+                .addToCache(new TeleportEntry(budComponent, store));
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Teleported bud of type " + budComponent.getBud().getNPCTypeId() + " for player "
                         + budComponent.getPlayerRef().getUsername());

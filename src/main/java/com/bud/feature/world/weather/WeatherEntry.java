@@ -7,6 +7,29 @@ import com.bud.feature.queue.IQueueEntry;
 
 public record WeatherEntry(@Nonnull String weatherName, @Nonnull BudComponent budComponent) implements IQueueEntry {
 
+    public WeatherEntry {
+        weatherName = cleanWeatherName(weatherName);
+    }
+
+    @Nonnull
+    public String getWeatherInformation() {
+        return "The current weather is: " + this.weatherName + ".";
+    }
+
+    @Nonnull
+    private static String cleanWeatherName(String weatherId) {
+        weatherId = weatherId.replace("Zone0", "");
+        weatherId = weatherId.replace("Zone1", "");
+        weatherId = weatherId.replace("Zone2", "");
+        weatherId = weatherId.replace("Zone3", "");
+        weatherId = weatherId.replace("Zone4", "");
+        weatherId = weatherId.replace("_", " ");
+        if (weatherId.isBlank()) {
+            return "Clear";
+        }
+        return weatherId;
+    }
+
     @Override
     public int getPriority() {
         return 3;

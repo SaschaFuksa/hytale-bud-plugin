@@ -8,7 +8,6 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -77,7 +76,7 @@ public class WeatherTracker extends AbstractTracker {
                             "weather",
                             playerComponent.getPlayerRef().getUsername(),
                             new LLMInteractionEntry(LLMWeatherMessageCreation.getInstance(),
-                                    LLMContextFactory.createContext(entry)),
+                                    entry),
                             System.currentTimeMillis()));
                 });
             } catch (Exception e) {

@@ -3,7 +3,6 @@ package com.bud.feature.block;
 import java.util.LinkedList;
 
 import com.bud.feature.AbstractCache;
-import com.bud.feature.LLMContextFactory;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -58,7 +57,7 @@ public class RecentBlockCache extends AbstractCache {
                     "block",
                     playerName,
                     new LLMInteractionEntry(LLMBlockMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry)),
+                            blockEntry),
                     System.currentTimeMillis()));
         }
     }

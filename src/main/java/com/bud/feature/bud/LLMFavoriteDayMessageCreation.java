@@ -13,10 +13,10 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         public Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMFavoriteDayContext favDayContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMFavoriteDayContext");
+                if (!(context instanceof FavoriteDayEntry favoriteDayEntry)) {
+                        throw new IllegalArgumentException("Context must be of type FavoriteDayEntry");
                 }
-                BudMessage npcMessage = favDayContext.getBudProfile().getBudMessage();
+                BudMessage npcMessage = favoriteDayEntry.getBudProfile().getBudMessage();
 
                 LLMPromptManager manager = LLMPromptManager.getInstance();
 
@@ -32,11 +32,12 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
                 messageBuilder.append(favoriteDayInfo).append("\n")
                                 .append(manager.getSystemPrompt("final"));
 
-                if (!favDayContext.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+                if (!favoriteDayEntry.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
                         systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
-                                                        favDayContext.budComponent().getCurrentMood().getDisplayName()
+                                                        favoriteDayEntry.budComponent().getCurrentMood()
+                                                                        .getDisplayName()
                                                                         .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
@@ -49,10 +50,10 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
 
         @Override
         protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-                if (!(context instanceof LLMFavoriteDayContext favDayContext)) {
-                        throw new IllegalArgumentException("Context must be of type LLMFavoriteDayContext");
+                if (!(context instanceof FavoriteDayEntry favoriteDayEntry)) {
+                        throw new IllegalArgumentException("Context must be of type FavoriteDayEntry");
                 }
-                String message = favDayContext.getBudProfile().getBudMessage()
+                String message = favoriteDayEntry.getBudProfile().getBudMessage()
                                 .getFallback("favoriteDayView");
                 return new Prompt(message, message);
         }

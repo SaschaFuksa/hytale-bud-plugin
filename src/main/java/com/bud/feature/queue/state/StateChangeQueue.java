@@ -5,7 +5,6 @@ import javax.annotation.Nonnull;
 import com.bud.core.components.BudComponent;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.queue.AbstractQueue;
-import com.bud.feature.state.LLMStateContext;
 import com.bud.feature.state.LLMStateMessageCreation;
 import com.bud.feature.state.StateChangeEvent;
 import com.bud.llm.interaction.LLMInteractionEntry;
@@ -52,14 +51,8 @@ public class StateChangeQueue extends AbstractQueue {
                     .warning(() -> "[BUD] Entity reference is null for Bud: " + budComponent.getBud());
             return;
         }
-        LLMStateContext context = LLMStateContext.from(budComponent);
-        if (context == null) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] Failed to create LLMStateContext for Bud: " + budComponent.getBud());
-            return;
-        }
         LLMInteractionManager.getInstance().processInteraction(
-                new LLMInteractionEntry(LLMStateMessageCreation.getInstance(), context));
+                new LLMInteractionEntry(LLMStateMessageCreation.getInstance(), entry));
     }
 
 }

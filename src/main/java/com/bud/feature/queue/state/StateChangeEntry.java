@@ -9,6 +9,10 @@ import com.bud.feature.queue.IQueueEntry;
 public record StateChangeEntry(@Nonnull BudState newState, @Nonnull BudComponent budComponent)
         implements IQueueEntry {
 
+    public String getStateInformation() {
+        return "The current state of you is: " + newState.getStateName();
+    }
+
     @Override
     public int getPriority() {
         return 3;

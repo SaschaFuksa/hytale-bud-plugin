@@ -24,13 +24,13 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMCraftContext craftContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMCraftContext");
+        if (!(context instanceof CraftEntry craftEntry)) {
+            throw new IllegalArgumentException("Context must be of type CraftEntry");
         }
-        BudMessage npcMessage = craftContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = craftEntry.getBudProfile().getBudMessage();
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        String craftingInfo = craftContext.getCraftingInformation();
+        String craftingInfo = craftEntry.getCraftingInformation();
 
         String budInfo = npcMessage.getCharacteristics();
         String craftView = npcMessage.getPersonalCraftView();
@@ -48,11 +48,11 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(craftingInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!craftContext.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!craftEntry.getBudComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            craftContext.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            craftEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -64,14 +64,14 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMCraftContext craftContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMCraftContext");
+        if (!(context instanceof CraftEntry craftEntry)) {
+            throw new IllegalArgumentException("Context must be of type CraftEntry");
         }
-        String interactionKey = switch (craftContext.craftEntry().interaction()) {
+        String interactionKey = switch (craftEntry.interaction()) {
             case CRAFTED -> "craftViewCrafted";
             case USED -> "craftViewUsed";
         };
-        String message = craftContext.getBudProfile().getBudMessage()
+        String message = craftEntry.getBudProfile().getBudMessage()
                 .getFallback(interactionKey);
         return new Prompt(message, message);
     }

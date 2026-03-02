@@ -24,16 +24,16 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createLLMPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMBlockContext blockContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMBlockContext");
+        if (!(context instanceof BlockEntry blockEntry)) {
+            throw new IllegalArgumentException("Context must be of type BlockEntry");
         }
-        BudMessage npcMessage = blockContext.getBudProfile().getBudMessage();
+        BudMessage npcMessage = blockEntry.getBudProfile().getBudMessage();
 
         LLMPromptManager manager = LLMPromptManager.getInstance();
 
-        String playerName = blockContext.blockEntry().budComponent().getPlayerRef().getUsername();
-        String blockName = blockContext.blockEntry().blockName();
-        BlockInteraction interaction = blockContext.blockEntry().interaction();
+        String playerName = blockEntry.budComponent().getPlayerRef().getUsername();
+        String blockName = blockEntry.blockName();
+        BlockInteraction interaction = blockEntry.interaction();
 
         String interactionInfo = String.format("Your friend %s just %s a block: %s.", playerName,
                 interaction.name().toLowerCase(), blockName);
@@ -51,12 +51,12 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
         messageBuilder.append(interactionInfo).append("\n")
                 .append(manager.getSystemPrompt("final"));
 
-        if (!blockContext.blockEntry().budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
+        if (!blockEntry.budComponent().getCurrentMood().equals(Mood.DEFAULT)) {
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            blockContext.blockEntry().budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            blockEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
@@ -67,14 +67,14 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
 
     @Override
     protected Prompt createFallbackPrompt(@Nonnull IPromptContext context) {
-        if (!(context instanceof LLMBlockContext blockContext)) {
-            throw new IllegalArgumentException("Context must be of type LLMBlockContext");
+        if (!(context instanceof BlockEntry blockEntry)) {
+            throw new IllegalArgumentException("Context must be of type BlockEntry");
         }
-        String interactionKey = switch (blockContext.blockEntry().interaction()) {
+        String interactionKey = switch (blockEntry.interaction()) {
             case BREAK -> "blockViewBreak";
             case PLACE -> "blockViewPlace";
         };
-        String message = blockContext.getBudProfile().getBudMessage()
+        String message = blockEntry.getBudProfile().getBudMessage()
                 .getFallback(interactionKey);
         return new Prompt(message, message);
     }

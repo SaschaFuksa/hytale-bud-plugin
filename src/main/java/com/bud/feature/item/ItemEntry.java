@@ -9,6 +9,10 @@ public record ItemEntry(@Nonnull String itemName, @Nonnull ItemInteraction inter
         @Nonnull BudComponent budComponent)
         implements IQueueEntry {
 
+    public String getCollectInformation() {
+        return "Your Buddy collected following item: " + this.itemName;
+    }
+
     @Override
     public int getPriority() {
         if (itemName.contains("gem")) {
