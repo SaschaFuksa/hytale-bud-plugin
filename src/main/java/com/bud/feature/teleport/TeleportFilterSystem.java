@@ -3,6 +3,8 @@ package com.bud.feature.teleport;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -15,6 +17,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport> {
 
@@ -61,12 +64,20 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Teleport component,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        Player player = store.getComponent(ref, Player.getComponentType());
+        if (player != null) {
+            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component removed on entity: " + player.getDisplayName());
+        }
         try {
             PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
             PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
 
             if (playerRef != null && playerBudComponent.hasBuds()) {
-                TeleportEvent.dispatch(store, playerBudComponent, playerBudComponent.getBudTypes());
+                playerBudComponent.getCurrentBuds();
+                for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
+                    BudComponent budComponent = BudManager.getInstance().getBudComponent(bud);
+                    TeleportEvent.dispatch(store, budComponent);
+                }
             }
         } catch (Exception e) {
             LoggerUtil.getLogger()

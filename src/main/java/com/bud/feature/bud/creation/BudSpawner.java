@@ -2,7 +2,6 @@ package com.bud.feature.bud.creation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -42,13 +41,14 @@ public class BudSpawner {
 
     private Ref<EntityStore> spawnedNpcRef;
 
-    private BudSpawner(Store<EntityStore> store, String npcType, Vector3d position) {
-        this.store = Objects.requireNonNull(store, "store cannot be null");
-        this.npcType = Objects.requireNonNull(npcType, "npcType cannot be null");
-        this.position = Objects.requireNonNull(position, "position cannot be null");
+    private BudSpawner(@Nonnull Store<EntityStore> store, @Nonnull String npcType, @Nonnull Vector3d position) {
+        this.store = store;
+        this.npcType = npcType;
+        this.position = position;
     }
 
-    public static BudSpawner create(Store<EntityStore> store, String npcType, Vector3d position) {
+    public static BudSpawner create(@Nonnull Store<EntityStore> store, @Nonnull String npcType,
+            @Nonnull Vector3d position) {
         LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
         LoggerUtil.getLogger().fine(() -> "[BUD] Attempting to spawn custom NPC Type : " + npcType);
         LoggerUtil.getLogger().fine(() -> "[BUD] Position: " + position);

@@ -1,6 +1,5 @@
 package com.bud.feature.bud.creation;
 
-import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -73,13 +72,16 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
-            Set<BudType> budTypes = Set.of(budType);
-            if (budTypes == null || budTypes.isEmpty()) {
-                LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] No valid Bud types found for player " + playerRef.getUsername());
-                return;
-            }
-            TeleportEvent.dispatch(store, playerBudComponent, budTypes);
+            playerBudComponent.getCurrentBuds().stream()
+                    .filter(b -> b.getNPCTypeId().equals(budType.getName()))
+                    .findFirst()
+                    .ifPresent(bud -> {
+                        BudComponent budComponent = BudManager.getInstance().getBudComponent(bud);
+                        TeleportEvent.dispatch(store, budComponent);
+                        LoggerUtil.getLogger()
+                                .fine(() -> "[BUD] Teleported existing Bud of type " + budType + " for player "
+                                        + playerBudComponent.getPlayerRef().getUsername());
+                    });
             return;
         }
         NPCEntity bud = spawnBud(store, playerRef, budType);
@@ -105,8 +107,8 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
 
     }
 
-    private static NPCEntity spawnBud(Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            BudType budType) {
+    private static NPCEntity spawnBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
+            @Nonnull BudType budType) {
         IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budType);
         Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner

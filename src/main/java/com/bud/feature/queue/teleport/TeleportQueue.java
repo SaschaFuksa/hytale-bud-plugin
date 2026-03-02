@@ -7,7 +7,6 @@ import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.queue.AbstractQueue;
 import com.bud.feature.teleport.LLMTeleportContext;
 import com.bud.feature.teleport.LLMTeleportMessageCreation;
-import com.bud.feature.teleport.TeleportEvent;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -42,12 +41,9 @@ public class TeleportQueue extends AbstractQueue {
         }
     }
 
-    @SuppressWarnings("null")
     private void handleTeleport(@Nonnull TeleportEntry entry) {
-        LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budTypes());
+        LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budComponent().getBudType().getName());
         BudComponent budComponent = entry.interactionEntry().getBudComponent();
-        TeleportEvent.dispatch(entry.store(), entry.playerBudComponent(), entry.budTypes());
-
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {
             LoggerUtil.getLogger()

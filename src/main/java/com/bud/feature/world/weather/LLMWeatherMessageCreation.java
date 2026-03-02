@@ -2,12 +2,12 @@ package com.bud.feature.world.weather;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.types.Mood;
+import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractLLMMessageCreation;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.Prompt;
-import com.bud.core.types.Mood;
-import com.bud.feature.LLMPromptManager;
 
 public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
 

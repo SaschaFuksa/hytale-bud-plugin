@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
 import com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap;
@@ -32,7 +32,7 @@ public class BudDebugInfo {
         return INSTANCE;
     }
 
-    public void logPlayerInfo(@NonNull PlayerRef playerRef, @NonNull Store<EntityStore> store) {
+    public void logPlayerInfo(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store) {
         LoggerUtil.getLogger().fine(() -> "======= BUD PLAYER DEBUG INFO =======");
         LoggerUtil.getLogger().fine(() -> "Player Name: " + playerRef.getUsername());
         LoggerUtil.getLogger().fine(() -> "Player UUID: " + playerRef.getUuid());
@@ -71,7 +71,7 @@ public class BudDebugInfo {
         LoggerUtil.getLogger().fine(() -> "=====================================");
     }
 
-    public void logBudInfo(@NonNull NPCEntity npc) {
+    public void logBudInfo(@Nonnull NPCEntity npc) {
         LoggerUtil.getLogger().fine(() -> "======= BUD NPC DEBUG INFO =======");
         LoggerUtil.getLogger().fine(() -> "NPC Name: " + npc.getNPCTypeId());
         LoggerUtil.getLogger().fine(() -> "Role Name: " + npc.getRoleName());

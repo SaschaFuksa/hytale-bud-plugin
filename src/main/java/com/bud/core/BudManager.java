@@ -74,14 +74,20 @@ public class BudManager {
         return null;
     }
 
+    @Nonnull
     public BudComponent getBudComponent(NPCEntity bud) {
         Ref<EntityStore> ref = bud.getReference();
         if (ref == null || !isValidBud(ref)) {
-            return null;
+            throw new IllegalStateException("Invalid Bud reference");
         }
-        return ref.getStore().getComponent(ref, BudComponent.getComponentType());
+        BudComponent component = ref.getStore().getComponent(ref, BudComponent.getComponentType());
+        if (component == null) {
+            throw new IllegalStateException("BudComponent not found");
+        }
+        return component;
     }
 
+    @Nonnull
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         ThreadLocalRandom random = ThreadLocalRandom.current();
