@@ -7,15 +7,20 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.types.TimeOfDay;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.world.env.LLMWorldContext;
 import com.bud.feature.world.env.LLMWorldMessageCreation;
+import com.bud.feature.world.time.TimeInformationUtil;
+import com.bud.feature.world.weather.LLMWeatherContext;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.worldgen.biome.Biome;
+import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 public class WorldTracker extends AbstractTracker {
 
@@ -60,12 +65,18 @@ public class WorldTracker extends AbstractTracker {
             }
             try {
                 world.execute(() -> {
+                    TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay();
+                    Zone zone = WorldInformationUtil.getCurrentZone(world,
+                            playerComponent.getPlayerRef().getTransform().getPosition());
+                    Biome biome = WorldInformationUtil.getCurrentBiome(world,
+                            playerComponent.getPlayerRef().getTransform().getPosition());
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
                     String weatherId = weather != null ? weather.getId() : "unknown";
+                    LLMWeatherContext weatherContext = LLMWeatherContext.from(weatherId, budComponent);
                     Thread.ofVirtual().start(() -> {
                         LLMInteractionEntry entry = new LLMInteractionEntry(
                                 LLMWorldMessageCreation.getInstance(),
-                                new LLMWorldContext(null, null, null, weatherId, budComponent),
+                                new LLMWorldContext(timeOfDay, zone, biome, weatherContext, budComponent),
                                 budComponent);
                         interactionManager.processInteraction(entry);
                     });

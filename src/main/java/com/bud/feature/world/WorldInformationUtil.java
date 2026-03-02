@@ -56,7 +56,6 @@ public class WorldInformationUtil {
     }
 
     public static World resolveWorld(PlayerRef owner) {
-        // Try entity world
         Ref<EntityStore> ownerRef = owner.getReference();
         if (ownerRef != null) {
             return ownerRef.getStore().getExternalData().getWorld();
