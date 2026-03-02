@@ -14,6 +14,7 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
 import com.bud.core.types.BudType;
+import com.bud.feature.world.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -21,7 +22,6 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
@@ -104,7 +104,7 @@ public class BudManager {
     }
 
     public Set<BudComponent> getAllBuds() {
-        World world = Universe.get().getDefaultWorld();
+        World world = WorldInformationUtil.getDefaultWorld();
         if (world == null) {
             return Set.of();
         }
@@ -120,7 +120,7 @@ public class BudManager {
     }
 
     public Set<PlayerBudComponent> getAllPlayers() {
-        World world = Universe.get().getDefaultWorld();
+        World world = WorldInformationUtil.getDefaultWorld();
         if (world == null) {
             return Set.of();
         }

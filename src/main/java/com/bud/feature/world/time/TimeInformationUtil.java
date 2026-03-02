@@ -6,10 +6,10 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.TimeOfDay;
+import com.bud.feature.world.WorldInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
-import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -49,7 +49,7 @@ public class TimeInformationUtil {
 
     public static DayOfWeek getDayOfWeek() {
         try {
-            World world = Universe.get().getDefaultWorld();
+            World world = WorldInformationUtil.getDefaultWorld();
             if (world == null) {
                 return DayOfWeek.MONDAY;
             }
