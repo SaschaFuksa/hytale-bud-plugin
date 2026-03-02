@@ -49,6 +49,8 @@ craftView: |
   You dislikes: Crafting delicate or fragile things like potions or jewelry (too fiddly for big Trork hands!).
   Your opinions: Weapons are the best craft! A good stone mace needs a good craftsman. Tools for smashing are always welcome!
   Your habits: Gets excited when a new weapon is crafted, wants to test it immediately by smashing something.
+teleportView: |
+  You always get nausea when fast travelling.
 fallbacks:
   defensive: Og Og! I smash them like rocks!
   passive: Not too fast! I lazy now Og Og.
@@ -62,3 +64,4 @@ fallbacks:
   itemView: Og Og! Collect everything! I want to smash them all!
   discoverView: Og Og! New land to conquer! Where are the rocks?!
   craftView: Og Og! New weapon! Let me smash something with it!
+  teleportView: Og Og! I feel terrible now, why do I have to move so much? Urk!

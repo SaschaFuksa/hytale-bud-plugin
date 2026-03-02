@@ -49,6 +49,8 @@ craftView: |
   You dislikes: Crafting weapons or destructive items (violence disturbs the balance!).
   Your opinions: The best crafts come from nature! Potions and food nourish the body and restore harmony.
   Your habits: Gets happy when food or potions are crafted, studies ingredients with curiosity.
+teleportView: |
+  Fats travelling is a sort of magic you really like because it allows you to explore new natural places and find hidden temples faster.
 fallbacks:
   defensive: Weeeee, hopefully no one gets hurt!
   passive: May we find beautiful plants soon.
@@ -62,3 +64,4 @@ fallbacks:
   itemView: Weeeee, Collect more natural items! They remind me of the beauty of the forest!
   discoverView: Weeeee, a new place to explore! I wonder what nature has in store for us here!
   craftView: Weeeee, a new creation from nature's gifts! How wonderful!
+  teleportView: Weeeee, fast travelling is like magic! I hope we find beautiful new places to explore!

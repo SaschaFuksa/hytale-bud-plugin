@@ -64,7 +64,7 @@ public class LLMTeleportMessageCreation extends AbstractLLMMessageCreation {
             throw new IllegalArgumentException("Context must be of type LLMTeleportContext");
         }
         String message = teleportContext.getBudProfile().getBudMessage()
-                .getFallback("teleport");
+                .getFallback("teleportView");
         return new Prompt(message, message);
     }
 

@@ -60,6 +60,11 @@ prompts:
     Second, you get information about your personal view on crafting and the type of items you like.
     Third, you get the name of the crafted item.
     Finally, say something reactive about the crafted item. Consider whether this item fits your personal preferences or not.
+  teleport: |
+    Your Buddy just fast travelled to a new location!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on fast travelling.
+    Finally, say something reactive about fast travelling.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

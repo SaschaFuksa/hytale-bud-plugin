@@ -48,6 +48,8 @@ craftView: |
   You dislikes: Crafting dull or dirty things (not shiny enough for a Feran!).
   Your opinions: The shinier the craft, the better! Ingots are the best because they gleam in the sun!
   Your habits: Gets super excited when something shiny is crafted, wants to hold it up to the light immediately.
+teleportView: |
+  Your fur gets ruffled when fast travelling.
 fallbacks:
   defensive: I'll protect you, let's fight!
   passive: Follow you anywhere, friend! Let's go!
@@ -61,3 +63,4 @@ fallbacks:
   itemView: Oh! collect all shiny things! Do you have any for me? I want to add them to my collection!
   discoverView: Oh! A new place! I bet there are shiny things hidden here somewhere!
   craftView: Oh! Something new and shiny! Let me see it sparkle!
+  teleportView: Oh! We moved so fast my fur is all ruffled! I hope there are shiny things here too!
