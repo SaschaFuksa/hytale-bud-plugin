@@ -3,6 +3,7 @@ package com.bud.feature.combat;
 import java.util.function.Consumer;
 
 import com.bud.core.components.PlayerBudComponent;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -15,6 +16,8 @@ public class PlayerAttackEntityHandler implements Consumer<PlayerAttackEntityEve
 
     @Override
     public void accept(PlayerAttackEntityEvent event) {
+        LoggerUtil.getLogger().fine(() -> "[BUD] PlayerAttackEntityEvent received: playerRef=" + event.playerRef()
+                + ", targetRef=" + event.targetRef());
         if (!event.playerRef().isValid() || !event.targetRef().isValid()) {
             return;
         }
@@ -54,6 +57,8 @@ public class PlayerAttackEntityHandler implements Consumer<PlayerAttackEntityEve
             markedEntitySupport.setMarkedEntity(MarkedEntitySupport.DEFAULT_TARGET_SLOT, event.targetRef());
             markedEntitySupport.setMarkedEntity(0, event.targetRef());
         }
+        LoggerUtil.getLogger().fine(() -> "[BUD] PlayerAttackEntityEvent processed for playerRef=" + event.playerRef()
+                + ", targetRef=" + event.targetRef());
     }
 
 }
