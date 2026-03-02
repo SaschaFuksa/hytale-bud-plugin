@@ -46,6 +46,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Added PlayerBudComponent for player " + playerRef.getUsername());
         } else {
+            playerBudComponent.setPlayerRef(playerRef);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
             for (BudType budType : playerBudComponent.getBudTypes()) {

@@ -1,5 +1,6 @@
 package com.bud.feature.bud.creation;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -14,7 +15,7 @@ import com.bud.core.types.BudType;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
-import com.bud.feature.teleport.TeleportHandler;
+import com.bud.feature.teleport.TeleportEvent;
 import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -72,7 +73,13 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
-            TeleportHandler.handleTeleport(store, playerBudComponent, budType);
+            Set<BudType> budTypes = Set.of(budType);
+            if (budTypes == null || budTypes.isEmpty()) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] No valid Bud types found for player " + playerRef.getUsername());
+                return;
+            }
+            TeleportEvent.dispatch(store, playerBudComponent, budTypes);
             return;
         }
         NPCEntity bud = spawnBud(store, playerRef, budType);

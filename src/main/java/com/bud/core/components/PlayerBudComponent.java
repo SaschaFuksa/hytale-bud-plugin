@@ -111,6 +111,10 @@ public class PlayerBudComponent implements Component<EntityStore> {
         return playerRef;
     }
 
+    public void setPlayerRef(@Nonnull PlayerRef playerRef) {
+        this.playerRef = playerRef;
+    }
+
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public Component<EntityStore> clone() {

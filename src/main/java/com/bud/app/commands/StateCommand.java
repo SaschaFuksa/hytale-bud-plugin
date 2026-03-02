@@ -76,14 +76,21 @@ public class StateCommand extends AbstractPlayerCommand {
             if (budComponent == null) {
                 continue;
             }
-            if (newState == null) {
-                newState = BudManager.getInstance().getNextState(budComponent.getCurrentState());
-                StateChangeQueue.getInstance()
-                        .addToCache(new StateChangeEntry(newState, budComponent));
-            } else {
-                StateChangeQueue.getInstance()
-                        .addToCache(new StateChangeEntry(newState, budComponent));
+            BudState targetState = newState;
+            if (targetState == null) {
+                targetState = BudManager.getInstance().getNextState(budComponent.getCurrentState());
             }
+            final BudState resolvedTargetState = targetState;
+            if (resolvedTargetState == budComponent.getCurrentState()) {
+                LoggerUtil.getLogger()
+                        .fine(() -> "[BUD] Skipping state change for NPC \""
+                                + budComponent.getBud().getNPCTypeId()
+                                + "\" because it is already in state "
+                                + resolvedTargetState.getStateName());
+                continue;
+            }
+            StateChangeQueue.getInstance()
+                    .addToCache(new StateChangeEntry(resolvedTargetState, budComponent));
         }
     }
 

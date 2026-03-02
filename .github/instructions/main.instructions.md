@@ -8,3 +8,4 @@ The Hytale Server Code can be found under: src\main\reference\com\hypixel\hytale
 Always follow the user instructions. Code shall be clean and in english.
 
 If adding new code, use the existing code style and structure as a reference. But if you have a good idee, ask the user if you can change the code structure or style. Always ask before making big changes to the code structure or style. Never add code documentation, prefer good method and variable names over comments. If you think a comment is necessary, ask the user if you can add it.
+ALWAYS ask the user before making any changes to the code. Interview me with a plan.

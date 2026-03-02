@@ -65,7 +65,7 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
             PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
 
-            if (playerRef != null && !playerBudComponent.hasBuds()) {
+            if (playerRef != null && playerBudComponent.hasBuds()) {
                 TeleportEvent.dispatch(store, playerBudComponent, playerBudComponent.getBudTypes());
             }
         } catch (Exception e) {
