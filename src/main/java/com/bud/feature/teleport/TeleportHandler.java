@@ -69,8 +69,10 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
             store.addComponent(budRef, Teleport.getComponentType(),
                     Teleport.createExact(targetPos, transform.getRotation()));
         });
-        TeleportQueue.getInstance()
-                .addToCache(new TeleportEntry(budComponent, store));
+        if (event.shouldSendReaction()) {
+            TeleportQueue.getInstance()
+                    .addToCache(new TeleportEntry(budComponent, store));
+        }
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Teleported bud of type " + budComponent.getBud().getNPCTypeId() + " for player "
                         + budComponent.getPlayerRef().getUsername());

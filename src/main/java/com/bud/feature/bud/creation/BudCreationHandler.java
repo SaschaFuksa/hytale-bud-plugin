@@ -1,5 +1,8 @@
 package com.bud.feature.bud.creation;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -54,6 +57,11 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                     .warning(() -> "[BUD] PlayerBudComponent not found for player.");
             return;
         }
+        List<BudComponent> existingBudTeleports = new ArrayList<>();
+        for (NPCEntity existingBud : playerBudComponent.getCurrentBuds()) {
+            existingBudTeleports.add(BudManager.getInstance().getBudComponent(existingBud));
+        }
+
         for (BudType budType : event.budTypes()) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Bud of type " + budType);
@@ -65,6 +73,16 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             }
             this.createBud(store, playerRef, budType, playerBudComponent);
         }
+
+        if (!existingBudTeleports.isEmpty()) {
+            int speakingIndex = ThreadLocalRandom.current().nextInt(existingBudTeleports.size());
+            for (int index = 0; index < existingBudTeleports.size(); index++) {
+                BudComponent budComponent = existingBudTeleports.get(index);
+                if (budComponent != null) {
+                    TeleportEvent.dispatch(store, budComponent, index == speakingIndex);
+                }
+            }
+        }
     }
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
@@ -72,16 +90,6 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
-            playerBudComponent.getCurrentBuds().stream()
-                    .filter(b -> b.getNPCTypeId().equals(budType.getName()))
-                    .findFirst()
-                    .ifPresent(bud -> {
-                        BudComponent budComponent = BudManager.getInstance().getBudComponent(bud);
-                        TeleportEvent.dispatch(store, budComponent);
-                        LoggerUtil.getLogger()
-                                .fine(() -> "[BUD] Teleported existing Bud of type " + budType + " for player "
-                                        + playerBudComponent.getPlayerRef().getUsername());
-                    });
             return;
         }
         NPCEntity bud = spawnBud(store, playerRef, budType);

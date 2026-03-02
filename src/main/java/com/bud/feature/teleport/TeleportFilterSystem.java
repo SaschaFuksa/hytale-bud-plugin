@@ -1,5 +1,9 @@
 package com.bud.feature.teleport;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -73,10 +77,18 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
 
             if (playerRef != null && playerBudComponent.hasBuds()) {
-                playerBudComponent.getCurrentBuds();
+                List<BudComponent> budComponents = new ArrayList<>();
                 for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
-                    BudComponent budComponent = BudManager.getInstance().getBudComponent(bud);
-                    TeleportEvent.dispatch(store, budComponent);
+                    budComponents.add(BudManager.getInstance().getBudComponent(bud));
+                }
+                if (!budComponents.isEmpty()) {
+                    int speakingIndex = ThreadLocalRandom.current().nextInt(budComponents.size());
+                    for (int index = 0; index < budComponents.size(); index++) {
+                        BudComponent budComponent = budComponents.get(index);
+                        if (budComponent != null) {
+                            TeleportEvent.dispatch(store, budComponent, index == speakingIndex);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
