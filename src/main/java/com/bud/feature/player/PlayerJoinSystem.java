@@ -4,12 +4,15 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
+import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudType;
 import com.bud.feature.bud.MoodTracker;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.world.WorldTracker;
+import com.bud.feature.world.weather.WeatherTracker;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.Archetype;
@@ -53,6 +56,12 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             }
         }
         MoodTracker.getInstance().startPolling();
+        if (ReactionConfig.getInstance().isEnableWorldReactions()) {
+            WorldTracker.getInstance().startPolling();
+        }
+        if (ReactionConfig.getInstance().isEnableWeatherReactions()) {
+            WeatherTracker.getInstance().startPolling();
+        }
         Orchestrator.getInstance().start();
         if (DebugConfig.getInstance().isEnablePlayerInfo()) {
             BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
