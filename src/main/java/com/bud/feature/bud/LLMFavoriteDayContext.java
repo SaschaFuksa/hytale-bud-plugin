@@ -7,13 +7,14 @@ import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMFavoriteDayContext(BudComponent budComponent) implements IPromptContext {
+public record LLMFavoriteDayContext(@Nonnull BudComponent budComponent) implements IPromptContext {
 
     @Nonnull
     public static LLMFavoriteDayContext from(@Nonnull BudComponent budComponent) {
         return new LLMFavoriteDayContext(budComponent);
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return budComponent;

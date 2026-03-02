@@ -37,11 +37,13 @@ public record LLMCraftContext(CraftEntry craftEntry) implements IPromptContext {
         return "Your Buddy just crafted: " + getDisplayName() + ".";
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return craftEntry.getBudComponent();
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(craftEntry.getBudComponent().getBudType());

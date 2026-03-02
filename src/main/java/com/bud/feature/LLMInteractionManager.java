@@ -26,19 +26,19 @@ public class LLMInteractionManager {
     }
 
     public void processInteraction(@Nonnull LLMInteractionEntry interactionEntry) {
-        Ref<EntityStore> entityRef = interactionEntry.budComponent().getBud().getReference();
+        Ref<EntityStore> entityRef = interactionEntry.getBudComponent().getBud().getReference();
         IBudProfile budProfile = BudProfileMapper.getInstance()
-                .getProfileForBudType(interactionEntry.budComponent().getBudType());
+                .getProfileForBudType(interactionEntry.getBudComponent().getBudType());
         if (entityRef == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Entity reference is null for Bud: "
-                            + interactionEntry.budComponent().getBud());
+                            + interactionEntry.getBudComponent().getBud());
             return;
         }
         Prompt prompt = interactionEntry.llmMessageCreation().createPrompt(interactionEntry.promptContext());
         if (prompt == null) {
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] No prompt found for: " + interactionEntry.budComponent().getBud());
+                    .warning(() -> "[BUD] No prompt found for: " + interactionEntry.getBudComponent().getBud());
             return;
         }
         String message;
@@ -49,13 +49,14 @@ public class LLMInteractionManager {
         }
         if (message == null || message.isBlank()) {
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] LLM returned empty message for: " + interactionEntry.budComponent().getBud());
+                    .warning(() -> "[BUD] LLM returned empty message for: "
+                            + interactionEntry.getBudComponent().getBud());
             return;
         }
-        ChatEvent.dispatch(interactionEntry.budComponent().getPlayerRef(), message);
+        ChatEvent.dispatch(interactionEntry.getBudComponent().getPlayerRef(), message);
         SoundEvent.dispatch(entityRef, budProfile.getBudSoundData().getPassiveSound());
         LoggerUtil.getLogger().fine(() -> "[BUD] Processing interaction for: "
-                + interactionEntry.budComponent().getBud().getNPCTypeId());
+                + interactionEntry.getBudComponent().getBud().getNPCTypeId());
     }
 
 }

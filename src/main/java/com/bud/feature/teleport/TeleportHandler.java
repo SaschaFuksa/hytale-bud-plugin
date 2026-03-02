@@ -78,7 +78,7 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         Set<BudType> budTypes = Set.of(budType);
         if (!budTypes.isEmpty()) {
             LLMInteractionEntry interactionEntry = new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(),
-                    LLMTeleportContext.from(budComponent), budComponent);
+                    LLMTeleportContext.from(budComponent));
             TeleportQueue.getInstance()
                     .addToCache(new TeleportEntry(playerBudComponent, budTypes, store, interactionEntry));
         }

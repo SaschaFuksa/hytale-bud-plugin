@@ -45,7 +45,6 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
         try {
             String blockTypeId = event.getBlockType().getId();
             String blockIdLower = blockTypeId.toLowerCase();
-            System.out.println("UseBlockFilterSystem detected: " + blockTypeId);
 
             if (!blockIdLower.contains("bench")) {
                 return;

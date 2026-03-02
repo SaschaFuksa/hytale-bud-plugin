@@ -48,11 +48,13 @@ public record LLMDiscoverContext(DiscoverEntry discoverEntry) implements IPrompt
         return zoneName.replace("_", " ");
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return discoverEntry.budComponent();
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(discoverEntry.budComponent().getBudType());

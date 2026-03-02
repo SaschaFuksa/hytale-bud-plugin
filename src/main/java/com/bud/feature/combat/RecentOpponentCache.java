@@ -67,8 +67,7 @@ public class RecentOpponentCache extends AbstractCache {
                     "combat",
                     playerName,
                     new LLMInteractionEntry(LLMCombatMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry),
-                            entry.getBudComponent()),
+                            LLMContextFactory.createContext(entry)),
                     System.currentTimeMillis()));
         }
     }

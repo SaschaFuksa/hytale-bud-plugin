@@ -62,7 +62,6 @@ public class InventoryChangeListener implements Consumer<LivingEntityInventoryCh
                 return;
             }
             String displayName = ItemUtil.getDisplayName(itemName);
-            System.out.println("InventoryChangeListener detected item: " + displayName);
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
 

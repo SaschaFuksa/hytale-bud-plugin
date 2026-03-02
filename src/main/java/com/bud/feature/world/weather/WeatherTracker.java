@@ -77,8 +77,7 @@ public class WeatherTracker extends AbstractTracker {
                             "weather",
                             playerComponent.getPlayerRef().getUsername(),
                             new LLMInteractionEntry(LLMWeatherMessageCreation.getInstance(),
-                                    LLMContextFactory.createContext(entry),
-                                    entry.getBudComponent()),
+                                    LLMContextFactory.createContext(entry)),
                             System.currentTimeMillis()));
                 });
             } catch (Exception e) {

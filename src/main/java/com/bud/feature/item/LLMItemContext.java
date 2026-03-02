@@ -18,11 +18,13 @@ public record LLMItemContext(ItemEntry itemEntry) implements IPromptContext {
         return "Your Buddy collected following item: " + this.itemEntry.itemName();
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return itemEntry.getBudComponent();
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(getBudComponent().getBudType());

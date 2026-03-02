@@ -60,8 +60,7 @@ public class RecentItemCache extends AbstractCache {
                     "item",
                     playerName,
                     new LLMInteractionEntry(LLMItemMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry),
-                            entry.getBudComponent()),
+                            LLMContextFactory.createContext(entry)),
                     System.currentTimeMillis()));
         }
     }

@@ -2,7 +2,6 @@ package com.bud.feature.queue.orchestrator;
 
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -17,13 +16,13 @@ public class Orchestrator {
 
     private static final Orchestrator INSTANCE = new Orchestrator();
 
-    private final Map<UUID, Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>>> queues = new ConcurrentHashMap<>();
+    private final Map<String, Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>>> queues = new ConcurrentHashMap<>();
 
-    private final Map<UUID, Long> lastGlobalMessage = new ConcurrentHashMap<>();
+    private final Map<String, Long> lastGlobalMessage = new ConcurrentHashMap<>();
 
-    private final Map<UUID, Map<OrchestratorChannel, Long>> lastChannelMessage = new ConcurrentHashMap<>();
+    private final Map<String, Map<OrchestratorChannel, Long>> lastChannelMessage = new ConcurrentHashMap<>();
 
-    private final Map<UUID, OrchestratorChannel> lastServedChannel = new ConcurrentHashMap<>();
+    private final Map<String, OrchestratorChannel> lastServedChannel = new ConcurrentHashMap<>();
 
     private ScheduledFuture<?> tickTask;
 
@@ -37,15 +36,15 @@ public class Orchestrator {
     }
 
     public void enqueue(OrchestratorQueue event) {
-        UUID playerId = event.interactionEntry().getPlayerId();
-        PriorityQueue<OrchestratorQueue> queue = getOrCreateQueue(playerId, event.channel());
+        String playerName = event.interactionEntry().getBudComponent().getPlayerRef().getUsername();
+        PriorityQueue<OrchestratorQueue> queue = getOrCreateQueue(playerName, event.channel());
         int maxDepth = OrchestratorConfig.getInstance().getOrchestratorMaxQueueDepth();
 
         synchronized (queue) {
             boolean replaced = queue.removeIf(e -> e.eventType().equals(event.eventType()));
             if (replaced) {
                 LoggerUtil.getLogger().finer(() -> "[Orchestrator] Deduplicated " + event.eventType()
-                        + " for player " + playerId + " in channel " + event.channel());
+                        + " for player " + playerName + " in channel " + event.channel());
             }
 
             if (queue.size() >= maxDepth) {
@@ -53,12 +52,12 @@ public class Orchestrator {
                 if (lowest != null && event.entry().getPriority() < lowest.entry().getPriority()) {
                     queue.remove(lowest);
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Dropped event " + lowest.eventType()
-                            + " for player " + playerId
+                            + " for player " + playerName
                             + " in channel " + event.channel());
                 } else if (lowest != null && event.entry().getPriority() >= lowest.entry().getPriority()) {
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Queue full, dropping incoming event "
                             + event.eventType() + " for player "
-                            + playerId);
+                            + playerName);
                     return;
                 }
             }
@@ -68,7 +67,7 @@ public class Orchestrator {
 
         LoggerUtil.getLogger().fine(() -> "[Orchestrator] Enqueued " + event.eventType()
                 + ", channel " + event.channel()
-                + ") for player " + playerId);
+                + ") for player " + playerName);
     }
 
     public synchronized void start() {
@@ -89,12 +88,12 @@ public class Orchestrator {
         }
     }
 
-    public void clearPlayer(UUID playerId) {
-        queues.remove(playerId);
-        lastGlobalMessage.remove(playerId);
-        lastChannelMessage.remove(playerId);
-        lastServedChannel.remove(playerId);
-        LoggerUtil.getLogger().fine(() -> "[Orchestrator] Cleared state for player " + playerId);
+    public void clearPlayer(String playerName) {
+        queues.remove(playerName);
+        lastGlobalMessage.remove(playerName);
+        lastChannelMessage.remove(playerName);
+        lastServedChannel.remove(playerName);
+        LoggerUtil.getLogger().fine(() -> "[Orchestrator] Cleared state for player " + playerName);
     }
 
     private void tick() {
@@ -103,18 +102,18 @@ public class Orchestrator {
             long globalCooldown = OrchestratorConfig.getInstance().getOrchestratorGlobalCooldownMs();
             long channelCooldown = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
 
-            for (UUID playerId : queues.keySet()) {
-                long lastGlobal = lastGlobalMessage.getOrDefault(playerId, 0L);
+            for (String playerName : queues.keySet()) {
+                long lastGlobal = lastGlobalMessage.getOrDefault(playerName, 0L);
                 if (now - lastGlobal < globalCooldown) {
                     continue;
                 }
 
-                OrchestratorChannel channel = pickChannel(playerId, now, channelCooldown);
+                OrchestratorChannel channel = pickChannel(playerName, now, channelCooldown);
                 if (channel == null) {
                     continue; // all channels on cooldown or empty
                 }
 
-                PriorityQueue<OrchestratorQueue> queue = getQueue(playerId, channel);
+                PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, channel);
                 if (queue == null || queue.isEmpty()) {
                     continue;
                 }
@@ -129,25 +128,25 @@ public class Orchestrator {
 
                 dispatch(event);
 
-                lastGlobalMessage.put(playerId, now);
-                lastChannelMessage.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>())
+                lastGlobalMessage.put(playerName, now);
+                lastChannelMessage.computeIfAbsent(playerName, k -> new ConcurrentHashMap<>())
                         .put(channel, now);
-                lastServedChannel.put(playerId, channel);
+                lastServedChannel.put(playerName, channel);
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error in tick: " + e.getMessage());
         }
     }
 
-    private OrchestratorChannel pickChannel(UUID playerId, long now, long channelCooldown) {
-        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerId);
+    private OrchestratorChannel pickChannel(String playerName, long now, long channelCooldown) {
+        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerName);
         if (playerQueues == null) {
             return null;
         }
 
         Map<OrchestratorChannel, Long> channelTimestamps = lastChannelMessage.getOrDefault(
-                playerId, Map.of());
-        OrchestratorChannel lastServed = lastServedChannel.get(playerId);
+                playerName, Map.of());
+        OrchestratorChannel lastServed = lastServedChannel.get(playerName);
 
         OrchestratorChannel bestChannel = null;
         int bestPriority = Integer.MAX_VALUE;
@@ -198,19 +197,19 @@ public class Orchestrator {
             } catch (Exception e) {
                 LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error dispatching " + event.eventType()
                         + " for player "
-                        + event.interactionEntry().budComponent().getPlayerRef().getUsername() + ": "
+                        + event.interactionEntry().getBudComponent().getPlayerRef().getUsername() + ": "
                         + e.getMessage());
             }
         });
     }
 
-    private PriorityQueue<OrchestratorQueue> getOrCreateQueue(UUID playerId, OrchestratorChannel channel) {
-        return queues.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>())
+    private PriorityQueue<OrchestratorQueue> getOrCreateQueue(String playerName, OrchestratorChannel channel) {
+        return queues.computeIfAbsent(playerName, k -> new ConcurrentHashMap<>())
                 .computeIfAbsent(channel, k -> new PriorityQueue<>());
     }
 
-    private PriorityQueue<OrchestratorQueue> getQueue(UUID playerId, OrchestratorChannel channel) {
-        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerId);
+    private PriorityQueue<OrchestratorQueue> getQueue(String playerName, OrchestratorChannel channel) {
+        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerName);
         if (playerQueues == null) {
             return null;
         }

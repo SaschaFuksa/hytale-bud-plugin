@@ -2,6 +2,8 @@ package com.bud.feature.world.env;
 
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.TimeOfDay;
 import com.bud.feature.LLMPromptManager;
@@ -22,11 +24,11 @@ import com.hypixel.hytale.server.worldgen.biome.Biome;
 import com.hypixel.hytale.server.worldgen.zone.Zone;
 
 public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome currentBiome,
-        LLMWeatherContext weatherContext, BudComponent budComponent)
+        LLMWeatherContext weatherContext, @Nonnull BudComponent budComponent)
         implements IPromptContext {
 
     public static LLMWorldContext from(PlayerRef owner, World world,
-            Store<EntityStore> store, LLMWeatherContext weatherContext, BudComponent budComponent) {
+            Store<EntityStore> store, LLMWeatherContext weatherContext, @Nonnull BudComponent budComponent) {
         Vector3d pos = owner.getTransform().getPosition();
         TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(store);
         LoggerUtil.getLogger().fine(() -> "[BUD] time of day: " + timeOfDay.name());
@@ -82,11 +84,13 @@ public record LLMWorldContext(TimeOfDay timeOfDay, Zone currentZone, Biome curre
         return this.weatherContext.getWeatherInformation();
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return this.budComponent;
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());

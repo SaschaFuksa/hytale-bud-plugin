@@ -27,7 +27,7 @@ public record TeleportEntry(@NonNull PlayerBudComponent playerBudComponent,
     @Nonnull
     @Override
     public BudComponent getBudComponent() {
-        return interactionEntry.budComponent();
+        return interactionEntry.getBudComponent();
     }
 
     @Override

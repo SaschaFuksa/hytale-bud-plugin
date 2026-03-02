@@ -67,7 +67,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
                 .fine(() -> "[BUD] PlayerJoinSystem detected player removal with reason: " + removeReason);
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef != null) {
-            Orchestrator.getInstance().clearPlayer(playerRef.getUuid());
+            Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
         }
     }
 

@@ -58,8 +58,7 @@ public class RecentBlockCache extends AbstractCache {
                     "block",
                     playerName,
                     new LLMInteractionEntry(LLMBlockMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry),
-                            entry.getBudComponent()),
+                            LLMContextFactory.createContext(entry)),
                     System.currentTimeMillis()));
         }
     }

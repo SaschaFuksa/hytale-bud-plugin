@@ -59,7 +59,7 @@ public class StateChangeQueue extends AbstractQueue {
             return;
         }
         LLMInteractionManager.getInstance().processInteraction(
-                new LLMInteractionEntry(LLMStateMessageCreation.getInstance(), context, budComponent));
+                new LLMInteractionEntry(LLMStateMessageCreation.getInstance(), context));
     }
 
 }

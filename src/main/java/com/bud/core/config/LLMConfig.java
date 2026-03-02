@@ -8,7 +8,7 @@ public class LLMConfig {
 
     public static final BuilderCodec<LLMConfig> CODEC;
 
-    private boolean enableLLM = true;
+    private boolean enableLLM = false;
     private boolean usePlayer2API = false;
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen/qwen3-1.7b"

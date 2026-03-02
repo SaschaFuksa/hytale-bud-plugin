@@ -56,6 +56,7 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             if (attackerPlayer != null && targetNPC != null) {
                 handle(store, attackerRef, targetNPC, CombatState.ATTACKED);
+                PlayerAttackEntityEvent.dispatch(store, attackerRef, targetRef);
             }
 
             NPCEntity attackerNPC = store.getComponent(attackerRef, npcComponentType);

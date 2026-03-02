@@ -19,6 +19,8 @@ import com.bud.feature.bud.creation.BudCreationHandler;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.ChatHandler;
 import com.bud.feature.combat.DamageFilterSystem;
+import com.bud.feature.combat.PlayerAttackEntityEvent;
+import com.bud.feature.combat.PlayerAttackEntityHandler;
 import com.bud.feature.crafting.CraftRecipeFilterSystem;
 import com.bud.feature.crafting.UseBlockFilterSystem;
 import com.bud.feature.discover.DiscoverZoneFilterSystem;
@@ -145,6 +147,7 @@ public class BudPlugin extends JavaPlugin {
         this.getEventRegistry().register(BudCreationEvent.class, new BudCreationHandler());
         this.getEventRegistry().register(StateChangeEvent.class, new StateChangeHandler());
         this.getEventRegistry().register(TeleportEvent.class, new TeleportHandler());
+        this.getEventRegistry().register(PlayerAttackEntityEvent.class, new PlayerAttackEntityHandler());
     }
 
     public static BudPlugin getInstance() {

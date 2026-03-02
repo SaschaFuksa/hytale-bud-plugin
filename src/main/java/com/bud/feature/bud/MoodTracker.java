@@ -80,7 +80,7 @@ public class MoodTracker extends AbstractTracker {
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budProfile.getNPCDisplayName() + ". Ready for interaction.");
                 LLMInteractionEntry interactionEntry = new LLMInteractionEntry(new LLMFavoriteDayMessageCreation(),
-                        new LLMFavoriteDayContext(budComponent), budComponent);
+                        new LLMFavoriteDayContext(budComponent));
                 Thread.ofVirtual().start(() -> {
                     interactionManager.processInteraction(interactionEntry);
                 });

@@ -59,8 +59,7 @@ public class RecentDiscoverCache extends AbstractCache {
                     "discover",
                     playerName,
                     new LLMInteractionEntry(LLMDiscoverMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry),
-                            entry.getBudComponent()),
+                            LLMContextFactory.createContext(entry)),
                     System.currentTimeMillis()));
         }
     }

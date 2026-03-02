@@ -16,11 +16,13 @@ public record LLMBlockContext(@Nonnull BlockEntry blockEntry)
     }
 
     @Override
+    @Nonnull
     public BudComponent getBudComponent() {
         return blockEntry.getBudComponent();
     }
 
     @Override
+    @Nonnull
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(blockEntry.getBudComponent().getBudType());
     }

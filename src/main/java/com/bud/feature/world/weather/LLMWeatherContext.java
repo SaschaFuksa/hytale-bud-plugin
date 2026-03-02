@@ -1,13 +1,15 @@
 package com.bud.feature.world.weather;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.components.BudComponent;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 
-public record LLMWeatherContext(String weatherName, BudComponent budComponent) implements IPromptContext {
+public record LLMWeatherContext(String weatherName, @Nonnull BudComponent budComponent) implements IPromptContext {
 
-    public static LLMWeatherContext from(String weatherId, BudComponent budComponent) {
+    public static LLMWeatherContext from(String weatherId, @Nonnull BudComponent budComponent) {
         final String weatherName = getWeatherName(weatherId);
         return new LLMWeatherContext(weatherName, budComponent);
     }
@@ -25,11 +27,13 @@ public record LLMWeatherContext(String weatherName, BudComponent budComponent) i
         return weatherId.replace("_", " ");
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return this.budComponent;
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());

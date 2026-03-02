@@ -57,7 +57,6 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
                 return;
             }
             String displayName = ItemUtil.getDisplayName(itemName);
-            System.out.println("DEBUG: Player " + player.getDisplayName() + " picked up item " + displayName);
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
 

@@ -45,7 +45,7 @@ public class TeleportQueue extends AbstractQueue {
     @SuppressWarnings("null")
     private void handleTeleport(@Nonnull TeleportEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budTypes());
-        BudComponent budComponent = entry.interactionEntry().budComponent();
+        BudComponent budComponent = entry.interactionEntry().getBudComponent();
         TeleportEvent.dispatch(entry.store(), entry.playerBudComponent(), entry.budTypes());
 
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
@@ -56,7 +56,7 @@ public class TeleportQueue extends AbstractQueue {
         }
         LLMTeleportContext context = LLMTeleportContext.from(budComponent);
         LLMInteractionManager.getInstance().processInteraction(
-                new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(), context, budComponent));
+                new LLMInteractionEntry(LLMTeleportMessageCreation.getInstance(), context));
     }
 
 }

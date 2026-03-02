@@ -58,8 +58,7 @@ public class RecentCraftCache extends AbstractCache {
                     "craft",
                     playerName,
                     new LLMInteractionEntry(LLMCraftMessageCreation.getInstance(),
-                            LLMContextFactory.createContext(entry),
-                            entry.getBudComponent()),
+                            LLMContextFactory.createContext(entry)),
                     System.currentTimeMillis()));
         }
     }

@@ -73,11 +73,13 @@ public record LLMCombatContext(@Nonnull OpponentEntry opponentEntry, @Nonnull St
         return template.getTargetInfoTemplate().formatted(category, catInfo + " " + specInfo);
     }
 
+    @Nonnull
     @Override
     public BudComponent getBudComponent() {
         return opponentEntry.getBudComponent();
     }
 
+    @Nonnull
     @Override
     public IBudProfile getBudProfile() {
         return BudProfileMapper.getInstance().getProfileForBudType(opponentEntry.getBudComponent().getBudType());

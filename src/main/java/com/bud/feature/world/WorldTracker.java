@@ -76,8 +76,7 @@ public class WorldTracker extends AbstractTracker {
                     Thread.ofVirtual().start(() -> {
                         LLMInteractionEntry entry = new LLMInteractionEntry(
                                 LLMWorldMessageCreation.getInstance(),
-                                new LLMWorldContext(timeOfDay, zone, biome, weatherContext, budComponent),
-                                budComponent);
+                                new LLMWorldContext(timeOfDay, zone, biome, weatherContext, budComponent));
                         interactionManager.processInteraction(entry);
                     });
                 });

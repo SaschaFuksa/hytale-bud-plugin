@@ -45,8 +45,6 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
                     if (itemId == null) {
                         return;
                     }
-                    System.out.println("DEBUG: Player " + player.getDisplayName() + " crafted item " + itemId);
-
                     LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getDisplayName()
                             + " crafted item=" + itemId);
 
