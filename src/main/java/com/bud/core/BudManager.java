@@ -3,6 +3,7 @@ package com.bud.core;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
@@ -14,7 +15,7 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
 import com.bud.core.types.BudType;
-import com.bud.feature.world.WorldInformationUtil;
+import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -29,6 +30,8 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 public class BudManager {
 
     private static final BudManager INSTANCE = new BudManager();
+
+    private final Set<PlayerRef> trackedPlayers = ConcurrentHashMap.newKeySet();
 
     private BudManager() {
     }
@@ -103,11 +106,27 @@ public class BudManager {
         return playerRef.getTransform().getPosition();
     }
 
+    public void registerPlayer(@Nonnull PlayerRef playerRef) {
+        trackedPlayers.add(playerRef);
+    }
+
+    public void unregisterPlayer(@Nonnull PlayerRef playerRef) {
+        trackedPlayers.remove(playerRef);
+    }
+
+    public Set<PlayerRef> getTrackedPlayers() {
+        return Set.copyOf(trackedPlayers);
+    }
+
     public Set<BudComponent> getAllBuds() {
-        World world = WorldInformationUtil.getDefaultWorld();
+        World world = WorldResolver.resolveDefaultWorld().orElse(null);
         if (world == null) {
             return Set.of();
         }
+        return getAllBuds(world);
+    }
+
+    public Set<BudComponent> getAllBuds(@Nonnull World world) {
         try {
             return collectAllBudComponents(world);
         } catch (IllegalStateException exception) {
@@ -120,10 +139,14 @@ public class BudManager {
     }
 
     public Set<PlayerBudComponent> getAllPlayers() {
-        World world = WorldInformationUtil.getDefaultWorld();
+        World world = WorldResolver.resolveDefaultWorld().orElse(null);
         if (world == null) {
             return Set.of();
         }
+        return getAllPlayers(world);
+    }
+
+    public Set<PlayerBudComponent> getAllPlayers(@Nonnull World world) {
         try {
             return collectAllPlayerComponents(world);
         } catch (IllegalStateException exception) {

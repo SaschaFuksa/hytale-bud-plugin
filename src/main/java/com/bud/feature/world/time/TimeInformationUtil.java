@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.TimeOfDay;
-import com.bud.feature.world.WorldInformationUtil;
+import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
@@ -49,17 +49,24 @@ public class TimeInformationUtil {
 
     public static DayOfWeek getDayOfWeek() {
         try {
-            World world = WorldInformationUtil.getDefaultWorld();
+            World world = WorldResolver.resolveDefaultWorld().orElse(null);
             if (world == null) {
                 return DayOfWeek.MONDAY;
             }
-            EntityStore entityStore = world.getEntityStore();
-            return getDayOfWeek(entityStore.getStore());
+            return getDayOfWeek(world);
         } catch (Exception e) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Failed to read in-game time for day of week calculation: " + e.getMessage());
             return DayOfWeek.MONDAY;
         }
+    }
+
+    public static DayOfWeek getDayOfWeek(World world) {
+        if (world == null) {
+            return DayOfWeek.MONDAY;
+        }
+        EntityStore entityStore = world.getEntityStore();
+        return getDayOfWeek(entityStore.getStore());
     }
 
     private static DayOfWeek getDayOfWeek(Store<EntityStore> store) {

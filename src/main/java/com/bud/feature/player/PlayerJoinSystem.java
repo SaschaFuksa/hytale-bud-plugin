@@ -2,6 +2,7 @@ package com.bud.feature.player;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
@@ -40,6 +41,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef == null)
             return;
+        BudManager.getInstance().registerPlayer(playerRef);
         PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent
                 .getComponentType());
         if (playerBudComponent == null) {
@@ -75,6 +77,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
                 .fine(() -> "[BUD] PlayerJoinSystem detected player removal with reason: " + removeReason);
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef != null) {
+            BudManager.getInstance().unregisterPlayer(playerRef);
             Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
         }
     }

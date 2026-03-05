@@ -61,14 +61,14 @@ public class WorldInformationUtil {
     }
 
     public static World resolveWorld(PlayerRef owner) {
-        Ref<EntityStore> ownerRef = owner.getReference();
-        if (ownerRef != null) {
-            return ownerRef.getStore().getExternalData().getWorld();
-        }
-        return null;
+        return WorldResolver.resolveStrict(owner).orElse(null);
     }
 
     public static Weather getCurrentWeather(PlayerRef owner) {
+        if (owner == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] Unable to resolve weather: owner is null.");
+            return null;
+        }
         World world = resolveWorld(owner);
         Ref<EntityStore> ownerRef = owner.getReference();
         ComponentType<EntityStore, WeatherTracker> componentType = WeatherTracker.getComponentType();
@@ -78,6 +78,9 @@ public class WorldInformationUtil {
         }
         WeatherTracker tracker = world.getEntityStore().getStore().getComponent(ownerRef,
                 componentType);
+        if (tracker == null) {
+            return null;
+        }
         int index = tracker.getWeatherIndex();
         Weather weather = Weather.getAssetMap().getAsset(index);
         return weather;

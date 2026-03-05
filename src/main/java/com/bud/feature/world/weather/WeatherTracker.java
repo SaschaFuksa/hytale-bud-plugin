@@ -13,11 +13,16 @@ import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.WorldInformationUtil;
+import com.bud.feature.world.WorldResolver;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class WeatherTracker extends AbstractTracker {
 
@@ -43,57 +48,68 @@ public class WeatherTracker extends AbstractTracker {
     }
 
     private void triggerWeatherMessage() {
-        World defaultWorld = WorldInformationUtil.getDefaultWorld();
-        if (defaultWorld == null) {
+        Set<PlayerRef> players = BudManager.getInstance().getTrackedPlayers();
+        if (players.isEmpty()) {
             return;
         }
 
-        defaultWorld.execute(() -> {
-            Set<PlayerBudComponent> players = BudManager.getInstance().getAllPlayers();
-            if (players.isEmpty()) {
-                return;
+        for (PlayerRef playerRef : players) {
+            if (!playerRef.isValid()) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] Invalid player reference encountered.");
+                BudManager.getInstance().unregisterPlayer(playerRef);
+                continue;
+            }
+            World world = WorldResolver.resolveStrict(playerRef).orElse(null);
+            if (world == null) {
+                continue;
             }
 
-            for (PlayerBudComponent playerComponent : players) {
-                World world = WorldInformationUtil.resolveWorld(playerComponent.getPlayerRef());
-                if (world == null) {
-                    continue;
-                }
-                BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
-                if (budComponent == null) {
-                    LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
-                            + playerComponent.getPlayerRef().getUsername());
-                    continue;
-                }
-                try {
-                    world.execute(() -> {
-                        Weather weather = WorldInformationUtil.getCurrentWeather(playerComponent.getPlayerRef());
-                        if (weather == null) {
-                            return;
-                        }
-                        String weatherId = weather.getId();
-                        if (weatherId == null) {
-                            return;
-                        }
-                        if (!playerComponent.updateWeatherIfChanged(weatherId)) {
-                            return;
-                        }
+            try {
+                world.execute(() -> {
+                    Ref<EntityStore> playerEntityRef = playerRef.getReference();
+                    if (playerEntityRef == null) {
+                        return;
+                    }
+                    Store<EntityStore> entityStore = playerEntityRef.getStore();
+                    PlayerBudComponent playerComponent = entityStore.getComponent(playerEntityRef,
+                            PlayerBudComponent.getComponentType());
+                    if (playerComponent == null || !playerComponent.hasBuds()) {
+                        return;
+                    }
 
-                        IQueueEntry entry = new WeatherEntry(weatherId, budComponent);
-                        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
-                                OrchestratorChannel.AMBIENT,
-                                entry,
-                                "weather",
-                                playerComponent.getPlayerRef().getUsername(),
-                                new LLMInteractionEntry(LLMWeatherMessageCreation.getInstance(),
-                                        entry),
-                                System.currentTimeMillis()));
-                    });
-                } catch (Exception e) {
-                    LoggerUtil.getLogger().warning(
-                            () -> "[BUD] Weather tracker could not execute on world thread: " + e.getMessage());
-                }
+                    BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
+                    if (budComponent == null) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
+                                + playerRef.getUsername());
+                        return;
+                    }
+
+                    Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
+                    if (weather == null) {
+                        return;
+                    }
+                    String weatherId = weather.getId();
+                    if (weatherId == null) {
+                        return;
+                    }
+                    if (!playerComponent.updateWeatherIfChanged(weatherId)) {
+                        return;
+                    }
+
+                    IQueueEntry entry = new WeatherEntry(weatherId, budComponent);
+                    Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                            OrchestratorChannel.AMBIENT,
+                            entry,
+                            "weather",
+                            playerRef.getUsername(),
+                            new LLMInteractionEntry(LLMWeatherMessageCreation.getInstance(),
+                                    entry),
+                            System.currentTimeMillis()));
+                });
+            } catch (Exception e) {
+                LoggerUtil.getLogger().warning(
+                        () -> "[BUD] Weather tracker could not execute on world thread: " + e.getMessage());
             }
-        });
+        }
     }
 }

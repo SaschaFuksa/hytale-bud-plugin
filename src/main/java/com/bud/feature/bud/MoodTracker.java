@@ -11,11 +11,13 @@ import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.feature.world.WorldResolver;
 import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.universe.world.World;
 
 public class MoodTracker extends AbstractTracker {
 
@@ -45,13 +47,17 @@ public class MoodTracker extends AbstractTracker {
     }
 
     private void changeMood() {
-        Set<BudComponent> allBuds = BudManager.getInstance().getAllBuds();
+        World world = WorldResolver.resolveDefaultWorld().orElse(null);
+        if (world == null) {
+            return;
+        }
+        Set<BudComponent> allBuds = BudManager.getInstance().getAllBuds(world);
         if (allBuds.isEmpty()) {
             return;
         }
 
         boolean isDayTransition = false;
-        DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek();
+        DayOfWeek currentPollDay = TimeInformationUtil.getDayOfWeek(world);
         if (currentPollDay == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Could not determine current day of week. Skipping mood change.");
