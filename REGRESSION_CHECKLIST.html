@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regression Checklist</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #1e293b;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #2563eb;
+      --primary-strong: #1d4ed8;
+      --accent: #0ea5e9;
+      --border: #dbe3ef;
+      --ok-bg: #dcfce7;
+      --ok-text: #166534;
+      --warn-bg: #fef9c3;
+      --warn-text: #854d0e;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 24px;
+      line-height: 1.4;
+      color: #e2e8f0;
+      background: radial-gradient(circle at top right, #1d4ed8 0%, #0f172a 45%, #020617 100%);
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #f8fbff 0%, #f5f8ff 100%);
+      border: 1px solid #9ab3d9;
+      border-radius: 16px;
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.35);
+      padding: 28px;
+      color: var(--text);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      color: #e2e8f0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    h2 {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #dbe3ef;
+      color: #1e3a8a;
+    }
+
+    fieldset {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    legend {
+      font-weight: 700;
+      padding: 0 6px;
+      color: #1e3a8a;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #c3d3eb;
+      border-radius: 8px;
+      padding: 10px;
+      font: inherit;
+      color: var(--text);
+      background: #f8fbff;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: 2px solid #93c5fd;
+      border-color: #60a5fa;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .check-item {
+      margin: 8px 0;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #f8fbff;
+      border: 1px solid #e5edf8;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font: inherit;
+      padding: 10px 16px;
+      border: 1px solid #c3d3eb;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease-in-out;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border-color: var(--primary-strong);
+      color: #f8fafc;
+    }
+
+    .hint {
+      color: var(--muted);
+      margin-top: 0;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+<main data-plugin-version="1.7.0" data-server-version="2026.02.19-1a311a592">
+  <section class="hero">
+    <h1>Regression Test Checklist (Plugin)</h1>
+    <p>Ausfüllbare Checkliste für manuelle Regressionstests. Daten werden nicht gespeichert.</p>
+  </section>
+
+  <fieldset>
+    <legend>Testlauf-Metadaten</legend>
+    <p id="versionStatus" class="hint">Versionen werden automatisch geladen. Falls das nicht möglich ist, bitte manuell eintragen.</p>
+    <div class="meta-grid">
+      <label>Plugin-Version
+        <input type="text" id="pluginVersion">
+      </label>
+      <label>Server-Version
+        <input type="text" id="serverVersion">
+      </label>
+    </div>
+    <label>Ergebnis gesamt</label>
+    <label><input type="radio" name="overallResult" value="Pass"> ✅ Pass</label>
+    <label><input type="radio" name="overallResult" value="Fail"> ❌ Fail</label>
+  </fieldset>
+
+  <div id="checklistContainer"></div>
+
+  <fieldset>
+    <legend>Findings / Notizen</legend>
+    <textarea id="notes"></textarea>
+  </fieldset>
+
+  <div class="actions">
+    <button id="savePdfBtn" class="primary" type="button">Save</button>
+  </div>
+</main>
+
+<script>
+  const checklistData = [
+    {
+      section: '1) Setup (pro Testlauf)',
+      groups: [
+        {
+          name: '',
+          items: [
+            'Server frisch gestartet',
+            'Definierte Testwelt geladen',
+            'Debug-Logging aktiv',
+            'Modus A vorbereitet: LLM aktiv (gültiger Key/Endpoint)',
+            'Modus B vorbereitet: LLM aus / ungültig / Timeout (Fallback erzwingen)'
+          ]
+        }
+      ]
+    },
+    {
+      section: '2) Debug',
+      groups: [
+        { name: 'Creation', items: ['all', 'veri', 'gronkh', 'keyleth'] },
+        { name: 'Deletion', items: ['all', 'veri', 'gronkh', 'keyleth'] },
+        { name: 'Sonstiges', items: ['reset', 'state change', 'debug x (invalid command): sauberer Fehler, kein Crash'] }
+      ]
+    },
+    {
+      section: '3) Reactions',
+      groups: [
+        { name: 'Block', items: ['break', 'place'] },
+        { name: 'Discover', items: ['Trigger erkannt und Reaktion korrekt'] },
+        { name: 'World', items: ['World-Event erkannt und Reaktion korrekt'] },
+        { name: 'Weather', items: ['Wetterwechsel erkannt und Reaktion korrekt'] },
+        { name: 'Item', items: ['ore', 'plant'] },
+        { name: 'Crafting', items: ['use', 'craft'] },
+        { name: 'Mood', items: ['creation'] },
+        { name: 'Teleport', items: ['Bud-Verhalten konsistent (kein Desync)'] }
+      ]
+    },
+    {
+      section: '4) Chat',
+      groups: [
+        { name: '', items: ['veri', 'gronkh', 'keyleth', 'gronkh, keyleth', 'random'] }
+      ]
+    },
+    {
+      section: '5) LLM + Fallback Matrix (Pflicht)',
+      groups: [
+        {
+          name: 'A) LLM aktiv',
+          items: [
+            'Antwort kommt rechtzeitig',
+            'Antwort ist inhaltlich passend',
+            'Keine Fehler im Log'
+          ]
+        },
+        {
+          name: 'B) LLM nicht verfügbar (Fallback)',
+          items: [
+            'Timeout → Fallback greift',
+            '4xx/5xx → Fallback greift',
+            'Invalid/leer Antwortpayload → Fallback greift',
+            'Kein Crash, Spielfluss bleibt stabil'
+          ]
+        },
+        {
+          name: 'C) Robustheit',
+          items: [
+            'Rate-Limit-Szenario abgefangen (Retry/Backoff oder Fallback)',
+            'Fehler sind nachvollziehbar geloggt',
+            'Verhalten ist deterministisch genug für reproduzierbare Tests'
+          ]
+        }
+      ]
+    },
+    {
+      section: '6) Abschlusskriterien',
+      groups: [
+        {
+          name: '',
+          items: [
+            'Keine Crashes/Hard Errors während des gesamten Laufs',
+            'Zustände aller Buds bleiben konsistent',
+            'Pflichtfälle in Modus A und Modus B bestanden',
+            'Findings dokumentiert'
+          ]
+        }
+      ]
+    },
+    {
+      section: 'Follow-ups',
+      groups: [
+        {
+          name: '',
+          items: ['Bug-Ticket erstellt', 'Re-Test geplant', 'Changelog aktualisiert']
+        }
+      ]
+    }
+  ];
+
+  function buildChecklist() {
+    const container = document.getElementById('checklistContainer');
+    let itemCounter = 0;
+
+    checklistData.forEach((sectionData, sectionIndex) => {
+      const section = document.createElement('section');
+      const title = document.createElement('h2');
+      title.textContent = sectionData.section;
+      section.appendChild(title);
+
+      sectionData.groups.forEach((groupData, groupIndex) => {
+        if (groupData.name) {
+          const groupTitle = document.createElement('h3');
+          groupTitle.textContent = groupData.name;
+          section.appendChild(groupTitle);
+        }
+
+        groupData.items.forEach((itemText, itemIndex) => {
+          itemCounter += 1;
+          const itemId = `chk_${sectionIndex}_${groupIndex}_${itemIndex}`;
+
+          const label = document.createElement('label');
+          label.className = 'check-item';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.id = itemId;
+          checkbox.dataset.itemText = itemText;
+          checkbox.dataset.section = sectionData.section;
+          checkbox.dataset.group = groupData.name;
+          checkbox.dataset.order = String(itemCounter);
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(` ${itemText}`));
+          section.appendChild(label);
+        });
+      });
+
+      container.appendChild(section);
+    });
+  }
+
+  function updateVersionStatus(text, isSuccess) {
+    const status = document.getElementById('versionStatus');
+    status.textContent = text;
+    status.style.color = isSuccess ? 'var(--ok-text)' : 'var(--muted)';
+  }
+
+  function loadVersions() {
+    const main = document.querySelector('main');
+    const pluginVersion = (main.dataset.pluginVersion || '').trim();
+    const serverVersion = (main.dataset.serverVersion || '').trim();
+
+    if (pluginVersion) document.getElementById('pluginVersion').value = pluginVersion;
+    if (serverVersion) document.getElementById('serverVersion').value = serverVersion;
+
+    if (pluginVersion || serverVersion) {
+      updateVersionStatus('Versionen aus Build-Metadaten geladen', true);
+    } else {
+      updateVersionStatus('Keine Build-Metadaten vorhanden. Bitte "Gradle: Build" ausführen oder manuell eintragen.', false);
+    }
+  }
+
+  function addLine(doc, text, state) {
+    const { margin, maxWidth, lineHeight, pageHeight } = state;
+    const lines = doc.splitTextToSize(text, maxWidth);
+
+    lines.forEach((line) => {
+      if (state.y > pageHeight - margin) {
+        doc.addPage();
+        state.y = margin;
+      }
+      doc.text(line, margin, state.y);
+      state.y += lineHeight;
+    });
+  }
+
+  function createPdf() {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert('PDF-Bibliothek konnte nicht geladen werden.');
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const state = {
+      margin: 40,
+      maxWidth: 515,
+      lineHeight: 16,
+      pageHeight: doc.internal.pageSize.getHeight(),
+      y: 40
+    };
+
+    const now = new Date();
+    const isoDate = now.toISOString().slice(0, 19).replace(/[:T]/g, '-');
+
+    doc.setFont('helvetica', 'bold');
+    addLine(doc, 'Regression Test Checklist (Plugin)', state);
+    doc.setFont('helvetica', 'normal');
+    addLine(doc, `Erstellt am: ${now.toLocaleString('de-DE')}`, state);
+    state.y += 8;
+
+    const pluginVersion = document.getElementById('pluginVersion').value.trim() || '-';
+    const serverVersion = document.getElementById('serverVersion').value.trim() || '-';
+    const resultChecked = document.querySelector('input[name="overallResult"]:checked');
+    const overallResult = resultChecked ? resultChecked.value : '-';
+    const overallResultDisplay = overallResult === 'Pass'
+      ? '✅ Pass'
+      : overallResult === 'Fail'
+        ? '❌ Fail'
+        : '-';
+
+    addLine(doc, `Plugin-Version: ${pluginVersion}`, state);
+    addLine(doc, `Server-Version: ${serverVersion}`, state);
+    addLine(doc, `Ergebnis gesamt: ${overallResultDisplay}`, state);
+    state.y += 8;
+
+    checklistData.forEach((sectionData) => {
+      doc.setFont('helvetica', 'bold');
+      addLine(doc, sectionData.section, state);
+      doc.setFont('helvetica', 'normal');
+
+      sectionData.groups.forEach((groupData) => {
+        if (groupData.name) {
+          addLine(doc, `  ${groupData.name}`, state);
+        }
+
+        groupData.items.forEach((itemText, itemIndex) => {
+          const selector = `input[type="checkbox"][data-section="${sectionData.section}"][data-group="${groupData.name}"][data-item-text="${itemText.replace(/"/g, '\\"')}"]`;
+          const checkbox = document.querySelector(selector);
+          const checked = checkbox && checkbox.checked ? '[x]' : '[ ]';
+          addLine(doc, `    ${checked} ${itemText}`, state);
+        });
+      });
+
+      state.y += 6;
+    });
+
+    doc.setFont('helvetica', 'bold');
+    addLine(doc, 'Findings / Notizen', state);
+    doc.setFont('helvetica', 'normal');
+    const notes = document.getElementById('notes').value.trim();
+    addLine(doc, notes ? notes : '-', state);
+
+    doc.save(`regression-checklist-${isoDate}.pdf`);
+  }
+
+  buildChecklist();
+  loadVersions();
+  document.getElementById('savePdfBtn').addEventListener('click', createPdf);
+</script>
+</body>
+</html>
