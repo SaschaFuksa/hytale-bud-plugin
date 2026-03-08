@@ -44,6 +44,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         this.currentBuds = new ConcurrentLinkedQueue<>(clone.currentBuds);
         this.budTypes = new HashSet<>(clone.budTypes);
         this.playerRef = clone.playerRef;
+        this.lastKnownWeatherId = clone.lastKnownWeatherId;
     }
 
     @Nonnull
@@ -130,6 +131,10 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public synchronized String getLastKnownWeatherId() {
         return lastKnownWeatherId;
+    }
+
+    public synchronized void setLastKnownWeatherId(String weatherId) {
+        this.lastKnownWeatherId = weatherId;
     }
 
     @Override

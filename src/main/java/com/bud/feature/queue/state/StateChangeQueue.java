@@ -44,6 +44,7 @@ public class StateChangeQueue extends AbstractQueue {
     private void handleStateChange(@Nonnull StateChangeEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling state change: " + entry);
         BudComponent budComponent = entry.getBudComponent();
+        budComponent.setCurrentState(entry.newState());
         StateChangeEvent.dispatch(budComponent.getBud(), budComponent.getPlayerRef(), entry.newState());
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {

@@ -12,6 +12,7 @@ import com.bud.feature.bud.MoodTracker;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.WorldTracker;
 import com.bud.feature.world.weather.WeatherTracker;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -24,6 +25,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class PlayerJoinSystem extends RefSystem<EntityStore> {
@@ -45,11 +47,14 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent
                 .getComponentType());
         if (playerBudComponent == null) {
-            commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), new PlayerBudComponent(playerRef));
+            PlayerBudComponent newPlayerBudComponent = new PlayerBudComponent(playerRef);
+            initializeWeatherBaseline(playerRef, newPlayerBudComponent);
+            commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), newPlayerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Added PlayerBudComponent for player " + playerRef.getUsername());
         } else {
             playerBudComponent.setPlayerRef(playerRef);
+            initializeWeatherBaseline(playerRef, playerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
             for (BudType budType : playerBudComponent.getBudTypes()) {
@@ -80,6 +85,15 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             BudManager.getInstance().unregisterPlayer(playerRef);
             Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
         }
+    }
+
+    public static void initializeWeatherBaseline(@Nonnull PlayerRef playerRef,
+            @Nonnull PlayerBudComponent playerBudComponent) {
+        Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
+        if (weather == null || weather.getId() == null || weather.getId().isBlank()) {
+            return;
+        }
+        playerBudComponent.setLastKnownWeatherId(weather.getId());
     }
 
 }

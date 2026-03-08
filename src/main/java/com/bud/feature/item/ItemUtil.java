@@ -19,9 +19,10 @@ public class ItemUtil {
 
     @Nonnull
     public static String getDisplayName(@Nonnull String id) {
-        String displayName = "";
+        String displayName = id;
         if (id.contains(":")) {
-            displayName = id.split(":")[1];
+            String[] parts = id.split(":");
+            displayName = parts[parts.length - 1];
         }
         displayName = displayName.replaceAll("_", " ");
 

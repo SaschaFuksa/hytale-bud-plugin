@@ -14,6 +14,7 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudState;
 import com.bud.core.types.BudType;
+import com.bud.feature.player.PlayerJoinSystem;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
@@ -59,7 +60,11 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         }
         List<BudComponent> existingBudTeleports = new ArrayList<>();
         for (NPCEntity existingBud : playerBudComponent.getCurrentBuds()) {
-            existingBudTeleports.add(BudManager.getInstance().getBudComponent(existingBud));
+            BudComponent budComponent = BudManager.getInstance().getBudComponent(existingBud);
+            if (!event.budTypes().contains(budComponent.getBudType())) {
+                continue;
+            }
+            existingBudTeleports.add(budComponent);
         }
 
         for (BudType budType : event.budTypes()) {
@@ -109,6 +114,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         }
         StateChangeQueue.getInstance()
                 .addToCache(new StateChangeEntry(BudState.PET_DEFENSIVE, budComponent));
+        PlayerJoinSystem.initializeWeatherBaseline(playerRef, playerBudComponent);
         if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }
