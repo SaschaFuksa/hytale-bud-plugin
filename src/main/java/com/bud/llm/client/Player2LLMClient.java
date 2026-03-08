@@ -8,14 +8,10 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import com.bud.BudConfig;
-import com.bud.llm.message.Prompt;
+import com.bud.core.config.LLMConfig;
+import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Player2 API LLM client implementation.
- * Simple, stateless LLM calls to Player2 API.
- */
 public class Player2LLMClient extends AbstractLLMClient {
     private static final String BASE_URL = "http://localhost:4315";
     private static final String GAME_KEY = "hytale-bud";
@@ -31,8 +27,7 @@ public class Player2LLMClient extends AbstractLLMClient {
 
     @Override
     public String callLLM(Prompt prompt) throws IOException, InterruptedException {
-        BudConfig config = getConfig();
-        // Build simple JSON payload
+        LLMConfig config = LLMConfig.getInstance();
         String jsonPayload = String.format(
                 "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":"
                         + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens() + "}",
@@ -60,9 +55,6 @@ public class Player2LLMClient extends AbstractLLMClient {
         return extractContent(responseBody);
     }
 
-    /**
-     * Test if Player2 is available
-     */
     public boolean isAvailable() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -75,12 +67,8 @@ public class Player2LLMClient extends AbstractLLMClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             return response.statusCode() == 200;
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             return false;
         }
-    }
-
-    private BudConfig getConfig() {
-        return BudConfig.getInstance();
     }
 }

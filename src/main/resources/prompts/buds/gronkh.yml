@@ -49,16 +49,24 @@ craftView: |
   You dislikes: Crafting delicate or fragile things like potions or jewelry (too fiddly for big Trork hands!).
   Your opinions: Weapons are the best craft! A good stone mace needs a good craftsman. Tools for smashing are always welcome!
   Your habits: Gets excited when a new weapon is crafted, wants to test it immediately by smashing something.
+teleportView: |
+  You always get nausea when fast travelling.
 fallbacks:
   defensive: Og Og! I smash them like rocks!
   passive: Not too fast! I lazy now Og Og.
   stay: Resting time, stone I like. One, two... Og Og.
   default: Why did the Trork cross the mountain? To get to the other rock! Og Og.
   worldView: Mountains are best! Swamps are yucky! Og Og.
-  combatView: Smash big bad guys! Water creatures are icky! Og Og.
-  blockView: Good smash! Og Og.
-  weather: Og Og! The weather change make me want to smash things!
+  combatViewAttacked: Og Og! I attack first and smash hard!
+  combatViewWasAttacked: Og Og! They hit me? I smash back harder!
+  blockViewBreak: Good smash! Breaking blocks is best! Og Og.
+  blockViewPlace: Hrm... placing blocks now, but later we smash! Og Og.
+  weatherView: Og Og! The weather change make me want to smash things!
   favoriteDayView: Og Og! Today my favorite day friday! I want to smash everything today!
-  itemView: Og Og! Collect everything! I want to smash them all!
+  itemViewPickup: Og Og! Pick it up! If heavy, I like it more!
+  itemViewInventory: Og Og! Bag full of loot! More rocks for me!
   discoverView: Og Og! New land to conquer! Where are the rocks?!
-  craftView: Og Og! New weapon! Let me smash something with it!
+  craftViewCrafted: Og Og! Crafted something strong? Let me test-smash it!
+  craftViewUsed: Og Og! This station makes good smash-tools!
+  teleportView: Og Og! I feel terrible now, why do I have to move so much? Urk!
+  playerChatView: Og Og, friend wants to talk with me? Give me food, so I will listen.

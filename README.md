@@ -18,9 +18,13 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.6.0
-- **More Bud Reactions**: Buds will now react to more world interactions, such as crafting and discovering new zones. The reactions are prioritized based on the type of item or block involved, with gems being the highest priority, followed by ores, ingots, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling, and other blocks/items.
-- **LLM rework**: Some LLM rework to support more interactions and better performance. With orchestration of LLM calls, the LLM is now called in more frequent way to avoid too many interactions at the same time.
+## New in 1.7.0
+- **Command Rework**: Full rework to use command collection and subcommands.
+- **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
+- **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
+- **Bud Reaction To Teleport**: Buds will now react to player teleportation, ensuring they are always present for interactions.
+- **Bud Reaction To Player Chat**: Buds will now react to player chat, ensuring they are always present for interactions. The reactions are only chat messages.
+
 (See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
 ### Quote of the release:
@@ -76,58 +80,110 @@ Gronkh:
 *   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
 *   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
 *   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
+*   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
 
 <br>
 
 ### 🎮 Commands
 The plugin is primarily controlled via simple chat commands:
 
-*   **`/bud`** - The main command. Spawns all three buddies, teleports them to you, or respawns them if they died.
-*   **`/bud [Veri|Gronkh|Keyleth]`** - Target a specific buddy for spawning or teleportation.
-*   **`/bud [attack|atk]`** - Change the behavior mode for all active Buds to Defensive.s
-*   **`/bud [follow|fol]`** - Change the behavior mode for all active Buds to Passive.
-*   **`/bud [chill|stay]`** - Change the behavior mode for all active Buds to Sitting.
-*   **`/bud reset`** - Quickly cleanup and recreate all your buddies.
-*   **`/bud clear`** - Removes your personal buddies from the world.
-*   **`/bud clear-allbuds`** - Removes all buddies from the world.
-*   **`/bud data`** - Displays persisted data (Reference Player UUID to NPC UUID).
-*   **`/bud clear-data`** - Clears all persisted buddy data (useful for debugging).
-*   **`/bud reload-prompt`** - Reload missing LLM prompt configurations without restarting the server.
-*   **`/bud reset-prompt`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
+*   **`/bud`** - Shows all commands.
+
+#### Creation Commands
+
+*   **`/bud create`** - Creates all three Buddies (Veri, Gronkh, Keyleth) at once.
+*   **`/bud create [--veri|--gronkh|--keyleth]`** - Target a specific buddy for spawning or teleportation.
+*   **`/bud reset`** - Recreate all your buddies.
+
+#### Deletion Commands
+
+*   **`/bud delete`** - Deletes all three Buddies (Veri, Gronkh, Keyleth) at once.
+*   **`/bud delete [--veri|--gronkh|--keyleth]`** - Deletes a specific buddy.
+*   **`/bud delete --world`** - Deletes all buddies of all worlds.
+
+#### State Commands
+
+*   **`/bud state`** - Change the behavior mode for all active Buds to the next state.
+*   **`/bud state --defensive`** - Change the behavior mode for all active Buds to Defensive.
+*   **`/bud state --passive`** - Change the behavior mode for all active Buds to Passive.
+*   **`/bud state --sitting`** - Change the behavior mode for all active Buds to Sitting.
+
+#### Prompt Commands
+
+*   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
+*   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
+
+#### Debug Commands
+
+*   **`/bud debug`** - Shows the available debug flags.
+*   **`/bud debug --componentData`** - Shows the current and persisted Bud data for the player in chat.
+*   **`/bud debug --mood`** - Shows the current mood of each active Bud and their favorite day in chat.
+*   **`/bud debug --weather`** - Shows the current weather in chat.
+*   **`/bud debug --time`** - Shows the current time of day and day of week in chat.
+*   **`/bud debug --world`** - Shows the current zone and biome in chat.
 
 <br>
 
 ## ⚙️ Configuration (LLM)
 
-To enable the AI features, edit the `HytaleBud.json` in your server's mod folder:
+To enable the AI features, edit the `LLM.json` in your server's mod folder:
+
+
+### LLM Configuration
 
 | Setting | Description | Default |
 |:--- |:--- |:--- |
 | `EnableLLM` | Toggle LLM features | `true` |`
 | `UsePlayer2API` | Toggle to use Player2 API for LLM <br>(EnableLLM must be true) | `false` |
 | `Url` | Your LLM API Endpoint | `v1/chat/completions` |
-| `Model` | The AI model identifier | `ibm/granite-4-h-tiny` |
+| `Model` | The AI model identifier | `mistralai/ministral-3-3b` |
 | `ApiKey` | The API key for your LLM service | `not_needed` |
 | `MaxTokens` | Limit the length of AI responses | `100` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
+<br>
+
+### Reaction Configuration
+
+| Setting | Description | Default |
+|:--- |:--- |:--- |
 | `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
 | `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
-| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
 | `EnableItemReactions` | Enable or disable item reaction messages | `true` |
 | `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
 | `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
+| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
 | `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
 | `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
 | `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
+| `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
+<br>
+
+### Orchestration Configuration (Only change if needed for performance tuning)
+
+| Setting | Description | Default |
+|:--- |:--- |:--- |
+| `OrchestratorGlobalCooldownMs` | Global cooldown for orchestrator actions (in milliseconds) | `3000L` |
+| `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
+| `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
+| `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
+<br>
+
+### Debug Configuration
+| Setting | Description | Default |
+|:--- |:--- |:--- |
+| `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
+| `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
+| `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
+
 
 **LLM Usage:**
 - You can use your own local LLM Client (like LM Studio)
 - Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
 - Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
-<br>
+
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
@@ -136,7 +192,6 @@ First time the server starts, the default prompts will be copied from the resour
 
 **Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
 
-<br>
 
 ### ⚠️ LLM Performance Note (Reasoning Models)
 
@@ -160,8 +215,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.6.0**: More bud interaction: Crafting, Dropping items, discover zone, etc. Important: Ore reaction!
-- [ ] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent). Better cooldown management for reactions to avoid too many messages.
+- [x] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent).
 - [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
 - [ ] **1.9.0**: Item-based spawning instead of commands?
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?

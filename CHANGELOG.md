@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [1.7.0]
+### Added
+- **Command Rework**: Full rework to use command collection and subcommands.
+- **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
+- **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
+- **Bud Reaction To Teleport**: Buds will now react to player teleportation, ensuring they are always present for interactions.
+- **Bud Reaction To Player Chat**: Buds will now react to player chat, ensuring they are always present for interactions. The reactions are only chat messages.
+
+### Fixed
+- Updated server version
+- Reduced token size
+- Config Code rework
+- Much code rework for better structure and maintainability.
+
+
+---
+
 ## [1.6.0]
 ### Added
 - **More Bud Reactions**: Buds will now react to more world interactions, such as crafting and discovering new zones. The reactions are prioritized based on the type of item or block involved, with gems being the highest priority, followed by ores, ingots, Azure Kelp, Bloodcap Mushroom, Bloodcap Leaf, Storm Sapling, and other blocks/items.
