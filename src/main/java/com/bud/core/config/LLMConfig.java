@@ -8,10 +8,11 @@ public class LLMConfig {
 
     public static final BuilderCodec<LLMConfig> CODEC;
 
-    private boolean enableLLM = false;
+    private boolean enableLLM = true;
     private boolean usePlayer2API = false;
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
-    private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen/qwen3-1.7b"
+    private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen3.5-0.8b" (needs prompt
+                                                       // improvements)
     private String apiKey = "not_needed";
     private int maxTokens = 100;
     private double temperature = 0.9;

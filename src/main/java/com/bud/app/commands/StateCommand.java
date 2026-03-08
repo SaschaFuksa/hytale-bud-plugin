@@ -89,7 +89,6 @@ public class StateCommand extends AbstractPlayerCommand {
                                 + resolvedTargetState.getStateName());
                 continue;
             }
-            budComponent.setCurrentState(resolvedTargetState);
             StateChangeQueue.getInstance()
                     .addToCache(new StateChangeEntry(resolvedTargetState, budComponent));
         }

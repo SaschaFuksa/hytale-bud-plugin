@@ -8,9 +8,9 @@ public class DebugConfig {
 
     public static final BuilderCodec<DebugConfig> CODEC;
 
-    private boolean enablePlayerInfo = true;
-    private boolean enableBudDebugInfo = true;
-    private boolean enableMoodChangeDebugInfo = true;
+    private boolean enablePlayerInfo = false;
+    private boolean enableBudDebugInfo = false;
+    private boolean enableMoodChangeDebugInfo = false;
 
     private static volatile DebugConfig instance;
 

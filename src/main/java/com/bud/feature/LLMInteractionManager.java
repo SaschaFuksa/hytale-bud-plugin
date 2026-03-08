@@ -53,10 +53,21 @@ public class LLMInteractionManager {
                             + interactionEntry.getBudComponent().getBud());
             return;
         }
-        ChatEvent.dispatch(interactionEntry.getBudComponent().getPlayerRef(), message);
+        ChatEvent.dispatch(interactionEntry.getBudComponent().getPlayerRef(),
+                formatBudSpeech(budProfile.getNPCDisplayName(), message));
         SoundEvent.dispatch(entityRef, budProfile.getBudSoundData().getPassiveSound());
         LoggerUtil.getLogger().fine(() -> "[BUD] Processing interaction for: "
                 + interactionEntry.getBudComponent().getBud().getNPCTypeId());
+    }
+
+    @Nonnull
+    private String formatBudSpeech(@Nonnull String budName, @Nonnull String message) {
+        String trimmedMessage = message.trim();
+        String prefix = budName + ":";
+        if (trimmedMessage.regionMatches(true, 0, prefix, 0, prefix.length())) {
+            return trimmedMessage;
+        }
+        return prefix + " " + trimmedMessage;
     }
 
 }
