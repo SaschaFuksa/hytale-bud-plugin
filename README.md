@@ -115,7 +115,12 @@ The plugin is primarily controlled via simple chat commands:
 
 #### Debug Commands
 
-*   **`/bud debug`** - Shows the current persisted data for the player's Buds.
+*   **`/bud debug`** - Shows the available debug flags.
+*   **`/bud debug --componentData`** - Shows the current and persisted Bud data for the player in chat.
+*   **`/bud debug --mood`** - Shows the current mood of each active Bud and their favorite day in chat.
+*   **`/bud debug --weather`** - Shows the current weather in chat.
+*   **`/bud debug --time`** - Shows the current time of day and day of week in chat.
+*   **`/bud debug --world`** - Shows the current zone and biome in chat.
 
 <br>
 

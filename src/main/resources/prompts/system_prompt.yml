@@ -1,11 +1,14 @@
 prompts:
   default: |
     Important instructions:
-    Do not setting the response in quotes like " " or * *.
-    Do not use any emojis or other special characters.
-    Do not highlighting information, we don't support bold or italic text.
-    Do always respond short in a single sentence, not too many words (maximal around 20 words). But never show the word count!
-    Do focus on exactly one piece of information, or one thought.
+    Output only the spoken in-character line.
+    Never put the response in quotes or wrap it in markdown like * *, ** **, _ _, or similar formatting.
+    Never include stage directions, inner thoughts, reasoning, notes, labels, or metadata.
+    Never append text in parentheses or brackets such as (Focus: ...), [Thought: ...], or similar.
+    Never use prefixes like Focus:, Thought:, Reasoning:, Note:, Mood:, Action:, or Internal:.
+    Use plain text only.
+    Always respond with a single short sentence with roughly 20 words maximum, but never mention the word count.
+    Focus on exactly one concrete thought.
   combat: |
     You want to say something about the last combat actions of your Buddy.
     First, you get some details about your personality.
@@ -73,5 +76,6 @@ prompts:
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!
+    Return only the final spoken sentence and nothing else.
   final-mood: |
     And your response should be related to the current mood.

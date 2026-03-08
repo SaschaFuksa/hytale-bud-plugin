@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
@@ -69,25 +70,46 @@ public class BudManager {
         }
         ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
         int size = buds.size();
-        int item = new java.util.Random().nextInt(size);
-        int i = 0;
+        if (size == 0) {
+            return null;
+        }
+        int startIndex = ThreadLocalRandom.current().nextInt(size);
+        int index = 0;
         for (NPCEntity bud : buds) {
-            if (i == item)
-                return getBudComponent(bud);
-            i++;
+            if (index++ < startIndex) {
+                continue;
+            }
+            BudComponent budComponent = findBudComponent(bud);
+            if (budComponent != null) {
+                return budComponent;
+            }
+        }
+        for (NPCEntity bud : buds) {
+            BudComponent budComponent = findBudComponent(bud);
+            if (budComponent != null) {
+                return budComponent;
+            }
         }
         return null;
     }
 
-    @Nonnull
-    public BudComponent getBudComponent(NPCEntity bud) {
+    @Nullable
+    public BudComponent findBudComponent(NPCEntity bud) {
+        if (bud == null) {
+            return null;
+        }
         Ref<EntityStore> ref = bud.getReference();
         if (ref == null || !isValidBud(ref)) {
-            throw new IllegalStateException("Invalid Bud reference");
+            return null;
         }
-        BudComponent component = ref.getStore().getComponent(ref, BudComponent.getComponentType());
+        return ref.getStore().getComponent(ref, BudComponent.getComponentType());
+    }
+
+    @Nonnull
+    public BudComponent getBudComponent(NPCEntity bud) {
+        BudComponent component = findBudComponent(bud);
         if (component == null) {
-            throw new IllegalStateException("BudComponent not found");
+            throw new IllegalStateException("Invalid Bud reference");
         }
         return component;
     }

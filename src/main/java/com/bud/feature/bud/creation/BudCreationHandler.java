@@ -60,7 +60,10 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         }
         List<BudComponent> existingBudTeleports = new ArrayList<>();
         for (NPCEntity existingBud : playerBudComponent.getCurrentBuds()) {
-            BudComponent budComponent = BudManager.getInstance().getBudComponent(existingBud);
+            BudComponent budComponent = BudManager.getInstance().findBudComponent(existingBud);
+            if (budComponent == null) {
+                continue;
+            }
             if (!event.budTypes().contains(budComponent.getBudType())) {
                 continue;
             }

@@ -88,9 +88,9 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
     private static List<BudComponent> getAllBudComponents(@Nonnull PlayerBudComponent playerBudComponent) {
         List<BudComponent> budComponents = new ArrayList<>();
         for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
-            try {
-                budComponents.add(BudManager.getInstance().getBudComponent(bud));
-            } catch (Exception ignored) {
+            BudComponent budComponent = BudManager.getInstance().findBudComponent(bud);
+            if (budComponent != null) {
+                budComponents.add(budComponent);
             }
         }
         return budComponents;

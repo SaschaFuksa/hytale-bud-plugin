@@ -85,11 +85,7 @@ public class WorldTracker extends AbstractTracker {
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
                     String weatherId = weather != null ? weather.getId() : "unknown";
                     WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
-                    if (entityStore == null) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] Entity store is null for player: "
-                                + playerRef.getUsername());
-                        return;
-                    }
+
                     WorldEntry worldEntry = WorldEntry.from(playerRef, world,
                             entityStore,
                             weatherEntry, budComponent);

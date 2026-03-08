@@ -1,6 +1,8 @@
 package com.bud.core.components;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -14,6 +16,7 @@ import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -76,6 +79,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
     }
 
     public synchronized void addBud(NPCEntity bud, BudType budType) {
+        pruneInvalidBuds();
         if (currentBuds.size() >= 3) {
             return;
         }
@@ -85,6 +89,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
     }
 
     public ConcurrentLinkedQueue<NPCEntity> getCurrentBuds() {
+        pruneInvalidBuds();
         return currentBuds;
     }
 
@@ -95,6 +100,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
     }
 
     public synchronized boolean hasBuds() {
+        pruneInvalidBuds();
         if (currentBuds.size() != budTypes.size()) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Player has no buds or mismatched bud types.");
         }
@@ -103,6 +109,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     @Nonnull
     public Set<BudType> getBudTypes() {
+        pruneInvalidBuds();
         return new HashSet<>(budTypes);
     }
 
@@ -135,6 +142,52 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public synchronized void setLastKnownWeatherId(String weatherId) {
         this.lastKnownWeatherId = weatherId;
+    }
+
+    private synchronized void pruneInvalidBuds() {
+        List<NPCEntity> invalidBuds = new ArrayList<>();
+        for (NPCEntity bud : currentBuds) {
+            if (isBudReferenceValid(bud)) {
+                continue;
+            }
+            invalidBuds.add(bud);
+        }
+        for (NPCEntity bud : invalidBuds) {
+            currentBuds.remove(bud);
+            BudType budType = resolveBudType(bud);
+            if (budType != null) {
+                budTypes.remove(budType);
+            }
+        }
+    }
+
+    private static boolean isBudReferenceValid(NPCEntity bud) {
+        if (bud == null) {
+            return false;
+        }
+        try {
+            Ref<EntityStore> budRef = bud.getReference();
+            return budRef != null && budRef.isValid();
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private static BudType resolveBudType(NPCEntity bud) {
+        if (bud == null) {
+            return null;
+        }
+        try {
+            String npcTypeId = bud.getNPCTypeId();
+            for (BudType budType : BudType.values()) {
+                if (budType.getName().equals(npcTypeId)) {
+                    return budType;
+                }
+            }
+        } catch (Exception exception) {
+            return null;
+        }
+        return null;
     }
 
     @Override

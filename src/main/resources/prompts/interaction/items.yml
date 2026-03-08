@@ -28,6 +28,7 @@ inventory:
   gem: Gems are extremely rare stones that can be found in the world. They are extremely valuable.
   milk: Milk is a white liquid produced by cows. It can be consumed for nourishment or used in crafting recipes.
   egg: Eggs are produced by chickens. They can be consumed for nourishment or used in crafting recipes.
+  poop: Poop is produced by animals. It can be used as fertilizer for crops. It's smelly and dirty.
 bench:
   cooking: Cooking Bench is used to prepare meals and cook food from raw ingredients.
   alchemy: Alchemy Bench is used to brew potions and mix alchemical ingredients.

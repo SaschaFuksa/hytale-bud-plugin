@@ -79,7 +79,10 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             if (playerRef != null && playerBudComponent.hasBuds()) {
                 List<BudComponent> budComponents = new ArrayList<>();
                 for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
-                    budComponents.add(BudManager.getInstance().getBudComponent(bud));
+                    BudComponent budComponent = BudManager.getInstance().findBudComponent(bud);
+                    if (budComponent != null) {
+                        budComponents.add(budComponent);
+                    }
                 }
                 if (!budComponents.isEmpty()) {
                     int speakingIndex = ThreadLocalRandom.current().nextInt(budComponents.size());
