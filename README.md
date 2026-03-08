@@ -128,6 +128,7 @@ The plugin is primarily controlled via simple chat commands:
 
 To enable the AI features, edit the `LLM.json` in your server's mod folder:
 
+
 ### LLM Configuration
 
 | Setting | Description | Default |
@@ -139,6 +140,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `ApiKey` | The API key for your LLM service | `not_needed` |
 | `MaxTokens` | Limit the length of AI responses | `100` |
 | `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
+<br>
 
 ### Reaction Configuration
 
@@ -156,6 +158,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
 | `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
+<br>
 
 ### Orchestration Configuration (Only change if needed for performance tuning)
 
@@ -165,6 +168,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
 | `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
 | `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
+<br>
 
 ### Debug Configuration
 | Setting | Description | Default |
@@ -179,7 +183,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 - Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
 - Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
-<br>
+
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
@@ -188,7 +192,6 @@ First time the server starts, the default prompts will be copied from the resour
 
 **Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
 
-<br>
 
 ### ⚠️ LLM Performance Note (Reasoning Models)
 
