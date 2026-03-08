@@ -88,26 +88,26 @@ The plugin is primarily controlled via simple chat commands:
 #### Creation Commands
 
 *   **`/bud create`** - Creates all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud create [veri|gronkh|keyleth]`** - Target a specific buddy for spawning or teleportation.
+*   **`/bud create [--veri|--gronkh|--keyleth]`** - Target a specific buddy for spawning or teleportation.
 *   **`/bud reset`** - Recreate all your buddies.
 
 #### Deletion Commands
 
 *   **`/bud delete`** - Deletes all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud delete [veri|gronkh|keyleth]`** - Deletes a specific buddy.
-*   **`/bud delete world`** - Deletes all buddies of all worlds.
+*   **`/bud delete [--veri|--gronkh|--keyleth]`** - Deletes a specific buddy.
+*   **`/bud delete --world`** - Deletes all buddies of all worlds.
 
 #### State Commands
 
 *   **`/bud state`** - Change the behavior mode for all active Buds to the next state.
-*   **`/bud state defensive`** - Change the behavior mode for all active Buds to Defensive.
-*   **`/bud state passive`** - Change the behavior mode for all active Buds to Passive.
-*   **`/bud state sitting`** - Change the behavior mode for all active Buds to Sitting.
+*   **`/bud state --defensive`** - Change the behavior mode for all active Buds to Defensive.
+*   **`/bud state --passive`** - Change the behavior mode for all active Buds to Passive.
+*   **`/bud state --sitting`** - Change the behavior mode for all active Buds to Sitting.
 
 #### Prompt Commands
 
 *   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
-*   **`/bud prompt reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
+*   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
 
 #### Debug Commands
 
