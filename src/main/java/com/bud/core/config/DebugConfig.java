@@ -10,6 +10,7 @@ public class DebugConfig {
 
     private boolean enablePlayerInfo = true;
     private boolean enableBudDebugInfo = true;
+    private boolean enableMoodChangeDebugInfo = true;
 
     private static volatile DebugConfig instance;
 
@@ -33,6 +34,10 @@ public class DebugConfig {
         return this.enableBudDebugInfo;
     }
 
+    public boolean isEnableMoodChangeDebugInfo() {
+        return this.enableMoodChangeDebugInfo;
+    }
+
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -42,6 +47,10 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("EnableBudDebugInfo", Codec.BOOLEAN),
                         (config, value) -> config.enableBudDebugInfo = value,
                         config -> config.enableBudDebugInfo)
+                .add()
+                .append(new KeyedCodec<>("EnableMoodChangeDebugInfo", Codec.BOOLEAN),
+                        (config, value) -> config.enableMoodChangeDebugInfo = value,
+                        config -> config.enableMoodChangeDebugInfo)
                 .add()
                 .build();
     }

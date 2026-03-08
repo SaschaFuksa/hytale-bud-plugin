@@ -21,7 +21,8 @@ public class DebugCommand extends AbstractPlayerCommand {
 
     public DebugCommand() {
         super("debug", "Debug command for testing purposes.");
-        this.componentDataFlag = this.withFlagArg("componentData", "Shows the current state of the player's Bud.");
+        this.componentDataFlag = this.withFlagArg("componentData",
+                "Shows the current persisted data for the player's Buds.");
     }
 
     @Override

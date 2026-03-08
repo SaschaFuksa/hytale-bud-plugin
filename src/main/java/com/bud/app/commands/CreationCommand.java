@@ -18,8 +18,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class CreationCommand extends AbstractPlayerCommand {
 
-    private final FlagArg allFlag;
-
     private final FlagArg veriFlag;
 
     private final FlagArg keylethFlag;
@@ -28,7 +26,6 @@ public class CreationCommand extends AbstractPlayerCommand {
 
     public CreationCommand() {
         super("create", "Bud creation commands.");
-        this.allFlag = this.withFlagArg("all", "Create all Buds.");
         this.veriFlag = this.withFlagArg("veri", "Create Veri Bud.");
         this.keylethFlag = this.withFlagArg("keyleth", "Create Keyleth Bud.");
         this.gronkhFlag = this.withFlagArg("gronkh", "Create Gronkh Bud.");
@@ -42,11 +39,7 @@ public class CreationCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        if (this.allFlag.get(context)) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
-        } else if (this.veriFlag.get(context)) {
+        if (this.veriFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Veri Bud for player " + playerRef.getUsername());
             this.dispatchCreation(ref, Set.of(BudType.VERI));

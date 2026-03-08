@@ -17,20 +17,20 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class DeletionCommand extends AbstractPlayerCommand {
 
-    private final FlagArg allFlag;
-
     private final FlagArg veriFlag;
 
     private final FlagArg keylethFlag;
 
     private final FlagArg gronkhFlag;
 
+    private final FlagArg worldFlag;
+
     public DeletionCommand() {
         super("delete", "Delete Bud commands.");
-        this.allFlag = this.withFlagArg("all", "Delete all Buds for all players.");
         this.veriFlag = this.withFlagArg("veri", "Delete Veri Bud.");
         this.keylethFlag = this.withFlagArg("keyleth", "Delete Keyleth Bud.");
         this.gronkhFlag = this.withFlagArg("gronkh", "Delete Gronkh Bud.");
+        this.worldFlag = this.withFlagArg("world", "Delete all Buds in all worlds.");
     }
 
     @Override
@@ -41,7 +41,7 @@ public class DeletionCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        if (this.allFlag.get(context)) {
+        if (this.worldFlag.get(context)) {
             CleanupUtil.cleanupAllBuds(world, store);
         } else if (this.veriFlag.get(context)) {
             this.cleanupBuds(playerRef, store, Set.of(BudType.VERI));

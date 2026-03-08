@@ -5,11 +5,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
+import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldResolver;
 import com.bud.feature.world.time.TimeInformationUtil;
@@ -101,11 +103,21 @@ public class MoodTracker extends AbstractTracker {
                     budComponent.setCurrentMood(Mood.getRandomMood());
                     LoggerUtil.getLogger().info(() -> "[BUD] Random mood change for "
                             + budProfile.getNPCDisplayName() + ": " + budComponent.getCurrentMood());
+                    if (DebugConfig.getInstance().isEnableMoodChangeDebugInfo()) {
+                        ChatEvent.dispatch(budComponent.getPlayerRef(),
+                                "Mood of " + budProfile.getNPCDisplayName() + " has changed to "
+                                        + budComponent.getCurrentMood() + "!");
+                    }
                 }
             } else {
                 budComponent.setCurrentMood(Mood.DEFAULT);
                 LoggerUtil.getLogger().info(() -> "[BUD] Mood reset to DEFAULT for "
                         + budProfile.getNPCDisplayName());
+                if (DebugConfig.getInstance().isEnableMoodChangeDebugInfo()) {
+                    ChatEvent.dispatch(budComponent.getPlayerRef(),
+                            "Mood of " + budProfile.getNPCDisplayName() + " has changed to "
+                                    + budComponent.getCurrentMood() + "!");
+                }
             }
         }
     }

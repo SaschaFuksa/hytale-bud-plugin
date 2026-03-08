@@ -16,14 +16,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class PromptCommand extends AbstractPlayerCommand {
 
-    private final FlagArg reloadFlag;
-
     private final FlagArg resetFlag;
 
     public PromptCommand() {
         super("prompt", "Manage Bud prompts.");
-        this.reloadFlag = this.withFlagArg("reload",
-                "Reload all Bud prompts for all players. Add missing, wont overwrite existing.");
         this.resetFlag = this.withFlagArg("reset", "Reset Bud prompts to default.");
     }
 
@@ -35,12 +31,7 @@ public class PromptCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        if (this.reloadFlag.get(context)) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Reloading Bud prompts by player: " + playerRef.getUsername());
-            LLMPromptManager.getInstance().reloadMissingPrompts();
-            ChatEvent.dispatch(playerRef, "Reloaded prompts.");
-        } else if (this.resetFlag.get(context)) {
+        if (this.resetFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Resetting Bud prompts by player: " + playerRef.getUsername());
             LLMPromptManager.getInstance().resetPrompts();
