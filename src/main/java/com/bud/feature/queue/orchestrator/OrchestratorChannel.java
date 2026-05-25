@@ -4,5 +4,6 @@ public enum OrchestratorChannel {
 
     AMBIENT,
     ACTIVITY,
-    COMBAT
+    COMBAT,
+    SOCIAL
 }

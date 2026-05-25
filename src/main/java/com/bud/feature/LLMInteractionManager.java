@@ -4,6 +4,8 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.config.LLMConfig;
 import com.bud.feature.chat.ChatEvent;
+import com.bud.feature.chat.conversation.ConversationContext;
+import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.llm.LLMCaller;
@@ -25,39 +27,58 @@ public class LLMInteractionManager {
         return INSTANCE;
     }
 
-    public void processInteraction(@Nonnull LLMInteractionEntry interactionEntry) {
+    public String processInteraction(@Nonnull LLMInteractionEntry interactionEntry) {
+        if (interactionEntry.promptContext() instanceof ConversationContext conversationContext) {
+            synchronized (ConversationMemoryService.getInstance()
+                    .getConversationLock(conversationContext.getConversationOwnerKey())) {
+                return processInteractionInternal(interactionEntry, conversationContext);
+            }
+        }
+        return processInteractionInternal(interactionEntry, null);
+    }
+
+    private String processInteractionInternal(@Nonnull LLMInteractionEntry interactionEntry,
+            ConversationContext conversationContext) {
         Ref<EntityStore> entityRef = interactionEntry.getBudComponent().getBud().getReference();
         IBudProfile budProfile = BudProfileMapper.getInstance()
                 .getProfileForBudType(interactionEntry.getBudComponent().getBudType());
-        if (entityRef == null) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] Entity reference is null for Bud: "
-                            + interactionEntry.getBudComponent().getBud());
-            return;
+        String message = null;
+        try {
+            if (entityRef == null) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] Entity reference is null for Bud: "
+                                + interactionEntry.getBudComponent().getBud());
+                return null;
+            }
+            Prompt prompt = interactionEntry.llmMessageCreation().createPrompt(interactionEntry.promptContext());
+            if (prompt == null) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] No prompt found for: " + interactionEntry.getBudComponent().getBud());
+                return null;
+            }
+            if (conversationContext != null) {
+                prompt = ConversationMemoryService.getInstance().augmentPrompt(prompt, conversationContext);
+            }
+            if (LLMConfig.getInstance().isEnableLLM()) {
+                message = LLMCaller.getInstance().callLLM(prompt, budProfile).join();
+            } else {
+                message = prompt.systemPrompt();
+            }
+            if (message == null || message.isBlank()) {
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] LLM returned empty message for: "
+                                + interactionEntry.getBudComponent().getBud());
+                return null;
+            }
+            ChatEvent.dispatch(interactionEntry.getBudComponent().getPlayerRef(),
+                    formatBudSpeech(budProfile.getNPCDisplayName(), message));
+            SoundEvent.dispatch(entityRef, budProfile.getBudSoundData().getPassiveSound());
+            LoggerUtil.getLogger().fine(() -> "[BUD] Processing interaction for: "
+                    + interactionEntry.getBudComponent().getBud().getNPCTypeId());
+            return message;
+        } finally {
+            ConversationMemoryService.getInstance().afterInteraction(interactionEntry, budProfile, message);
         }
-        Prompt prompt = interactionEntry.llmMessageCreation().createPrompt(interactionEntry.promptContext());
-        if (prompt == null) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] No prompt found for: " + interactionEntry.getBudComponent().getBud());
-            return;
-        }
-        String message;
-        if (LLMConfig.getInstance().isEnableLLM()) {
-            message = LLMCaller.getInstance().callLLM(prompt, budProfile).join();
-        } else {
-            message = prompt.systemPrompt();
-        }
-        if (message == null || message.isBlank()) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] LLM returned empty message for: "
-                            + interactionEntry.getBudComponent().getBud());
-            return;
-        }
-        ChatEvent.dispatch(interactionEntry.getBudComponent().getPlayerRef(),
-                formatBudSpeech(budProfile.getNPCDisplayName(), message));
-        SoundEvent.dispatch(entityRef, budProfile.getBudSoundData().getPassiveSound());
-        LoggerUtil.getLogger().fine(() -> "[BUD] Processing interaction for: "
-                + interactionEntry.getBudComponent().getBud().getNPCTypeId());
     }
 
     @Nonnull

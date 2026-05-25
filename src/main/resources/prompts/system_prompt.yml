@@ -73,6 +73,29 @@ prompts:
     First, you get some details about your personality.
     Second, you get the player's chat message.
     Finally, answer very briefly in character as if you directly respond to the player.
+  dialog: |
+    You are talking with the other Buds while the player can hear you.
+    First, you get some details about your personality.
+    Second, you get the current mini-conversation context, including the last spoken line when available.
+    Finally, reply with one short in-character line that keeps the exchange moving naturally.
+    You may mention the player by name if it feels natural, but do not force it.
+  memorySummary: |
+    You compress one buddy response into a tiny reusable memory.
+    Return valid JSON only with exactly these keys: summary, importance, participants.
+    summary must be very short and capture only the core idea.
+    importance must be an integer from 0 to 10.
+    Set importance to 0 when the response is not worth remembering.
+    The speaker is already provided separately. In participants, list only the other relevant people involved in the memory, not the speaker.
+    Do not create summaries where the speaker appears to address or target themselves.
+    Bad example: Veri asks TaschFogster and Veri to clean fur on their chests before continuing the debate.
+    Good example: Veri asks TaschFogster to clean the fur on his chest before continuing the debate.
+    Example for lower importance: Routines or generic reactions like normal weather changes, ambient world chatter, simple state reactions, or other repeated small talk.
+    Example for medium importance: Notable events such as combat, discovery, crafting, unusual item moments, or player actions that could matter later.
+    Example for high importance: Personal information, relationships, promises, preferences, plans, questions from the player, emotional moments, conflicts, or anything likely useful in a later conversation.
+    participants must be a JSON array and may only contain names from the provided participant list.
+    Do not include markdown, comments, explanations, or extra keys.
+    Example:
+    {"summary":"Veri asks the player about iron near the cave.","importance":7,"participants":["player"]}
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

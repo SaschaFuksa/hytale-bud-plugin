@@ -4,11 +4,14 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.BudManager;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudType;
 import com.bud.feature.bud.MoodTracker;
+import com.bud.feature.chat.conversation.ConversationMemoryService;
+import com.bud.feature.chat.conversation.DialogModeTracker;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
@@ -69,6 +72,9 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (ReactionConfig.getInstance().isEnableWeatherReactions()) {
             WeatherTracker.getInstance().startPolling();
         }
+        if (ConversationConfig.getInstance().isEnableDialogMode()) {
+            DialogModeTracker.getInstance().startPolling();
+        }
         Orchestrator.getInstance().start();
         if (DebugConfig.getInstance().isEnablePlayerInfo()) {
             BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
@@ -84,6 +90,8 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (playerRef != null) {
             BudManager.getInstance().unregisterPlayer(playerRef);
             Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
+            DialogModeTracker.getInstance().clearPlayer(playerRef.getUsername());
+            ConversationMemoryService.getInstance().clearPlayer(playerRef.getUsername());
         }
     }
 
