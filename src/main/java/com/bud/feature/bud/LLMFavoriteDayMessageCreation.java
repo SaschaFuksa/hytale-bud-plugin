@@ -37,7 +37,7 @@ public class LLMFavoriteDayMessageCreation extends AbstractLLMMessageCreation {
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
                                                         favoriteDayEntry.budComponent().getCurrentMood()
-                                                                        .getDisplayName()
+                                                                        .getLegacyDisplayName()
                                                                         .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }

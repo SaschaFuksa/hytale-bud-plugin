@@ -2,12 +2,13 @@ package com.bud.feature.sound;
 
 import java.util.function.Consumer;
 
+import org.joml.Vector3d;
+
 import com.bud.core.sound.delegate.HytaleSoundEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.SoundUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -28,9 +29,9 @@ public class SoundHandler implements Consumer<SoundEvent> {
         store.getExternalData().getWorld().execute(() -> {
             TransformComponent transformComponent = store.getComponent(budRef, transformComponentType);
             Vector3d position = transformComponent.getPosition();
-            SoundUtil.playSoundEvent3d(budRef, getSoundEventIndex(event.soundEventID()), position.getX(),
-                    position.getY(),
-                    position.getZ(), false, store);
+            SoundUtil.playSoundEvent3d(budRef, getSoundEventIndex(event.soundEventID()), position.x,
+                    position.y,
+                    position.z, false, store);
         });
     }
 

@@ -50,7 +50,7 @@ public class LLMStateMessageCreation extends AbstractLLMMessageCreation {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            stateEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            stateEntry.getBudComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
         messageBuilder.append("\n").append(manager.getSystemPrompt("final"));

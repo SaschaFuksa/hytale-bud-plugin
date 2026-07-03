@@ -45,7 +45,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component added to entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component added to entity: " + player.getLegacyDisplayName());
         }
     }
 
@@ -58,7 +59,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component updated on entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component updated on entity: " + player.getLegacyDisplayName());
         }
     }
 
@@ -70,7 +72,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component removed on entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component removed on entity: " + player.getLegacyDisplayName());
         }
         try {
             PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());

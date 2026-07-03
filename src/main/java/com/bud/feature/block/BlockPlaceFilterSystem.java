@@ -55,9 +55,9 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
                     final String blockName = ItemUtil.getDisplayName(blockId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Place Event: " +
-                            player.getDisplayName() + " placed "
+                            player.getLegacyDisplayName() + " placed "
                             + blockName);
-                    RecentBlockCache.getInstance().add(player.getDisplayName(), new BlockEntry(blockName,
+                    RecentBlockCache.getInstance().add(player.getLegacyDisplayName(), new BlockEntry(blockName,
                             BlockInteraction.PLACE, budComponent));
                 }
             }

@@ -52,7 +52,7 @@ public class LLMCraftMessageCreation extends AbstractLLMMessageCreation {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            craftEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            craftEntry.getBudComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

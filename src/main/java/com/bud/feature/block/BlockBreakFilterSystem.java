@@ -50,9 +50,9 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
                     final String blockName = ItemUtil.getDisplayName(blockId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " +
-                            player.getDisplayName() + " broke "
+                            player.getLegacyDisplayName() + " broke "
                             + blockName);
-                    RecentBlockCache.getInstance().add(player.getDisplayName(), new BlockEntry(blockName,
+                    RecentBlockCache.getInstance().add(player.getLegacyDisplayName(), new BlockEntry(blockName,
                             BlockInteraction.BREAK, budComponent));
                 }
             }

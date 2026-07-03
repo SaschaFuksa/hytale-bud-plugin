@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.joml.Vector3d;
+
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
@@ -21,7 +23,6 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -118,9 +119,9 @@ public class BudManager {
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        double offsetX = targetPos.getX() + random.nextDouble() * 6 - 3;
-        double offsetY = targetPos.getY() + 0.5;
-        double offsetZ = targetPos.getZ() + random.nextDouble() * 6 - 3;
+        double offsetX = targetPos.x + random.nextDouble() * 6 - 3;
+        double offsetY = targetPos.y + 0.5;
+        double offsetZ = targetPos.z + random.nextDouble() * 6 - 3;
         return new Vector3d(offsetX, offsetY, offsetZ);
     }
 

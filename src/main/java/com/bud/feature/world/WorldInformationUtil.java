@@ -1,10 +1,11 @@
 package com.bud.feature.world;
 
+import org.joml.Vector3d;
+
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.builtin.weather.components.WeatherTracker;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
@@ -26,8 +27,8 @@ public class WorldInformationUtil {
         IWorldGen worldGen = world.getChunkStore().getGenerator();
         if (worldGen instanceof ChunkGenerator generator) {
             int seed = (int) world.getWorldConfig().getSeed();
-            int x = (int) pos.getX();
-            int z = (int) pos.getZ();
+            int x = (int) pos.x;
+            int z = (int) pos.z;
 
             try {
                 ZoneBiomeResult result = generator.getZoneBiomeResultAt(seed, x, z);
@@ -45,8 +46,8 @@ public class WorldInformationUtil {
         IWorldGen worldGen = world.getChunkStore().getGenerator();
         if (worldGen instanceof ChunkGenerator generator) {
             int seed = (int) world.getWorldConfig().getSeed();
-            int x = (int) pos.getX();
-            int z = (int) pos.getZ();
+            int x = (int) pos.x;
+            int z = (int) pos.z;
 
             try {
                 ZoneBiomeResult result = generator.getZoneBiomeResultAt(seed, x, z);
