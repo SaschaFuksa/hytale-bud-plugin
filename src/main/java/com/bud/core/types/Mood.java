@@ -18,7 +18,7 @@ public enum Mood {
         this.displayName = displayName;
     }
 
-    public String getLegacyDisplayName() {
+    public String getDisplayName() {
         return displayName;
     }
 

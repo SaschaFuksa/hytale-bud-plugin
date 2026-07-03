@@ -14,6 +14,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.DiscoverZoneEvent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.WorldMapTracker.ZoneDiscoveryInfo;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -35,6 +36,7 @@ public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, Dis
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             if (player != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
@@ -46,10 +48,10 @@ public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, Dis
                     String regionName = info.regionName();
                     boolean major = info.major();
 
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Discover Zone Event: " + player.getLegacyDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Discover Zone Event: " + playerRef.getUsername()
                             + " discovered zone=" + zoneName + " region=" + regionName + " major=" + major);
 
-                    RecentDiscoverCache.getInstance().add(player.getLegacyDisplayName(),
+                    RecentDiscoverCache.getInstance().add(playerRef.getUsername(),
                             new DiscoverEntry(zoneName, regionName, major, budComponent));
                 }
             }
