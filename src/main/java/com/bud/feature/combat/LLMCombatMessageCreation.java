@@ -58,7 +58,7 @@ public class LLMCombatMessageCreation extends AbstractLLMMessageCreation {
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
                                                         opponentEntry.getBudComponent().getCurrentMood()
-                                                                        .getLegacyDisplayName().toLowerCase()));
+                                                                        .getDisplayName().toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }
 

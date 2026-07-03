@@ -61,7 +61,7 @@ public class LLMItemMessageCreation extends AbstractLLMMessageCreation {
                         systemPromptBuilder.append("\n")
                                         .append(manager.getMoodPrompt(
                                                         itemEntry.getBudComponent().getCurrentMood()
-                                                                        .getLegacyDisplayName()
+                                                                        .getDisplayName()
                                                                         .toLowerCase()));
                         messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
                 }

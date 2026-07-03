@@ -9,13 +9,11 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Rotation3fc;
 
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import com.hypixel.hytale.math.vector.Rotation3f;
-import com.hypixel.hytale.protocol.Rotation;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;

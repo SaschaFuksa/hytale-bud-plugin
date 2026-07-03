@@ -57,7 +57,7 @@ public class LLMDiscoverMessageCreation extends AbstractLLMMessageCreation {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            discoverEntry.getBudComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
+                            discoverEntry.getBudComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

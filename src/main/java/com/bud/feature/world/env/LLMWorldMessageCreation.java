@@ -56,7 +56,7 @@ public class LLMWorldMessageCreation extends AbstractLLMMessageCreation {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            worldEntry.budComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
+                            worldEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

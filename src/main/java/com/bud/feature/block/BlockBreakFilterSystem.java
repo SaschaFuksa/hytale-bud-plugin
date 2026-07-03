@@ -15,6 +15,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, BreakBlockEvent> {
@@ -36,6 +37,7 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             if (player != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
@@ -50,9 +52,9 @@ public class BlockBreakFilterSystem extends EntityEventSystem<EntityStore, Break
                     final String blockName = ItemUtil.getDisplayName(blockId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Break Event: " +
-                            player.getLegacyDisplayName() + " broke "
+                            playerRef.getUsername() + " broke "
                             + blockName);
-                    RecentBlockCache.getInstance().add(player.getLegacyDisplayName(), new BlockEntry(blockName,
+                    RecentBlockCache.getInstance().add(playerRef.getUsername(), new BlockEntry(blockName,
                             BlockInteraction.BREAK, budComponent));
                 }
             }

@@ -56,7 +56,7 @@ public class LLMBlockMessageCreation extends AbstractLLMMessageCreation {
                     .append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            blockEntry.budComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
+                            blockEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 
