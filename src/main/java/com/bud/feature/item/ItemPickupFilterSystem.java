@@ -63,7 +63,7 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
             Ref<EntityStore> playerRef = player.getReference();
             if (playerRef == null) {
                 LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] Player reference is null for player: " + player.getDisplayName());
+                        .warning(() -> "[BUD] Player reference is null for player: " + player.getLegacyDisplayName());
                 return;
             }
             PlayerBudComponent playerBudComponent = playerRef.getStore().getComponent(playerRef,
@@ -71,9 +71,9 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
             BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
             if (relevantItem && budComponent != null) {
                 LoggerUtil.getLogger()
-                        .finer(() -> "[BUD] Inventory Change (ADD): " + player.getDisplayName()
+                        .finer(() -> "[BUD] Inventory Change (ADD): " + player.getLegacyDisplayName()
                                 + " received " + displayName);
-                RecentItemCache.getInstance().add(player.getDisplayName(),
+                RecentItemCache.getInstance().add(player.getLegacyDisplayName(),
                         new ItemEntry(displayName, ItemInteraction.PICKUP, budComponent));
             }
         } catch (Exception e) {

@@ -4,6 +4,8 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
+import org.joml.Vector3d;
+
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.TimeOfDay;
 import com.bud.feature.LLMPromptManager;
@@ -14,7 +16,6 @@ import com.bud.feature.world.time.TimeMessage;
 import com.bud.feature.world.weather.WeatherEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;

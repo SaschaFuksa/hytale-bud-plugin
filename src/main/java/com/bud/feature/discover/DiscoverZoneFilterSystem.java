@@ -46,10 +46,10 @@ public class DiscoverZoneFilterSystem extends EntityEventSystem<EntityStore, Dis
                     String regionName = info.regionName();
                     boolean major = info.major();
 
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Discover Zone Event: " + player.getDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Discover Zone Event: " + player.getLegacyDisplayName()
                             + " discovered zone=" + zoneName + " region=" + regionName + " major=" + major);
 
-                    RecentDiscoverCache.getInstance().add(player.getDisplayName(),
+                    RecentDiscoverCache.getInstance().add(player.getLegacyDisplayName(),
                             new DiscoverEntry(zoneName, regionName, major, budComponent));
                 }
             }

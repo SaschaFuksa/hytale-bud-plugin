@@ -9,8 +9,13 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3fc;
+
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.protocol.Rotation;
 import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
@@ -32,7 +37,7 @@ public class BudSpawner {
     private final Vector3d position;
 
     @Nonnull
-    private Vector3f rotation = new Vector3f(0, 0, 0);
+    private Rotation3f rotation = new Rotation3f(0, 0, 0);
     private boolean withInventory = false;
     private int inventoryRows = 3;
     private int inventoryColumns = 9;
@@ -57,7 +62,7 @@ public class BudSpawner {
     }
 
     public BudSpawner withRotation(@Nonnull Vector3f rotation) {
-        this.rotation = rotation;
+        this.rotation = new Rotation3f(rotation.x, rotation.y, rotation.z);
         return this;
     }
 
@@ -132,8 +137,8 @@ public class BudSpawner {
             LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure inventory: NPC component not found");
             return;
         }
-
-        npcComponent.setInventorySize(inventoryRows, inventoryColumns, 0);
+        // TODO: Implement inventory size configuration if needed
+        // npcComponent.setInventorySize(inventoryRows, inventoryColumns, 0);
         Inventory inventory = npcComponent.getInventory();
 
         for (WeaponConfig weapon : weapons) {
@@ -142,7 +147,7 @@ public class BudSpawner {
         }
 
         if (!weapons.isEmpty()) {
-            inventory.setActiveHotbarSlot((byte) weapons.get(0).slot);
+            // inventory.setActiveHotbarSlot((byte) weapons.get(0).slot);
         }
 
         for (ArmorConfig armor : armors) {

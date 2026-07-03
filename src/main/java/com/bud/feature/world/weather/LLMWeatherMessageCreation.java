@@ -47,7 +47,7 @@ public class LLMWeatherMessageCreation extends AbstractLLMMessageCreation {
             systemPromptBuilder.append("\n").append(manager.getMoodPrompt("instruction"));
             systemPromptBuilder.append("\n")
                     .append(manager.getMoodPrompt(
-                            weatherEntry.budComponent().getCurrentMood().getDisplayName().toLowerCase()));
+                            weatherEntry.budComponent().getCurrentMood().getLegacyDisplayName().toLowerCase()));
             messageBuilder.append("\n").append(manager.getSystemPrompt("final-mood"));
         }
 

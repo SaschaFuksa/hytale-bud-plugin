@@ -70,10 +70,10 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
                 BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
                 if (budComponent != null) {
                     final String benchKey = matchedKeyword;
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getLegacyDisplayName()
                             + " used bench=" + blockTypeId + " (keyword=" + benchKey + ")");
 
-                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                    RecentCraftCache.getInstance().add(player.getLegacyDisplayName(),
                             new CraftEntry(benchKey, CraftInteraction.USED, budComponent));
                 }
             }

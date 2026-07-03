@@ -45,10 +45,10 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
                     if (itemId == null) {
                         return;
                     }
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getLegacyDisplayName()
                             + " crafted item=" + itemId);
 
-                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                    RecentCraftCache.getInstance().add(player.getLegacyDisplayName(),
                             new CraftEntry(itemId, CraftInteraction.CRAFTED, budComponent));
                 }
             }

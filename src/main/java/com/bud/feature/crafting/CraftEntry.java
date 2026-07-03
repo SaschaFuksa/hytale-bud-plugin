@@ -13,7 +13,7 @@ import com.bud.feature.queue.IQueueEntry;
 public record CraftEntry(@Nonnull String itemId, @Nonnull CraftInteraction interaction,
         @Nonnull BudComponent budComponent) implements IQueueEntry {
 
-    public String getDisplayName() {
+    public String getLegacyDisplayName() {
         if (this.interaction == CraftInteraction.USED) {
             ItemMessage itemPrompt = LLMPromptManager.getInstance().getItemPromptMessage();
             Map<String, String> bench = itemPrompt.getBench();
@@ -26,9 +26,9 @@ public record CraftEntry(@Nonnull String itemId, @Nonnull CraftInteraction inter
 
     public String getCraftingInformation() {
         if (this.interaction == CraftInteraction.USED) {
-            return "Your Buddy just used a crafting station: " + getDisplayName();
+            return "Your Buddy just used a crafting station: " + getLegacyDisplayName();
         }
-        return "Your Buddy just crafted: " + getDisplayName() + ".";
+        return "Your Buddy just crafted: " + getLegacyDisplayName() + ".";
     }
 
     @Override
