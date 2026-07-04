@@ -19,6 +19,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.InteractivelyPickupItemEvent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, InteractivelyPickupItemEvent> {
@@ -51,6 +52,7 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             String itemName = event.getItemStack().getItem().getId();
             if (itemName == null) {
@@ -60,20 +62,20 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
 
-            Ref<EntityStore> playerRef = player.getReference();
-            if (playerRef == null) {
+            Ref<EntityStore> ref = player.getReference();
+            if (ref == null) {
                 LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] Player reference is null for player: " + player.getDisplayName());
+                        .warning(() -> "[BUD] Player reference is null for player: " + playerRef.getUsername());
                 return;
             }
-            PlayerBudComponent playerBudComponent = playerRef.getStore().getComponent(playerRef,
+            PlayerBudComponent playerBudComponent = ref.getStore().getComponent(ref,
                     PlayerBudComponent.getComponentType());
             BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
             if (relevantItem && budComponent != null) {
                 LoggerUtil.getLogger()
-                        .finer(() -> "[BUD] Inventory Change (ADD): " + player.getDisplayName()
+                        .finer(() -> "[BUD] Inventory Change (ADD): " + playerRef.getUsername()
                                 + " received " + displayName);
-                RecentItemCache.getInstance().add(player.getDisplayName(),
+                RecentItemCache.getInstance().add(playerRef.getUsername(),
                         new ItemEntry(displayName, ItemInteraction.PICKUP, budComponent));
             }
         } catch (Exception e) {

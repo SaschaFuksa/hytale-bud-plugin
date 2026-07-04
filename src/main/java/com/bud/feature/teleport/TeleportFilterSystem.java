@@ -44,8 +44,10 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
+        PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component added to entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component added to entity: " + playerRef.getUsername());
         }
     }
 
@@ -57,8 +59,10 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
+        PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component updated on entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component updated on entity: " + playerRef.getUsername());
         }
     }
 
@@ -69,11 +73,12 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Player player = store.getComponent(ref, Player.getComponentType());
+        PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         if (player != null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Teleport component removed on entity: " + player.getDisplayName());
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Teleport component removed on entity: " + playerRef.getUsername());
         }
         try {
-            PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
             PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
 
             if (playerRef != null && playerBudComponent.hasBuds()) {

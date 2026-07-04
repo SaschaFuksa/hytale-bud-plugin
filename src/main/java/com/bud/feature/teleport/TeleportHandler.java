@@ -5,6 +5,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.joml.Vector3d;
+
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.feature.queue.teleport.TeleportEntry;
@@ -13,7 +15,6 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -65,7 +66,7 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
 
         Vector3d targetPos = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
         store.getExternalData().getWorld().execute(() -> {
-            budComponent.getBud().moveTo(budRef, targetPos.getX(), targetPos.getY(), targetPos.getZ(), store);
+            budComponent.getBud().moveTo(budRef, targetPos.x, targetPos.y, targetPos.z, store);
             store.addComponent(budRef, Teleport.getComponentType(),
                     Teleport.createExact(targetPos, transform.getRotation()));
         });

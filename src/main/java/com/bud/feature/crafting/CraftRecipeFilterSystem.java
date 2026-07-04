@@ -14,6 +14,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.CraftRecipeEvent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, CraftRecipeEvent.Post> {
@@ -35,6 +36,7 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             if (player != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
@@ -45,10 +47,10 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
                     if (itemId == null) {
                         return;
                     }
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + player.getDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Craft Recipe Event: " + playerRef.getUsername()
                             + " crafted item=" + itemId);
 
-                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                    RecentCraftCache.getInstance().add(playerRef.getUsername(),
                             new CraftEntry(itemId, CraftInteraction.CRAFTED, budComponent));
                 }
             }

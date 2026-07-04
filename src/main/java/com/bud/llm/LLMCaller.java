@@ -40,7 +40,7 @@ public class LLMCaller {
                 return message;
             } catch (IOException | InterruptedException e) {
                 LoggerUtil.getLogger().severe(() -> "[BUD] LLM Error: " + e.getMessage());
-                return null;
+                return LLMErrorMessageUtils.buildUserFacingMessage(e.getMessage());
             }
         }, Executors.newVirtualThreadPerTaskExecutor());
     }

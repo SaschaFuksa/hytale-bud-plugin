@@ -18,6 +18,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Post> {
@@ -63,6 +64,7 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
 
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             if (player != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
@@ -70,10 +72,10 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
                 BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
                 if (budComponent != null) {
                     final String benchKey = matchedKeyword;
-                    LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + player.getDisplayName()
+                    LoggerUtil.getLogger().finer(() -> "[BUD] Bench Use Event: " + playerRef.getUsername()
                             + " used bench=" + blockTypeId + " (keyword=" + benchKey + ")");
 
-                    RecentCraftCache.getInstance().add(player.getDisplayName(),
+                    RecentCraftCache.getInstance().add(playerRef.getUsername(),
                             new CraftEntry(benchKey, CraftInteraction.USED, budComponent));
                 }
             }

@@ -16,6 +16,7 @@ import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, PlaceBlockEvent> {
@@ -37,6 +38,7 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
             Player player = store.getComponent(entityRef, Player.getComponentType());
+            PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             if (player != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
@@ -55,9 +57,9 @@ public class BlockPlaceFilterSystem extends EntityEventSystem<EntityStore, Place
                     final String blockName = ItemUtil.getDisplayName(blockId);
 
                     LoggerUtil.getLogger().finer(() -> "[BUD] Block Place Event: " +
-                            player.getDisplayName() + " placed "
+                            playerRef.getUsername() + " placed "
                             + blockName);
-                    RecentBlockCache.getInstance().add(player.getDisplayName(), new BlockEntry(blockName,
+                    RecentBlockCache.getInstance().add(playerRef.getUsername(), new BlockEntry(blockName,
                             BlockInteraction.PLACE, budComponent));
                 }
             }
