@@ -138,6 +138,11 @@ public class ConversationMemoryService {
 
             int maxDepth = Math.max(1, config.getConversationMemoryDepth());
             if (decayed.size() > maxDepth) {
+                List<ConversationMemoryEntry> evicted = decayed.subList(maxDepth, decayed.size());
+                for (ConversationMemoryEntry entry : evicted) {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Memory evicted for player " + ownerKey
+                            + " (capacity " + maxDepth + " reached): " + entry.summary());
+                }
                 decayed = new ArrayList<>(decayed.subList(0, maxDepth));
             }
 
@@ -231,15 +236,17 @@ public class ConversationMemoryService {
 
             int replaceIndex = resolveLegendaryReplacement(existing, candidateEntry, budProfile);
             if (replaceIndex < 0 || replaceIndex >= existing.size()) {
-                LoggerUtil.getLogger().fine(() -> "[BUD] Legendary memory candidate discarded for "
-                        + budProfile.getNPCDisplayName() + ": slots full and no replacement chosen.");
+                LoggerUtil.getLogger().info(() -> "[BUD] Legendary memory candidate discarded for "
+                        + budProfile.getNPCDisplayName() + " (slots full, no replacement chosen): "
+                        + candidate.summary());
                 return;
             }
 
+            String replacedSummary = existing.get(replaceIndex).summary();
             existing.set(replaceIndex, candidateEntry);
             this.legendaryMemoriesByBud.put(bucketKey, existing);
-            LoggerUtil.getLogger().info(() -> "[BUD] Replaced legendary memory #" + replaceIndex + " for "
-                    + budProfile.getNPCDisplayName() + " with: " + candidate.summary());
+            LoggerUtil.getLogger().info(() -> "[BUD] Replaced legendary memory for " + budProfile.getNPCDisplayName()
+                    + ": \"" + replacedSummary + "\" -> \"" + candidate.summary() + "\"");
         }
     }
 
