@@ -24,6 +24,8 @@ import com.bud.feature.combat.DamageFilterSystem;
 import com.bud.feature.crafting.CraftRecipeFilterSystem;
 import com.bud.feature.crafting.UseBlockFilterSystem;
 import com.bud.feature.discover.DiscoverZoneFilterSystem;
+import com.bud.feature.item.InventoryChangeListener;
+import com.bud.feature.item.ItemPickupFilterSystem;
 import com.bud.feature.player.PlayerJoinSystem;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.feature.sound.SoundHandler;
@@ -125,11 +127,8 @@ public class BudPlugin extends JavaPlugin {
         }
         if (this.reactionConfig.get().isEnableItemReactions()) {
             // Register inventory change listener for auto-pickup detection (e.g. ore)
-            // TODO: Fix
-            // this.getEventRegistry().registerGlobal(
-            // InventoryChangeEvent.class,
-            // new InventoryChangeListener());
-            // this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
+            this.getEntityStoreRegistry().registerSystem(new InventoryChangeListener());
+            this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
         }
         if (this.reactionConfig.get().isEnableDiscoverReactions()) {
             this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
