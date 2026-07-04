@@ -15,7 +15,7 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 ## Update information:
 
-If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
+If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt reset**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
 ## New in 1.8.0
@@ -78,6 +78,12 @@ Gronkh:
 *   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
 *   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
 *   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
+
+### Memory System
+*   **Memory Storage**: Buds remember past interactions with the player, allowing for context-aware responses and interactions based on previous events. 
+*   **Memory Prioritization**: Memories are prioritized based on their importance, with more significant events being retained longer and influencing Bud behavior more strongly.
+*   **Memory Eviction**: Memories priority is decayed over time, and less important memories are evicted when the memory capacity is reached.
+*   **Legendary Memories**: Certain significant events can be marked as "legendary," ensuring they are retained in memory for longer periods.
 
 <br>
 
@@ -165,6 +171,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
 | `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
 | `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
+| `OrchestratorEntryTtlMs` | Time-to-live for orchestrator entries (in milliseconds) | `60000L` |
 <br>
 
 ### Debug Configuration
@@ -174,6 +181,20 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
 | `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
 
+### Conversation Configuration
+
+| Setting | Description | Default |
+|:--- |:--- |:--- |
+| `EnableConversationMemory` | Enable conversation memory | `true` |
+| `ConversationMemoryDepth` | Depth of conversation memory | `8` |
+| `ConversationMemoryDecayFactor` | Decay factor for conversation memory | `0.9` |
+| `ConversationMemoryMinImportance` | Minimum importance for conversation memory | `4` |
+| `EnableLegendaryMemory` | Enable legendary memory | `true` |
+| `LegendaryMemorySlotsPerBud` | Number of legendary memory slots per bud | `3` |
+| `EnableDialogMode` | Enable dialog mode | `true` |
+| `DialogModeIdleSeconds` | Idle time for dialog mode (in seconds) | `180L` |
+| `DialogModeActiveSeconds` | Active time for dialog mode (in seconds) | `30L` |
+| `DialogModeTurnIntervalSeconds` | Turn interval for dialog mode (in seconds) | `8L` |
 
 **LLM Usage:**
 - You can use your own local LLM Client (like LM Studio)
