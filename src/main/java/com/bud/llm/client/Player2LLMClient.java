@@ -34,13 +34,18 @@ public class Player2LLMClient extends AbstractLLMClient {
                 JsonUtils.escapeJsonWithQuotes(prompt.systemPrompt()),
                 JsonUtils.escapeJsonWithQuotes(prompt.userPrompt()));
 
-        HttpRequest request = HttpRequest.newBuilder()
+        String authorizationHeader = AuthorizationHeaderUtils.buildAuthorizationHeader(config.getApiKey());
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/v1/chat/completions"))
                 .header("player2-game-key", GAME_KEY)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .timeout(Duration.ofSeconds(30))
-                .build();
+                .timeout(Duration.ofSeconds(30));
+        if (authorizationHeader != null) {
+            requestBuilder.header("Authorization", authorizationHeader);
+        }
+
+        HttpRequest request = requestBuilder.build();
 
         LoggerUtil.getLogger().fine(() -> "[Player2] Sending request...");
         HttpResponse<String> response = httpClient.send(request,
