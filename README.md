@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Hytale Bud Plugin</h1>
-  <img src="https://fuksa.de/hytale/buddies.png" width="600px">
+  <img src="https://fuksa.de/hytale/buddies.avif" width="600px">
   <p><i>Used template by <a href="https://github.com/UpcraftLP">Up</a>, slightly modified by <a href="https://github.com/Kaupenjoe">Kaupenjoe</a>.</i><br>
   <i>Inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends">MyFriends</a> by LukeysMods.</i></p>
 </div>
@@ -36,7 +36,7 @@ Gronkh:
 
 <table>
   <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Veri.png" alt="Veri"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></td>
     <td>
       <h3>🦊 Veri</h3>
       <p>A Feran buddy who is a little childish, but extremely curious and friendly. Veri is agile and supports you in combat using <b>daggers</b>.</p>
@@ -44,7 +44,7 @@ Gronkh:
     </td>
   </tr>
   <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Gronkh.png" alt="Gronkh"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></td>
     <td>
       <h3>👹 Gronkh</h3>
       <p>A Trork buddy who might seem grumpy at first, but is fiercely loyal and strong. He's a powerhouse who supports you with a heavy <b>mace</b>.</p>
@@ -52,7 +52,7 @@ Gronkh:
     </td>
   </tr>
   <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Keyleth.png" alt="Keyleth"></td>
+    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></td>
     <td>
       <h3>🍃 Keyleth</h3>
       <p>A Kweebec buddy who is highly intelligent but a bit shy. She prefers to keep her distance and supports you from afar with a <b>bow</b>.</p>
