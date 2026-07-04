@@ -17,7 +17,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.InteractivelyPickupItemEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -51,7 +50,6 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
-            Player player = store.getComponent(entityRef, Player.getComponentType());
             PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
             String itemName = event.getItemStack().getItem().getId();
@@ -62,7 +60,7 @@ public class ItemPickupFilterSystem extends EntityEventSystem<EntityStore, Inter
 
             boolean relevantItem = RELEVANT_ITEMS_PATTERN.matcher(displayName).matches();
 
-            Ref<EntityStore> ref = player.getReference();
+            Ref<EntityStore> ref = playerRef.getReference();
             if (ref == null) {
                 LoggerUtil.getLogger()
                         .warning(() -> "[BUD] Player reference is null for player: " + playerRef.getUsername());

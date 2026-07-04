@@ -29,7 +29,7 @@ public final class WorldResolver {
     }
 
     public static Optional<World> resolveStrict(Store<EntityStore> store) {
-        if (store == null || store.getExternalData() == null) {
+        if (store == null) {
             return Optional.empty();
         }
         return Optional.ofNullable(store.getExternalData().getWorld());

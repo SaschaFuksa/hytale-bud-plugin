@@ -65,6 +65,7 @@ public record DialogEntry(
         builder.append("Player nearby: ").append(this.playerName).append(".\n")
                 .append("Conversation participants: ").append(String.join(", ", this.participants)).append(".\n")
                 .append(this.getConversationInput());
-        return builder.toString();
+        String dialogInfo = builder.toString();
+        return dialogInfo != null ? dialogInfo : "Problem generating dialog information. Please try again.";
     }
 }

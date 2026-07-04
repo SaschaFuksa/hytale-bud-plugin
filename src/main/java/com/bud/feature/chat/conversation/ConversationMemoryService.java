@@ -122,8 +122,8 @@ public class ConversationMemoryService {
                     System.currentTimeMillis()));
 
             decayed.sort(Comparator
-                    .comparingDouble(ConversationMemoryEntry::effectiveScore)
-                    .thenComparingLong(ConversationMemoryEntry::createdAt)
+                    .comparingDouble((ConversationMemoryEntry entry) -> entry.effectiveScore())
+                    .thenComparingLong((ConversationMemoryEntry entry) -> entry.createdAt())
                     .reversed());
 
             int maxDepth = Math.max(1, config.getConversationMemoryDepth());
@@ -167,8 +167,8 @@ public class ConversationMemoryService {
                         .comparingInt(
                                 (ConversationMemoryEntry entry) -> intersection(entry.participants(), participants)
                                         .size())
-                        .thenComparingDouble(ConversationMemoryEntry::effectiveScore)
-                        .thenComparingLong(ConversationMemoryEntry::createdAt)
+                        .thenComparingDouble((ConversationMemoryEntry entry) -> entry.effectiveScore())
+                        .thenComparingLong((ConversationMemoryEntry entry) -> entry.createdAt())
                         .reversed())
                 .limit(Math.max(1, ConversationConfig.getInstance().getConversationMemoryDepth()))
                 .toList());

@@ -2,19 +2,21 @@ package com.bud.feature.bud.creation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
-
-import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
-import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
+import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
-import com.hypixel.hytale.server.core.inventory.Inventory;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
@@ -37,11 +39,10 @@ public class BudSpawner {
     @Nonnull
     private Rotation3f rotation = new Rotation3f(0, 0, 0);
     private boolean withInventory = false;
-    private int inventoryRows = 3;
-    private int inventoryColumns = 9;
     private final List<WeaponConfig> weapons = new ArrayList<>();
     private final List<ArmorConfig> armors = new ArrayList<>();
 
+    @Nullable
     private Ref<EntityStore> spawnedNpcRef;
 
     private BudSpawner(@Nonnull Store<EntityStore> store, @Nonnull String npcType, @Nonnull Vector3d position) {
@@ -66,13 +67,6 @@ public class BudSpawner {
 
     public BudSpawner withInventory() {
         this.withInventory = true;
-        return this;
-    }
-
-    public BudSpawner withInventory(int rows, int columns) {
-        this.withInventory = true;
-        this.inventoryRows = rows;
-        this.inventoryColumns = columns;
         return this;
     }
 
@@ -104,7 +98,7 @@ public class BudSpawner {
                 return null;
             }
 
-            spawnedNpcRef = result.first();
+            spawnedNpcRef = Objects.requireNonNull(result.first(), "Spawned NPC reference was null");
 
             if (withInventory) {
                 configureInventory();
@@ -120,36 +114,42 @@ public class BudSpawner {
     }
 
     private void configureInventory() {
-        ComponentType<EntityStore, NPCEntity> componentType = NPCEntity.getComponentType();
-        if (componentType == null) {
-            LoggerUtil.getLogger()
-                    .severe(() -> "[NPCSpawner] Cannot configure inventory: NPCEntity component type is null");
-            return;
-        }
-        if (spawnedNpcRef == null) {
-            LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure inventory: NPC reference is null");
-            return;
-        }
-        NPCEntity npcComponent = store.getComponent(spawnedNpcRef, componentType);
+        ComponentType<EntityStore, NPCEntity> componentType = Objects.requireNonNull(
+                NPCEntity.getComponentType(), "NPCEntity component type is null");
+        Ref<EntityStore> npcRef = Objects.requireNonNull(this.spawnedNpcRef, "NPC reference is null");
+        NPCEntity npcComponent = store.getComponent(npcRef, componentType);
         if (npcComponent == null) {
             LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure inventory: NPC component not found");
             return;
         }
-        // TODO: Implement inventory size configuration if needed
-        // npcComponent.setInventorySize(inventoryRows, inventoryColumns, 0);
-        Inventory inventory = npcComponent.getInventory();
+        ComponentAccessor<EntityStore> accessor = store;
+        ComponentType<EntityStore, InventoryComponent.Hotbar> hotbarType = Objects.requireNonNull(
+                InventoryComponent.Hotbar.getComponentType(), "Hotbar component type is null");
+        InventoryComponent.Hotbar hotbar = accessor.getComponent(npcRef, hotbarType);
+        if (hotbar == null) {
+            LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure inventory: Hotbar component not found");
+            return;
+        }
+        ItemContainer inventory = hotbar.getInventory();
 
         for (WeaponConfig weapon : weapons) {
             ItemStack itemStack = new ItemStack(weapon.itemId, weapon.quantity);
-            inventory.getHotbar().addItemStackToSlot(weapon.slot, itemStack);
+            inventory.addItemStackToSlot(weapon.slot, itemStack);
         }
 
         if (!weapons.isEmpty()) {
-            // inventory.setActiveHotbarSlot((byte) weapons.get(0).slot);
+            hotbar.setActiveSlot((byte) weapons.get(0).slot, npcRef, accessor);
         }
 
+        ComponentType<EntityStore, InventoryComponent.Armor> armorType = Objects.requireNonNull(
+                InventoryComponent.Armor.getComponentType(), "Armor component type is null");
+        InventoryComponent.Armor armorComponent = accessor.getComponent(npcRef, armorType);
+        if (armorComponent == null) {
+            LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure armor: Armor component not found");
+            return;
+        }
         for (ArmorConfig armor : armors) {
-            ItemContainer armorContainer = inventory.getArmor();
+            ItemContainer armorContainer = armorComponent.getInventory();
             if (armorContainer == null) {
                 LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Cannot configure armor: Armor container not found");
                 continue;

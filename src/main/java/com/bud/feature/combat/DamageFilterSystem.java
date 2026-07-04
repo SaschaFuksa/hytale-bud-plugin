@@ -51,20 +51,18 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             Ref<EntityStore> attackerRef = entitySource.getRef();
 
-            Player attackerPlayer = store.getComponent(attackerRef, Player.getComponentType());
             NPCEntity targetNPC = store.getComponent(targetRef, npcComponentType);
             Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
 
-            if (attackerPlayer != null) {
+            if (targetPlayer == null) {
                 PlayerBudComponent attackerBudComponent = store.getComponent(attackerRef,
                         PlayerBudComponent.getComponentType());
                 if (attackerBudComponent != null && attackerBudComponent.hasBuds()
-                        && targetPlayer == null
                         && targetRef.isValid()) {
                 }
             }
 
-            if (attackerPlayer != null && targetNPC != null) {
+            if (targetNPC != null) {
                 handle(store, attackerRef, targetNPC, CombatState.ATTACKED);
             }
 
