@@ -34,12 +34,17 @@ public class BudLLMClient extends AbstractLLMClient {
 
                 LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + config.getUrl());
 
-                HttpRequest request = HttpRequest.newBuilder()
+                String authorizationHeader = AuthorizationHeaderUtils.buildAuthorizationHeader(config.getApiKey());
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                                 .uri(URI.create(config.getUrl()))
                                 .header("Content-Type", "application/json")
                                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                                .timeout(Duration.ofSeconds(10))
-                                .build();
+                                .timeout(Duration.ofSeconds(10));
+                if (authorizationHeader != null) {
+                        requestBuilder.header("Authorization", authorizationHeader);
+                }
+
+                HttpRequest request = requestBuilder.build();
 
                 LoggerUtil.getLogger().info(() -> "[LLM] Waiting for response...");
                 HttpResponse<String> response = httpClient.send(request,

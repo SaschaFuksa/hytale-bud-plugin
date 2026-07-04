@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.7.2]
+### Fixed
+- Auth Token: Fixed issue with auth token not being sent in requests to the LLM server, which caused authentication failures. Now the auth token is correctly included in the request headers for all LLM calls.
+
 ## [1.7.1]
 ### Fixed
 - Updated server version
