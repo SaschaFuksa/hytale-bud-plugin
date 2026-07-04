@@ -12,6 +12,9 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.TimeOfDay;
 import com.bud.feature.chat.ChatEvent;
+import com.bud.feature.chat.conversation.ConversationMemoryEntry;
+import com.bud.feature.chat.conversation.ConversationMemoryService;
+import com.bud.feature.chat.conversation.DialogModeTracker;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.time.TimeInformationUtil;
@@ -36,6 +39,8 @@ public class DebugCommand extends AbstractPlayerCommand {
     private final FlagArg weatherFlag;
     private final FlagArg timeFlag;
     private final FlagArg worldFlag;
+    private final FlagArg memoryFlag;
+    private final FlagArg dialogFlag;
 
     public DebugCommand() {
         super("debug", "Debug command for testing purposes.");
@@ -45,6 +50,8 @@ public class DebugCommand extends AbstractPlayerCommand {
         this.weatherFlag = this.withFlagArg("weather", "Shows the current weather.");
         this.timeFlag = this.withFlagArg("time", "Shows the current time of day and day of week.");
         this.worldFlag = this.withFlagArg("world", "Shows the current zone and biome.");
+        this.memoryFlag = this.withFlagArg("memory", "Shows the current conversation memories.");
+        this.dialogFlag = this.withFlagArg("dialog", "Triggers dialog mode immediately for your current Buds.");
     }
 
     @Override
@@ -79,9 +86,18 @@ public class DebugCommand extends AbstractPlayerCommand {
             handled = true;
             this.sendWorldData(world, playerRef);
         }
+        if (this.memoryFlag.get(context)) {
+            handled = true;
+            this.sendMemoryData(playerRef);
+        }
+        if (this.dialogFlag.get(context)) {
+            handled = true;
+            this.triggerDialogData(playerRef);
+        }
 
         if (!handled) {
-            ChatEvent.dispatch(playerRef, "Debug flags: --componentData, --mood, --weather, --time, --world");
+            ChatEvent.dispatch(playerRef,
+                    "Debug flags: --componentData, --mood, --weather, --time, --world, --memory, --dialog");
         }
     }
 
@@ -168,6 +184,40 @@ public class DebugCommand extends AbstractPlayerCommand {
         String zoneName = zone != null ? formatDisplayValue(zone.name()) : "Unknown";
         String biomeName = biome != null ? formatDisplayValue(biome.getName()) : "Unknown";
         ChatEvent.dispatch(playerRef, "World: Zone " + zoneName + ", Biome " + biomeName);
+    }
+
+    private void sendMemoryData(@Nonnull PlayerRef playerRef) {
+        List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
+                .getMemoriesForOwner(playerRef.getUsername());
+        if (memories.isEmpty()) {
+            ChatEvent.dispatch(playerRef, "Memory: no current memories stored.");
+            return;
+        }
+
+        int index = 1;
+        for (ConversationMemoryEntry memory : memories) {
+            ChatEvent.dispatch(playerRef, "Memory " + index + ": [" + formatDisplayValue(memory.mode().name())
+                    + "] importance=" + memory.importance()
+                    + ", score=" + String.format("%.2f", memory.effectiveScore())
+                    + ", participants=" + String.join(", ", memory.participants())
+                    + ", summary=" + memory.summary());
+            index++;
+        }
+    }
+
+    private void triggerDialogData(@Nonnull PlayerRef playerRef) {
+        Ref<EntityStore> playerRefReference = playerRef.getReference();
+        if (playerRefReference == null || !playerRefReference.isValid()) {
+            ChatEvent.dispatch(playerRef, "Dialog: player reference is invalid.");
+            return;
+        }
+
+        boolean triggered = DialogModeTracker.getInstance().triggerDialogNow(playerRefReference, playerRef);
+        if (triggered) {
+            ChatEvent.dispatch(playerRef, "Dialog: triggered immediate dialog mode turn.");
+            return;
+        }
+        ChatEvent.dispatch(playerRef, "Dialog: could not trigger dialog mode. At least two active Buds are required.");
     }
 
     private PlayerBudComponent getPlayerBudComponent(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef) {

@@ -12,7 +12,9 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudType;
-import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -74,10 +76,13 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
                 continue;
             }
             PlayerChatEntry entry = new PlayerChatEntry(message, budComponent);
-            Thread.ofVirtual().start(() -> {
-                LLMInteractionManager.getInstance()
-                        .processInteraction(new LLMInteractionEntry(LLMPlayerChatMessageCreation.getInstance(), entry));
-            });
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.PLAYER,
+                    entry,
+                    "playerChat:" + budComponent.getBud().getNPCTypeId(),
+                    username,
+                    new LLMInteractionEntry(LLMPlayerChatMessageCreation.getInstance(), entry),
+                    System.currentTimeMillis()));
         }
 
         final int targetCount = targetBudComponents.size();

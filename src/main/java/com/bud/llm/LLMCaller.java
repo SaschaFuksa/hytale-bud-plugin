@@ -34,8 +34,9 @@ public class LLMCaller {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String response = this.llmClient.callLLM(prompt);
-                String message = formatBudResponse(budProfile.getNPCDisplayName(), response);
-                LoggerUtil.getLogger().info(() -> "[BUD] LLM response: " + message);
+                String message = sanitizeBudResponse(budProfile.getNPCDisplayName(), response);
+                LoggerUtil.getLogger().info(() -> "[BUD] LLM response: "
+                        + formatBudResponse(budProfile.getNPCDisplayName(), message));
                 return message;
             } catch (IOException | InterruptedException e) {
                 LoggerUtil.getLogger().severe(() -> "[BUD] LLM Error: " + e.getMessage());
@@ -44,16 +45,32 @@ public class LLMCaller {
         }, Executors.newVirtualThreadPerTaskExecutor());
     }
 
+    public CompletableFuture<String> callRawLLM(Prompt prompt) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return this.llmClient.callLLM(prompt).trim();
+            } catch (IOException | InterruptedException e) {
+                LoggerUtil.getLogger().severe(() -> "[BUD] LLM Error: " + e.getMessage());
+                return null;
+            }
+        }, Executors.newVirtualThreadPerTaskExecutor());
+    }
+
     private String formatBudResponse(String budName, String response) {
+        String sanitizedResponse = sanitizeBudResponse(budName, response);
+        if (sanitizedResponse.isBlank()) {
+            return "";
+        }
+        return budName + ": " + sanitizedResponse;
+    }
+
+    private String sanitizeBudResponse(String budName, String response) {
         String sanitizedResponse = sanitizeResponse(response);
         String prefix = budName + ":";
         if (sanitizedResponse.regionMatches(true, 0, prefix, 0, prefix.length())) {
             sanitizedResponse = sanitizedResponse.substring(prefix.length()).trim();
         }
-        if (sanitizedResponse.isBlank()) {
-            return "";
-        }
-        return prefix + " " + sanitizedResponse;
+        return sanitizedResponse;
     }
 
     private String sanitizeResponse(String response) {

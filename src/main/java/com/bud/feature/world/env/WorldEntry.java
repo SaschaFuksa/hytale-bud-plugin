@@ -1,7 +1,5 @@
 package com.bud.feature.world.env;
 
-import java.util.Map.Entry;
-
 import javax.annotation.Nonnull;
 
 import org.joml.Vector3d;
@@ -78,7 +76,7 @@ public record WorldEntry(@Nonnull TimeOfDay timeOfDay, @Nonnull Zone currentZone
         String biomeName = this.currentBiome.getName();
         return zoneMessage.getBiomes().entrySet().stream()
                 .filter(e -> biomeName.toLowerCase().contains(e.getKey().toLowerCase()))
-                .map(Entry::getValue)
+                .map(e -> e.getValue())
                 .findFirst()
                 .orElseGet(() -> zoneMessage.getBiomes().getOrDefault("default", biomeName));
     }
@@ -88,7 +86,7 @@ public record WorldEntry(@Nonnull TimeOfDay timeOfDay, @Nonnull Zone currentZone
         if (timeMsg != null && timeMsg.getTimes() != null) {
             timeInfo = timeMsg.getTimes().entrySet().stream()
                     .filter(e -> this.timeOfDay.name().toLowerCase().contains(e.getKey().toLowerCase()))
-                    .map(Entry::getValue)
+                    .map(e -> e.getValue())
                     .findFirst()
                     .orElse(this.timeOfDay.name());
         }

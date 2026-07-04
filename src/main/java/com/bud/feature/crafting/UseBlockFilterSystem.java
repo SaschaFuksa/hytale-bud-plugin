@@ -16,7 +16,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.UseBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -63,10 +62,9 @@ public class UseBlockFilterSystem extends EntityEventSystem<EntityStore, UseBloc
             }
 
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
-            Player player = store.getComponent(entityRef, Player.getComponentType());
             PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
-            if (player != null) {
+            if (playerRef != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
                         PlayerBudComponent.getComponentType());
                 BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);

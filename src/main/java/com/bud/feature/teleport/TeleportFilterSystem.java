@@ -17,7 +17,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefChangeSystem;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -43,9 +42,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Teleport component,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-        if (player != null) {
+        if (playerRef != null) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Teleport component added to entity: " + playerRef.getUsername());
         }
@@ -58,9 +56,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Teleport newComponent,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-        if (player != null) {
+        if (playerRef != null) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Teleport component updated on entity: " + playerRef.getUsername());
         }
@@ -72,9 +69,8 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
             @Nonnull Teleport component,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        Player player = store.getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-        if (player != null) {
+        if (playerRef != null) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Teleport component removed on entity: " + playerRef.getUsername());
         }

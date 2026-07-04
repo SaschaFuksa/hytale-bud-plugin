@@ -15,15 +15,12 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 ## Update information:
 
-If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
+If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt reset**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.7.0
-- **Command Rework**: Full rework to use command collection and subcommands.
-- **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
-- **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
-- **Bud Reaction To Teleport**: Buds will now react to player teleportation, ensuring they are always present for interactions.
-- **Bud Reaction To Player Chat**: Buds will now react to player chat, ensuring they are always present for interactions. The reactions are only chat messages.
+## New in 1.8.0
+- **Memory Storage**: Implemented a memory/history system to keep track of player and bud interactions. This allows for more context-aware responses and interactions based on past events.
+- **Smoother chat message orchestration**: The plugin now handles chat messages more efficiently, reducing the frequency of consecutive messages to ensure players have time to read and respond.
 
 (See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
@@ -81,6 +78,12 @@ Gronkh:
 *   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
 *   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
 *   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
+
+### Memory System
+*   **Memory Storage**: Buds remember past interactions with the player, allowing for context-aware responses and interactions based on previous events. 
+*   **Memory Prioritization**: Memories are prioritized based on their importance, with more significant events being retained longer and influencing Bud behavior more strongly.
+*   **Memory Eviction**: Memories priority is decayed over time, and less important memories are evicted when the memory capacity is reached.
+*   **Legendary Memories**: Certain significant events can be marked as "legendary," ensuring they are retained in memory for longer periods.
 
 <br>
 
@@ -168,6 +171,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
 | `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
 | `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
+| `OrchestratorEntryTtlMs` | Time-to-live for orchestrator entries (in milliseconds) | `60000L` |
 <br>
 
 ### Debug Configuration
@@ -177,6 +181,20 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
 | `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
 
+### Conversation Configuration
+
+| Setting | Description | Default |
+|:--- |:--- |:--- |
+| `EnableConversationMemory` | Enable conversation memory | `true` |
+| `ConversationMemoryDepth` | Depth of conversation memory | `8` |
+| `ConversationMemoryDecayFactor` | Decay factor for conversation memory | `0.9` |
+| `ConversationMemoryMinImportance` | Minimum importance for conversation memory | `4` |
+| `EnableLegendaryMemory` | Enable legendary memory | `true` |
+| `LegendaryMemorySlotsPerBud` | Number of legendary memory slots per bud | `3` |
+| `EnableDialogMode` | Enable dialog mode | `true` |
+| `DialogModeIdleSeconds` | Idle time for dialog mode (in seconds) | `180L` |
+| `DialogModeActiveSeconds` | Active time for dialog mode (in seconds) | `30L` |
+| `DialogModeTurnIntervalSeconds` | Turn interval for dialog mode (in seconds) | `8L` |
 
 **LLM Usage:**
 - You can use your own local LLM Client (like LM Studio)
@@ -190,7 +208,7 @@ The LLM prompts are now stored in external `YAML` files located in the mod folde
 
 First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
 
-**Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
+**Attention**: The command `/bud prompt reset` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
 
 
 ### ⚠️ LLM Performance Note (Reasoning Models)
@@ -215,9 +233,8 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent).
-- [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
-- [ ] **1.9.0**: Item-based spawning instead of commands?
+- [x] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
+- [ ] **1.9.0**: Item-based spawning instead of commands
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>
 

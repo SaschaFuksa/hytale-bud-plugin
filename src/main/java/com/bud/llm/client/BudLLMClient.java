@@ -54,10 +54,11 @@ public class BudLLMClient extends AbstractLLMClient {
 
                 if (response.statusCode() != 200) {
                         throw new IOException("API Error: " + response.statusCode() + " " + response.body());
+                } else {
+                        String responseBody = response.body();
+                        logUsage("LLM", responseBody);
+                        return extractContent(responseBody);
                 }
 
-                String responseBody = response.body();
-                logUsage("LLM", responseBody);
-                return extractContent(responseBody);
         }
 }

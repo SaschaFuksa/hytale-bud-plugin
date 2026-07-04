@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0]
+### Added
+- **Memory Storage**: Implemented a memory/history system to keep track of player and bud interactions. This allows for more context-aware responses and interactions based on past events.
+- **Smoother chat message orchestration**: The plugin now handles chat messages more efficiently, reducing the frequency of consecutive messages to ensure players have time to read and respond.
+
+### Fixed
+- Fixed inventory reactions (like pickup of ores) after server code changes removed LivingEntityInventoryChangeEvent
+
+---
 
 ## [1.7.2]
 ### Fixed

@@ -10,9 +10,11 @@ import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.WorldResolver;
 import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.llm.interaction.LLMInteractionEntry;
@@ -24,8 +26,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 public class MoodTracker extends AbstractTracker {
 
     private static final MoodTracker INSTANCE = new MoodTracker();
-
-    private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
 
     private MoodTracker() {
     }
@@ -87,11 +87,16 @@ public class MoodTracker extends AbstractTracker {
                 budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
                         + budProfile.getNPCDisplayName() + ". Ready for interaction.");
+                FavoriteDayEntry favoriteDayEntry = new FavoriteDayEntry(budComponent);
                 LLMInteractionEntry interactionEntry = new LLMInteractionEntry(new LLMFavoriteDayMessageCreation(),
-                        new FavoriteDayEntry(budComponent));
-                Thread.ofVirtual().start(() -> {
-                    interactionManager.processInteraction(interactionEntry);
-                });
+                        favoriteDayEntry);
+                Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                        OrchestratorChannel.AMBIENT,
+                        favoriteDayEntry,
+                        "favoriteDay",
+                        budComponent.getPlayerRef().getUsername(),
+                        interactionEntry,
+                        System.currentTimeMillis()));
             } else if (!budComponent.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
                 budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day detected for "

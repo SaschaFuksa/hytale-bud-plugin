@@ -12,8 +12,8 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.CraftRecipeEvent;
+import com.hypixel.hytale.server.core.inventory.MaterialQuantity;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -35,15 +35,18 @@ public class CraftRecipeFilterSystem extends EntityEventSystem<EntityStore, Craf
         try {
             Ref<EntityStore> entityRef = archetypeChunk.getReferenceTo(index);
 
-            Player player = store.getComponent(entityRef, Player.getComponentType());
             PlayerRef playerRef = store.getComponent(entityRef, PlayerRef.getComponentType());
 
-            if (player != null) {
+            if (playerRef != null) {
                 PlayerBudComponent playerBudComponent = store.getComponent(entityRef,
                         PlayerBudComponent.getComponentType());
                 BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
                 if (budComponent != null) {
-                    String itemId = event.getCraftedRecipe().getPrimaryOutput().getItemId();
+                    MaterialQuantity primaryOutput = event.getCraftedRecipe().getPrimaryOutput();
+                    if (primaryOutput == null) {
+                        return;
+                    }
+                    String itemId = primaryOutput.getItemId();
                     if (itemId == null) {
                         return;
                     }

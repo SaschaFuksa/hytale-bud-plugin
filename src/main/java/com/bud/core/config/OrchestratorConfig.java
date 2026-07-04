@@ -12,6 +12,7 @@ public class OrchestratorConfig {
     private long orchestratorChannelCooldownMs = 5000L; // ms between messages on the same channel
     private int orchestratorMaxQueueDepth = 3; // max pending events per channel per player
     private long orchestratorTickIntervalMs = 1000L; // how often the orchestrator checks queues
+    private long orchestratorEntryTtlMs = 60000L; // max age of a queued entry before it is discarded
 
     private static volatile OrchestratorConfig instance;
 
@@ -43,6 +44,10 @@ public class OrchestratorConfig {
         return this.orchestratorTickIntervalMs;
     }
 
+    public long getOrchestratorEntryTtlMs() {
+        return this.orchestratorEntryTtlMs;
+    }
+
     static {
         CODEC = BuilderCodec.builder(OrchestratorConfig.class, OrchestratorConfig::new)
                 .append(new KeyedCodec<>("OrchestratorGlobalCooldownMs", Codec.LONG),
@@ -60,6 +65,10 @@ public class OrchestratorConfig {
                 .append(new KeyedCodec<>("OrchestratorTickIntervalMs", Codec.LONG),
                         (config, value) -> config.orchestratorTickIntervalMs = value,
                         config -> config.orchestratorTickIntervalMs)
+                .add()
+                .append(new KeyedCodec<>("OrchestratorEntryTtlMs", Codec.LONG),
+                        (config, value) -> config.orchestratorEntryTtlMs = value,
+                        config -> config.orchestratorEntryTtlMs)
                 .add()
                 .build();
     }

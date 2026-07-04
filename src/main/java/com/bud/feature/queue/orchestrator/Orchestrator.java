@@ -101,8 +101,12 @@ public class Orchestrator {
             long now = System.currentTimeMillis();
             long globalCooldown = OrchestratorConfig.getInstance().getOrchestratorGlobalCooldownMs();
             long channelCooldown = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
+            long entryTtl = OrchestratorConfig.getInstance().getOrchestratorEntryTtlMs();
 
             for (String playerName : queues.keySet()) {
+                purgeStale(queues.get(playerName), now, entryTtl);
+                drainPlayerChannel(playerName);
+
                 long lastGlobal = lastGlobalMessage.getOrDefault(playerName, 0L);
                 if (now - lastGlobal < globalCooldown) {
                     continue;
@@ -135,6 +139,38 @@ public class Orchestrator {
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error in tick: " + e.getMessage());
+        }
+    }
+
+    private void purgeStale(Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues, long now,
+            long ttlMs) {
+        if (playerQueues == null) {
+            return;
+        }
+        for (PriorityQueue<OrchestratorQueue> queue : playerQueues.values()) {
+            synchronized (queue) {
+                queue.removeIf(event -> {
+                    boolean stale = now - event.timestamp() > ttlMs;
+                    if (stale) {
+                        LoggerUtil.getLogger().finer(() -> "[Orchestrator] Discarded stale " + event.eventType()
+                                + " for player " + event.playerName() + " in channel " + event.channel());
+                    }
+                    return stale;
+                });
+            }
+        }
+    }
+
+    private void drainPlayerChannel(String playerName) {
+        PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, OrchestratorChannel.PLAYER);
+        if (queue == null || queue.isEmpty()) {
+            return;
+        }
+        OrchestratorQueue event;
+        synchronized (queue) {
+            while ((event = queue.poll()) != null) {
+                dispatch(event);
+            }
         }
     }
 

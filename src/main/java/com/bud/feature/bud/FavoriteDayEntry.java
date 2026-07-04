@@ -15,7 +15,7 @@ public record FavoriteDayEntry(@Nonnull BudComponent budComponent) implements IQ
 
     @Override
     public int getPriority() {
-        return 3;
+        return 1;
     }
 
     @Nonnull

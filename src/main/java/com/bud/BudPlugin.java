@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import com.bud.app.BudCommandCollection;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.LLMConfig;
 import com.bud.core.config.OrchestratorConfig;
@@ -23,6 +24,8 @@ import com.bud.feature.combat.DamageFilterSystem;
 import com.bud.feature.crafting.CraftRecipeFilterSystem;
 import com.bud.feature.crafting.UseBlockFilterSystem;
 import com.bud.feature.discover.DiscoverZoneFilterSystem;
+import com.bud.feature.item.InventoryChangeListener;
+import com.bud.feature.item.ItemPickupFilterSystem;
 import com.bud.feature.player.PlayerJoinSystem;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.feature.sound.SoundHandler;
@@ -47,6 +50,7 @@ public class BudPlugin extends JavaPlugin {
     private final Config<LLMConfig> llmConfig;
     private final Config<ReactionConfig> reactionConfig;
     private final Config<OrchestratorConfig> orchestratorConfig;
+    private final Config<ConversationConfig> conversationConfig;
     private final Config<DebugConfig> debugConfig;
 
     @SuppressWarnings("null")
@@ -56,6 +60,7 @@ public class BudPlugin extends JavaPlugin {
         this.llmConfig = this.withConfig("LLM", LLMConfig.CODEC);
         this.reactionConfig = this.withConfig("Reaction", ReactionConfig.CODEC);
         this.orchestratorConfig = this.withConfig("Orchestrator", OrchestratorConfig.CODEC);
+        this.conversationConfig = this.withConfig("Conversation", ConversationConfig.CODEC);
         this.debugConfig = this.withConfig("Debug", DebugConfig.CODEC);
     }
 
@@ -101,6 +106,8 @@ public class BudPlugin extends JavaPlugin {
         this.reactionConfig.save();
         OrchestratorConfig.setInstance(this.orchestratorConfig.get());
         this.orchestratorConfig.save();
+        ConversationConfig.setInstance(this.conversationConfig.get());
+        this.conversationConfig.save();
         DebugConfig.setInstance(this.debugConfig.get());
         this.debugConfig.save();
     }
@@ -120,11 +127,8 @@ public class BudPlugin extends JavaPlugin {
         }
         if (this.reactionConfig.get().isEnableItemReactions()) {
             // Register inventory change listener for auto-pickup detection (e.g. ore)
-            // TODO: Fix
-            // this.getEventRegistry().registerGlobal(
-            // InventoryChangeEvent.class,
-            // new InventoryChangeListener());
-            // this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
+            this.getEntityStoreRegistry().registerSystem(new InventoryChangeListener());
+            this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
         }
         if (this.reactionConfig.get().isEnableDiscoverReactions()) {
             this.getEntityStoreRegistry().registerSystem(new DiscoverZoneFilterSystem());
