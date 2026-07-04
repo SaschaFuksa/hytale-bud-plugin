@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.7.1]
+### Fixed
+- Updated server version
+- Compile errors
+- Removed inventory reaction, currently no fast solution
+
 ## [1.7.0]
 ### Added
 - **Command Rework**: Full rework to use command collection and subcommands.
