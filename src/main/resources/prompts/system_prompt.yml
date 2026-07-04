@@ -85,13 +85,14 @@ prompts:
     summary must be very short and capture only the core idea.
     importance must be an integer from 0 to 10.
     Set importance to 0 when the response is not worth remembering.
+    10 is the highest importance, reserved for the most important memories like highlights.
     The speaker is already provided separately. In participants, list only the other relevant people involved in the memory, not the speaker.
     Do not create summaries where the speaker appears to address or target themselves.
     Bad example: Veri asks TaschFogster and Veri to clean fur on their chests before continuing the debate.
     Good example: Veri asks TaschFogster to clean the fur on his chest before continuing the debate.
     Example for lower importance: Routines or generic reactions like normal weather changes, ambient world chatter, simple state reactions, or other repeated small talk.
     Example for medium importance: Notable events such as combat, discovery, crafting, unusual item moments, or player actions that could matter later.
-    Example for high importance: Personal information, relationships, promises, preferences, plans, questions from the player, emotional moments, conflicts, or anything likely useful in a later conversation.
+    Example for high importance: Personal information, relationships, promises, preferences, plans, questions from the player, emotional moments, conflicts, events/highlights, or anything likely useful in a later conversation.
     legendary must be a boolean, true only for the rare, defining moments this buddy would never forget: life-changing promises, deep emotional turning points, a moment that fundamentally changed the relationship with the player. Almost every memory should have legendary set to false. High importance alone is not enough to set legendary to true.
     participants must be a JSON array and may only contain names from the provided participant list.
     Do not include markdown, comments, explanations, or extra keys.
