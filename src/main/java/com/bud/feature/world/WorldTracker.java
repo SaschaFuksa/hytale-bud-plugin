@@ -8,7 +8,9 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.env.LLMWorldMessageCreation;
 import com.bud.feature.world.env.WorldEntry;
 import com.bud.feature.world.weather.WeatherEntry;
@@ -25,8 +27,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 public class WorldTracker extends AbstractTracker {
 
     private static final WorldTracker INSTANCE = new WorldTracker();
-
-    private static final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
 
     private WorldTracker() {
     }
@@ -94,12 +94,16 @@ public class WorldTracker extends AbstractTracker {
                                 + playerRef.getUsername());
                         return;
                     }
-                    Thread.ofVirtual().start(() -> {
-                        LLMInteractionEntry entry = new LLMInteractionEntry(
-                                LLMWorldMessageCreation.getInstance(),
-                                worldEntry);
-                        interactionManager.processInteraction(entry);
-                    });
+                    LLMInteractionEntry entry = new LLMInteractionEntry(
+                            LLMWorldMessageCreation.getInstance(),
+                            worldEntry);
+                    Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                            OrchestratorChannel.AMBIENT,
+                            worldEntry,
+                            "world",
+                            playerRef.getUsername(),
+                            entry,
+                            System.currentTimeMillis()));
                 });
             } catch (Exception e) {
                 LoggerUtil.getLogger().warning(

@@ -22,3 +22,4 @@ Auch wichtig:
 Häufigkeit naufeinander folgender Chat Messages redzuieren, der Spieler muss auch noch in Ruhe lesen können was rein kommt - reicht es hier aus einfach ein Config Parameter zu erhöhen?
 
 Wichtigstes feature für 1.8.0 ist ja die Memory/History Funktion. Das muss mega gut funktionieren!
+Wichtig: Orientiere dich am aktuellen Codedesign!
