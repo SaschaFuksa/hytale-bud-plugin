@@ -18,12 +18,9 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt-reload**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.7.0
-- **Command Rework**: Full rework to use command collection and subcommands.
-- **More Fallbacks**: Added more specific fallback messages for different interactions, such as block placement/breaking, item pickup/inventory view, and combat states (attacked/was attacked). This allows for more tailored responses even when LLM is disabled or fails.
-- **Bud Respawn**: Buds will now respawn after player login if they were previously broken, ensuring they are always present for interactions.
-- **Bud Reaction To Teleport**: Buds will now react to player teleportation, ensuring they are always present for interactions.
-- **Bud Reaction To Player Chat**: Buds will now react to player chat, ensuring they are always present for interactions. The reactions are only chat messages.
+## New in 1.8.0
+- **Memory Storage**: Implemented a memory/history system to keep track of player and bud interactions. This allows for more context-aware responses and interactions based on past events.
+- **Smoother chat message orchestration**: The plugin now handles chat messages more efficiently, reducing the frequency of consecutive messages to ensure players have time to read and respond.
 
 (See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
@@ -190,7 +187,7 @@ The LLM prompts are now stored in external `YAML` files located in the mod folde
 
 First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
 
-**Attention**: The command `/bud prompt-reload` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
+**Attention**: The command `/bud prompt reset` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
 
 
 ### ⚠️ LLM Performance Note (Reasoning Models)
@@ -215,9 +212,8 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.7.0**: Bud reactions to player messages in chat (PlayerChatEvent).
-- [ ] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
-- [ ] **1.9.0**: Item-based spawning instead of commands?
+- [x] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
+- [ ] **1.9.0**: Item-based spawning instead of commands
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>
 
