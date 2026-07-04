@@ -57,7 +57,8 @@ public class LLMInteractionManager {
                 return null;
             }
             if (conversationContext != null) {
-                prompt = ConversationMemoryService.getInstance().augmentPrompt(prompt, conversationContext);
+                prompt = ConversationMemoryService.getInstance().augmentPrompt(prompt, conversationContext,
+                        budProfile.getNPCDisplayName());
             }
             if (LLMConfig.getInstance().isEnableLLM()) {
                 message = LLMCaller.getInstance().callLLM(prompt, budProfile).join();

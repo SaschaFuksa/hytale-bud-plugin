@@ -11,12 +11,13 @@ public record ConversationMemoryEntry(
         @Nonnull String speakerName,
         @Nonnull ConversationMode mode,
         @Nonnull Set<String> participants,
-        long createdAt) {
+        long createdAt,
+        boolean legendary) {
 
     @Nonnull
     public ConversationMemoryEntry decay(double factor) {
         return new ConversationMemoryEntry(this.summary, this.importance, this.effectiveScore * factor,
-                this.speakerName, this.mode, this.participants, this.createdAt);
+                this.speakerName, this.mode, this.participants, this.createdAt, this.legendary);
     }
 
     @Nonnull

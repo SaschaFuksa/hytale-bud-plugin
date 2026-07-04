@@ -12,6 +12,8 @@ public class ConversationConfig {
     private int conversationMemoryDepth = 8;
     private double conversationMemoryDecayFactor = 0.9;
     private int conversationMemoryMinImportance = 4;
+    private boolean enableLegendaryMemory = true;
+    private int legendaryMemorySlotsPerBud = 3;
     private boolean enableDialogMode = true;
     private long dialogModeIdleSeconds = 180L;
     private long dialogModeActiveSeconds = 30L;
@@ -47,6 +49,14 @@ public class ConversationConfig {
         return this.conversationMemoryMinImportance;
     }
 
+    public boolean isEnableLegendaryMemory() {
+        return this.enableLegendaryMemory;
+    }
+
+    public int getLegendaryMemorySlotsPerBud() {
+        return this.legendaryMemorySlotsPerBud;
+    }
+
     public boolean isEnableDialogMode() {
         return this.enableDialogMode;
     }
@@ -80,6 +90,14 @@ public class ConversationConfig {
                 .append(new KeyedCodec<>("ConversationMemoryMinImportance", Codec.INTEGER),
                         (config, value) -> config.conversationMemoryMinImportance = value,
                         config -> config.conversationMemoryMinImportance)
+                .add()
+                .append(new KeyedCodec<>("EnableLegendaryMemory", Codec.BOOLEAN),
+                        (config, value) -> config.enableLegendaryMemory = value,
+                        config -> config.enableLegendaryMemory)
+                .add()
+                .append(new KeyedCodec<>("LegendaryMemorySlotsPerBud", Codec.INTEGER),
+                        (config, value) -> config.legendaryMemorySlotsPerBud = value,
+                        config -> config.legendaryMemorySlotsPerBud)
                 .add()
                 .append(new KeyedCodec<>("EnableDialogMode", Codec.BOOLEAN),
                         (config, value) -> config.enableDialogMode = value,

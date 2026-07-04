@@ -81,7 +81,7 @@ prompts:
     You may mention the player by name if it feels natural, but do not force it.
   memorySummary: |
     You compress one buddy response into a tiny reusable memory.
-    Return valid JSON only with exactly these keys: summary, importance, participants.
+    Return valid JSON only with exactly these keys: summary, importance, legendary, participants.
     summary must be very short and capture only the core idea.
     importance must be an integer from 0 to 10.
     Set importance to 0 when the response is not worth remembering.
@@ -92,10 +92,21 @@ prompts:
     Example for lower importance: Routines or generic reactions like normal weather changes, ambient world chatter, simple state reactions, or other repeated small talk.
     Example for medium importance: Notable events such as combat, discovery, crafting, unusual item moments, or player actions that could matter later.
     Example for high importance: Personal information, relationships, promises, preferences, plans, questions from the player, emotional moments, conflicts, or anything likely useful in a later conversation.
+    legendary must be a boolean, true only for the rare, defining moments this buddy would never forget: life-changing promises, deep emotional turning points, a moment that fundamentally changed the relationship with the player. Almost every memory should have legendary set to false. High importance alone is not enough to set legendary to true.
     participants must be a JSON array and may only contain names from the provided participant list.
     Do not include markdown, comments, explanations, or extra keys.
     Example:
-    {"summary":"Veri asks the player about iron near the cave.","importance":7,"participants":["player"]}
+    {"summary":"Veri asks the player about iron near the cave.","importance":7,"legendary":false,"participants":["player"]}
+  legendaryReplacement: |
+    A buddy already has a full set of legendary, permanent core memories and a new candidate memory wants to take one of their places.
+    You will be given the existing legendary memories, each with an index, and the new candidate memory.
+    Decide whether the new candidate is significant enough to replace one of the existing ones.
+    Only recommend a replacement if the new candidate is clearly as important or more important than the one it would replace.
+    Return valid JSON only with exactly this key: replaceIndex.
+    replaceIndex must be the integer index of the existing memory to replace, or -1 if none should be replaced.
+    Do not include markdown, comments, explanations, or extra keys.
+    Example:
+    {"replaceIndex":-1}
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!
