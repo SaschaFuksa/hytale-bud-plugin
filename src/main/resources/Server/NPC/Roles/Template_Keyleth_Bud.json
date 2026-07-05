@@ -110,6 +110,21 @@
   ],
   "Instructions": [
     {
+      "$Comment": "Forces the engine to allocate attitude-override memory for this role (WorldSupport.overrideAttitude), which DamageFilterSystem uses from Java for assist-targeting. Rarely fires itself since Buds are Invulnerable.",
+      "Continue": true,
+      "Sensor": {
+        "Type": "Damage",
+        "Combat": true
+      },
+      "Actions": [
+        {
+          "Type": "OverrideAttitude",
+          "Attitude": "Hostile",
+          "Duration": 30
+        }
+      ]
+    },
+    {
       "Instructions": [
         {
           "$Comment": "=== MODE 1: SITTING (Stay Put) ===",
@@ -668,7 +683,7 @@
                 },
                 "LockOnTarget": true,
                 "GetNPCs": true,
-                "GetPlayers": true,
+                "GetPlayers": false,
                 "ExcludeOwnType": true,
                 "Prioritiser": {
                   "Type": "Attitude",

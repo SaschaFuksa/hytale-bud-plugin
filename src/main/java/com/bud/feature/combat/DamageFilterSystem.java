@@ -13,14 +13,18 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.SystemGroup;
 import com.hypixel.hytale.component.query.Query;
+import com.hypixel.hytale.server.core.asset.type.attitude.Attitude;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.hypixel.hytale.server.npc.role.Role;
 
 public class DamageFilterSystem extends DamageEventSystem {
+
+    private static final double ASSIST_ATTITUDE_DURATION = 3000.0;
 
     @Override
     public SystemGroup<EntityStore> getGroup() {
@@ -54,14 +58,6 @@ public class DamageFilterSystem extends DamageEventSystem {
             NPCEntity targetNPC = store.getComponent(targetRef, npcComponentType);
             Player targetPlayer = store.getComponent(targetRef, Player.getComponentType());
 
-            if (targetPlayer == null) {
-                PlayerBudComponent attackerBudComponent = store.getComponent(attackerRef,
-                        PlayerBudComponent.getComponentType());
-                if (attackerBudComponent != null && attackerBudComponent.hasBuds()
-                        && targetRef.isValid()) {
-                }
-            }
-
             if (targetNPC != null) {
                 handle(store, attackerRef, targetNPC, CombatState.ATTACKED);
             }
@@ -73,6 +69,9 @@ public class DamageFilterSystem extends DamageEventSystem {
                 if (playerRef == null) {
                     LoggerUtil.getLogger().severe(() -> "[BUD] Target player reference is null.");
                     return;
+                }
+                if (BudManager.getInstance().findBudComponent(attackerNPC) != null) {
+                    damage.setCancelled(true);
                 }
                 handle(store, playerRef, attackerNPC, CombatState.WAS_ATTACKED);
             }
@@ -91,6 +90,18 @@ public class DamageFilterSystem extends DamageEventSystem {
         if (playerBudComponent == null || !playerBudComponent.hasBuds()) {
             return;
         }
+
+        if (BudManager.getInstance().findBudComponent(npc) == null) {
+            Ref<EntityStore> opponentRef = npc.getReference();
+            for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
+                Role budRole = bud.getRole();
+                if (budRole != null) {
+                    budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
+                            ASSIST_ATTITUDE_DURATION);
+                }
+            }
+        }
+
         BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerBudComponent);
         if (budComponent == null) {
             return;
