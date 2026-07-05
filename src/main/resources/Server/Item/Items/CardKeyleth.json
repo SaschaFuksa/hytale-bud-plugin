@@ -25,7 +25,23 @@
   "Recipe": {
     "Input": [
       {
-        "ItemId": "Ore_Iron",
+        "ItemId": "Weapon_Shortbow_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Health3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Ingredient_Fibre",
+        "Quantity": 50
+      },
+      {
+        "ItemId": "Wood_Azure_Trunk",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
         "Quantity": 20
       }
     ],

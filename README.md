@@ -233,8 +233,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 
 ## 🗺️ Roadmap
 
-- [x] **1.8.0**: Memory storage: Keep memories of player and bud interactions.
-- [ ] **1.9.0**: Item-based spawning instead of commands
+- [x] **1.9.0**: Item-based spawning instead of commands
 - [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
 <br>
 

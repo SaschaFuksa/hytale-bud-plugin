@@ -25,7 +25,23 @@
   "Recipe": {
     "Input": [
       {
-        "ItemId": "Ore_Iron",
+        "ItemId": "Weapon_Mace_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Mana3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Rock_Ice",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Rock_Stone_Cobble_Mossy",
+        "Quantity": 90
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
         "Quantity": 20
       }
     ],
