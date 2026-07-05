@@ -34,7 +34,7 @@
       },
       {
         "ItemId": "Rock_Ice",
-        "Quantity": 20
+        "Quantity": 30
       },
       {
         "ItemId": "Rock_Stone_Cobble_Mossy",
@@ -43,6 +43,14 @@
       {
         "ItemId": "Ingredient_Bar_Silver",
         "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Ice_Essence",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 1
       }
     ],
     "BenchRequirement": [

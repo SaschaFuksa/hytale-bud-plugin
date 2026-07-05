@@ -234,7 +234,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 ## 🗺️ Roadmap
 
 - [x] **1.9.0**: Item-based spawning instead of commands
-- [ ] **2.0.0**: Interactive world manipulation via LLM? Or try a "horde-wave"-event each wednesday and saturday evening (Horde mobs spawn in near of player, is attracted to player)?
+- [ ] **2.0.0**: Bud-2-Bud Interactions - and if possible: Bud to world interactions like mine some stones if player asks for
 <br>
 
 ## Known Issues

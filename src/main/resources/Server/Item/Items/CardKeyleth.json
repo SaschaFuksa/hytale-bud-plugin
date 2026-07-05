@@ -43,6 +43,14 @@
       {
         "ItemId": "Ingredient_Bar_Gold",
         "Quantity": 20
+      },
+      {
+        "ItemId": "Plant_Crop_Pumpkin_Item",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 1
       }
     ],
     "BenchRequirement": [
