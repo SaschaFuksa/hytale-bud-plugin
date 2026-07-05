@@ -27,33 +27,36 @@ public class CleanupUtil {
 
     public static void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store,
             @Nonnull Set<BudType> budTypes) {
-        try {
-            Ref<EntityStore> ref = playerRef.getReference();
-            if (ref == null) {
-                return;
-            }
-            PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
-            ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
-            List<String> removedBuds = new ArrayList<>();
-            for (NPCEntity bud : buds) {
-                for (BudType budType : budTypes) {
-                    if (bud.getNPCTypeId().equals(budType.getName())) {
-                        playerBudComponent.removeCurrentBud(bud, budType);
-                        Ref<EntityStore> budRef = bud.getReference();
-                        if (budRef != null) {
-                            despawnBud(budRef, store);
+        store.getExternalData().getWorld().execute(() -> {
+            try {
+                Ref<EntityStore> ref = playerRef.getReference();
+                if (ref == null) {
+                    return;
+                }
+                PlayerBudComponent playerBudComponent = store.getComponent(ref,
+                        PlayerBudComponent.getComponentType());
+                ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
+                List<String> removedBuds = new ArrayList<>();
+                for (NPCEntity bud : buds) {
+                    for (BudType budType : budTypes) {
+                        if (bud.getNPCTypeId().equals(budType.getName())) {
+                            playerBudComponent.removeCurrentBud(bud, budType);
+                            Ref<EntityStore> budRef = bud.getReference();
+                            if (budRef != null) {
+                                despawnBud(budRef, store);
+                            }
+                            removedBuds.add(budType.getName().split("_")[0]);
                         }
-                        removedBuds.add(budType.getName().split("_")[0]);
                     }
                 }
+                String message = removedBuds.isEmpty() ? "No matching Buds found to remove."
+                        : "Removed Buds: " + String.join(", ", removedBuds);
+                LoggerUtil.getLogger().info(() -> "[BUD] " + message);
+                ChatEvent.dispatch(playerRef, message);
+            } catch (Exception e) {
+                LoggerUtil.getLogger().severe(() -> "[BUD] Exception removing buds: " + e.getMessage());
             }
-            String message = removedBuds.isEmpty() ? "No matching Buds found to remove."
-                    : "Removed Buds: " + String.join(", ", removedBuds);
-            LoggerUtil.getLogger().info(() -> "[BUD] " + message);
-            ChatEvent.dispatch(playerRef, message);
-        } catch (Exception e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Exception removing buds: " + e.getMessage());
-        }
+        });
     }
 
     public static void cleanupAllBuds(World world, Store<EntityStore> store) {

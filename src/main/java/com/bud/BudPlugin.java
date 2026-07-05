@@ -34,7 +34,9 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
+import com.bud.interaction.CardGronkhInteraction;
 import com.bud.interaction.CardKeylethInteraction;
+import com.bud.interaction.CardVeriInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
@@ -69,7 +71,11 @@ public class BudPlugin extends JavaPlugin {
     protected void setup() {
         super.setup();
         this.getCodecRegistry(Interaction.CODEC).register("CardKeyleth", CardKeylethInteraction.class,
-                CardKeylethInteraction.CODEC);
+                CardKeylethInteraction.CODEC_CARD_KEYLETH);
+        this.getCodecRegistry(Interaction.CODEC).register("CardGronkh", CardGronkhInteraction.class,
+                CardGronkhInteraction.CODEC_CARD_GRONKH);
+        this.getCodecRegistry(Interaction.CODEC).register("CardVeri", CardVeriInteraction.class,
+                CardVeriInteraction.CODEC_CARD_VERI);
         this.setupLogging();
         this.setupConfig();
         LLMPromptManager.getInstance().reloadMissingPrompts();

@@ -1,12 +1,12 @@
 {
   "TranslationProperties": {
-    "Name": "Card Keyleth",
-    "Description": "Card to spawn and despawn Keyleth"
+    "Name": "Card Gronkh",
+    "Description": "Card to spawn and despawn Gronkh"
   },
   "Parent": "Tool_Hatchet_Crude",
-  "Icon": "Icons/ItemsGenerated/icon_keyleth.png",
+  "Icon": "Icons/ItemsGenerated/icon_gronkh.png",
   "Model": "Items/card.blockymodel",
-  "Texture": "Items/card_keyleth.png",
+  "Texture": "Items/card_gronkh.png",
   "IconProperties": {
     "Scale": 0.9,
     "Rotation": [
@@ -20,7 +20,7 @@
     ]
   },
   "Light": {
-    "Color": "#6e6"
+    "Color": "#6ae"
   },
   "Recipe": {
     "Input": [
@@ -42,7 +42,7 @@
     "TimeSeconds": 5
   },
   "Interactions": {
-    "Primary": "CardKeyleth",
-    "Secondary": "CardKeyleth"
+    "Primary": "CardGronkh",
+    "Secondary": "CardGronkh"
   }
 }
