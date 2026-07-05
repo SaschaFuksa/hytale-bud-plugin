@@ -13,7 +13,7 @@ public class LLMConfig {
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
     private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen3.5-0.8b" (needs prompt
                                                        // improvements)
-    private String apiKey = "not_needed"; // like sk-lm-KbCP0975:4MGo9MUOSThOoMCmP9CG
+    private String apiKey = "sk-lm-KbCP0975:4MGo9MUOSThOoMCmP9CG";
     private int maxTokens = 100;
     private double temperature = 0.9;
 
