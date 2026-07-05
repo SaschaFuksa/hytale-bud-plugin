@@ -1,7 +1,6 @@
 package com.bud;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.bud.app.BudCommandCollection;
 import com.bud.core.components.BudComponent;
@@ -35,9 +34,11 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
+import com.bud.interaction.CardKeylethInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -67,7 +68,8 @@ public class BudPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         super.setup();
-
+        this.getCodecRegistry(Interaction.CODEC).register("CardKeyleth", CardKeylethInteraction.class,
+                CardKeylethInteraction.CODEC);
         this.setupLogging();
         this.setupConfig();
         LLMPromptManager.getInstance().reloadMissingPrompts();
@@ -94,9 +96,8 @@ public class BudPlugin extends JavaPlugin {
 
     private void setupLogging() {
         // Force log levels to ALL for debugging
-        Logger logger = LoggerUtil.getLogger();
-        logger.setLevel(Level.ALL);
-        logger.info(() -> "[BUD] Logger name is: " + logger.getName());
+        LoggerUtil.getLogger().setLevel(Level.ALL);
+        LoggerUtil.getLogger().info(() -> "[BUD] Logger name is: " + LoggerUtil.getLogger().getName());
     }
 
     private void setupConfig() {

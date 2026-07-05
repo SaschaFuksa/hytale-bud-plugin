@@ -1,0 +1,48 @@
+{
+  "TranslationProperties": {
+    "Name": "Card Keyleth",
+    "Description": "Card to spawn and despawn Keyleth"
+  },
+  "Parent": "Tool_Hatchet_Crude",
+  "Icon": "Icons/ItemsGenerated/card_keyleth.png",
+  "Model": "Items/card.blockymodel",
+  "Texture": "Items/card_keyleth.png",
+  "IconProperties": {
+    "Scale": 0.9,
+    "Rotation": [
+      43,
+      102,
+      19
+    ],
+    "Translation": [
+      -14,
+      -2
+    ]
+  },
+  "Light": {
+    "Color": "#6e6"
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Ore_Iron",
+        "Quantity": 20
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Arcanebench",
+        "RequiredTierLevel": 0,
+        "Categories": [
+          "Arcane_Misc"
+        ]
+      }
+    ],
+    "TimeSeconds": 5
+  },
+  "Interactions": {
+    "Primary": "CardKeyleth",
+    "Secondary": "CardKeyleth"
+  }
+}

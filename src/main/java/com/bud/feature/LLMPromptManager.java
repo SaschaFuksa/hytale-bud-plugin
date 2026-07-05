@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -170,17 +169,16 @@ public class LLMPromptManager {
     }
 
     public void debugLog() {
-        Logger logger = LoggerUtil.getLogger();
-        logger.info(() -> "[BUD] --- BudLLMPromptManager Debug ---");
-        logger.finer(() -> "[BUD] Buds loaded: " + budMessages.keySet());
-        logger.finer(() -> "[BUD] Zones loaded: " + zoneMessages.keySet());
-        logger.finer(() -> "[BUD] Time message loaded: " + (timeMessage != null));
-        logger.finer(() -> "[BUD] World Template loaded: " + (worldInfoTemplate != null));
-        logger.finer(() -> "[BUD] Combat Template loaded: " + (combatInfoTemplate != null));
-        logger.finer(
+        LoggerUtil.getLogger().info(() -> "[BUD] --- BudLLMPromptManager Debug ---");
+        LoggerUtil.getLogger().finer(() -> "[BUD] Buds loaded: " + budMessages.keySet());
+        LoggerUtil.getLogger().finer(() -> "[BUD] Zones loaded: " + zoneMessages.keySet());
+        LoggerUtil.getLogger().finer(() -> "[BUD] Time message loaded: " + (timeMessage != null));
+        LoggerUtil.getLogger().finer(() -> "[BUD] World Template loaded: " + (worldInfoTemplate != null));
+        LoggerUtil.getLogger().finer(() -> "[BUD] Combat Template loaded: " + (combatInfoTemplate != null));
+        LoggerUtil.getLogger().finer(
                 () -> "[BUD] Entities loaded: " + (entityCategories != null && entityCategories.getCategories() != null
                         ? entityCategories.getCategories().size() + " categories"
                         : "false"));
-        logger.finer(() -> "[BUD] ----------------------------------");
+        LoggerUtil.getLogger().finer(() -> "[BUD] ----------------------------------");
     }
 }

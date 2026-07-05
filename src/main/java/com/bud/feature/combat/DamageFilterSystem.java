@@ -96,8 +96,14 @@ public class DamageFilterSystem extends DamageEventSystem {
             for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
                 Role budRole = bud.getRole();
                 if (budRole != null) {
-                    budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
-                            ASSIST_ATTITUDE_DURATION);
+                    try {
+                        budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
+                                ASSIST_ATTITUDE_DURATION);
+                    } catch (NullPointerException e) {
+                        LoggerUtil.getLogger().warning(() -> "[BUD] Could not override attitude for "
+                                + bud.getRoleName()
+                                + " - its Role has no attitude-override memory allocated (needs an OverrideAttitude action in its Instructions, and a server/world restart to rebuild already-spawned NPCs).");
+                    }
                 }
             }
         }
