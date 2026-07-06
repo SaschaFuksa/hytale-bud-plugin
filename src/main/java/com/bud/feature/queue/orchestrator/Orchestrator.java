@@ -105,7 +105,7 @@ public class Orchestrator {
 
             for (String playerName : queues.keySet()) {
                 purgeStale(queues.get(playerName), now, entryTtl);
-                drainPlayerChannel(playerName);
+                servePlayerChannel(playerName);
 
                 long lastGlobal = lastGlobalMessage.getOrDefault(playerName, 0L);
                 if (now - lastGlobal < globalCooldown) {
@@ -161,16 +161,17 @@ public class Orchestrator {
         }
     }
 
-    private void drainPlayerChannel(String playerName) {
+    private void servePlayerChannel(String playerName) {
         PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, OrchestratorChannel.PLAYER);
         if (queue == null || queue.isEmpty()) {
             return;
         }
         OrchestratorQueue event;
         synchronized (queue) {
-            while ((event = queue.poll()) != null) {
-                dispatch(event);
-            }
+            event = queue.poll();
+        }
+        if (event != null) {
+            dispatch(event);
         }
     }
 

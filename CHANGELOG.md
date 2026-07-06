@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0]
+### Added
+- **abc**: 
+
+### Fixed
+- Orchestration of messages: Only send one message per tick
+
+---
+
 ## [1.9.0]
 ### Added
 - **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.
