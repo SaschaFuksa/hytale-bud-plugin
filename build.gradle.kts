@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.bud"
-version = "1.8.0"
+version = "1.9.0"
 val javaVersion = 25
 
 val shade: Configuration by configurations.creating

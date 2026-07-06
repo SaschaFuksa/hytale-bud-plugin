@@ -1,0 +1,72 @@
+{
+  "TranslationProperties": {
+    "Name": "Card Gronkh",
+    "Description": "Card to spawn and despawn Gronkh"
+  },
+  "Parent": "Tool_Hatchet_Crude",
+  "Icon": "Icons/ItemsGenerated/icon_gronkh.png",
+  "Model": "Items/card.blockymodel",
+  "Texture": "Items/card_gronkh.png",
+  "IconProperties": {
+    "Scale": 0.9,
+    "Rotation": [
+      43,
+      102,
+      19
+    ],
+    "Translation": [
+      -14,
+      -2
+    ]
+  },
+  "Light": {
+    "Color": "#6ae"
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Weapon_Mace_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Mana3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Rock_Ice",
+        "Quantity": 30
+      },
+      {
+        "ItemId": "Rock_Stone_Cobble_Mossy",
+        "Quantity": 90
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Ice_Essence",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 1
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Arcanebench",
+        "RequiredTierLevel": 0,
+        "Categories": [
+          "Arcane_Misc"
+        ]
+      }
+    ],
+    "TimeSeconds": 5
+  },
+  "Interactions": {
+    "Primary": "CardGronkh",
+    "Secondary": "CardGronkh"
+  }
+}

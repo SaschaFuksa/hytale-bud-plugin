@@ -1,0 +1,72 @@
+{
+  "TranslationProperties": {
+    "Name": "Card Keyleth",
+    "Description": "Card to spawn and despawn Keyleth"
+  },
+  "Parent": "Tool_Hatchet_Crude",
+  "Icon": "Icons/ItemsGenerated/icon_keyleth.png",
+  "Model": "Items/card.blockymodel",
+  "Texture": "Items/card_keyleth.png",
+  "IconProperties": {
+    "Scale": 0.9,
+    "Rotation": [
+      43,
+      102,
+      19
+    ],
+    "Translation": [
+      -14,
+      -2
+    ]
+  },
+  "Light": {
+    "Color": "#6e6"
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Weapon_Shortbow_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Health3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Ingredient_Fibre",
+        "Quantity": 50
+      },
+      {
+        "ItemId": "Wood_Azure_Trunk",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 20
+      },
+      {
+        "ItemId": "Plant_Crop_Pumpkin_Item",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 1
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Arcanebench",
+        "RequiredTierLevel": 0,
+        "Categories": [
+          "Arcane_Misc"
+        ]
+      }
+    ],
+    "TimeSeconds": 5
+  },
+  "Interactions": {
+    "Primary": "CardKeyleth",
+    "Secondary": "CardKeyleth"
+  }
+}

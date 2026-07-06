@@ -3,6 +3,7 @@ package com.bud.app;
 import com.bud.app.commands.CreationCommand;
 import com.bud.app.commands.DebugCommand;
 import com.bud.app.commands.DeletionCommand;
+import com.bud.app.commands.MemoryCommand;
 import com.bud.app.commands.PromptCommand;
 import com.bud.app.commands.ResetCommand;
 import com.bud.app.commands.StateCommand;
@@ -16,6 +17,7 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new ResetCommand());
         this.addSubCommand(new DeletionCommand());
         this.addSubCommand(new StateCommand());
+        this.addSubCommand(new MemoryCommand());
         this.addSubCommand(new PromptCommand());
         this.addSubCommand(new DebugCommand());
     }

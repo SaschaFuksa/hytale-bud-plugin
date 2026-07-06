@@ -161,6 +161,15 @@ public class ConversationMemoryService {
         return Objects.requireNonNull(List.copyOf(entries));
     }
 
+    @Nonnull
+    public List<ConversationMemoryEntry> getLegendaryMemoriesForBud(@Nonnull String ownerKey,
+            @Nonnull String budName) {
+        String normalizedOwner = normalizeParticipant(ownerKey);
+        List<ConversationMemoryEntry> entries = this.legendaryMemoriesByBud
+                .getOrDefault(legendaryKey(normalizedOwner, budName), List.of());
+        return Objects.requireNonNull(List.copyOf(entries));
+    }
+
     public void clearPlayer(@Nonnull String ownerKey) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         this.memoriesByOwner.remove(normalizedOwner);
