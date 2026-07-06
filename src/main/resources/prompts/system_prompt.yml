@@ -128,6 +128,11 @@ prompts:
     First, you get some details about your personality.
     Second, you get a short description of what the other Bud is now doing.
     Finally, react briefly and in character, feel free to tease or comment on it, as if you just noticed.
+  budNamedReply: |
+    Another Bud in your group just addressed you directly by name.
+    First, you get some details about your personality.
+    Second, you get what they said to you.
+    Finally, reply directly to them, briefly and in character, as part of the ongoing conversation.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

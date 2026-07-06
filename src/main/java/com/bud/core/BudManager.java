@@ -20,6 +20,7 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
 import com.bud.core.types.BudType;
+import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -109,6 +110,24 @@ public class BudManager {
             return null;
         }
         return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+    }
+
+    @Nullable
+    public BudComponent findBudByNameMention(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull String message,
+            @Nonnull BudComponent excludeSpeaker) {
+        String lowerMessage = message.toLowerCase();
+        for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
+            BudComponent candidate = findBudComponent(bud);
+            if (candidate == null || candidate == excludeSpeaker) {
+                continue;
+            }
+            String displayName = BudProfileMapper.getInstance()
+                    .getProfileForBudType(candidate.getBudType()).getNPCDisplayName();
+            if (lowerMessage.contains(displayName.toLowerCase())) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     private static boolean isOtherBud(BudComponent candidate, BudComponent excluded) {

@@ -12,6 +12,7 @@ import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudType;
 import com.bud.feature.bud.MoodTracker;
+import com.bud.feature.bud.reaction.BudReactionChainTracker;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.chat.conversation.DialogModeTracker;
 import com.bud.feature.queue.creation.BudCreationEntry;
@@ -95,6 +96,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
             DialogModeTracker.getInstance().clearPlayer(playerRef.getUsername());
             ConversationMemoryService.getInstance().clearPlayer(playerRef.getUsername());
+            BudReactionChainTracker.getInstance().clearPlayer(playerRef.getUsername());
         }
     }
 

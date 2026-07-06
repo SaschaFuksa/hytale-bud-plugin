@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.bud.core.config.OrchestratorConfig;
 import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.bud.reaction.BudReactionChainTracker;
+import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -230,7 +232,11 @@ public class Orchestrator {
                     LoggerUtil.getLogger().severe(() -> "[Orchestrator] Missing interaction entry for event: " + event);
                     return;
                 }
-                interactionManager.processInteraction(entry);
+                String message = interactionManager.processInteraction(entry);
+                if (message != null && !message.isBlank()
+                        && entry.promptContext() instanceof BudReactionEntry reactionEntry) {
+                    BudReactionChainTracker.getInstance().onReactionDispatched(reactionEntry, message);
+                }
             } catch (Exception e) {
                 LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error dispatching " + event.eventType()
                         + " for player "

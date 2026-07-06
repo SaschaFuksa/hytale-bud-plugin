@@ -18,6 +18,7 @@ public class ConversationConfig {
     private long dialogModeIdleSeconds = 180L;
     private long dialogModeActiveSeconds = 30L;
     private long dialogModeTurnIntervalSeconds = 9L;
+    private int budReactionChainMaxReplies = 2;
 
     private static volatile ConversationConfig instance;
 
@@ -73,6 +74,10 @@ public class ConversationConfig {
         return this.dialogModeTurnIntervalSeconds;
     }
 
+    public int getBudReactionChainMaxReplies() {
+        return this.budReactionChainMaxReplies;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ConversationConfig.class, ConversationConfig::new)
                 .append(new KeyedCodec<>("EnableConversationMemory", Codec.BOOLEAN),
@@ -114,6 +119,10 @@ public class ConversationConfig {
                 .append(new KeyedCodec<>("DialogModeTurnIntervalSeconds", Codec.LONG),
                         (config, value) -> config.dialogModeTurnIntervalSeconds = value,
                         config -> config.dialogModeTurnIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("BudReactionChainMaxReplies", Codec.INTEGER),
+                        (config, value) -> config.budReactionChainMaxReplies = value,
+                        config -> config.budReactionChainMaxReplies)
                 .add()
                 .build();
     }
