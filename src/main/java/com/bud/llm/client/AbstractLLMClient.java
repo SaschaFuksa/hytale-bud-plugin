@@ -8,21 +8,10 @@ public abstract class AbstractLLMClient implements ILLMClient {
 
     protected void logUsage(String clientName, String jsonResponse) {
         try {
-            int usageIdx = jsonResponse.indexOf("\"usage\":");
-            if (usageIdx != -1) {
-                int totalTokensIdx = jsonResponse.indexOf("\"total_tokens\":", usageIdx);
-                if (totalTokensIdx != -1) {
-                    int colonIdx = jsonResponse.indexOf(":", totalTokensIdx);
-                    int commaIdx = jsonResponse.indexOf(",", colonIdx);
-                    int braceIdx = jsonResponse.indexOf("}", colonIdx);
-                    int endIdx = (commaIdx != -1 && (braceIdx == -1 || commaIdx < braceIdx)) ? commaIdx : braceIdx;
-
-                    if (endIdx != -1) {
-                        String tokens = jsonResponse.substring(colonIdx + 1, endIdx).trim();
-                        LoggerUtil.getLogger()
-                                .info(() -> "[" + clientName + "] Token Usage: " + tokens + " total tokens.");
-                    }
-                }
+            Integer totalTokens = JsonUtils.extractInt(jsonResponse, "total_tokens");
+            if (totalTokens != null) {
+                LoggerUtil.getLogger()
+                        .info(() -> "[" + clientName + "] Token Usage: " + totalTokens + " total tokens.");
             }
         } catch (Exception e) {
             LoggerUtil.getLogger().fine(() -> "[" + clientName + "] Could not parse token usage: " + e.getMessage());
@@ -30,35 +19,12 @@ public abstract class AbstractLLMClient implements ILLMClient {
     }
 
     protected String extractContent(String jsonResponse) throws IOException {
-        int contentIdx = jsonResponse.indexOf("\"content\":");
-        if (contentIdx == -1) {
+        String content = JsonUtils.extractString(jsonResponse, "content");
+        if (content == null) {
             throw new IOException("Could not find content field in response");
         }
 
-        int openQuoteIdx = jsonResponse.indexOf("\"", contentIdx + 10);
-        if (openQuoteIdx == -1) {
-            throw new IOException("Could not find opening quote after content field");
-        }
-
-        int closeQuoteIdx = openQuoteIdx + 1;
-        while (closeQuoteIdx < jsonResponse.length()) {
-            if (jsonResponse.charAt(closeQuoteIdx) == '"' &&
-                    jsonResponse.charAt(closeQuoteIdx - 1) != '\\') {
-                break;
-            }
-            closeQuoteIdx++;
-        }
-
-        if (closeQuoteIdx >= jsonResponse.length()) {
-            throw new IOException("Could not find closing quote for content");
-        }
-
-        return jsonResponse.substring(openQuoteIdx + 1, closeQuoteIdx)
-                .replace("\\n", " ")
-                .replace("\n", " ")
-                .replace("\r", " ")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\")
+        return content
                 .replaceAll("(?s)<think>.*?</think>", "")
                 .replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "") // Remove Emojis
                 .replace("\u2013", "-") // En dash to normal dash
