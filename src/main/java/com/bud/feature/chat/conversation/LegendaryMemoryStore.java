@@ -12,14 +12,9 @@ import javax.annotation.Nonnull;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.LLMCaller;
 import com.bud.llm.client.JsonUtils;
-import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Owns the legendary-memory buckets keyed either by a single bud (player-bud memories)
- * or by a sorted bud pair (bud-2-bud memories, see {@link #pairKey}).
- */
 final class LegendaryMemoryStore {
 
     private final Map<String, List<ConversationMemoryEntry>> memoriesByKey = new ConcurrentHashMap<>();
@@ -58,12 +53,8 @@ final class LegendaryMemoryStore {
         return Objects.requireNonNull(List.copyOf(combined));
     }
 
-    /**
-     * Adds the candidate to the bucket if a slot is free, otherwise asks the LLM to pick a
-     * replacement. Callers are expected to hold the owner's conversation lock.
-     */
     boolean storeOrReplace(@Nonnull String ownerKey, @Nonnull String bucketKey,
-            @Nonnull ConversationMemoryEntry candidateEntry, int maxSlots, @Nonnull IBudProfile budProfile) {
+            @Nonnull ConversationMemoryEntry candidateEntry, int maxSlots, @Nonnull String speakerDisplayName) {
         List<ConversationMemoryEntry> existing = new ArrayList<>(
                 this.memoriesByKey.getOrDefault(bucketKey, List.of()));
 
@@ -71,14 +62,14 @@ final class LegendaryMemoryStore {
             existing.add(candidateEntry);
             this.memoriesByKey.put(bucketKey, existing);
             LoggerUtil.getLogger().info(() -> "[BUD] Added legendary memory for player " + ownerKey
-                    + " from " + budProfile.getNPCDisplayName() + ": " + candidateEntry.summary());
+                    + " from " + speakerDisplayName + ": " + candidateEntry.summary());
             return true;
         }
 
-        int replaceIndex = resolveReplacement(existing, candidateEntry, budProfile);
+        int replaceIndex = resolveReplacement(existing, candidateEntry, speakerDisplayName);
         if (replaceIndex < 0 || replaceIndex >= existing.size()) {
             LoggerUtil.getLogger().info(() -> "[BUD] Legendary memory candidate discarded for "
-                    + budProfile.getNPCDisplayName() + " (slots full, no replacement chosen): "
+                    + speakerDisplayName + " (slots full, no replacement chosen): "
                     + candidateEntry.summary());
             return false;
         }
@@ -86,9 +77,38 @@ final class LegendaryMemoryStore {
         String replacedSummary = existing.get(replaceIndex).summary();
         existing.set(replaceIndex, candidateEntry);
         this.memoriesByKey.put(bucketKey, existing);
-        LoggerUtil.getLogger().info(() -> "[BUD] Replaced legendary memory for " + budProfile.getNPCDisplayName()
+        LoggerUtil.getLogger().info(() -> "[BUD] Replaced legendary memory for " + speakerDisplayName
                 + ": \"" + replacedSummary + "\" -> \"" + candidateEntry.summary() + "\"");
         return true;
+    }
+
+    boolean removeForBud(@Nonnull String normalizedOwnerKey, @Nonnull String budName, int displayIndex) {
+        List<ConversationMemoryEntry> displayList = collectForBud(normalizedOwnerKey, budName);
+        if (displayIndex < 1 || displayIndex > displayList.size()) {
+            return false;
+        }
+        ConversationMemoryEntry target = displayList.get(displayIndex - 1);
+        String normalizedBudName = normalize(budName);
+
+        List<ConversationMemoryEntry> singleBucket = this.memoriesByKey.get(legendaryKey(normalizedOwnerKey, budName));
+        if (singleBucket != null && singleBucket.remove(target)) {
+            return true;
+        }
+
+        String ownerPrefix = normalizedOwnerKey + "::";
+        for (Map.Entry<String, List<ConversationMemoryEntry>> mapEntry : this.memoriesByKey.entrySet()) {
+            String key = mapEntry.getKey();
+            if (!key.startsWith(ownerPrefix) || !key.contains("|")) {
+                continue;
+            }
+            String[] pairNames = key.substring(ownerPrefix.length()).split("\\|", 2);
+            if (pairNames.length == 2
+                    && (pairNames[0].equals(normalizedBudName) || pairNames[1].equals(normalizedBudName))
+                    && mapEntry.getValue().remove(target)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nonnull
@@ -112,7 +132,7 @@ final class LegendaryMemoryStore {
     }
 
     private int resolveReplacement(@Nonnull List<ConversationMemoryEntry> existing,
-            @Nonnull ConversationMemoryEntry candidate, @Nonnull IBudProfile budProfile) {
+            @Nonnull ConversationMemoryEntry candidate, @Nonnull String speakerDisplayName) {
         try {
             LLMPromptManager promptManager = LLMPromptManager.getInstance();
             String systemPrompt = promptManager.getSystemPrompt("legendaryReplacement");
@@ -140,7 +160,7 @@ final class LegendaryMemoryStore {
             return replaceIndex == null ? -1 : replaceIndex;
         } catch (Exception exception) {
             LoggerUtil.getLogger().fine(() -> "[BUD] Could not resolve legendary replacement for "
-                    + budProfile.getNPCDisplayName() + ": " + exception.getMessage());
+                    + speakerDisplayName + ": " + exception.getMessage());
             return -1;
         }
     }

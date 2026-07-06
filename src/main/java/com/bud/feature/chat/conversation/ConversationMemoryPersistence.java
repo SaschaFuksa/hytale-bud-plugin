@@ -10,28 +10,21 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.llm.prompt.IPromptContext;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-/**
- * Writes conversation memory snapshots into (and reads them back out of) the owning
- * player's {@link PlayerBudComponent}, which is the codec-persisted, restart-surviving
- * store for this data.
- */
 final class ConversationMemoryPersistence {
 
     private ConversationMemoryPersistence() {
     }
 
-    static void persist(@Nonnull String normalizedOwnerKey, @Nonnull IPromptContext promptContext,
+    static void persist(@Nonnull String normalizedOwnerKey, @Nonnull PlayerRef playerRef,
             @Nonnull List<ConversationMemoryEntry> regularMemories,
             @Nonnull Map<String, List<ConversationMemoryEntry>> legendaryBuckets) {
         try {
-            PlayerRef playerRef = promptContext.getBudComponent().getPlayerRef();
             Ref<EntityStore> ref = playerRef.getReference();
             if (ref == null) {
                 return;

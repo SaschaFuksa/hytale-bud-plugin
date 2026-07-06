@@ -36,6 +36,14 @@ public class MemoryCommand extends AbstractPlayerCommand {
         this.veriFlag = this.withFlagArg("veri", "Limit legendary memories to Veri.");
         this.keylethFlag = this.withFlagArg("keyleth", "Limit legendary memories to Keyleth.");
         this.gronkhFlag = this.withFlagArg("gronkh", "Limit legendary memories to Gronkh.");
+        this.addSubCommand(new MemorySetCommand());
+        this.addSubCommand(new MemoryDeleteCommand());
+    }
+
+    @Nonnull
+    static String resolveBudDisplayName(@Nonnull String rawBudName) {
+        BudType budType = BudType.valueOf(rawBudName.trim().toUpperCase());
+        return BudProfileMapper.getInstance().getProfileForBudType(budType).getNPCDisplayName();
     }
 
     @Override
@@ -90,9 +98,11 @@ public class MemoryCommand extends AbstractPlayerCommand {
             String budName = BudProfileMapper.getInstance().getProfileForBudType(budType).getNPCDisplayName();
             List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
                     .getLegendaryMemoriesForBud(playerRef.getUsername(), budName);
+            int index = 1;
             for (ConversationMemoryEntry memory : memories) {
                 any = true;
-                ChatEvent.dispatch(playerRef, "Legendary [" + budName + "]: " + memory.summary());
+                ChatEvent.dispatch(playerRef, "Legendary [" + budName + "] #" + index + ": " + memory.summary());
+                index++;
             }
         }
         if (!any) {

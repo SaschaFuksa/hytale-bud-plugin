@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.0]
 ### Added
-- **abc**: 
+- **Bud 2 Bud Reactions**: More reactions between buds.
+- **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds.
+- **New Commands**: New commands to set/delete memories, or delete only user specific buds.
 
 ### Fixed
 - Orchestration of messages: Only send one message per tick
+- Higher cooldown times of message channels
 
 ---
 

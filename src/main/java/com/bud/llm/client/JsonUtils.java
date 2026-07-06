@@ -34,10 +34,6 @@ public final class JsonUtils {
         return "\"" + escapeJson(input) + "\"";
     }
 
-    /**
-     * Extracts the first {@code {...}} JSON object from a raw LLM response, tolerating
-     * surrounding prose. Falls back to the trimmed raw response if no object is found.
-     */
     public static String extractJsonObject(String rawResponse) {
         Matcher matcher = JSON_OBJECT_PATTERN.matcher(rawResponse);
         return matcher.find() ? matcher.group() : rawResponse.trim();

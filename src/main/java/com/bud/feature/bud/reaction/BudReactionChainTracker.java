@@ -22,11 +22,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-/**
- * Lets a Bud2Bud reaction chain into a named reply when the generated message mentions
- * another active Bud by name, up to {@link ConversationConfig#getBudReactionChainMaxReplies()}
- * replies. Any of the "original" trigger kinds resets the chain for that player.
- */
 public class BudReactionChainTracker {
 
     @Nonnull
