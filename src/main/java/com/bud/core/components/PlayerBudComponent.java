@@ -1,18 +1,23 @@
 package com.bud.core.components;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.Nonnull;
 
 import com.bud.core.types.BudType;
+import com.bud.feature.chat.conversation.PersistedMemoryEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
+import com.hypixel.hytale.codec.codecs.map.MapCodec;
 import com.hypixel.hytale.codec.codecs.set.SetCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -34,6 +39,10 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private ConcurrentLinkedQueue<NPCEntity> currentBuds = new ConcurrentLinkedQueue<>();
 
+    private Set<PersistedMemoryEntry> persistedMemories = new LinkedHashSet<>();
+
+    private Map<String, Set<PersistedMemoryEntry>> persistedLegendaryMemories = new HashMap<>();
+
     public PlayerBudComponent() {
         this.budTypes = new HashSet<>();
     }
@@ -48,6 +57,8 @@ public class PlayerBudComponent implements Component<EntityStore> {
         this.budTypes = new HashSet<>(clone.budTypes);
         this.playerRef = clone.playerRef;
         this.lastKnownWeatherId = clone.lastKnownWeatherId;
+        this.persistedMemories = new LinkedHashSet<>(clone.persistedMemories);
+        this.persistedLegendaryMemories = new HashMap<>(clone.persistedLegendaryMemories);
     }
 
     @Nonnull
@@ -59,6 +70,21 @@ public class PlayerBudComponent implements Component<EntityStore> {
                     new KeyedCodec<>("BudTypes", new SetCodec<>(new EnumCodec<>(BudType.class), HashSet::new, false)),
                     (component, value) -> component.budTypes = value != null ? new HashSet<>(value) : new HashSet<>(),
                     component -> component.budTypes)
+            .add()
+            .append(
+                    new KeyedCodec<>("PersistedMemories",
+                            new SetCodec<>(PersistedMemoryEntry.CODEC, LinkedHashSet::new, false)),
+                    (component, value) -> component.persistedMemories = value != null ? new LinkedHashSet<>(value)
+                            : new LinkedHashSet<>(),
+                    component -> component.persistedMemories)
+            .add()
+            .append(
+                    new KeyedCodec<>("PersistedLegendaryMemories",
+                            new MapCodec<>(new SetCodec<>(PersistedMemoryEntry.CODEC, LinkedHashSet::new, false),
+                                    HashMap::new)),
+                    (component, value) -> component.persistedLegendaryMemories = value != null ? new HashMap<>(value)
+                            : new HashMap<>(),
+                    component -> component.persistedLegendaryMemories)
             .add()
             .build();
 
@@ -142,6 +168,24 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public synchronized void setLastKnownWeatherId(String weatherId) {
         this.lastKnownWeatherId = weatherId;
+    }
+
+    @Nonnull
+    public synchronized Set<PersistedMemoryEntry> getPersistedMemories() {
+        return new LinkedHashSet<>(persistedMemories);
+    }
+
+    public synchronized void setPersistedMemories(@Nonnull Set<PersistedMemoryEntry> memories) {
+        this.persistedMemories = new LinkedHashSet<>(memories);
+    }
+
+    @Nonnull
+    public synchronized Map<String, Set<PersistedMemoryEntry>> getPersistedLegendaryMemories() {
+        return new HashMap<>(persistedLegendaryMemories);
+    }
+
+    public synchronized void setPersistedLegendaryMemories(@Nonnull Map<String, Set<PersistedMemoryEntry>> memories) {
+        this.persistedLegendaryMemories = new HashMap<>(memories);
     }
 
     private synchronized void pruneInvalidBuds() {

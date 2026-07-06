@@ -95,6 +95,34 @@ public class BudManager {
     }
 
     @Nullable
+    public BudComponent getRandomOtherBud(PlayerBudComponent playerBudComponent, BudComponent excluded) {
+        ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
+        int size = buds.size();
+        if (size == 0) {
+            return null;
+        }
+        int startIndex = ThreadLocalRandom.current().nextInt(size);
+        int index = 0;
+        for (NPCEntity bud : buds) {
+            BudComponent budComponent = findBudComponent(bud);
+            if (index++ >= startIndex && isOtherBud(budComponent, excluded)) {
+                return budComponent;
+            }
+        }
+        for (NPCEntity bud : buds) {
+            BudComponent budComponent = findBudComponent(bud);
+            if (isOtherBud(budComponent, excluded)) {
+                return budComponent;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isOtherBud(BudComponent candidate, BudComponent excluded) {
+        return candidate != null && candidate != excluded;
+    }
+
+    @Nullable
     public BudComponent findBudComponent(NPCEntity bud) {
         if (bud == null) {
             return null;

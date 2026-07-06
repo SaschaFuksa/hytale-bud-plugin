@@ -3,13 +3,19 @@ package com.bud.feature.bud;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
+import com.bud.feature.bud.reaction.BudReactionEntry;
+import com.bud.feature.bud.reaction.BudReactionKind;
+import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.orchestrator.Orchestrator;
@@ -20,8 +26,12 @@ import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class MoodTracker extends AbstractTracker {
 
@@ -113,6 +123,9 @@ public class MoodTracker extends AbstractTracker {
                                 "Mood of " + budProfile.getNPCDisplayName() + " has changed to "
                                         + budComponent.getCurrentMood() + "!");
                     }
+                    if (!budComponent.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
+                        triggerMoodChangeReaction(budComponent, budProfile);
+                    }
                 }
             } else {
                 budComponent.setCurrentMood(Mood.DEFAULT);
@@ -125,5 +138,42 @@ public class MoodTracker extends AbstractTracker {
                 }
             }
         }
+    }
+
+    private void triggerMoodChangeReaction(@Nonnull BudComponent budComponent, @Nonnull IBudProfile budProfile) {
+        Ref<EntityStore> budRef = budComponent.getBud().getReference();
+        if (budRef == null) {
+            return;
+        }
+        Store<EntityStore> store = budRef.getStore();
+        World world = store.getExternalData().getWorld();
+        world.execute(() -> {
+            PlayerRef playerRef = budComponent.getPlayerRef();
+            Ref<EntityStore> playerEntityRef = playerRef.getReference();
+            if (playerEntityRef == null) {
+                return;
+            }
+            PlayerBudComponent playerBudComponent = store.getComponent(playerEntityRef,
+                    PlayerBudComponent.getComponentType());
+            if (playerBudComponent == null) {
+                return;
+            }
+            BudComponent otherBud = BudManager.getInstance().getRandomOtherBud(playerBudComponent, budComponent);
+            if (otherBud == null) {
+                return;
+            }
+            String situationInfo = budProfile.getNPCDisplayName() + " is now "
+                    + budComponent.getCurrentMood().getDisplayName()
+                    + ". React to this mood change in character.";
+            BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.MOOD_CHANGE, situationInfo);
+            long now = System.currentTimeMillis();
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.SOCIAL,
+                    entry,
+                    entry.getEntryName() + ":" + now,
+                    playerRef.getUsername(),
+                    new LLMInteractionEntry(LLMBudReactionMessageCreation.getInstance(), entry),
+                    now));
+        });
     }
 }

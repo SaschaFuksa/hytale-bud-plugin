@@ -1,6 +1,7 @@
 package com.bud.app.commands;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -55,15 +56,15 @@ public class MemoryCommand extends AbstractPlayerCommand {
     @Nonnull
     private Set<BudType> resolveBudTypes(@Nonnull CommandContext context) {
         if (this.veriFlag.get(context)) {
-            return Set.of(BudType.VERI);
+            return Objects.requireNonNull(Set.of(BudType.VERI));
         }
         if (this.keylethFlag.get(context)) {
-            return Set.of(BudType.KEYLETH);
+            return Objects.requireNonNull(Set.of(BudType.KEYLETH));
         }
         if (this.gronkhFlag.get(context)) {
-            return Set.of(BudType.GRONKH);
+            return Objects.requireNonNull(Set.of(BudType.GRONKH));
         }
-        return Set.of(BudType.values());
+        return Objects.requireNonNull(Set.of(BudType.values()));
     }
 
     private void sendNormalMemories(@Nonnull PlayerRef playerRef) {

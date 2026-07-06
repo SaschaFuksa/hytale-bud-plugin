@@ -64,6 +64,7 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
                 BudCreationQueue.getInstance()
                         .addToCache(new BudCreationEntry(ref, budType));
             }
+            ConversationMemoryService.getInstance().restoreForOwner(playerRef.getUsername(), playerBudComponent);
         }
         MoodTracker.getInstance().startPolling();
         if (ReactionConfig.getInstance().isEnableWorldReactions()) {

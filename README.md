@@ -263,7 +263,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 ## 🗺️ Roadmap
 
 - [x] **1.9.0**: Item-based spawning instead of commands
-- [ ] **2.0.0**: Bud-2-Bud Interactions - and if possible: Bud to world interactions like mine some stones if player asks for
+- [ ] **2.0.0**: Bud-2-Bud Interactions - and if possible: Bud to world interactions like mine some stones if player asks for. Also Bud-Working Stations: Your Bud can be assigned to work and craft items like wood, stone or farm
 <br>
 
 ## Known Issues

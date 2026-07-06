@@ -8,36 +8,42 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.LLMConfig;
 import com.bud.feature.LLMPromptManager;
+import com.bud.feature.bud.reaction.BudReactionEntry;
+import com.bud.feature.bud.reaction.BudReactionKind;
+import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
 import com.bud.feature.queue.IQueueEntry;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.LLMCaller;
+import com.bud.llm.client.JsonUtils;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class ConversationMemoryService {
 
     @Nonnull
     private static final ConversationMemoryService INSTANCE = new ConversationMemoryService();
-    private static final Pattern JSON_OBJECT_PATTERN = Pattern.compile("(?s)\\{.*\\}");
-    private static final Pattern JSON_STRING_PATTERN = Pattern.compile("\"%s\"\\s*:\\s*\"((?:\\\\.|[^\\\"])*)\"");
-    private static final Pattern JSON_NUMBER_PATTERN = Pattern.compile("\"%s\"\\s*:\\s*(-?\\d+)");
-    private static final Pattern JSON_BOOLEAN_PATTERN = Pattern.compile("\"%s\"\\s*:\\s*(true|false)");
-    private static final Pattern JSON_ARRAY_PATTERN = Pattern.compile("\"%s\"\\s*:\\s*\\[(.*?)\\]", Pattern.DOTALL);
-    private static final Pattern JSON_ARRAY_STRING_PATTERN = Pattern.compile("\"((?:\\\\.|[^\\\"])*)\"");
 
     private final Map<String, List<ConversationMemoryEntry>> memoriesByOwner = new ConcurrentHashMap<>();
-    private final Map<String, List<ConversationMemoryEntry>> legendaryMemoriesByBud = new ConcurrentHashMap<>();
     private final Map<String, Object> ownerLocks = new ConcurrentHashMap<>();
+    private final LegendaryMemoryStore legendaryStore = new LegendaryMemoryStore();
 
     private ConversationMemoryService() {
     }
@@ -101,7 +107,7 @@ public class ConversationMemoryService {
         ConversationConfig config = ConversationConfig.getInstance();
 
         if (summaryCandidate.legendary() && config.isEnableLegendaryMemory()) {
-            storeLegendaryMemory(memoryContext, budProfile, summaryCandidate);
+            storeLegendaryMemory(memoryContext, budProfile, summaryCandidate, interactionEntry.promptContext());
             return;
         }
 
@@ -133,7 +139,7 @@ public class ConversationMemoryService {
 
             decayed.sort(Comparator
                     .comparingDouble((ConversationMemoryEntry entry) -> entry.effectiveScore())
-                    .thenComparingLong((ConversationMemoryEntry entry) -> entry.createdAt())
+                    .thenComparingLong(entry -> entry.createdAt())
                     .reversed());
 
             int maxDepth = Math.max(1, config.getConversationMemoryDepth());
@@ -152,6 +158,13 @@ public class ConversationMemoryService {
                     + " with importance " + summaryCandidate.importance()
                     + ": " + summaryCandidate.summary());
         }
+        persistOwnerMemories(ownerKey, interactionEntry.promptContext());
+    }
+
+    private void persistOwnerMemories(@Nonnull String normalizedOwnerKey, @Nonnull IPromptContext promptContext) {
+        ConversationMemoryPersistence.persist(normalizedOwnerKey, promptContext,
+                Objects.requireNonNull(this.memoriesByOwner.getOrDefault(normalizedOwnerKey, List.of())),
+                this.legendaryStore.snapshotForOwner(normalizedOwnerKey));
     }
 
     @Nonnull
@@ -165,16 +178,31 @@ public class ConversationMemoryService {
     public List<ConversationMemoryEntry> getLegendaryMemoriesForBud(@Nonnull String ownerKey,
             @Nonnull String budName) {
         String normalizedOwner = normalizeParticipant(ownerKey);
-        List<ConversationMemoryEntry> entries = this.legendaryMemoriesByBud
-                .getOrDefault(legendaryKey(normalizedOwner, budName), List.of());
-        return Objects.requireNonNull(List.copyOf(entries));
+        return this.legendaryStore.collectForBud(normalizedOwner, budName);
+    }
+
+    public void restoreForOwner(@Nonnull String ownerKey, @Nonnull PlayerBudComponent component) {
+        String normalizedOwner = normalizeParticipant(ownerKey);
+
+        List<ConversationMemoryEntry> memories = ConversationMemoryPersistence.restoreRegularMemories(component);
+        if (!memories.isEmpty()) {
+            this.memoriesByOwner.put(normalizedOwner, new ArrayList<>(memories));
+        }
+
+        Map<String, List<ConversationMemoryEntry>> legendaryBuckets = ConversationMemoryPersistence
+                .restoreLegendaryBuckets(component);
+        this.legendaryStore.restoreBuckets(legendaryBuckets);
+
+        LoggerUtil.getLogger().fine(() -> "[BUD] Restored " + memories.size()
+                + " memories and " + legendaryBuckets.size()
+                + " legendary memory buckets for player " + normalizedOwner);
     }
 
     public void clearPlayer(@Nonnull String ownerKey) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         this.memoriesByOwner.remove(normalizedOwner);
         this.ownerLocks.remove(normalizedOwner);
-        this.legendaryMemoriesByBud.keySet().removeIf(key -> key.startsWith(normalizedOwner + "::"));
+        this.legendaryStore.clearForOwner(normalizedOwner);
     }
 
     @Nonnull
@@ -194,15 +222,15 @@ public class ConversationMemoryService {
                             .comparingInt(
                                     (ConversationMemoryEntry entry) -> intersection(entry.participants(), participants)
                                             .size())
-                            .thenComparingDouble((ConversationMemoryEntry entry) -> entry.effectiveScore())
-                            .thenComparingLong((ConversationMemoryEntry entry) -> entry.createdAt())
+                            .thenComparingDouble(entry -> entry.effectiveScore())
+                            .thenComparingLong(entry -> entry.createdAt())
                             .reversed())
                     .limit(Math.max(1, ConversationConfig.getInstance().getConversationMemoryDepth()))
                     .toList();
         }
 
         List<ConversationMemoryEntry> legendary = ConversationConfig.getInstance().isEnableLegendaryMemory()
-                ? this.legendaryMemoriesByBud.getOrDefault(legendaryKey(ownerKey, budName), List.of())
+                ? this.legendaryStore.collectForBud(ownerKey, budName)
                 : List.of();
 
         if (legendary.isEmpty()) {
@@ -216,87 +244,71 @@ public class ConversationMemoryService {
     }
 
     private void storeLegendaryMemory(@Nonnull MemoryContext memoryContext, @Nonnull IBudProfile budProfile,
-            @Nonnull SummaryCandidate candidate) {
+            @Nonnull SummaryCandidate candidate, @Nonnull IPromptContext promptContext) {
         String ownerKey = normalizeParticipant(memoryContext.ownerKey());
-        String bucketKey = legendaryKey(ownerKey, budProfile.getNPCDisplayName());
+        String contextPairKey = memoryContext.pairKey();
+        String bucketKey = contextPairKey != null ? contextPairKey
+                : this.legendaryStore.legendaryKey(ownerKey, budProfile.getNPCDisplayName());
         int maxSlots = Math.max(1, ConversationConfig.getInstance().getLegendaryMemorySlotsPerBud());
 
+        ConversationMemoryEntry candidateEntry = new ConversationMemoryEntry(
+                candidate.summary(),
+                candidate.importance(),
+                candidate.importance(),
+                budProfile.getNPCDisplayName(),
+                memoryContext.mode(),
+                buildStoredParticipants(candidate.participants(), budProfile.getNPCDisplayName()),
+                System.currentTimeMillis(),
+                true);
+
+        boolean stored;
         synchronized (getConversationLock(ownerKey)) {
-            List<ConversationMemoryEntry> existing = new ArrayList<>(
-                    this.legendaryMemoriesByBud.getOrDefault(bucketKey, List.of()));
+            stored = this.legendaryStore.storeOrReplace(ownerKey, bucketKey, candidateEntry, maxSlots, budProfile);
+        }
 
-            ConversationMemoryEntry candidateEntry = new ConversationMemoryEntry(
-                    candidate.summary(),
-                    candidate.importance(),
-                    candidate.importance(),
-                    budProfile.getNPCDisplayName(),
-                    memoryContext.mode(),
-                    buildStoredParticipants(candidate.participants(), budProfile.getNPCDisplayName()),
-                    System.currentTimeMillis(),
-                    true);
-
-            if (existing.size() < maxSlots) {
-                existing.add(candidateEntry);
-                this.legendaryMemoriesByBud.put(bucketKey, existing);
-                LoggerUtil.getLogger().info(() -> "[BUD] Added legendary memory for player " + ownerKey
-                        + " from " + budProfile.getNPCDisplayName() + ": " + candidate.summary());
-                return;
-            }
-
-            int replaceIndex = resolveLegendaryReplacement(existing, candidateEntry, budProfile);
-            if (replaceIndex < 0 || replaceIndex >= existing.size()) {
-                LoggerUtil.getLogger().info(() -> "[BUD] Legendary memory candidate discarded for "
-                        + budProfile.getNPCDisplayName() + " (slots full, no replacement chosen): "
-                        + candidate.summary());
-                return;
-            }
-
-            String replacedSummary = existing.get(replaceIndex).summary();
-            existing.set(replaceIndex, candidateEntry);
-            this.legendaryMemoriesByBud.put(bucketKey, existing);
-            LoggerUtil.getLogger().info(() -> "[BUD] Replaced legendary memory for " + budProfile.getNPCDisplayName()
-                    + ": \"" + replacedSummary + "\" -> \"" + candidate.summary() + "\"");
+        if (stored) {
+            persistOwnerMemories(ownerKey, promptContext);
+            triggerLegendaryReaction(promptContext, budProfile, candidateEntry);
         }
     }
 
-    private int resolveLegendaryReplacement(@Nonnull List<ConversationMemoryEntry> existing,
-            @Nonnull ConversationMemoryEntry candidate, @Nonnull IBudProfile budProfile) {
+    private void triggerLegendaryReaction(@Nonnull IPromptContext promptContext, @Nonnull IBudProfile budProfile,
+            @Nonnull ConversationMemoryEntry candidateEntry) {
         try {
-            LLMPromptManager promptManager = LLMPromptManager.getInstance();
-            String systemPrompt = promptManager.getSystemPrompt("legendaryReplacement");
-            if (systemPrompt == null || systemPrompt.isBlank()) {
-                return -1;
+            PlayerRef playerRef = promptContext.getBudComponent().getPlayerRef();
+            Ref<EntityStore> ref = playerRef.getReference();
+            if (ref == null) {
+                return;
             }
+            Store<EntityStore> store = ref.getStore();
+            BudComponent speakerBud = promptContext.getBudComponent();
 
-            StringBuilder userPromptBuilder = new StringBuilder();
-            userPromptBuilder.append("Existing legendary memories:\n");
-            for (int i = 0; i < existing.size(); i++) {
-                userPromptBuilder.append(i).append(": ").append(existing.get(i).summary()).append("\n");
-            }
-            userPromptBuilder.append("New candidate memory: ").append(candidate.summary()).append("\n")
-                    .append("Return strict JSON only.");
-
-            String rawResponse = LLMCaller.getInstance()
-                    .callRawLLM(new Prompt(systemPrompt, userPromptBuilder.toString()))
-                    .join();
-            if (rawResponse == null || rawResponse.isBlank()) {
-                return -1;
-            }
-
-            Matcher matcher = JSON_OBJECT_PATTERN.matcher(rawResponse);
-            String json = matcher.find() ? matcher.group() : rawResponse.trim();
-            Integer replaceIndex = extractJsonNumber(json, "replaceIndex");
-            return replaceIndex == null ? -1 : replaceIndex;
+            store.getExternalData().getWorld().execute(() -> {
+                PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
+                if (playerBudComponent == null) {
+                    return;
+                }
+                BudComponent otherBud = BudManager.getInstance().getRandomOtherBud(playerBudComponent, speakerBud);
+                if (otherBud == null) {
+                    return;
+                }
+                String situationInfo = budProfile.getNPCDisplayName() + " just had a defining moment: \""
+                        + candidateEntry.summary() + "\". React to this in character.";
+                BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.LEGENDARY_MEMORY,
+                        situationInfo);
+                long now = System.currentTimeMillis();
+                Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                        OrchestratorChannel.SOCIAL,
+                        entry,
+                        entry.getEntryName() + ":" + now,
+                        playerRef.getUsername(),
+                        new LLMInteractionEntry(LLMBudReactionMessageCreation.getInstance(), entry),
+                        now));
+            });
         } catch (Exception exception) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Could not resolve legendary replacement for "
-                    + budProfile.getNPCDisplayName() + ": " + exception.getMessage());
-            return -1;
+            LoggerUtil.getLogger().warning(() -> "[BUD] Could not trigger legendary memory reaction: "
+                    + exception.getMessage());
         }
-    }
-
-    @Nonnull
-    private String legendaryKey(@Nonnull String normalizedOwnerKey, @Nonnull String budName) {
-        return normalizedOwnerKey + "::" + normalizeParticipant(budName);
     }
 
     private SummaryCandidate summarizeResponse(@Nonnull MemoryContext context, @Nonnull IBudProfile budProfile,
@@ -336,12 +348,11 @@ public class ConversationMemoryService {
 
     private SummaryCandidate parseSummaryCandidate(@Nonnull String rawResponse,
             @Nonnull Set<String> fallbackParticipants) {
-        Matcher matcher = JSON_OBJECT_PATTERN.matcher(rawResponse);
-        String json = matcher.find() ? matcher.group() : rawResponse.trim();
-        String summary = extractJsonString(json, "summary");
-        Integer importance = extractJsonNumber(json, "importance");
-        boolean legendary = extractJsonBoolean(json, "legendary");
-        Set<String> participants = extractJsonArray(json, "participants");
+        String json = JsonUtils.extractJsonObject(rawResponse);
+        String summary = JsonUtils.extractString(json, "summary");
+        Integer importance = JsonUtils.extractInt(json, "importance");
+        boolean legendary = JsonUtils.extractBoolean(json, "legendary");
+        Set<String> participants = JsonUtils.extractStringArray(json, "participants");
         if (summary == null || summary.isBlank() || importance == null) {
             return null;
         }
@@ -357,12 +368,20 @@ public class ConversationMemoryService {
             @Nonnull IBudProfile budProfile) {
         IPromptContext promptContext = interactionEntry.promptContext();
         if (promptContext instanceof ConversationContext conversationContext) {
+            String normalizedOwnerKey = normalizeParticipant(conversationContext.getConversationOwnerKey());
+            String pairKey = null;
+            if (promptContext instanceof DialogEntry(var _, var _, String previousSpeakerName, var _, var _)
+                    && previousSpeakerName != null && !previousSpeakerName.isBlank()) {
+                pairKey = this.legendaryStore.pairKey(normalizedOwnerKey, previousSpeakerName,
+                        budProfile.getNPCDisplayName());
+            }
             return new MemoryContext(
-                    normalizeParticipant(conversationContext.getConversationOwnerKey()),
+                    normalizedOwnerKey,
                     conversationContext.getConversationMode(),
                     conversationContext.getConversationParticipants(),
                     conversationContext.getConversationInput(),
-                    resolveInteractionType(promptContext));
+                    resolveInteractionType(promptContext),
+                    pairKey);
         }
 
         String ownerKey = promptContext.getBudComponent().getPlayerRef().getUsername();
@@ -372,7 +391,8 @@ public class ConversationMemoryService {
                 ConversationMode.GENERAL,
                 participants,
                 buildFallbackInput(promptContext),
-                resolveInteractionType(promptContext));
+                resolveInteractionType(promptContext),
+                null);
     }
 
     @Nonnull
@@ -389,66 +409,6 @@ public class ConversationMemoryService {
             return queueEntry.getEntryName();
         }
         return Objects.requireNonNull(promptContext.getClass().getSimpleName());
-    }
-
-    private String extractJsonString(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_STRING_PATTERN.pattern().formatted(Pattern.quote(key)));
-        Matcher matcher = pattern.matcher(json);
-        if (!matcher.find()) {
-            return null;
-        }
-        String groupValue = matcher.group(1);
-        if (groupValue == null) {
-            return null;
-        }
-        return decodeJsonString(groupValue);
-    }
-
-    private Integer extractJsonNumber(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_NUMBER_PATTERN.pattern().formatted(Pattern.quote(key)));
-        Matcher matcher = pattern.matcher(json);
-        if (!matcher.find()) {
-            return null;
-        }
-        return Integer.valueOf(matcher.group(1));
-    }
-
-    private boolean extractJsonBoolean(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_BOOLEAN_PATTERN.pattern().formatted(Pattern.quote(key)));
-        Matcher matcher = pattern.matcher(json);
-        return matcher.find() && Boolean.parseBoolean(matcher.group(1));
-    }
-
-    @Nonnull
-    private Set<String> extractJsonArray(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_ARRAY_PATTERN.pattern().formatted(Pattern.quote(key)), Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(json);
-        if (!matcher.find()) {
-            return Objects.requireNonNull(Set.of());
-        }
-        String arrayBody = matcher.group(1);
-        if (arrayBody == null) {
-            return Objects.requireNonNull(Set.of());
-        }
-        Matcher valueMatcher = JSON_ARRAY_STRING_PATTERN.matcher(arrayBody);
-        Set<String> values = new HashSet<>();
-        while (valueMatcher.find()) {
-            String groupValue = valueMatcher.group(1);
-            if (groupValue != null) {
-                values.add(decodeJsonString(groupValue));
-            }
-        }
-        return values;
-    }
-
-    @Nonnull
-    private String decodeJsonString(@Nonnull String value) {
-        return Objects.requireNonNull(value.replace("\\n", " ")
-                .replace("\\r", " ")
-                .replace("\\t", " ")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\")
-                .trim());
     }
 
     @Nonnull
@@ -491,6 +451,7 @@ public class ConversationMemoryService {
             @Nonnull ConversationMode mode,
             @Nonnull Set<String> participants,
             @Nonnull String input,
-            @Nonnull String interactionType) {
+            @Nonnull String interactionType,
+            String pairKey) {
     }
 }

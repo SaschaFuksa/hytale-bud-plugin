@@ -108,6 +108,21 @@ prompts:
     Do not include markdown, comments, explanations, or extra keys.
     Example:
     {"replaceIndex":-1}
+  budMoodReaction: |
+    Another Bud in your group just had a noticeable mood change.
+    First, you get some details about your personality.
+    Second, you get information about which Bud changed mood and to what.
+    Finally, react briefly and in character to that other Bud's new mood, as if you just noticed it.
+  budGreeting: |
+    A new Bud just joined your group.
+    First, you get some details about your personality.
+    Second, you get the name of the Bud who just arrived.
+    Finally, greet or react to the newcomer briefly and in character.
+  budLegendaryReaction: |
+    Another Bud in your group just experienced a defining, unforgettable moment.
+    First, you get some details about your personality.
+    Second, you get a short description of what happened and to whom.
+    Finally, react briefly and in character to that moment, as if you heard about it or witnessed it.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

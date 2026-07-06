@@ -17,11 +17,18 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudState;
 import com.bud.core.types.BudType;
+import com.bud.feature.bud.reaction.BudReactionEntry;
+import com.bud.feature.bud.reaction.BudReactionKind;
+import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
 import com.bud.feature.player.PlayerJoinSystem;
 import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
 import com.bud.feature.teleport.TeleportEvent;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -122,7 +129,26 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }
+        triggerGreetingReaction(playerRef, playerBudComponent, budComponent, budType);
+    }
 
+    private void triggerGreetingReaction(@Nonnull PlayerRef playerRef, @Nonnull PlayerBudComponent playerBudComponent,
+            @Nonnull BudComponent newBudComponent, @Nonnull BudType newBudType) {
+        BudComponent otherBud = BudManager.getInstance().getRandomOtherBud(playerBudComponent, newBudComponent);
+        if (otherBud == null) {
+            return;
+        }
+        String newBudName = BudProfileMapper.getInstance().getProfileForBudType(newBudType).getNPCDisplayName();
+        String situationInfo = newBudName + " just joined the group. Greet them in character.";
+        BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.GREETING, situationInfo);
+        long now = System.currentTimeMillis();
+        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                OrchestratorChannel.SOCIAL,
+                entry,
+                entry.getEntryName() + ":" + now,
+                playerRef.getUsername(),
+                new LLMInteractionEntry(LLMBudReactionMessageCreation.getInstance(), entry),
+                now));
     }
 
     private static NPCEntity spawnBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
