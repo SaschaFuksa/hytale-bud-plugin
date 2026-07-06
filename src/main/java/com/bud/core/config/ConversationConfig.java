@@ -17,7 +17,7 @@ public class ConversationConfig {
     private boolean enableDialogMode = true;
     private long dialogModeIdleSeconds = 180L;
     private long dialogModeActiveSeconds = 30L;
-    private long dialogModeTurnIntervalSeconds = 8L;
+    private long dialogModeTurnIntervalSeconds = 9L;
 
     private static volatile ConversationConfig instance;
 

@@ -6,7 +6,8 @@ public enum BudReactionKind {
 
     MOOD_CHANGE("budMoodReaction"),
     GREETING("budGreeting"),
-    LEGENDARY_MEMORY("budLegendaryReaction");
+    LEGENDARY_MEMORY("budLegendaryReaction"),
+    STATE_CHANGE("budStateReaction");
 
     @Nonnull
     private final String systemPromptKey;

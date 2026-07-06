@@ -14,11 +14,11 @@ public class ReactionConfig {
     private boolean enableDiscoverReactions = true;
     private boolean enableCraftingReactions = true;
     private boolean enableWorldReactions = true;
-    private long worldReactionPeriod = 60L; // seconds
+    private long worldReactionPeriod = 61L; // seconds
     private boolean enableWeatherReactions = true;
-    private long weatherReactionPeriod = 5L; // seconds
+    private long weatherReactionPeriod = 6L; // seconds
     private boolean enableMoodReactions = true;
-    private long moodReactionPeriod = 180L; // seconds
+    private long moodReactionPeriod = 181L; // seconds
     private boolean enablePlayerChatReactions = true;
 
     private static volatile ReactionConfig instance;

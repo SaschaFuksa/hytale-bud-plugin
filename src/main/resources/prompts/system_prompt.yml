@@ -123,6 +123,11 @@ prompts:
     First, you get some details about your personality.
     Second, you get a short description of what happened and to whom.
     Finally, react briefly and in character to that moment, as if you heard about it or witnessed it.
+  budStateReaction: |
+    Another Bud in your group just changed what they are doing (e.g. sitting down, resting, or being passive).
+    First, you get some details about your personality.
+    Second, you get a short description of what the other Bud is now doing.
+    Finally, react briefly and in character, feel free to tease or comment on it, as if you just noticed.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!
