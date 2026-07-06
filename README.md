@@ -73,7 +73,7 @@ Gronkh:
 Summon and dismiss your Buds with an item instead of chat commands. Each companion has its own **Card**, craftable at the Arcane Workbench under the *Arcane Misc* category.
 
 Image shows the arcane workbench misc menu with all the recipes:
-<img src="https://fuksa.de/hytale/card-crafing.png" alt="Card Crafting">
+<img src="https://fuksa.de/hytale/card-crafting.png" alt="Card Crafting">
 
 | Card | Recipe |
 |:--- |:--- |
