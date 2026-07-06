@@ -18,9 +18,14 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt reset**.
 For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
 
-## New in 1.8.0
-- **Memory Storage**: Implemented a memory/history system to keep track of player and bud interactions. This allows for more context-aware responses and interactions based on past events.
-- **Smoother chat message orchestration**: The plugin now handles chat messages more efficiently, reducing the frequency of consecutive messages to ensure players have time to read and respond.
+## New in 1.9.0
+### Added
+- **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.
+
+### Fixed
+- Now disable friendly fire for Buds
+- Also Buds will now attack hostile mobs that attack the player, and will assist the player in combat for a short duration after being attacked.
+- Commands for memories: See all current memories/legendary memories
 
 (See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
 
@@ -60,6 +65,30 @@ Gronkh:
     </td>
   </tr>
 </table>
+
+<br>
+
+### 🎴 Bud Cards
+
+Summon and dismiss your Buds with an item instead of chat commands. Each companion has its own **Card**, craftable at the Arcane Workbench under the *Arcane Misc* category.
+
+Image shows the arcane workbench misc menu with all the recipes:
+<img src="https://fuksa.de/hytale/card-crafing.png" alt="Card Crafting">
+
+| Card | Recipe |
+|:--- |:--- |
+| **Keyleth** | Iron Shortbow, Health Crop x3, Fibre x50, Azure Trunk Wood x20, Gold Bar x20, Pumpkin x10, Concentrated Life Essence |
+| **Veri** | Iron Daggers, Stamina Crop x3, Antidote Potion x10, Silver Bar x30, Gold Bar x30, Fire Essence x10, Concentrated Life Essence |
+| **Gronkh** | Iron Mace, Mana Crop x3, Ice Rock x30, Mossy Cobblestone x90, Silver Bar x20, Ice Essence x10, Concentrated Life Essence |
+
+Once crafted, just hold the card in your hand:
+
+<img src="https://fuksa.de/hytale/card-slot.png" alt="Card Slot">
+
+*   **Left-Click (Primary)**: Summons the matching Bud next to you. If bud is already present, respawn them.
+*   **Right-Click (Secondary)**: Despawn that Bud again.
+
+Each card only ever spawns/despawns its own Bud, so you can carry all three and freely mix and match your active companions.
 
 <br>
 

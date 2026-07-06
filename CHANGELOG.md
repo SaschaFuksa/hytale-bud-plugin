@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [1.9.0]
 ### Added
-- **abc**: 
+- **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.
 
 ### Fixed
 - Now disable friendly fire for Buds
 - Also Buds will now attack hostile mobs that attack the player, and will assist the player in combat for a short duration after being attacked.
+- Commands for memories: See all current memories/legendary memories
 
 ---
 
