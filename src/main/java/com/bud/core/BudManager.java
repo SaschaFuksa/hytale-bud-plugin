@@ -1,5 +1,7 @@
 package com.bud.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -96,26 +98,17 @@ public class BudManager {
 
     @Nullable
     public BudComponent getRandomOtherBud(PlayerBudComponent playerBudComponent, BudComponent excluded) {
-        ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
-        int size = buds.size();
-        if (size == 0) {
-            return null;
-        }
-        int startIndex = ThreadLocalRandom.current().nextInt(size);
-        int index = 0;
-        for (NPCEntity bud : buds) {
-            BudComponent budComponent = findBudComponent(bud);
-            if (index++ >= startIndex && isOtherBud(budComponent, excluded)) {
-                return budComponent;
-            }
-        }
-        for (NPCEntity bud : buds) {
+        List<BudComponent> candidates = new ArrayList<>();
+        for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
             BudComponent budComponent = findBudComponent(bud);
             if (isOtherBud(budComponent, excluded)) {
-                return budComponent;
+                candidates.add(budComponent);
             }
         }
-        return null;
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
     private static boolean isOtherBud(BudComponent candidate, BudComponent excluded) {

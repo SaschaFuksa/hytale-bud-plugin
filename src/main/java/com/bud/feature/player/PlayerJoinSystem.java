@@ -1,5 +1,7 @@
 package com.bud.feature.player;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 
 import com.bud.core.BudManager;
@@ -39,7 +41,6 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
     }
 
     @Override
-    @SuppressWarnings("null")
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason addReason,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
@@ -60,9 +61,10 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             initializeWeatherBaseline(playerRef, playerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
-            for (BudType budType : playerBudComponent.getBudTypes()) {
+            Set<BudType> budTypes = playerBudComponent.getBudTypes();
+            if (!budTypes.isEmpty()) {
                 BudCreationQueue.getInstance()
-                        .addToCache(new BudCreationEntry(ref, budType));
+                        .addToCache(new BudCreationEntry(ref, budTypes));
             }
             ConversationMemoryService.getInstance().restoreForOwner(playerRef.getUsername(), playerBudComponent);
         }
