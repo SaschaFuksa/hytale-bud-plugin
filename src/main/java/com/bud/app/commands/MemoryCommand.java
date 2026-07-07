@@ -103,15 +103,13 @@ public class MemoryCommand extends AbstractPlayerCommand {
                 : null;
 
         boolean any = false;
-        int index = 1;
         for (ConversationMemoryEntry memory : memories) {
             if (budDisplayName == null || memory.speakerName().equalsIgnoreCase(budDisplayName)) {
                 any = true;
-                ChatEvent.dispatch(playerRef, "#" + index
+                ChatEvent.dispatch(playerRef, "#" + memory.id()
                         + " [priority " + String.format("%.1f", memory.effectiveScore()) + "] "
                         + memory.speakerName() + ": " + memory.summary());
             }
-            index++;
         }
         if (!any) {
             ChatEvent.dispatch(playerRef, "Memory: no memories stored yet for " + budDisplayName + ".");
@@ -124,11 +122,9 @@ public class MemoryCommand extends AbstractPlayerCommand {
             String budName = BudProfileMapper.getInstance().getProfileForBudType(budType).getNPCDisplayName();
             List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
                     .getLegendaryMemoriesForBud(playerRef.getUsername(), budName);
-            int index = 1;
             for (ConversationMemoryEntry memory : memories) {
                 any = true;
-                ChatEvent.dispatch(playerRef, "Legendary [" + budName + "] #" + index + ": " + memory.summary());
-                index++;
+                ChatEvent.dispatch(playerRef, "Legendary [" + budName + "] #" + memory.id() + ": " + memory.summary());
             }
         }
         if (!any) {

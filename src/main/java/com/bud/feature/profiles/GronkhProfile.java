@@ -17,6 +17,8 @@ public class GronkhProfile implements IBudProfile {
 	@Nonnull
 	public static final String BUD_DISPLAY_NAME = "Gronkh";
 	@Nonnull
+	public static final String COLOR = "#5555FF";
+	@Nonnull
 	private static final IBudSound budSoundData = new GronkhSound();
 
 	@Nonnull

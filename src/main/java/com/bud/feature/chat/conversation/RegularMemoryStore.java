@@ -16,62 +16,74 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 final class RegularMemoryStore {
 
-    private final Map<String, List<ConversationMemoryEntry>> entriesByOwner = new ConcurrentHashMap<>();
+    private final Map<String, List<ConversationMemoryEntry>> entriesByBud = new ConcurrentHashMap<>();
+
+    @Nonnull
+    private static String regularKey(@Nonnull String normalizedOwnerKey, @Nonnull String budName) {
+        return normalizedOwnerKey + "::" + normalize(budName);
+    }
 
     @Nonnull
     List<ConversationMemoryEntry> getForOwner(@Nonnull String normalizedOwnerKey) {
-        return Objects.requireNonNull(List.copyOf(this.entriesByOwner.getOrDefault(normalizedOwnerKey, List.of())));
+        return Objects.requireNonNull(List.copyOf(collectForOwner(normalizedOwnerKey)));
     }
 
     void restoreForOwner(@Nonnull String normalizedOwnerKey, @Nonnull List<ConversationMemoryEntry> memories) {
-        if (!memories.isEmpty()) {
-            this.entriesByOwner.put(normalizedOwnerKey, new ArrayList<>(memories));
+        for (ConversationMemoryEntry entry : memories) {
+            String key = regularKey(normalizedOwnerKey, entry.speakerName());
+            this.entriesByBud.computeIfAbsent(key, ignored -> new ArrayList<>()).add(entry);
         }
     }
 
-    void addDecayedAndNew(@Nonnull String normalizedOwnerKey, @Nonnull ConversationMemoryEntry newEntry,
-            double decayFactor, int maxDepth) {
-        List<ConversationMemoryEntry> existing = new ArrayList<>(
-                this.entriesByOwner.getOrDefault(normalizedOwnerKey, List.of()));
+    void addDecayedAndNew(@Nonnull String normalizedOwnerKey, @Nonnull String budName,
+            @Nonnull ConversationMemoryEntry newEntry, double decayFactor, int maxDepth) {
+        String key = regularKey(normalizedOwnerKey, budName);
+        List<ConversationMemoryEntry> existing = new ArrayList<>(this.entriesByBud.getOrDefault(key, List.of()));
         List<ConversationMemoryEntry> decayed = new ArrayList<>(existing.size() + 1);
         for (ConversationMemoryEntry entry : existing) {
             decayed.add(entry.decay(decayFactor));
         }
         decayed.add(newEntry);
-        this.entriesByOwner.put(normalizedOwnerKey, sortAndCap(normalizedOwnerKey, decayed, maxDepth));
+        this.entriesByBud.put(key, sortAndCap(normalizedOwnerKey, decayed, maxDepth));
         LoggerUtil.getLogger().info(() -> "[BUD] Added memory for player " + normalizedOwnerKey
                 + " from " + newEntry.speakerName()
                 + " with importance " + newEntry.importance()
                 + ": " + newEntry.summary());
     }
 
-    void addManual(@Nonnull String normalizedOwnerKey, @Nonnull ConversationMemoryEntry entry, int maxDepth) {
-        List<ConversationMemoryEntry> existing = new ArrayList<>(
-                this.entriesByOwner.getOrDefault(normalizedOwnerKey, List.of()));
+    void addManual(@Nonnull String normalizedOwnerKey, @Nonnull String budName,
+            @Nonnull ConversationMemoryEntry entry, int maxDepth) {
+        String key = regularKey(normalizedOwnerKey, budName);
+        List<ConversationMemoryEntry> existing = new ArrayList<>(this.entriesByBud.getOrDefault(key, List.of()));
         existing.add(entry);
-        this.entriesByOwner.put(normalizedOwnerKey, sortAndCap(normalizedOwnerKey, existing, maxDepth));
+        this.entriesByBud.put(key, sortAndCap(normalizedOwnerKey, existing, maxDepth));
     }
 
     @Nullable
-    ConversationMemoryEntry removeAt(@Nonnull String normalizedOwnerKey, int displayIndex) {
-        List<ConversationMemoryEntry> existing = new ArrayList<>(
-                this.entriesByOwner.getOrDefault(normalizedOwnerKey, List.of()));
-        if (displayIndex < 1 || displayIndex > existing.size()) {
-            return null;
+    ConversationMemoryEntry removeById(@Nonnull String normalizedOwnerKey, long id) {
+        String ownerPrefix = normalizedOwnerKey + "::";
+        for (Map.Entry<String, List<ConversationMemoryEntry>> mapEntry : this.entriesByBud.entrySet()) {
+            if (!mapEntry.getKey().startsWith(ownerPrefix)) {
+                continue;
+            }
+            List<ConversationMemoryEntry> bucket = Objects.requireNonNull(mapEntry.getValue());
+            for (int i = 0; i < bucket.size(); i++) {
+                if (bucket.get(i).id() == id) {
+                    return bucket.remove(i);
+                }
+            }
         }
-        ConversationMemoryEntry removed = existing.remove(displayIndex - 1);
-        this.entriesByOwner.put(normalizedOwnerKey, existing);
-        return removed;
+        return null;
     }
 
     void clearForOwner(@Nonnull String normalizedOwnerKey) {
-        this.entriesByOwner.remove(normalizedOwnerKey);
+        this.entriesByBud.keySet().removeIf(key -> key.startsWith(normalizedOwnerKey + "::"));
     }
 
     @Nonnull
     List<ConversationMemoryEntry> filterRelevant(@Nonnull String normalizedOwnerKey, @Nonnull Set<String> participants,
             int limit) {
-        List<ConversationMemoryEntry> entries = this.entriesByOwner.getOrDefault(normalizedOwnerKey, List.of());
+        List<ConversationMemoryEntry> entries = collectForOwner(normalizedOwnerKey);
         if (entries.isEmpty()) {
             return Objects.requireNonNull(List.of());
         }
@@ -85,6 +97,18 @@ final class RegularMemoryStore {
                         .reversed())
                 .limit(Math.max(1, limit))
                 .toList());
+    }
+
+    @Nonnull
+    private List<ConversationMemoryEntry> collectForOwner(@Nonnull String normalizedOwnerKey) {
+        List<ConversationMemoryEntry> combined = new ArrayList<>();
+        String ownerPrefix = normalizedOwnerKey + "::";
+        for (Map.Entry<String, List<ConversationMemoryEntry>> mapEntry : this.entriesByBud.entrySet()) {
+            if (mapEntry.getKey().startsWith(ownerPrefix)) {
+                combined.addAll(mapEntry.getValue());
+            }
+        }
+        return combined;
     }
 
     @Nonnull
@@ -110,5 +134,10 @@ final class RegularMemoryStore {
         Set<String> intersection = new HashSet<>(left);
         intersection.retainAll(right);
         return intersection;
+    }
+
+    @Nonnull
+    private static String normalize(@Nonnull String participant) {
+        return Objects.requireNonNull(participant.trim().toLowerCase());
     }
 }

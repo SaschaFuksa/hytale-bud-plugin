@@ -13,9 +13,11 @@ import com.bud.llm.profiles.IBudProfile;
 public class KeylethProfile implements IBudProfile {
 
 	@Nonnull
-	private static final BudType BUD_TYPE_ID = BudType.KEYLETH;
+	public static final BudType BUD_TYPE_ID = BudType.KEYLETH;
 	@Nonnull
-	private static final String BUD_DISPLAY_NAME = "Keyleth";
+	public static final String BUD_DISPLAY_NAME = "Keyleth";
+	@Nonnull
+	public static final String COLOR = "#00AA00";
 	@Nonnull
 	private static final IBudSound budSoundData = new KeylethSound();
 

@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.types.BudType;
 import com.bud.feature.chat.conversation.PersistedMemoryEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
@@ -43,6 +44,8 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private Map<String, Set<PersistedMemoryEntry>> persistedLegendaryMemories = new HashMap<>();
 
+    private long nextMemoryId = 1L;
+
     public PlayerBudComponent() {
         this.budTypes = new HashSet<>();
     }
@@ -59,6 +62,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         this.lastKnownWeatherId = clone.lastKnownWeatherId;
         this.persistedMemories = new LinkedHashSet<>(clone.persistedMemories);
         this.persistedLegendaryMemories = new HashMap<>(clone.persistedLegendaryMemories);
+        this.nextMemoryId = clone.nextMemoryId;
     }
 
     @Nonnull
@@ -85,6 +89,11 @@ public class PlayerBudComponent implements Component<EntityStore> {
                     (component, value) -> component.persistedLegendaryMemories = value != null ? new HashMap<>(value)
                             : new HashMap<>(),
                     component -> component.persistedLegendaryMemories)
+            .add()
+            .append(
+                    new KeyedCodec<>("NextMemoryId", Codec.LONG),
+                    (component, value) -> component.nextMemoryId = value != null ? value : 1L,
+                    component -> component.nextMemoryId)
             .add()
             .build();
 
@@ -186,6 +195,14 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public synchronized void setPersistedLegendaryMemories(@Nonnull Map<String, Set<PersistedMemoryEntry>> memories) {
         this.persistedLegendaryMemories = new HashMap<>(memories);
+    }
+
+    public synchronized long getNextMemoryId() {
+        return this.nextMemoryId;
+    }
+
+    public synchronized void setNextMemoryId(long nextMemoryId) {
+        this.nextMemoryId = nextMemoryId;
     }
 
     private synchronized void pruneInvalidBuds() {

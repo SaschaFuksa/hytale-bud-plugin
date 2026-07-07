@@ -158,7 +158,8 @@ public class DialogModeTracker extends AbstractTracker {
         synchronized (state) {
             if (!state.active) {
                 long lastMessageAt = Orchestrator.getInstance().getLastGlobalMessageTime(playerRef.getUsername());
-                long idleMillis = TimeUnit.SECONDS.toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());
+                long idleMillis = TimeUnit.SECONDS
+                        .toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());
                 if (now - lastMessageAt >= idleMillis) {
                     state.start(now);
                     LoggerUtil.getLogger()
@@ -172,7 +173,7 @@ public class DialogModeTracker extends AbstractTracker {
             }
 
             if (now >= state.activeUntil) {
-                state.finish(now);
+                state.finish();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Dialog mode ended for player " + playerRef.getUsername());
                 return false;
             }
@@ -245,7 +246,7 @@ public class DialogModeTracker extends AbstractTracker {
             this.lastMessage = null;
         }
 
-        private void finish(long now) {
+        private void finish() {
             this.active = false;
             this.awaitingResponse = false;
             this.activeUntil = 0L;

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,8 +45,17 @@ public class ConversationMemoryService {
     private final Map<String, Object> ownerLocks = new ConcurrentHashMap<>();
     private final LegendaryMemoryStore legendaryStore = new LegendaryMemoryStore();
     private final RegularMemoryStore regularStore = new RegularMemoryStore();
+    private final Map<String, AtomicLong> nextMemoryIdByOwner = new ConcurrentHashMap<>();
 
     private ConversationMemoryService() {
+    }
+
+    /**
+     * Regular and legendary memories share this sequence so no two memories for the
+     * same player can ever collide, regardless of type.
+     */
+    private long allocateMemoryId(@Nonnull String normalizedOwnerKey) {
+        return this.nextMemoryIdByOwner.computeIfAbsent(normalizedOwnerKey, k -> new AtomicLong(1)).getAndIncrement();
     }
 
     @Nonnull
@@ -120,6 +130,7 @@ public class ConversationMemoryService {
 
         String ownerKey = normalizeParticipant(memoryContext.ownerKey());
         ConversationMemoryEntry newEntry = new ConversationMemoryEntry(
+                allocateMemoryId(ownerKey),
                 summaryCandidate.summary(),
                 summaryCandidate.importance(),
                 summaryCandidate.importance(),
@@ -130,16 +141,18 @@ public class ConversationMemoryService {
                 false);
         int maxDepth = Math.max(1, config.getConversationMemoryDepth());
         synchronized (getConversationLock(ownerKey)) {
-            this.regularStore.addDecayedAndNew(ownerKey, newEntry, config.getConversationMemoryDecayFactor(),
-                    maxDepth);
+            this.regularStore.addDecayedAndNew(ownerKey, budProfile.getNPCDisplayName(), newEntry,
+                    config.getConversationMemoryDecayFactor(), maxDepth);
         }
         persistOwnerMemories(ownerKey, interactionEntry.promptContext().getBudComponent().getPlayerRef());
     }
 
     private void persistOwnerMemories(@Nonnull String normalizedOwnerKey, @Nonnull PlayerRef playerRef) {
+        long nextMemoryId = this.nextMemoryIdByOwner
+                .computeIfAbsent(normalizedOwnerKey, k -> new AtomicLong(1)).get();
         ConversationMemoryPersistence.persist(normalizedOwnerKey, playerRef,
                 this.regularStore.getForOwner(normalizedOwnerKey),
-                this.legendaryStore.snapshotForOwner(normalizedOwnerKey));
+                this.legendaryStore.snapshotForOwner(normalizedOwnerKey), nextMemoryId);
     }
 
     @Nonnull
@@ -165,6 +178,9 @@ public class ConversationMemoryService {
                 .restoreLegendaryBuckets(component);
         this.legendaryStore.restoreBuckets(legendaryBuckets);
 
+        long persistedNextId = ConversationMemoryPersistence.restoreNextMemoryId(component);
+        this.nextMemoryIdByOwner.put(normalizedOwner, new AtomicLong(Math.max(1, persistedNextId)));
+
         LoggerUtil.getLogger().fine(() -> "[BUD] Restored " + memories.size()
                 + " memories and " + legendaryBuckets.size()
                 + " legendary memory buckets for player " + normalizedOwner);
@@ -174,24 +190,25 @@ public class ConversationMemoryService {
             @Nonnull String budDisplayName, @Nonnull String summary) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         ConversationMemoryEntry entry = new ConversationMemoryEntry(
+                allocateMemoryId(normalizedOwner),
                 summary, 10, 10, budDisplayName, ConversationMode.GENERAL,
                 buildStoredParticipants(Objects.requireNonNull(Set.of(normalizedOwner)), budDisplayName),
                 System.currentTimeMillis(), false);
 
         int maxDepth = Math.max(1, ConversationConfig.getInstance().getConversationMemoryDepth());
         synchronized (getConversationLock(normalizedOwner)) {
-            this.regularStore.addManual(normalizedOwner, entry, maxDepth);
+            this.regularStore.addManual(normalizedOwner, budDisplayName, entry, maxDepth);
         }
         persistOwnerMemories(normalizedOwner, playerRef);
     }
 
     @Nullable
     public ConversationMemoryEntry removeMemoryAt(@Nonnull String ownerKey, @Nonnull PlayerRef playerRef,
-            int displayIndex) {
+            long id) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         ConversationMemoryEntry removed;
         synchronized (getConversationLock(normalizedOwner)) {
-            removed = this.regularStore.removeAt(normalizedOwner, displayIndex);
+            removed = this.regularStore.removeById(normalizedOwner, id);
         }
         if (removed != null) {
             persistOwnerMemories(normalizedOwner, playerRef);
@@ -203,6 +220,7 @@ public class ConversationMemoryService {
             @Nonnull String budDisplayName, @Nonnull String summary) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         ConversationMemoryEntry entry = new ConversationMemoryEntry(
+                allocateMemoryId(normalizedOwner),
                 summary, 10, 10, budDisplayName, ConversationMode.GENERAL,
                 buildStoredParticipants(Objects.requireNonNull(Set.of(normalizedOwner)), budDisplayName),
                 System.currentTimeMillis(), true);
@@ -220,11 +238,11 @@ public class ConversationMemoryService {
     }
 
     public boolean removeLegendaryMemoryAt(@Nonnull String ownerKey, @Nonnull PlayerRef playerRef,
-            @Nonnull String budDisplayName, int displayIndex) {
+            @Nonnull String budDisplayName, long id) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         boolean removed;
         synchronized (getConversationLock(normalizedOwner)) {
-            removed = this.legendaryStore.removeForBud(normalizedOwner, budDisplayName, displayIndex);
+            removed = this.legendaryStore.removeById(normalizedOwner, budDisplayName, id);
         }
         if (removed) {
             persistOwnerMemories(normalizedOwner, playerRef);
@@ -237,6 +255,7 @@ public class ConversationMemoryService {
         this.regularStore.clearForOwner(normalizedOwner);
         this.ownerLocks.remove(normalizedOwner);
         this.legendaryStore.clearForOwner(normalizedOwner);
+        this.nextMemoryIdByOwner.remove(normalizedOwner);
     }
 
     @Nonnull
@@ -270,6 +289,7 @@ public class ConversationMemoryService {
         int maxSlots = Math.max(1, ConversationConfig.getInstance().getLegendaryMemorySlotsPerBud());
 
         ConversationMemoryEntry candidateEntry = new ConversationMemoryEntry(
+                allocateMemoryId(ownerKey),
                 candidate.summary(),
                 candidate.importance(),
                 candidate.importance(),

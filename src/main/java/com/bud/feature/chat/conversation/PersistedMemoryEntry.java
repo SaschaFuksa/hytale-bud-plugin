@@ -17,6 +17,10 @@ public class PersistedMemoryEntry {
         @Nonnull
         public static final BuilderCodec<PersistedMemoryEntry> CODEC = BuilderCodec
                         .builder(PersistedMemoryEntry.class, PersistedMemoryEntry::new)
+                        .append(new KeyedCodec<>("Id", Codec.LONG),
+                                        (entry, value) -> entry.id = value != null ? value : 0L,
+                                        entry -> entry.id)
+                        .add()
                         .append(new KeyedCodec<>("Summary", Codec.STRING),
                                         (entry, value) -> entry.summary = value != null ? value : "",
                                         entry -> entry.summary)
@@ -53,6 +57,7 @@ public class PersistedMemoryEntry {
                         .add()
                         .build();
 
+        private long id;
         @Nonnull
         private String summary = "";
         private int importance;
@@ -72,6 +77,7 @@ public class PersistedMemoryEntry {
         @Nonnull
         public static PersistedMemoryEntry from(@Nonnull ConversationMemoryEntry entry) {
                 PersistedMemoryEntry persisted = new PersistedMemoryEntry();
+                persisted.id = entry.id();
                 persisted.summary = Objects.requireNonNull(entry.summary());
                 persisted.importance = entry.importance();
                 persisted.effectiveScore = entry.effectiveScore();
@@ -86,6 +92,7 @@ public class PersistedMemoryEntry {
         @Nonnull
         public ConversationMemoryEntry toEntry() {
                 return new ConversationMemoryEntry(
+                                this.id,
                                 this.summary,
                                 this.importance,
                                 this.effectiveScore,

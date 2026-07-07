@@ -2,6 +2,7 @@ package com.bud.app.commands;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -25,17 +26,17 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
     private final RequiredArg<String> budArg;
 
     @Nonnull
-    private final RequiredArg<Integer> indexArg;
+    private final RequiredArg<Integer> idArg;
 
     private final FlagArg legendaryFlag;
 
     public MemoryDeleteCommand() {
-        super("delete", "Delete a conversation memory by index.");
+        super("delete", "Delete a conversation memory by ID.");
         this.budArg = Objects.requireNonNull(
                 this.withRequiredArg("bud", "Bud name (veri, gronkh, keyleth).",
                         Objects.requireNonNull(ArgTypes.STRING)));
-        this.indexArg = Objects.requireNonNull(
-                this.withRequiredArg("index", "Memory index shown by /bud memory.",
+        this.idArg = Objects.requireNonNull(
+                this.withRequiredArg("id", "Memory ID shown by /bud memory. Stable, never reused.",
                         Objects.requireNonNull(ArgTypes.INTEGER)));
         this.legendaryFlag = this.withFlagArg("legendary", "Delete a legendary memory instead.");
     }
@@ -49,7 +50,7 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         String rawBudName = Objects.requireNonNull(context.get(this.budArg));
-        int index = Objects.requireNonNull(context.get(this.indexArg));
+        long id = Objects.requireNonNull(context.get(this.idArg));
 
         String budDisplayName;
         try {
@@ -61,31 +62,31 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
 
         if (this.legendaryFlag.get(context)) {
             boolean removed = ConversationMemoryService.getInstance()
-                    .removeLegendaryMemoryAt(playerRef.getUsername(), playerRef, budDisplayName, index);
+                    .removeLegendaryMemoryAt(playerRef.getUsername(), playerRef, budDisplayName, id);
             ChatEvent.dispatch(playerRef, removed
-                    ? "Removed legendary memory #" + index + " for " + budDisplayName + "."
-                    : "No legendary memory #" + index + " found for " + budDisplayName + ".");
+                    ? "Removed legendary memory #" + id + " for " + budDisplayName + "."
+                    : "No legendary memory #" + id + " found for " + budDisplayName + ".");
             return;
         }
 
         List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
                 .getMemoriesForOwner(playerRef.getUsername());
-        if (index < 1 || index > memories.size()) {
-            ChatEvent.dispatch(playerRef, "No memory #" + index + " found.");
+        Optional<ConversationMemoryEntry> target = memories.stream().filter(memory -> memory.id() == id).findFirst();
+        if (target.isEmpty()) {
+            ChatEvent.dispatch(playerRef, "No memory #" + id + " found.");
             return;
         }
-        ConversationMemoryEntry target = memories.get(index - 1);
-        if (!target.speakerName().equalsIgnoreCase(budDisplayName)) {
+        if (!target.get().speakerName().equalsIgnoreCase(budDisplayName)) {
             ChatEvent.dispatch(playerRef,
-                    "Memory #" + index + " belongs to " + target.speakerName() + ", not " + budDisplayName + ".");
+                    "Memory #" + id + " belongs to " + target.get().speakerName() + ", not " + budDisplayName + ".");
             return;
         }
 
         ConversationMemoryEntry removed = ConversationMemoryService.getInstance()
-                .removeMemoryAt(playerRef.getUsername(), playerRef, index);
+                .removeMemoryAt(playerRef.getUsername(), playerRef, id);
         ChatEvent.dispatch(playerRef, removed != null
-                ? "Removed memory #" + index + " for " + budDisplayName + "."
-                : "No memory #" + index + " found.");
+                ? "Removed memory #" + id + " for " + budDisplayName + "."
+                : "No memory #" + id + " found.");
     }
 
 }

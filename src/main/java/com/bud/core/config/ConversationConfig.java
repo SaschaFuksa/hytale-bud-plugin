@@ -18,7 +18,7 @@ public class ConversationConfig {
     private long dialogModeIdleSeconds = 180L;
     private long dialogModeActiveSeconds = 30L;
     private long dialogModeTurnIntervalSeconds = 9L;
-    private int budReactionChainMaxReplies = 2;
+    private int budReactionChainMaxReplies = 3;
 
     private static volatile ConversationConfig instance;
 

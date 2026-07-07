@@ -87,16 +87,11 @@ final class LegendaryMemoryStore {
         return true;
     }
 
-    boolean removeForBud(@Nonnull String normalizedOwnerKey, @Nonnull String budName, int displayIndex) {
-        List<ConversationMemoryEntry> displayList = collectForBud(normalizedOwnerKey, budName);
-        if (displayIndex < 1 || displayIndex > displayList.size()) {
-            return false;
-        }
-        ConversationMemoryEntry target = displayList.get(displayIndex - 1);
+    boolean removeById(@Nonnull String normalizedOwnerKey, @Nonnull String budName, long id) {
         String normalizedBudName = normalize(budName);
 
         List<ConversationMemoryEntry> singleBucket = this.memoriesByKey.get(legendaryKey(normalizedOwnerKey, budName));
-        if (singleBucket != null && singleBucket.remove(target)) {
+        if (singleBucket != null && removeById(singleBucket, id)) {
             return true;
         }
 
@@ -109,7 +104,17 @@ final class LegendaryMemoryStore {
             String[] pairNames = key.substring(ownerPrefix.length()).split("\\|", 2);
             if (pairNames.length == 2
                     && (pairNames[0].equals(normalizedBudName) || pairNames[1].equals(normalizedBudName))
-                    && mapEntry.getValue().remove(target)) {
+                    && removeById(Objects.requireNonNull(mapEntry.getValue()), id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean removeById(@Nonnull List<ConversationMemoryEntry> bucket, long id) {
+        for (int i = 0; i < bucket.size(); i++) {
+            if (bucket.get(i).id() == id) {
+                bucket.remove(i);
                 return true;
             }
         }

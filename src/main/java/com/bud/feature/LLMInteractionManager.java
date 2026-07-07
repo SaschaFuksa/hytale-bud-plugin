@@ -2,11 +2,16 @@ package com.bud.feature;
 
 import javax.annotation.Nonnull;
 
+import org.fusesource.jansi.Ansi;
+
 import com.bud.core.config.LLMConfig;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.conversation.ConversationContext;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.feature.profiles.GronkhProfile;
+import com.bud.feature.profiles.KeylethProfile;
+import com.bud.feature.profiles.VeriProfile;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.llm.LLMCaller;
 import com.bud.llm.interaction.LLMInteractionEntry;
@@ -14,6 +19,7 @@ import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class LLMInteractionManager {
@@ -83,13 +89,28 @@ public class LLMInteractionManager {
     }
 
     @Nonnull
-    private String formatBudSpeech(@Nonnull String budName, @Nonnull String message) {
+    private Message formatBudSpeech(@Nonnull String budName, @Nonnull String message) {
         String trimmedMessage = message.trim();
-        String prefix = budName + ":";
-        if (trimmedMessage.regionMatches(true, 0, prefix, 0, prefix.length())) {
-            return trimmedMessage;
+        Message prefix = getColouredBudPrefix(budName);
+        return Message.join(prefix, Message.raw(trimmedMessage != null ? trimmedMessage : ""));
+    }
+
+    @Nonnull
+    private Message getColouredBudPrefix(@Nonnull String budName) {
+        switch (budName) {
+            case GronkhProfile.BUD_DISPLAY_NAME -> {
+                return Message.raw(budName + ": ").color(GronkhProfile.COLOR);
+            }
+            case VeriProfile.BUD_DISPLAY_NAME -> {
+                return Message.raw(budName + ": ").color(VeriProfile.COLOR);
+            }
+            case KeylethProfile.BUD_DISPLAY_NAME -> {
+                return Message.raw(budName + ": ").color(KeylethProfile.COLOR);
+            }
+            default -> {
+                return Message.raw(budName + ": ");
+            }
         }
-        return prefix + " " + trimmedMessage;
     }
 
 }

@@ -23,7 +23,7 @@ final class ConversationMemoryPersistence {
 
     static void persist(@Nonnull String normalizedOwnerKey, @Nonnull PlayerRef playerRef,
             @Nonnull List<ConversationMemoryEntry> regularMemories,
-            @Nonnull Map<String, List<ConversationMemoryEntry>> legendaryBuckets) {
+            @Nonnull Map<String, List<ConversationMemoryEntry>> legendaryBuckets, long nextMemoryId) {
         try {
             Ref<EntityStore> ref = playerRef.getReference();
             if (ref == null) {
@@ -52,6 +52,7 @@ final class ConversationMemoryPersistence {
                 }
                 component.setPersistedMemories(persistedMemories);
                 component.setPersistedLegendaryMemories(persistedLegendary);
+                component.setNextMemoryId(nextMemoryId);
             });
         } catch (Exception exception) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Could not persist memories for " + normalizedOwnerKey
@@ -74,5 +75,9 @@ final class ConversationMemoryPersistence {
             result.put(entry.getKey(), entry.getValue().stream().map(persisted -> persisted.toEntry()).toList());
         }
         return result;
+    }
+
+    static long restoreNextMemoryId(@Nonnull PlayerBudComponent component) {
+        return component.getNextMemoryId();
     }
 }

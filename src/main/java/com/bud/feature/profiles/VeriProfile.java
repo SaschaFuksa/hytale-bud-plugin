@@ -17,6 +17,8 @@ public class VeriProfile implements IBudProfile {
 	@Nonnull
 	public static final String BUD_DISPLAY_NAME = "Veri";
 	@Nonnull
+	public static final String COLOR = "#FFAA00";
+	@Nonnull
 	private static final IBudSound budSoundData = new VeriSound();
 
 	@Nonnull
