@@ -2,8 +2,6 @@ package com.bud.feature;
 
 import javax.annotation.Nonnull;
 
-import org.fusesource.jansi.Ansi;
-
 import com.bud.core.config.LLMConfig;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.conversation.ConversationContext;

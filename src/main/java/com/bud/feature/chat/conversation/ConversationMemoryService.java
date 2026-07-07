@@ -142,7 +142,7 @@ public class ConversationMemoryService {
         int maxDepth = Math.max(1, config.getConversationMemoryDepth());
         synchronized (getConversationLock(ownerKey)) {
             this.regularStore.addDecayedAndNew(ownerKey, budProfile.getNPCDisplayName(), newEntry,
-                    config.getConversationMemoryDecayFactor(), maxDepth);
+                    config.getConversationMemoryDecayFactor(), config.getConversationMemoryMinImportance(), maxDepth);
         }
         persistOwnerMemories(ownerKey, interactionEntry.promptContext().getBudComponent().getPlayerRef());
     }

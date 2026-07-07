@@ -36,12 +36,18 @@ final class RegularMemoryStore {
     }
 
     void addDecayedAndNew(@Nonnull String normalizedOwnerKey, @Nonnull String budName,
-            @Nonnull ConversationMemoryEntry newEntry, double decayFactor, int maxDepth) {
+            @Nonnull ConversationMemoryEntry newEntry, double decayFactor, int minImportance, int maxDepth) {
         String key = regularKey(normalizedOwnerKey, budName);
         List<ConversationMemoryEntry> existing = new ArrayList<>(this.entriesByBud.getOrDefault(key, List.of()));
         List<ConversationMemoryEntry> decayed = new ArrayList<>(existing.size() + 1);
         for (ConversationMemoryEntry entry : existing) {
-            decayed.add(entry.decay(decayFactor));
+            ConversationMemoryEntry decayedEntry = entry.decay(decayFactor);
+            if (decayedEntry.effectiveScore() < minImportance) {
+                LoggerUtil.getLogger().info(() -> "[BUD] Memory pruned for player " + normalizedOwnerKey
+                        + " (decayed below importance threshold " + minImportance + "): " + decayedEntry.summary());
+                continue;
+            }
+            decayed.add(decayedEntry);
         }
         decayed.add(newEntry);
         this.entriesByBud.put(key, sortAndCap(normalizedOwnerKey, decayed, maxDepth));
