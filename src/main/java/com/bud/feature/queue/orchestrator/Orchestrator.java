@@ -90,6 +90,10 @@ public class Orchestrator {
         }
     }
 
+    public long getLastGlobalMessageTime(String playerName) {
+        return lastGlobalMessage.getOrDefault(playerName, 0L);
+    }
+
     public void clearPlayer(String playerName) {
         queues.remove(playerName);
         lastGlobalMessage.remove(playerName);

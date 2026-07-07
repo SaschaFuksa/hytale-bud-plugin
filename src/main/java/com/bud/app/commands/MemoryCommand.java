@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.bud.core.types.BudType;
 import com.bud.feature.chat.ChatEvent;
@@ -33,9 +34,9 @@ public class MemoryCommand extends AbstractPlayerCommand {
     public MemoryCommand() {
         super("memory", "Query stored conversation memories.");
         this.legendaryFlag = this.withFlagArg("legendary", "Show legendary memories instead of normal memories.");
-        this.veriFlag = this.withFlagArg("veri", "Limit legendary memories to Veri.");
-        this.keylethFlag = this.withFlagArg("keyleth", "Limit legendary memories to Keyleth.");
-        this.gronkhFlag = this.withFlagArg("gronkh", "Limit legendary memories to Gronkh.");
+        this.veriFlag = this.withFlagArg("veri", "Limit memories to Veri.");
+        this.keylethFlag = this.withFlagArg("keyleth", "Limit memories to Keyleth.");
+        this.gronkhFlag = this.withFlagArg("gronkh", "Limit memories to Gronkh.");
         this.addSubCommand(new MemorySetCommand());
         this.addSubCommand(new MemoryDeleteCommand());
     }
@@ -57,7 +58,7 @@ public class MemoryCommand extends AbstractPlayerCommand {
         if (this.legendaryFlag.get(context)) {
             this.sendLegendaryMemories(playerRef, this.resolveBudTypes(context));
         } else {
-            this.sendNormalMemories(playerRef);
+            this.sendNormalMemories(playerRef, this.resolveSingleBudFilter(context));
         }
     }
 
@@ -75,7 +76,21 @@ public class MemoryCommand extends AbstractPlayerCommand {
         return Objects.requireNonNull(Set.of(BudType.values()));
     }
 
-    private void sendNormalMemories(@Nonnull PlayerRef playerRef) {
+    @Nullable
+    private BudType resolveSingleBudFilter(@Nonnull CommandContext context) {
+        if (this.veriFlag.get(context)) {
+            return BudType.VERI;
+        }
+        if (this.keylethFlag.get(context)) {
+            return BudType.KEYLETH;
+        }
+        if (this.gronkhFlag.get(context)) {
+            return BudType.GRONKH;
+        }
+        return null;
+    }
+
+    private void sendNormalMemories(@Nonnull PlayerRef playerRef, @Nullable BudType budFilter) {
         List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
                 .getMemoriesForOwner(playerRef.getUsername());
         if (memories.isEmpty()) {
@@ -83,12 +98,23 @@ public class MemoryCommand extends AbstractPlayerCommand {
             return;
         }
 
+        String budDisplayName = budFilter != null
+                ? BudProfileMapper.getInstance().getProfileForBudType(budFilter).getNPCDisplayName()
+                : null;
+
+        boolean any = false;
         int index = 1;
         for (ConversationMemoryEntry memory : memories) {
-            ChatEvent.dispatch(playerRef, "#" + index
-                    + " [priority " + String.format("%.1f", memory.effectiveScore()) + "] "
-                    + memory.speakerName() + ": " + memory.summary());
+            if (budDisplayName == null || memory.speakerName().equalsIgnoreCase(budDisplayName)) {
+                any = true;
+                ChatEvent.dispatch(playerRef, "#" + index
+                        + " [priority " + String.format("%.1f", memory.effectiveScore()) + "] "
+                        + memory.speakerName() + ": " + memory.summary());
+            }
             index++;
+        }
+        if (!any) {
+            ChatEvent.dispatch(playerRef, "Memory: no memories stored yet for " + budDisplayName + ".");
         }
     }
 

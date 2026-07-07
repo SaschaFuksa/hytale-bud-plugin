@@ -60,6 +60,8 @@ public class BudCreationQueue extends AbstractTracker {
 
     private void handleBudCreation(@Nonnull BudCreationEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling bud creation: " + entry);
-        BudCreationEvent.dispatch(entry.playerRef(), entry.budTypes());
+        // This queue only ever carries rejoin/restore batches (see PlayerJoinSystem), so
+        // greeting reactions are suppressed to avoid a burst of messages on player login.
+        BudCreationEvent.dispatch(entry.playerRef(), entry.budTypes(), false);
     }
 }

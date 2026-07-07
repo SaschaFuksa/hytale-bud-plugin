@@ -87,7 +87,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                 continue;
 
             }
-            this.createBud(store, playerRef, budType, playerBudComponent);
+            this.createBud(store, playerRef, budType, playerBudComponent, event.triggerGreetings());
         }
 
         if (!existingBudTeleports.isEmpty()) {
@@ -102,7 +102,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull BudType budType, @Nonnull PlayerBudComponent playerBudComponent) {
+            @Nonnull BudType budType, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings) {
         if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of type " + budType);
@@ -129,7 +129,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }
-        triggerGreetingReaction(playerRef, playerBudComponent, budComponent, budType);
+        if (triggerGreetings) {
+            triggerGreetingReaction(playerRef, playerBudComponent, budComponent, budType);
+        }
     }
 
     private void triggerGreetingReaction(@Nonnull PlayerRef playerRef, @Nonnull PlayerBudComponent playerBudComponent,

@@ -33,7 +33,8 @@ public class MemorySetCommand extends AbstractPlayerCommand {
                 this.withRequiredArg("bud", "Bud name (veri, gronkh, keyleth).",
                         Objects.requireNonNull(ArgTypes.STRING)));
         this.textArg = Objects.requireNonNull(
-                this.withRequiredArg("text", "Memory text.", Objects.requireNonNull(ArgTypes.GREEDY_STRING)));
+                this.withRequiredArg("text", "Memory text (quote it, e.g. \"some text\").",
+                        Objects.requireNonNull(ArgTypes.STRING)));
         this.legendaryFlag = this.withFlagArg("legendary", "Add as a legendary memory instead.");
     }
 
