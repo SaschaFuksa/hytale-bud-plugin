@@ -8,7 +8,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
@@ -101,8 +103,8 @@ public class DialogModeTracker extends AbstractTracker {
             }
         });
         try {
-            return future.join();
-        } catch (Exception exception) {
+            return future.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException exception) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Could not trigger dialog mode for player "
                     + playerRef.getUsername() + ": " + exception.getMessage());
             return false;

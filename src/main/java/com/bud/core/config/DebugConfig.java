@@ -11,6 +11,7 @@ public class DebugConfig {
     private boolean enablePlayerInfo = false;
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
+    private String logLevel = "INFO"; // java.util.logging.Level name, e.g. ALL/FINE/INFO/WARNING
 
     private static volatile DebugConfig instance;
 
@@ -38,6 +39,10 @@ public class DebugConfig {
         return this.enableMoodChangeDebugInfo;
     }
 
+    public String getLogLevel() {
+        return this.logLevel;
+    }
+
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -51,6 +56,10 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("EnableMoodChangeDebugInfo", Codec.BOOLEAN),
                         (config, value) -> config.enableMoodChangeDebugInfo = value,
                         config -> config.enableMoodChangeDebugInfo)
+                .add()
+                .append(new KeyedCodec<>("LogLevel", Codec.STRING),
+                        (config, value) -> config.logLevel = value,
+                        config -> config.logLevel)
                 .add()
                 .build();
     }

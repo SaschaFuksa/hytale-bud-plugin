@@ -42,5 +42,10 @@ public abstract class AbstractCache {
         return false;
     }
 
+    public void clearPlayer(String playerName) {
+        cache.remove(playerName);
+        lastEnqueueTime.remove(playerName);
+    }
+
     public abstract void add(String playerName, IQueueEntry entry);
 }

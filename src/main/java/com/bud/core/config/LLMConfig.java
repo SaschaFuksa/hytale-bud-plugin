@@ -16,6 +16,7 @@ public class LLMConfig {
     private String apiKey = "sk-lm-KbCP0975:4MGo9MUOSThOoMCmP9CG";
     private int maxTokens = 100;
     private double temperature = 0.9;
+    private int structuredResponseMaxTokens = 80; // used for compact JSON calls like memory summary/replacement
 
     private static volatile LLMConfig instance;
 
@@ -59,6 +60,10 @@ public class LLMConfig {
         return this.temperature;
     }
 
+    public int getStructuredResponseMaxTokens() {
+        return this.structuredResponseMaxTokens;
+    }
+
     static {
         CODEC = BuilderCodec.builder(LLMConfig.class, LLMConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -88,6 +93,10 @@ public class LLMConfig {
                 .append(new KeyedCodec<>("Temperature", Codec.DOUBLE),
                         (config, value) -> config.temperature = value,
                         config -> config.temperature)
+                .add()
+                .append(new KeyedCodec<>("StructuredResponseMaxTokens", Codec.INTEGER),
+                        (config, value) -> config.structuredResponseMaxTokens = value,
+                        config -> config.structuredResponseMaxTokens)
                 .add()
                 .build();
     }

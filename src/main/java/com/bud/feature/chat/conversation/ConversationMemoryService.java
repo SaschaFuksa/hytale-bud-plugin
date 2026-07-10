@@ -107,6 +107,14 @@ public class ConversationMemoryService {
             DialogModeTracker.getInstance().onDialogInteractionCompleted(conversationContext, budProfile, message);
         }
 
+        int messageLength = message.trim().length();
+        int minMessageLength = ConversationConfig.getInstance().getConversationMemoryMinMessageLength();
+        if (messageLength < minMessageLength) {
+            LoggerUtil.getLogger().fine(() -> "[BUD] Skipping memory summary for " + budProfile.getNPCDisplayName()
+                    + " because message is below minimum length: " + message);
+            return;
+        }
+
         SummaryCandidate summaryCandidate = summarizeResponse(memoryContext, budProfile, message);
         if (summaryCandidate == null) {
             LoggerUtil.getLogger().fine(() -> "[BUD] Memory candidate discarded for " + budProfile.getNPCDisplayName()
@@ -372,7 +380,8 @@ public class ConversationMemoryService {
                     .append("Return strict JSON only.");
 
             String rawResponse = LLMCaller.getInstance()
-                    .callRawLLM(new Prompt(systemPrompt, userPromptBuilder.toString()))
+                    .callRawLLM(new Prompt(systemPrompt, userPromptBuilder.toString(),
+                            LLMConfig.getInstance().getStructuredResponseMaxTokens()))
                     .join();
             if (rawResponse == null || rawResponse.isBlank()) {
                 return null;

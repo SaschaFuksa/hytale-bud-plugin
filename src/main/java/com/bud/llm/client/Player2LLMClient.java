@@ -28,9 +28,14 @@ public class Player2LLMClient extends AbstractLLMClient {
     @Override
     public String callLLM(Prompt prompt) throws IOException, InterruptedException {
         LLMConfig config = LLMConfig.getInstance();
+        Integer maxTokensOverride = prompt.maxTokens();
+        int maxTokens = config.getMaxTokens();
+        if (maxTokensOverride != null) {
+            maxTokens = maxTokensOverride;
+        }
         String jsonPayload = String.format(
                 "{\"messages\":[{\"role\":\"system\",\"content\":%s},{\"role\":\"user\",\"content\":%s}],\"temperature\":"
-                        + config.getTemperature() + ",\"max_tokens\":" + config.getMaxTokens() + "}",
+                        + config.getTemperature() + ",\"max_tokens\":" + maxTokens + "}",
                 JsonUtils.escapeJsonWithQuotes(prompt.systemPrompt()),
                 JsonUtils.escapeJsonWithQuotes(prompt.userPrompt()));
 

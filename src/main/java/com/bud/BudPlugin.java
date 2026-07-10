@@ -76,8 +76,8 @@ public class BudPlugin extends JavaPlugin {
                 CardGronkhInteraction.CODEC_CARD_GRONKH);
         this.getCodecRegistry(Interaction.CODEC).register("CardVeri", CardVeriInteraction.class,
                 CardVeriInteraction.CODEC_CARD_VERI);
-        this.setupLogging();
         this.setupConfig();
+        this.setupLogging();
         LLMPromptManager.getInstance().reloadMissingPrompts();
 
         // Register BudComponent for state tracking
@@ -101,8 +101,13 @@ public class BudPlugin extends JavaPlugin {
     }
 
     private void setupLogging() {
-        // Force log levels to ALL for debugging
-        LoggerUtil.getLogger().setLevel(Level.ALL);
+        Level level;
+        try {
+            level = Level.parse(DebugConfig.getInstance().getLogLevel());
+        } catch (IllegalArgumentException exception) {
+            level = Level.INFO;
+        }
+        LoggerUtil.getLogger().setLevel(level);
         LoggerUtil.getLogger().info(() -> "[BUD] Logger name is: " + LoggerUtil.getLogger().getName());
     }
 

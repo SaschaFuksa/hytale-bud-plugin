@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.config.LLMConfig;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.LLMCaller;
 import com.bud.llm.client.JsonUtils;
@@ -159,7 +160,8 @@ final class LegendaryMemoryStore {
                     .append("Return strict JSON only.");
 
             String rawResponse = LLMCaller.getInstance()
-                    .callRawLLM(new Prompt(systemPrompt, userPromptBuilder.toString()))
+                    .callRawLLM(new Prompt(systemPrompt, userPromptBuilder.toString(),
+                            LLMConfig.getInstance().getStructuredResponseMaxTokens()))
                     .join();
             if (rawResponse == null || rawResponse.isBlank()) {
                 return -1;

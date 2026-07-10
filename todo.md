@@ -1,5 +1,21 @@
-Bud2Bud:
-Es wäre cool, wenn ein anderer Bud darauf reagiert, wenn bei eienm Bud sich die Mood ändert (Also Default -> XYZ außer OVERMOTIVATED). Wechsel auf Default soll nichts triggern.
-Auch wäre es cool, dass wenn ein Bud spawned und bereits andere Buds da sind, einer darauf reagiert. Damit kann ich dann auch gut prüfen, wie viel Absdtand zwischen zwei Messages ist... trotz deinem Fix befürchte ich, dass manchmal zu viele auf einmal kommen.
-Sonst fallen mir keine Bud Spezifische Fälle ein, wo man  eine direkte Bud Interaktion erzwingen kann... 
-Außer wenn für jemand eine legendary memory passiert? Dann könnte ein anderer Bud dies ansprechen nach der Art "Oh Veri so good you rescued us!"
+Bud Reaktion auf Zustandsänderungen des Spielers:
+
+Der Spieler kann verschiedene Zustände haben:
+- Health Regeneration wenn eine Health Potion getrunken wurde
+- Stamina Reg
+- Vergiftet
+- etc.
+
+Bitte liste ALLE mögliche Zustände auf, die der Spieler haben kann.
+
+Das Ziel: Auf eine Auswahl an eingetroffene Zustände, soll einer der Buds reagieren.
+Dabei reagieren die Buds unterschiedlich:
+- Keyleth findet alles positive sehr gut und in Einklang mit der Natur, auf negative Zustände besänftigt sie, dass es Lösungen gibt
+- Veri reagiert auf Gift extrem panisch, hat aber auch etwas angst vor anderen negativen Zuständen. Positive hingegen begrüßt es.
+- Gronkh sind negative Zustände schnuppe, die muss man abkönnen! Wer hingegen Health Potions usw. trinkt ist ein Schwächling
+
+Zudem als Fix:
+Wenn Buds untereinander Reagieren, sollte das richtige Pronomen genutzt werden.
+Keyleth -> she
+Gronkh -> he
+Veri... ist ein Pet? Aber "it" ist zu materialistisch? Was könnte man da englisch korrekt sagen? Notfalls nehmen wir "he"

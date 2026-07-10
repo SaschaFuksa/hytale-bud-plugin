@@ -12,6 +12,7 @@ public class ConversationConfig {
     private int conversationMemoryDepth = 8;
     private double conversationMemoryDecayFactor = 0.9;
     private int conversationMemoryMinImportance = 4;
+    private int conversationMemoryMinMessageLength = 75; // skip memory summarization for trivial one-liners
     private boolean enableLegendaryMemory = true;
     private int legendaryMemorySlotsPerBud = 3;
     private boolean enableDialogMode = true;
@@ -48,6 +49,10 @@ public class ConversationConfig {
 
     public int getConversationMemoryMinImportance() {
         return this.conversationMemoryMinImportance;
+    }
+
+    public int getConversationMemoryMinMessageLength() {
+        return this.conversationMemoryMinMessageLength;
     }
 
     public boolean isEnableLegendaryMemory() {
@@ -95,6 +100,10 @@ public class ConversationConfig {
                 .append(new KeyedCodec<>("ConversationMemoryMinImportance", Codec.INTEGER),
                         (config, value) -> config.conversationMemoryMinImportance = value,
                         config -> config.conversationMemoryMinImportance)
+                .add()
+                .append(new KeyedCodec<>("ConversationMemoryMinMessageLength", Codec.INTEGER),
+                        (config, value) -> config.conversationMemoryMinMessageLength = value,
+                        config -> config.conversationMemoryMinMessageLength)
                 .add()
                 .append(new KeyedCodec<>("EnableLegendaryMemory", Codec.BOOLEAN),
                         (config, value) -> config.enableLegendaryMemory = value,

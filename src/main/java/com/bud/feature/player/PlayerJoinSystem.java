@@ -11,10 +11,15 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
 import com.bud.core.types.BudType;
+import com.bud.feature.block.RecentBlockCache;
 import com.bud.feature.bud.MoodTracker;
 import com.bud.feature.bud.reaction.BudReactionChainTracker;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.chat.conversation.DialogModeTracker;
+import com.bud.feature.combat.RecentOpponentCache;
+import com.bud.feature.crafting.RecentCraftCache;
+import com.bud.feature.discover.RecentDiscoverCache;
+import com.bud.feature.item.RecentItemCache;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
@@ -97,6 +102,11 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             DialogModeTracker.getInstance().clearPlayer(playerRef.getUsername());
             ConversationMemoryService.getInstance().clearPlayer(playerRef.getUsername());
             BudReactionChainTracker.getInstance().clearPlayer(playerRef.getUsername());
+            RecentBlockCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentItemCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentCraftCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentDiscoverCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentOpponentCache.getInstance().clearPlayer(playerRef.getUsername());
         }
     }
 

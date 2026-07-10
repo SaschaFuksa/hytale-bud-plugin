@@ -16,6 +16,14 @@ All notable changes to this project will be documented in this file.
 - Higher cooldown times of message channels
 - `/bud delete --world` and `/bud delete --playername <other player>` now require admin permission, closing a griefing vector where any player could wipe every Bud on the server with one command.
 
+### Performance
+- Skip the memory-summary LLM call entirely for trivial one-line Bud responses (configurable via `ConversationMemoryMinMessageLength`, default 40 characters), instead of always generating a summary and discarding it afterwards.
+- Memory-summary and legendary-replacement calls now request a much smaller `max_tokens` budget (configurable via `StructuredResponseMaxTokens`, default 80) since they only return compact JSON, instead of sharing the full conversational `MaxTokens` budget — shortens local LLM generation time for these background calls.
+- `LLMCaller` now reuses a single shared virtual-thread executor instead of creating a brand new one on every LLM call.
+- Log level is now configurable (`DebugConfig.LogLevel`, default `INFO`) instead of being hardcoded to `ALL`, avoiding the cost of building and emitting verbose trace/prompt/response log messages on every interaction during normal play.
+- Fixed a memory leak: `RecentBlockCache`, `RecentItemCache`, `RecentCraftCache`, `RecentDiscoverCache`, and `RecentOpponentCache` never released their per-player tracking state after a player left, unlike the other trackers. They're now cleared on player disconnect.
+- `DialogModeTracker.triggerDialogNow` now waits with a 5s timeout instead of blocking forever if the world never executes the scheduled callback.
+
 ---
 
 ## [1.9.0]
