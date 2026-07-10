@@ -97,8 +97,11 @@ public class DamageFilterSystem extends DamageEventSystem {
                 Role budRole = bud.getRole();
                 if (budRole != null) {
                     try {
-                        budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
-                                ASSIST_ATTITUDE_DURATION);
+                        if (opponentRef != null
+                                && store.getComponent(opponentRef, BudComponent.getComponentType()) == null) {
+                            budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
+                                    ASSIST_ATTITUDE_DURATION);
+                        }
                     } catch (NullPointerException e) {
                         LoggerUtil.getLogger().warning(() -> "[BUD] Could not override attitude for "
                                 + bud.getRoleName()
