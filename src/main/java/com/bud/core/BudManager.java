@@ -26,6 +26,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -155,14 +156,33 @@ public class BudManager {
         return component;
     }
 
+    private static final int MAX_SPAWN_POSITION_ATTEMPTS = 8;
+
     @Nonnull
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
         Vector3d targetPos = getPlayerPosition(playerRef);
+        World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        double offsetX = targetPos.x + random.nextDouble() * 6 - 3;
-        double offsetY = targetPos.y + 0.5;
-        double offsetZ = targetPos.z + random.nextDouble() * 6 - 3;
-        return new Vector3d(offsetX, offsetY, offsetZ);
+        for (int attempt = 0; attempt < MAX_SPAWN_POSITION_ATTEMPTS; attempt++) {
+            double offsetX = targetPos.x + random.nextDouble() * 6 - 3;
+            double offsetY = targetPos.y + 0.5;
+            double offsetZ = targetPos.z + random.nextDouble() * 6 - 3;
+            if (world == null || isSpawnPositionFree(world, offsetX, offsetY, offsetZ)) {
+                return new Vector3d(offsetX, offsetY, offsetZ);
+            }
+        }
+        LoggerUtil.getLogger()
+                .fine(() -> "[BUD] No free spawn position found near player after "
+                        + MAX_SPAWN_POSITION_ATTEMPTS + " attempts, falling back to player position");
+        return new Vector3d(targetPos.x, targetPos.y + 0.5, targetPos.z);
+    }
+
+    private static boolean isSpawnPositionFree(@Nonnull World world, double x, double y, double z) {
+        int blockX = (int) Math.floor(x);
+        int blockY = (int) Math.floor(y);
+        int blockZ = (int) Math.floor(z);
+        return world.getBlock(blockX, blockY, blockZ) == BlockType.EMPTY_ID
+                && world.getBlock(blockX, blockY + 1, blockZ) == BlockType.EMPTY_ID;
     }
 
     public Vector3d getPlayerPosition(PlayerRef playerRef) {
