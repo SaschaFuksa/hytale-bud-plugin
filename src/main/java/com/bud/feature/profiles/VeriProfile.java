@@ -6,6 +6,7 @@ import com.bud.core.sound.IBudSound;
 import com.bud.core.sound.VeriSound;
 import com.bud.core.types.BudType;
 import com.bud.core.types.DayOfWeek;
+import com.bud.core.types.Pronoun;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.BudMessage;
 import com.bud.llm.profiles.IBudProfile;
@@ -61,6 +62,12 @@ public class VeriProfile implements IBudProfile {
 	@Override
 	public DayOfWeek getFavoriteDay() {
 		return DayOfWeek.MONDAY;
+	}
+
+	@Nonnull
+	@Override
+	public Pronoun getPronoun() {
+		return Pronoun.HE;
 	}
 
 }

@@ -7,6 +7,7 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.types.TimeOfDay;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.queue.IQueueEntry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
@@ -14,6 +15,7 @@ import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.WorldResolver;
+import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
@@ -96,7 +98,8 @@ public class WeatherTracker extends AbstractTracker {
                         return;
                     }
 
-                    IQueueEntry entry = new WeatherEntry(weatherId, budComponent);
+                    TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(entityStore);
+                    IQueueEntry entry = new WeatherEntry(weatherId, timeOfDay, budComponent);
                     Orchestrator.getInstance().enqueue(new OrchestratorQueue(
                             OrchestratorChannel.AMBIENT,
                             entry,

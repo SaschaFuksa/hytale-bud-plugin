@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.sound.IBudSound;
 import com.bud.core.types.BudType;
 import com.bud.core.types.DayOfWeek;
+import com.bud.core.types.Pronoun;
 import com.bud.llm.messages.BudMessage;
 
 public interface IBudProfile {
@@ -29,5 +30,13 @@ public interface IBudProfile {
 
     @Nonnull
     String getNPCDisplayName();
+
+    @Nonnull
+    Pronoun getPronoun();
+
+    @Nonnull
+    default String getPronounHint() {
+        return getPronoun().describe(getNPCDisplayName());
+    }
 
 }

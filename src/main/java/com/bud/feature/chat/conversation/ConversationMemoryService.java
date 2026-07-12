@@ -340,7 +340,8 @@ public class ConversationMemoryService {
                     return;
                 }
                 String situationInfo = budProfile.getNPCDisplayName() + " just had a defining moment: \""
-                        + candidateEntry.summary() + "\". React to this in character.";
+                        + candidateEntry.summary() + "\". React to this in character. "
+                        + budProfile.getPronounHint();
                 BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.LEGENDARY_MEMORY,
                         situationInfo);
                 long now = System.currentTimeMillis();

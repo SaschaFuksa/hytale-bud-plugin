@@ -38,6 +38,8 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     private String lastKnownWeatherId;
 
+    private Set<String> lastKnownEffectIds = new HashSet<>();
+
     private ConcurrentLinkedQueue<NPCEntity> currentBuds = new ConcurrentLinkedQueue<>();
 
     private Set<PersistedMemoryEntry> persistedMemories = new LinkedHashSet<>();
@@ -60,6 +62,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         this.budTypes = new HashSet<>(clone.budTypes);
         this.playerRef = clone.playerRef;
         this.lastKnownWeatherId = clone.lastKnownWeatherId;
+        this.lastKnownEffectIds = new HashSet<>(clone.lastKnownEffectIds);
         this.persistedMemories = new LinkedHashSet<>(clone.persistedMemories);
         this.persistedLegendaryMemories = new HashMap<>(clone.persistedLegendaryMemories);
         this.nextMemoryId = clone.nextMemoryId;
@@ -177,6 +180,18 @@ public class PlayerBudComponent implements Component<EntityStore> {
 
     public synchronized void setLastKnownWeatherId(String weatherId) {
         this.lastKnownWeatherId = weatherId;
+    }
+
+    @Nonnull
+    public synchronized Set<String> resolveNewEffectIds(@Nonnull Set<String> currentEffectIds) {
+        Set<String> added = new HashSet<>(currentEffectIds);
+        added.removeAll(lastKnownEffectIds);
+        lastKnownEffectIds = new HashSet<>(currentEffectIds);
+        return added;
+    }
+
+    public synchronized void setLastKnownEffectIds(@Nonnull Set<String> effectIds) {
+        this.lastKnownEffectIds = new HashSet<>(effectIds);
     }
 
     @Nonnull

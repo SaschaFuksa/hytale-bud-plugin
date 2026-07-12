@@ -140,8 +140,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
         if (otherBud == null) {
             return;
         }
-        String newBudName = BudProfileMapper.getInstance().getProfileForBudType(newBudType).getNPCDisplayName();
-        String situationInfo = newBudName + " just joined the group. Greet them in character.";
+        IBudProfile newBudProfile = BudProfileMapper.getInstance().getProfileForBudType(newBudType);
+        String situationInfo = newBudProfile.getNPCDisplayName() + " just joined the group. Greet them in character. "
+                + newBudProfile.getPronounHint();
         BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.GREETING, situationInfo);
         long now = System.currentTimeMillis();
         Orchestrator.getInstance().enqueue(new OrchestratorQueue(

@@ -34,6 +34,11 @@ prompts:
     You shall say something about your current state.
     First, you get some details about your personality.
     Second, you get information about your current state.
+  playerState: |
+    Your friend's condition just changed (e.g. a potion effect, poison, or another status effect started).
+    First, you get some details about your personality and how you feel about such conditions.
+    Second, you get information about which condition applies and whether it is helpful or harmful.
+    Finally, react briefly and in character, talking directly to your friend about their new condition.
   weather: |
     You shall say something about the weather change.
     First, you get some details about your personality.

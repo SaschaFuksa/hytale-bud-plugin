@@ -1,21 +1,8 @@
-Bud Reaktion auf Zustandsänderungen des Spielers:
+Untersuchen:
+Wie werden denn nun die Bud memroies genutzt? Ich hatte nach vielen Studnen /ab und zu neu eingeloggt) bei zwie Buds noch nicht mal legendaries...
+Werden die schon richtig gespeichert und geladen? Bitte untersuchen
 
-Der Spieler kann verschiedene Zustände haben:
-- Health Regeneration wenn eine Health Potion getrunken wurde
-- Stamina Reg
-- Vergiftet
-- etc.
-
-Bitte liste ALLE mögliche Zustände auf, die der Spieler haben kann.
-
-Das Ziel: Auf eine Auswahl an eingetroffene Zustände, soll einer der Buds reagieren.
-Dabei reagieren die Buds unterschiedlich:
-- Keyleth findet alles positive sehr gut und in Einklang mit der Natur, auf negative Zustände besänftigt sie, dass es Lösungen gibt
-- Veri reagiert auf Gift extrem panisch, hat aber auch etwas angst vor anderen negativen Zuständen. Positive hingegen begrüßt es.
-- Gronkh sind negative Zustände schnuppe, die muss man abkönnen! Wer hingegen Health Potions usw. trinkt ist ein Schwächling
-
-Zudem als Fix:
-Wenn Buds untereinander Reagieren, sollte das richtige Pronomen genutzt werden.
-Keyleth -> she
-Gronkh -> he
-Veri... ist ein Pet? Aber "it" ist zu materialistisch? Was könnte man da englisch korrekt sagen? Notfalls nehmen wir "he"
+Fixen:
+Ich war eben in der Nacht unterwegs... Problem: Hier kennt Hytale beim Wetter "Sunny" - trotz Nacht.
+Hier sollten die Buds nicht "sunny night" oder so daraus interpretieren... eher eine "klare Nacht" - clear night?
+Wir sollten also irgendwie wenn es night/morning ist und das Wetter sunny, intern es irgendwie auf "clear" übersetzen.

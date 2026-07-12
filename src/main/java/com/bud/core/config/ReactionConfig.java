@@ -20,6 +20,8 @@ public class ReactionConfig {
     private boolean enableMoodReactions = true;
     private long moodReactionPeriod = 181L; // seconds
     private boolean enablePlayerChatReactions = true;
+    private boolean enablePlayerStateReactions = true;
+    private long playerStateReactionPeriod = 2L; // seconds
 
     private static volatile ReactionConfig instance;
 
@@ -83,6 +85,14 @@ public class ReactionConfig {
         return this.enablePlayerChatReactions;
     }
 
+    public boolean isEnablePlayerStateReactions() {
+        return this.enablePlayerStateReactions;
+    }
+
+    public long getPlayerStateReactionPeriod() {
+        return this.playerStateReactionPeriod;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ReactionConfig.class, ReactionConfig::new)
                 .append(new KeyedCodec<>("EnableCombatReactions", Codec.BOOLEAN),
@@ -130,8 +140,16 @@ public class ReactionConfig {
                         config -> config.moodReactionPeriod)
                 .add()
                 .append(new KeyedCodec<>("EnablePlayerChatReactions", Codec.BOOLEAN),
-                    (config, value) -> config.enablePlayerChatReactions = value,
-                    config -> config.enablePlayerChatReactions)
+                        (config, value) -> config.enablePlayerChatReactions = value,
+                        config -> config.enablePlayerChatReactions)
+                .add()
+                .append(new KeyedCodec<>("EnablePlayerStateReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enablePlayerStateReactions = value,
+                        config -> config.enablePlayerStateReactions)
+                .add()
+                .append(new KeyedCodec<>("PlayerStateReactionPeriod", Codec.LONG),
+                        (config, value) -> config.playerStateReactionPeriod = value,
+                        config -> config.playerStateReactionPeriod)
                 .add()
                 .build();
     }

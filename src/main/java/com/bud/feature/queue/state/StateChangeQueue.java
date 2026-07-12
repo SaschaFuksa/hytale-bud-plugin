@@ -98,7 +98,7 @@ public class StateChangeQueue extends AbstractQueue {
                 case PET_DEFENSIVE -> "back to being alert and defensive";
             };
             String situationInfo = budProfile.getNPCDisplayName() + " is now " + stateDescription
-                    + ". React to this in character.";
+                    + ". React to this in character. " + budProfile.getPronounHint();
             BudReactionEntry reactionEntry = new BudReactionEntry(otherBud, BudReactionKind.STATE_CHANGE,
                     situationInfo);
             long now = System.currentTimeMillis();

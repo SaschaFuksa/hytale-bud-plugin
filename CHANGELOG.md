@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Bud 2 Bud Reactions**: Buds now react to each other's mood changes, spawns, state changes (e.g. sitting down), and legendary memories, and can chain into a couple of named back-and-forth replies before going quiet again.
 - **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds, including a shared "legendary" memory between a pair of buds.
+- **Bud Player State Reactions**: Your buds will now react if you have status effects like poisoned, health regeneration e.g.
 - **New Commands**:
   - `/bud memory set <bud> "<text>" [--legendary]` — manually add a memory (or legendary memory) for a Bud.
   - `/bud memory delete <bud> <index> [--legendary]` — remove a memory by index. `/bud memory` and `/bud memory --legendary` now print the index of each entry so you know what to pass here.

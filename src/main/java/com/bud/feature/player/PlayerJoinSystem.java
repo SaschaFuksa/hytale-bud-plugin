@@ -23,6 +23,7 @@ import com.bud.feature.item.RecentItemCache;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.player.state.PlayerStateTracker;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.WorldTracker;
 import com.bud.feature.world.weather.WeatherTracker;
@@ -36,6 +37,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -59,12 +61,14 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (playerBudComponent == null) {
             PlayerBudComponent newPlayerBudComponent = new PlayerBudComponent(playerRef);
             initializeWeatherBaseline(playerRef, newPlayerBudComponent);
+            initializePlayerStateBaseline(store, ref, newPlayerBudComponent);
             commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), newPlayerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Added PlayerBudComponent for player " + playerRef.getUsername());
         } else {
             playerBudComponent.setPlayerRef(playerRef);
             initializeWeatherBaseline(playerRef, playerBudComponent);
+            initializePlayerStateBaseline(store, ref, playerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
             Set<BudType> budTypes = playerBudComponent.getBudTypes();
@@ -80,6 +84,9 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         }
         if (ReactionConfig.getInstance().isEnableWeatherReactions()) {
             WeatherTracker.getInstance().startPolling();
+        }
+        if (ReactionConfig.getInstance().isEnablePlayerStateReactions()) {
+            PlayerStateTracker.getInstance().startPolling();
         }
         if (ConversationConfig.getInstance().isEnableDialogMode()) {
             DialogModeTracker.getInstance().startPolling();
@@ -117,6 +124,16 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             return;
         }
         playerBudComponent.setLastKnownWeatherId(weather.getId());
+    }
+
+    public static void initializePlayerStateBaseline(@Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> playerRef, @Nonnull PlayerBudComponent playerBudComponent) {
+        EffectControllerComponent effectController = store.getComponent(playerRef,
+                EffectControllerComponent.getComponentType());
+        if (effectController == null) {
+            return;
+        }
+        playerBudComponent.setLastKnownEffectIds(PlayerStateTracker.resolveActiveEffectIds(effectController));
     }
 
 }

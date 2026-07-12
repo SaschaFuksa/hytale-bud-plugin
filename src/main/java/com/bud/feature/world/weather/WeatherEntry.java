@@ -3,12 +3,14 @@ package com.bud.feature.world.weather;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
+import com.bud.core.types.TimeOfDay;
 import com.bud.feature.queue.IQueueEntry;
 
-public record WeatherEntry(@Nonnull String weatherName, @Nonnull BudComponent budComponent) implements IQueueEntry {
+public record WeatherEntry(@Nonnull String weatherName, @Nonnull TimeOfDay timeOfDay,
+        @Nonnull BudComponent budComponent) implements IQueueEntry {
 
     public WeatherEntry {
-        weatherName = cleanWeatherName(weatherName);
+        weatherName = WeatherInterpreter.resolveDisplayName(cleanWeatherName(weatherName), timeOfDay);
     }
 
     @Nonnull

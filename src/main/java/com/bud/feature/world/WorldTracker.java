@@ -7,12 +7,14 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.types.TimeOfDay;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.env.LLMWorldMessageCreation;
 import com.bud.feature.world.env.WorldEntry;
+import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.feature.world.weather.WeatherEntry;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -84,7 +86,8 @@ public class WorldTracker extends AbstractTracker {
                     }
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
                     String weatherId = weather != null ? weather.getId() : "unknown";
-                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
+                    TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(entityStore);
+                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, timeOfDay, budComponent);
 
                     WorldEntry worldEntry = WorldEntry.from(playerRef, world,
                             entityStore,

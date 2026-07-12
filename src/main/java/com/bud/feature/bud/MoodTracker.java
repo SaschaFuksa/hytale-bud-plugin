@@ -164,7 +164,7 @@ public class MoodTracker extends AbstractTracker {
             }
             String situationInfo = budProfile.getNPCDisplayName() + " is now "
                     + budComponent.getCurrentMood().getDisplayName()
-                    + ". React to this mood change in character.";
+                    + ". React to this mood change in character. " + budProfile.getPronounHint();
             BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.MOOD_CHANGE, situationInfo);
             long now = System.currentTimeMillis();
             Orchestrator.getInstance().enqueue(new OrchestratorQueue(
