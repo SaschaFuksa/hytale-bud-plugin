@@ -38,5 +38,5 @@ build/
 jdk-25.0.2/
 
 ## Hytale Example Plugin ###
-/src/main/reference
+/reference
 .claude/settings.json
