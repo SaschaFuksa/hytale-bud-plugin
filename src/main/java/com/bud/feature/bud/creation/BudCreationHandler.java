@@ -161,9 +161,10 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             @Nonnull String budId, int index, int total) {
         BudDefinition budProfile = BudRegistry.getInstance().get(budId);
         Vector3d position = BudManager.getInstance().getSpawnPosition(playerRef, index, total);
+        Vector3f rotation = BudManager.getInstance().getRotationFacingPlayer(playerRef, position);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
                 .create(store, budProfile.getNpcTypeId(), position)
-                .withRotation(new Vector3f(0, 0, 0))
+                .withRotation(rotation)
                 .withInventory()
                 .addWeapon(budProfile.getWeaponId(), 1, (short) 0)
                 .addArmor(budProfile.getArmorId())

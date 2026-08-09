@@ -14,12 +14,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
-import com.bud.core.registry.BudRegistry;
 import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -164,12 +165,17 @@ public class BudManager {
     private static final double FRONT_SPAWN_FAN_SPACING = 1.5;
 
     /**
-     * Resolves a spawn position for a Bud: prefers a free spot in front of the player
-     * (see {@link #getSpawnPositionInFrontOfPlayer(PlayerRef, int, int)}), falling back to the
-     * existing random-offset search ({@link #getPlayerPositionWithOffset(PlayerRef)}) if none is found.
+     * Resolves a spawn position for a Bud: prefers a free spot in front of the
+     * player
+     * (see {@link #getSpawnPositionInFrontOfPlayer(PlayerRef, int, int)}), falling
+     * back to the
+     * existing random-offset search
+     * ({@link #getPlayerPositionWithOffset(PlayerRef)}) if none is found.
      *
-     * @param index 0-based position of this Bud among a batch spawned together, used to fan multiple
-     *              Buds out side by side instead of stacking them on top of each other.
+     * @param index 0-based position of this Bud among a batch spawned together,
+     *              used to fan multiple
+     *              Buds out side by side instead of stacking them on top of each
+     *              other.
      * @param total total number of Buds spawned together in this batch.
      */
     @Nonnull
@@ -179,12 +185,17 @@ public class BudManager {
     }
 
     /**
-     * Tries to find a free spawn position in front of the player, stepping the distance down
-     * ({@link #FRONT_SPAWN_DISTANCES}) if the closer stages are blocked. When spawning several Buds
-     * at once ({@code total > 1}), positions are fanned out side by side (perpendicular to the
-     * player's facing direction) based on {@code index} instead of all landing on the same spot.
+     * Tries to find a free spawn position in front of the player, stepping the
+     * distance down
+     * ({@link #FRONT_SPAWN_DISTANCES}) if the closer stages are blocked. When
+     * spawning several Buds
+     * at once ({@code total > 1}), positions are fanned out side by side
+     * (perpendicular to the
+     * player's facing direction) based on {@code index} instead of all landing on
+     * the same spot.
      *
-     * @return a free position, or {@code null} if none of the distance stages were free.
+     * @return a free position, or {@code null} if none of the distance stages were
+     *         free.
      */
     @Nullable
     public Vector3d getSpawnPositionInFrontOfPlayer(@Nonnull PlayerRef playerRef, int index, int total) {
@@ -207,6 +218,20 @@ public class BudManager {
             }
         }
         return null;
+    }
+
+    @Nonnull
+    public Vector3f getRotationFacingPlayer(@Nonnull PlayerRef playerRef, @Nonnull Vector3d budPosition) {
+        Vector3d playerPos = getPlayerPosition(playerRef);
+        float playerYaw = playerRef.getTransform().getRotation().yaw();
+        Vector3d forward = Transform.getDirection(0f, playerYaw);
+        Vector3d right = Transform.getDirection(0f, playerYaw - (float) (Math.PI / 2));
+        double toPlayerX = playerPos.x - budPosition.x;
+        double toPlayerZ = playerPos.z - budPosition.z;
+        double forwardComponent = toPlayerX * forward.x + toPlayerZ * forward.z;
+        double rightComponent = toPlayerX * right.x + toPlayerZ * right.z;
+        float budYaw = playerYaw + (float) Math.atan2(-rightComponent, forwardComponent);
+        return new Vector3f(0f, budYaw, 0f);
     }
 
     @Nonnull
