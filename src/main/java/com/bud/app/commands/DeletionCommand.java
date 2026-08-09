@@ -1,5 +1,6 @@
 package com.bud.app.commands;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -7,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.core.BudManager;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.util.CleanupUtil;
 import com.hypixel.hytale.component.Ref;
@@ -86,7 +88,7 @@ public class DeletionCommand extends AbstractPlayerCommand {
         } else if (this.gronkhFlag.get(context)) {
             this.cleanupBuds(targetPlayerRef, store, Set.of("gronkh"));
         } else {
-            this.cleanupBuds(targetPlayerRef, store, Set.of("veri", "keyleth", "gronkh"));
+            this.cleanupBuds(targetPlayerRef, store, new HashSet<>(BudRegistry.getInstance().getDefaultBudIds()));
         }
     }
 

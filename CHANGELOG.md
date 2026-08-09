@@ -13,7 +13,9 @@ All notable changes to this project will be documented in this file.
   - `/bud memory delete <bud> <index> [--legendary]` — remove a memory by index. `/bud memory` and `/bud memory --legendary` now print the index of each entry so you know what to pass here.
   - `/bud delete --playername <name>` — delete another player's Buds (admin only).
   - `/bud create <bud>` now takes a generic, tab-completed Bud id instead of fixed `--veri`/`--gronkh`/`--keyleth` flags.
-- Global version file and prompt/bud-config reloading
+- **Central Version Management**: Global version file and prompt/bud-config reloading
+- **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
+
 
 ### Fixed
 - Orchestration of messages: Only send one message per tick
