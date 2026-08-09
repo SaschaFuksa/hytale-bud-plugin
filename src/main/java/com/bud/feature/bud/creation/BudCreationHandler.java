@@ -1,7 +1,10 @@
 package com.bud.feature.bud.creation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
@@ -66,7 +69,12 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             return;
         }
         List<BudComponent> existingBudTeleports = new ArrayList<>();
+        Set<Vector3d> reservedPositions = new HashSet<>();
         for (NPCEntity existingBud : playerBudComponent.getCurrentBuds()) {
+            Vector3d existingPosition = BudManager.getInstance().getBudPosition(Objects.requireNonNull(existingBud));
+            if (existingPosition != null) {
+                reservedPositions.add(existingPosition);
+            }
             BudComponent budComponent = BudManager.getInstance().findBudComponent(existingBud);
             if (budComponent == null) {
                 continue;
@@ -89,7 +97,8 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                 continue;
 
             }
-            this.createBud(store, playerRef, budId, playerBudComponent, event.triggerGreetings(), spawnIndex, total);
+            this.createBud(store, playerRef, budId, playerBudComponent, event.triggerGreetings(), spawnIndex, total,
+                    reservedPositions);
         }
 
         if (!existingBudTeleports.isEmpty()) {
@@ -105,13 +114,13 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
             @Nonnull String budId, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings,
-            int index, int total) {
+            int index, int total, @Nonnull Set<Vector3d> reservedPositions) {
         if (BudManager.playerHasValidBud(playerBudComponent, budId)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of id " + budId);
             return;
         }
-        NPCEntity bud = spawnBud(store, playerRef, budId, index, total);
+        NPCEntity bud = spawnBud(store, playerRef, budId, index, total, reservedPositions);
         if (bud == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Failed to spawn Bud of id " + budId);
@@ -158,9 +167,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private static NPCEntity spawnBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull String budId, int index, int total) {
+            @Nonnull String budId, int index, int total, @Nonnull Set<Vector3d> reservedPositions) {
         BudDefinition budProfile = BudRegistry.getInstance().get(budId);
-        Vector3d position = BudManager.getInstance().getSpawnPosition(playerRef, index, total);
+        Vector3d position = BudManager.getInstance().getSpawnPosition(playerRef, index, total, reservedPositions);
         Vector3f rotation = BudManager.getInstance().getRotationFacingPlayer(playerRef, position);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
                 .create(store, budProfile.getNpcTypeId(), position)

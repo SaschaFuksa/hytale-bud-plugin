@@ -1,6 +1,7 @@
 package com.bud.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,6 +30,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -164,41 +166,28 @@ public class BudManager {
 
     private static final double FRONT_SPAWN_FAN_SPACING = 1.5;
 
-    /**
-     * Resolves a spawn position for a Bud: prefers a free spot in front of the
-     * player
-     * (see {@link #getSpawnPositionInFrontOfPlayer(PlayerRef, int, int)}), falling
-     * back to the
-     * existing random-offset search
-     * ({@link #getPlayerPositionWithOffset(PlayerRef)}) if none is found.
-     *
-     * @param index 0-based position of this Bud among a batch spawned together,
-     *              used to fan multiple
-     *              Buds out side by side instead of stacking them on top of each
-     *              other.
-     * @param total total number of Buds spawned together in this batch.
-     */
+    private static final double MIN_SPAWN_SEPARATION = 0.9;
+
+    private static final double MIN_SPAWN_SEPARATION_SQ = MIN_SPAWN_SEPARATION * MIN_SPAWN_SEPARATION;
+
     @Nonnull
     public Vector3d getSpawnPosition(@Nonnull PlayerRef playerRef, int index, int total) {
-        Vector3d frontPosition = getSpawnPositionInFrontOfPlayer(playerRef, index, total);
-        return frontPosition != null ? frontPosition : getPlayerPositionWithOffset(playerRef);
+        return getSpawnPosition(playerRef, index, total, new HashSet<>());
     }
 
-    /**
-     * Tries to find a free spawn position in front of the player, stepping the
-     * distance down
-     * ({@link #FRONT_SPAWN_DISTANCES}) if the closer stages are blocked. When
-     * spawning several Buds
-     * at once ({@code total > 1}), positions are fanned out side by side
-     * (perpendicular to the
-     * player's facing direction) based on {@code index} instead of all landing on
-     * the same spot.
-     *
-     * @return a free position, or {@code null} if none of the distance stages were
-     *         free.
-     */
+    @Nonnull
+    public Vector3d getSpawnPosition(@Nonnull PlayerRef playerRef, int index, int total,
+            @Nonnull Set<Vector3d> reservedPositions) {
+        Vector3d frontPosition = getSpawnPositionInFrontOfPlayer(playerRef, index, total, reservedPositions);
+        Vector3d position = frontPosition != null ? frontPosition
+                : getPlayerPositionWithOffset(playerRef, reservedPositions);
+        reservedPositions.add(position);
+        return position;
+    }
+
     @Nullable
-    public Vector3d getSpawnPositionInFrontOfPlayer(@Nonnull PlayerRef playerRef, int index, int total) {
+    public Vector3d getSpawnPositionInFrontOfPlayer(@Nonnull PlayerRef playerRef, int index, int total,
+            @Nonnull Set<Vector3d> reservedPositions) {
         World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         if (world == null) {
             return null;
@@ -213,11 +202,35 @@ public class BudManager {
             double x = playerPos.x + forward.x * distance + right.x * lateralOffset;
             double y = playerPos.y + 0.5;
             double z = playerPos.z + forward.z * distance + right.z * lateralOffset;
-            if (isSpawnPositionFree(world, x, y, z)) {
-                return new Vector3d(x, y, z);
+            Vector3d candidate = new Vector3d(x, y, z);
+            if (isSpawnPositionFree(world, x, y, z) && !isReserved(candidate, reservedPositions)) {
+                return candidate;
             }
         }
         return null;
+    }
+
+    @Nullable
+    public Vector3d getBudPosition(@Nonnull NPCEntity bud) {
+        Ref<EntityStore> ref = bud.getReference();
+        if (ref == null || !ref.isValid()) {
+            return null;
+        }
+        ComponentType<EntityStore, TransformComponent> transformComponentType = TransformComponent.getComponentType();
+        if (transformComponentType == null) {
+            return null;
+        }
+        TransformComponent transformComponent = ref.getStore().getComponent(ref, transformComponentType);
+        return transformComponent != null ? transformComponent.getPosition() : null;
+    }
+
+    private static boolean isReserved(@Nonnull Vector3d candidate, @Nonnull Set<Vector3d> reservedPositions) {
+        for (Vector3d reserved : reservedPositions) {
+            if (candidate.distanceSquared(reserved) < MIN_SPAWN_SEPARATION_SQ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nonnull
@@ -236,6 +249,11 @@ public class BudManager {
 
     @Nonnull
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
+        return getPlayerPositionWithOffset(playerRef, new HashSet<>());
+    }
+
+    @Nonnull
+    public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef, @Nonnull Set<Vector3d> reservedPositions) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -243,8 +261,10 @@ public class BudManager {
             double offsetX = targetPos.x + random.nextDouble() * 6 - 3;
             double offsetY = targetPos.y + 0.5;
             double offsetZ = targetPos.z + random.nextDouble() * 6 - 3;
-            if (world == null || isSpawnPositionFree(world, offsetX, offsetY, offsetZ)) {
-                return new Vector3d(offsetX, offsetY, offsetZ);
+            Vector3d candidate = new Vector3d(offsetX, offsetY, offsetZ);
+            boolean free = world == null || isSpawnPositionFree(world, offsetX, offsetY, offsetZ);
+            if (free && !isReserved(candidate, reservedPositions)) {
+                return candidate;
             }
         }
         LoggerUtil.getLogger()
