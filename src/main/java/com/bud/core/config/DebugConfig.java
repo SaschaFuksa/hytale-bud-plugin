@@ -12,7 +12,7 @@ public class DebugConfig {
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
     private String logLevel = "INFO"; // java.util.logging.Level name, e.g. ALL/FINE/INFO/WARNING
-    private boolean autoUpdateContentOnVersionMismatch = false;
+    private boolean autoUpdateContentOnVersionMismatch = true;
 
     private static volatile DebugConfig instance;
 

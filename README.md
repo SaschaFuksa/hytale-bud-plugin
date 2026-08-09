@@ -214,7 +214,18 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
 | `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
 | `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
-| `AutoUpdateContentOnVersionMismatch` | Local-dev convenience: automatically reset prompts/Bud content to the packaged version on a `versions.yml` mismatch at startup, instead of just logging a warning. Overwrites your customizations - leave `false` on a live server. | `false` |
+| `AutoUpdateContentOnVersionMismatch` | Local-dev convenience: automatically reset prompts/Bud content to the packaged version on a `versions.yml` mismatch at startup, instead of just logging a warning. Overwrites your customizations - leave `false` on a live server. Files listed under `excludedPrompts`/`excludedBuds` in `versions.yml` are skipped during this automatic reset (an explicit `--reset` command still overwrites everything). | `true` |
+
+`versions.yml` in the mod's data directory is the single place to manage content versioning: `budVersion`/`promptVersion` track the currently-synced content, and the optional `excludedPrompts`/`excludedBuds` lists (file paths relative to `prompts/`/`buds/`) mark files to keep untouched during an automatic update - for content you've customized yourself, at your own risk:
+```yaml
+budVersion: 2
+promptVersion: 2
+excludedPrompts:
+  - "buds/gronkh.yml"
+excludedBuds:
+  - "gronkh.yml"
+```
+The plugin only ever updates the version numbers here (never the exclusion lists) when syncing content, so your exclusions survive every automatic update.
 
 ### Conversation Configuration
 

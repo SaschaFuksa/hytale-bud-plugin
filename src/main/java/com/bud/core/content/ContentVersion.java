@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,16 +16,20 @@ import com.bud.llm.messages.AbstractYamlMessage;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
- * Single shared {@code versions.yml} tracking the content version of both the prompt YAMLs
- * ({@code promptVersion}) and the Bud definition YAMLs ({@code budVersion}), compared between
- * the version packaged in the jar and the version copied into the runtime data folder to detect
- * an outdated local copy after a plugin update - see {@code LLMPromptManager}/{@code BudRegistry},
- * which each own their own comparison + reminder log against their relevant field.
+ * Single shared, operator-editable {@code versions.yml}: tracks the content version of both the
+ * prompt YAMLs ({@code promptVersion}) and the Bud definition YAMLs ({@code budVersion}), compared
+ * against the version packaged in the jar to detect an outdated runtime copy after a plugin update
+ * - see {@code LLMPromptManager}/{@code BudRegistry}, which each own their own comparison + reminder
+ * log against their relevant field. Also carries the operator-owned {@code excludedPrompts}/
+ * {@code excludedBuds} path lists, skipped when an automatic ({@code AutoUpdateContentOnVersionMismatch})
+ * sync would otherwise overwrite them - an explicit {@code --reset} command still ignores these.
  */
 public class ContentVersion extends AbstractYamlMessage {
 
     private int budVersion;
     private int promptVersion;
+    private List<String> excludedPrompts;
+    private List<String> excludedBuds;
 
     public int getBudVersion() {
         return this.budVersion;
@@ -31,6 +37,16 @@ public class ContentVersion extends AbstractYamlMessage {
 
     public int getPromptVersion() {
         return this.promptVersion;
+    }
+
+    @Nonnull
+    public Set<String> getExcludedPromptPaths() {
+        return Objects.requireNonNull(excludedPrompts != null ? Set.copyOf(excludedPrompts) : Set.of());
+    }
+
+    @Nonnull
+    public Set<String> getExcludedBudPaths() {
+        return Objects.requireNonNull(excludedBuds != null ? Set.copyOf(excludedBuds) : Set.of());
     }
 
     @Nullable
@@ -65,28 +81,74 @@ public class ContentVersion extends AbstractYamlMessage {
         return contentVersion != null ? contentVersion.getPromptVersion() : 0;
     }
 
-    public static void ensurePackagedCopy(@Nonnull Path dataDir, boolean overwrite) {
-        Path target = dataDir.resolve("versions.yml");
-        if (!overwrite && Files.exists(target)) {
+    @Nonnull
+    public static Set<String> excludedPromptPathsOf(@Nullable ContentVersion contentVersion) {
+        return Objects.requireNonNull(
+                contentVersion != null ? contentVersion.getExcludedPromptPaths() : Set.of());
+    }
+
+    @Nonnull
+    public static Set<String> excludedBudPathsOf(@Nullable ContentVersion contentVersion) {
+        return Objects.requireNonNull(
+                contentVersion != null ? contentVersion.getExcludedBudPaths() : Set.of());
+    }
+
+    public static void ensurePackagedCopy(@Nonnull Path rootDataDir) {
+        Path target = rootDataDir.resolve("versions.yml");
+        if (Files.exists(target)) {
             return;
         }
         try {
-            Files.createDirectories(dataDir);
+            Files.createDirectories(rootDataDir);
             try (InputStream in = BudPlugin.class.getResourceAsStream("/versions.yml")) {
                 if (in == null) {
-                    LoggerUtil.getLogger().severe(() -> "[BUD] Default versions.yml not found in JAR.");
+                    LoggerUtil.getLogger().severe("[BUD] Default versions.yml not found in JAR.");
                     return;
                 }
-                if (overwrite) {
-                    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-                    LoggerUtil.getLogger().info(() -> "[BUD] versions.yml updated: " + target);
-                } else {
-                    Files.copy(in, target);
-                    LoggerUtil.getLogger().info(() -> "[BUD] versions.yml created: " + target);
-                }
+                Files.copy(in, target);
+                LoggerUtil.getLogger().info(() -> "[BUD] versions.yml created: " + target);
             }
         } catch (IOException e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to copy versions.yml: " + e.getMessage());
+            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to create versions.yml: " + e.getMessage());
+        }
+    }
+
+    public static void persistBudVersion(@Nonnull Path rootDataDir, int newBudVersion) {
+        ContentVersion current = load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
+        write(rootDataDir, newBudVersion, promptVersionOf(current),
+                excludedPromptPathsOf(current), excludedBudPathsOf(current));
+    }
+
+    public static void persistPromptVersion(@Nonnull Path rootDataDir, int newPromptVersion) {
+        ContentVersion current = load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
+        write(rootDataDir, budVersionOf(current), newPromptVersion,
+                excludedPromptPathsOf(current), excludedBudPathsOf(current));
+    }
+
+    private static void write(@Nonnull Path rootDataDir, int budVersion, int promptVersion,
+            @Nonnull Set<String> excludedPrompts, @Nonnull Set<String> excludedBuds) {
+        Path target = rootDataDir.resolve("versions.yml");
+        StringBuilder sb = new StringBuilder();
+        sb.append("budVersion: ").append(budVersion).append('\n');
+        sb.append("promptVersion: ").append(promptVersion).append('\n');
+        appendPathList(sb, "excludedPrompts", excludedPrompts);
+        appendPathList(sb, "excludedBuds", excludedBuds);
+        try {
+            Files.createDirectories(rootDataDir);
+            Files.writeString(target, sb.toString());
+            LoggerUtil.getLogger().info(() -> "[BUD] versions.yml updated: " + target);
+        } catch (IOException e) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to persist versions.yml: " + e.getMessage());
+        }
+    }
+
+    private static void appendPathList(@Nonnull StringBuilder sb, @Nonnull String key, @Nonnull Set<String> paths) {
+        if (paths.isEmpty()) {
+            return;
+        }
+        sb.append(key).append(":\n");
+        for (String path : paths) {
+            sb.append("  - \"").append(path.replace("\"", "\\\"")).append("\"\n");
         }
     }
 

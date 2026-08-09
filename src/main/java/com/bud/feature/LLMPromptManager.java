@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
@@ -78,6 +79,10 @@ public class LLMPromptManager {
     }
 
     private void copyDefaults(Path dataDir, boolean overwrite) {
+        copyDefaults(dataDir, overwrite, Objects.requireNonNull(Set.of()));
+    }
+
+    private void copyDefaults(Path dataDir, boolean overwrite, @Nonnull Set<String> excludedPaths) {
         String[] resources = {
                 "buds/gronkh.yml", "buds/keyleth.yml", "buds/veri.yml",
                 "world/world_system_info.yml", "world/time.yml",
@@ -89,6 +94,10 @@ public class LLMPromptManager {
         };
 
         for (String res : resources) {
+            if (overwrite && excludedPaths.contains(res)) {
+                LoggerUtil.getLogger().info(() -> "[BUD] Skipping excluded prompt resource: " + res);
+                continue;
+            }
             Path target = dataDir.resolve(res);
             if (overwrite || !Files.exists(target)) {
                 try {
@@ -116,19 +125,24 @@ public class LLMPromptManager {
     }
 
     private boolean checkContentVersion(@Nonnull Path rootDataDir, boolean overwriteDefaults) {
-        ContentVersion.ensurePackagedCopy(rootDataDir, overwriteDefaults);
+        ContentVersion.ensurePackagedCopy(rootDataDir);
         ContentVersion packaged = ContentVersion.loadFromClasspath("/versions.yml");
         ContentVersion runtime = ContentVersion.load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
         int packagedVersion = ContentVersion.promptVersionOf(packaged);
         int runtimeVersion = ContentVersion.promptVersionOf(runtime);
+        if (overwriteDefaults) {
+            ContentVersion.persistPromptVersion(rootDataDir, packagedVersion);
+            return false;
+        }
         if (runtimeVersion >= packagedVersion) {
             return false;
         }
-        if (!overwriteDefaults && DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
+        if (DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
             LoggerUtil.getLogger().info(() -> "[BUD] Prompt content outdated (runtime v" + runtimeVersion
                     + ", packaged v" + packagedVersion
                     + ") - AutoUpdateContentOnVersionMismatch is enabled, resetting to packaged defaults.");
-            copyDefaults(rootDataDir.resolve("prompts"), true);
+            copyDefaults(rootDataDir.resolve("prompts"), true, ContentVersion.excludedPromptPathsOf(runtime));
+            ContentVersion.persistPromptVersion(rootDataDir, packagedVersion);
             return false;
         }
         LoggerUtil.getLogger().warning(() -> "[BUD] Prompt content outdated (runtime v" + runtimeVersion

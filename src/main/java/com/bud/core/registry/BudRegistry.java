@@ -73,19 +73,24 @@ public class BudRegistry {
     }
 
     private boolean checkContentVersion(@Nonnull Path rootDataDir, @Nonnull Path budsDir, boolean overwriteDefaults) {
-        ContentVersion.ensurePackagedCopy(rootDataDir, overwriteDefaults);
+        ContentVersion.ensurePackagedCopy(rootDataDir);
         ContentVersion packaged = ContentVersion.loadFromClasspath("/versions.yml");
         ContentVersion runtime = ContentVersion.load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
         int packagedVersion = ContentVersion.budVersionOf(packaged);
         int runtimeVersion = ContentVersion.budVersionOf(runtime);
+        if (overwriteDefaults) {
+            ContentVersion.persistBudVersion(rootDataDir, packagedVersion);
+            return false;
+        }
         if (runtimeVersion >= packagedVersion) {
             return false;
         }
-        if (!overwriteDefaults && DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
+        if (DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
             LoggerUtil.getLogger().info(() -> "[BUD] Bud content outdated (runtime v" + runtimeVersion
                     + ", packaged v" + packagedVersion
                     + ") - AutoUpdateContentOnVersionMismatch is enabled, resetting to packaged defaults.");
-            copyPackagedDefaults(budsDir, true);
+            copyPackagedDefaults(budsDir, true, ContentVersion.excludedBudPathsOf(runtime));
+            ContentVersion.persistBudVersion(rootDataDir, packagedVersion);
             return false;
         }
         LoggerUtil.getLogger().warning(() -> "[BUD] Bud content outdated (runtime v" + runtimeVersion
@@ -100,10 +105,18 @@ public class BudRegistry {
     }
 
     private void copyPackagedDefaults(Path budsDir, boolean overwrite) {
+        copyPackagedDefaults(budsDir, overwrite, Objects.requireNonNull(Set.of()));
+    }
+
+    private void copyPackagedDefaults(Path budsDir, boolean overwrite, @Nonnull Set<String> excludedPaths) {
         List<String> resources = new ArrayList<>(List.of(PACKAGED_DEFINITIONS));
         resources.add(ROSTER_FILE);
 
         for (String res : resources) {
+            if (overwrite && excludedPaths.contains(res)) {
+                LoggerUtil.getLogger().info(() -> "[BUD] Skipping excluded bud resource: " + res);
+                continue;
+            }
             Path target = budsDir.resolve(res);
             if (!overwrite && Files.exists(target)) {
                 continue;

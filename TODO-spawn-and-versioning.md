@@ -53,3 +53,30 @@ Statt nur den Scan-Filter zu erweitern: auf Wunsch direkt auf **eine gemeinsame 
 - README/CLAUDE.md entsprechend nachgezogen (`versions.yml` statt zwei getrennter Dateien).
 
 Verifiziert: nur statisch (Lektüre + Bytecode-Check von `AbstractYamlMessage.loadFromStream`, das bereits in Phase 8 von `private` auf `protected` geweitet wurde und unverändert weiterverwendet wird). **Nicht** erneut gegen `.\gradlew build` geprüft (Cowork-Sandbox kann nicht kompilieren, siehe frühere Sessions) — bitte bei der nächsten Runde als Erstes `.\gradlew build` gegenchecken, bevor der Ingame-Test läuft.
+
+## Nachtrag 2 — Auto-Update persistierte die neue Versionsnummer nicht
+
+Ursache für "Auto-Update hat sich nichts geändert" trotz erhöhter `versions.yml`: der Auto-Update-Zweig in beiden `checkContentVersion(...)` rief zwar `copyDefaults(..., true)`/`copyPackagedDefaults(..., true)` auf, um den Inhalt zu erneuern, hat aber nie die eigene Runtime-`versions.yml` mit der neuen Versionsnummer überschrieben — der Mismatch wäre also bei jedem weiteren Start erneut erkannt (und der Content erneut, redundant, synchronisiert) worden. Fix: `ContentVersion.ensurePackagedCopy(rootDataDir, true);` direkt nach dem jeweiligen Content-Refresh in beiden Managern ergänzt.
+
+Ebenfalls nur statisch verifiziert, nicht ingame getestet.
+
+## Nachtrag 3 — Datei-Level Auto-Update-Exclusion (`auto-update-exclude.yml`)
+
+Wunsch: einzelne Prompt-/Bud-Dateien vom automatischen Auto-Update ausnehmen können, wenn ein Operator sie selbst angepasst hat ("auf eigenes Risiko"). Erste Ausbaustufe bewusst nur auf Datei-Ebene (kein Key-Level-YAML-Merge, siehe Diskussion im Chat).
+
+- Neue Klasse `AutoUpdateExclusions` (`com.bud.core.content`, `extends AbstractYamlMessage`) liest eine optionale, nie vom Plugin erzeugte/überschriebene `<dataDir>/auto-update-exclude.yml` mit zwei Listenfeldern (`prompts`, `buds`), Pfade relativ zu `prompts/` bzw. `buds/`. `load(Path)` liefert bei fehlender Datei eine leere Instanz (keine Exclusions).
+- `LLMPromptManager.copyDefaults(...)`/`BudRegistry.copyPackagedDefaults(...)` haben je eine neue 3-Parameter-Überladung mit `Set<String> excludedPaths` bekommen; die bestehende 2-Parameter-Variante delegiert mit `Set.of()` (keine Änderung an `loadPrompts()`/`loadAll()`/explizitem `--reset`-Aufruf).
+- Nur der Auto-Update-Zweig in `checkContentVersion(...)` lädt `AutoUpdateExclusions` und reicht die passende Pfad-Menge (`getPromptPaths()`/`getBudPaths()`) durch — ein explizites `/bud prompt --reset` bzw. `/bud reload buds --reset` ignoriert die Exclusion-Liste weiterhin vollständig.
+- README (`AutoUpdateContentOnVersionMismatch`-Zeile + neuer Beispiel-Block) und `CLAUDE.md` ("Prompt management"-Abschnitt) entsprechend ergänzt.
+
+Nur statisch verifiziert (Lektüre, keine `.\gradlew build`-Prüfung möglich in der Cowork-Sandbox). Noch offen: `versions.yml`-Konsolidierung, Persistenz-Fix und diese Exclusion-Funktion zusammen in einem echten Serverlauf testen (Build → Version erhöhen → `auto-update-exclude.yml` mit z.B. `buds/gronkh.yml` anlegen → `AutoUpdateContentOnVersionMismatch: true` → Start → prüfen, dass alles außer der exkludierten Datei aktualisiert wird).
+
+## Nachtrag 4 — echter Ingame-Test deckte zwei Bugs auf, `auto-update-exclude.yml` in `versions.yml` gefaltet
+
+Erster echter Test (Version erhöht, Prompts geändert, `AutoUpdateContentOnVersionMismatch: true`): Prompts + Exclusion funktionierten. Bud-Seite (Roster, Bud-Definitionen) hat sich **nicht** aktualisiert, obwohl kein Mismatch mehr geloggt wurde. Ursache: `ContentVersion.ensurePackagedCopy(rootDataDir, true)` hat beim Sync-Abschluss die **gesamte** `versions.yml` (beide Felder `budVersion`+`promptVersion`) mit dem gepackten Stand überschrieben, statt nur des eigenen Felds. Da `LLMPromptManager` beim Boot vor `BudRegistry` läuft, war `budVersion` durch den Prompt-Sync schon auf den gepackten Stand gesetzt, bevor `BudRegistry.checkContentVersion()` überhaupt geprüft hat — kein Mismatch mehr sichtbar, Bud-Update übersprungen. Aus demselben Grund hätte ein reines `/bud prompt --reset` (ohne Bud-Reset) nebenbei auch `budVersion` zurückgesetzt.
+
+Fix: `ContentVersion` bekommt `persistBudVersion(...)`/`persistPromptVersion(...)` — lesen die aktuelle Datei, ändern **nur** das eigene Feld, schreiben Rest (anderes Versionsfeld + beide Exclusion-Listen) unverändert zurück. `ensurePackagedCopy(...)` wird nur noch für den Bootstrap-Fall (Datei fehlt) verwendet, nie mehr für ein Voll-Überschreiben.
+
+Zusätzlich auf Wunsch ("nur eine Stelle zum Verwalten") die separate `auto-update-exclude.yml` wieder entfernt: `excludedPrompts`/`excludedBuds` sind jetzt Felder direkt in `versions.yml`, gelesen über `ContentVersion.excludedPromptPathsOf(runtime)`/`excludedBudPathsOf(runtime)`. `AutoUpdateExclusions.java` gelöscht. Da `persistBudVersion`/`persistPromptVersion` die Exclusion-Listen beim Schreiben unverändert übernehmen, überleben sie jedes automatische Update (nur `--reset` ignoriert sie weiterhin bewusst).
+
+README/CLAUDE.md aktualisiert. Nur statisch verifiziert — bitte im nächsten Serverlauf erneut testen (insbesondere: Roster + Bud-Definitionen aktualisieren sich jetzt tatsächlich, `excludedBuds`/`excludedPrompts` in `versions.yml` überleben den Auto-Update-Durchlauf).
