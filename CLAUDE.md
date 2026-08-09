@@ -53,7 +53,7 @@ This is separate from the `decompileServer` Gradle task (see below), which prepa
 ### Plugin bootstrap
 
 [BudPlugin.java](src/main/java/com/bud/BudPlugin.java) is the `JavaPlugin` entrypoint. In `setup()` it:
-1. Registers codecs for the card interactions (`CardKeyleth`/`CardGronkh`/`CardVeri`).
+1. Registers the codec for the card interaction (`CardBud`, generic across all Buds — see "Bud identity/profile system" below).
 2. Loads/saves five config sections (`LLM`, `Reaction`, `Orchestrator`, `Conversation`, `Debug` — one JSON file each in the mod's config folder, backed by `Config<T>` + a `CODEC`).
 3. Registers the `BudComponent` / `PlayerBudComponent` ECS components.
 4. Registers the `/bud` command tree and all ECS systems/event handlers — each gated by its `Reaction` config flag (e.g. combat systems only register if `EnableCombatReactions` is true).
@@ -79,7 +79,7 @@ When adding a new reaction type, add the `*Entry`/cache/filter-system/`LLM*Messa
 
 ### Bud identity/profile system
 
-`BudType` (enum: GRONKH/KEYLETH/VERI) → `BudProfileMapper.getProfileForBudType()` → `IBudProfile` implementation (`GronkhProfile`/`KeylethProfile`/`VeriProfile` under `com.bud.feature.profiles`), which supplies the NPC's display name, pronoun, sound set, weapon/armor ids, favorite day, and `BudMessage` (personality/fallback text, itself loaded from the per-bud YAML prompt file). `BudComponent` (ECS component on the spawned NPC entity) tracks live per-Bud state (current mood, state, bud type); `PlayerBudComponent` (ECS component on the player entity) tracks that player's owned/spawned Buds.
+Buds are fully data-driven — there is no `BudType` enum or per-Bud Java class. `BudRegistry` (`com.bud.core.registry`, singleton analogous to `LLMPromptManager`) loads one `BudDefinition` per Bud from `buds/<id>.yml` in the mod's runtime data folder (packaged defaults for `veri`/`keyleth`/`gronkh` are copied in on first start, same mechanism as the LLM prompts). `BudDefinition` supplies the NPC's display name, color, NPC type id, weapon/armor ids, pronoun, favorite day, sound set (`BudSoundDefinition`), and `getBudMessage()` (personality/fallback text, loaded via `LLMPromptManager` from the per-bud YAML prompt file keyed by `promptKey`). A Bud's identity everywhere in code is just its lowercase string id (e.g. `"veri"`), normalized via `BudRegistry.normalize()`; `buds/roster.yml`'s `defaultBuds` list (at most 3) is the subset `/bud create` spawns when called without an id — other defined Buds remain summonable individually. `BudComponent` (ECS component on the spawned NPC entity) tracks live per-Bud state (current mood, state, bud id); `PlayerBudComponent` (ECS component on the player entity) tracks that player's owned/spawned Bud ids (`Set<String>`, persisted under the legacy `BudTypes` codec key for wire compatibility with older saves).
 
 ### Prompt management
 

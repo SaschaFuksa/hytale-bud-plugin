@@ -15,13 +15,13 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.debug.BudDebugInfo;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
-import com.bud.core.types.BudType;
 import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.feature.bud.reaction.BudReactionKind;
 import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
 import com.bud.feature.player.PlayerJoinSystem;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
@@ -29,7 +29,6 @@ import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -72,22 +71,22 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             if (budComponent == null) {
                 continue;
             }
-            if (!event.budTypes().contains(budComponent.getBudType())) {
+            if (!event.budIds().contains(budComponent.getBudId())) {
                 continue;
             }
             existingBudTeleports.add(budComponent);
         }
 
-        for (BudType budType : event.budTypes()) {
+        for (String budId : event.budIds()) {
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating Bud of type " + budType);
-            if (budType == null) {
+                    .fine(() -> "[BUD] Creating Bud of id " + budId);
+            if (budId == null || !BudRegistry.getInstance().exists(budId)) {
                 LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] Invalid BudType provided: " + budType);
+                        .warning(() -> "[BUD] Invalid Bud id provided: " + budId);
                 continue;
 
             }
-            this.createBud(store, playerRef, budType, playerBudComponent, event.triggerGreetings());
+            this.createBud(store, playerRef, budId, playerBudComponent, event.triggerGreetings());
         }
 
         if (!existingBudTeleports.isEmpty()) {
@@ -102,25 +101,25 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull BudType budType, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings) {
-        if (BudManager.playerHasValidBud(playerBudComponent, budType)) {
+            @Nonnull String budId, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings) {
+        if (BudManager.playerHasValidBud(playerBudComponent, budId)) {
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Player already has Bud of type " + budType);
+                    .fine(() -> "[BUD] Player already has Bud of id " + budId);
             return;
         }
-        NPCEntity bud = spawnBud(store, playerRef, budType);
+        NPCEntity bud = spawnBud(store, playerRef, budId);
         if (bud == null) {
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] Failed to spawn Bud of type " + budType);
+                    .warning(() -> "[BUD] Failed to spawn Bud of id " + budId);
             return;
         }
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Successfully spawned Bud with NPC Type ID: " + bud.getNPCTypeId());
-        playerBudComponent.addBud(bud, budType);
-        BudComponent budComponent = registerBudComponent(store, bud, playerRef, budType);
+        playerBudComponent.addBud(bud, budId);
+        BudComponent budComponent = registerBudComponent(store, bud, playerRef, budId);
         if (budComponent == null) {
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] Failed to register BudComponent for Bud of type " + budType);
+                    .warning(() -> "[BUD] Failed to register BudComponent for Bud of id " + budId);
             return;
         }
         StateChangeQueue.getInstance()
@@ -130,18 +129,18 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             BudDebugInfo.getInstance().logBudInfo(bud);
         }
         if (triggerGreetings) {
-            triggerGreetingReaction(playerRef, playerBudComponent, budComponent, budType);
+            triggerGreetingReaction(playerRef, playerBudComponent, budComponent, budId);
         }
     }
 
     private void triggerGreetingReaction(@Nonnull PlayerRef playerRef, @Nonnull PlayerBudComponent playerBudComponent,
-            @Nonnull BudComponent newBudComponent, @Nonnull BudType newBudType) {
+            @Nonnull BudComponent newBudComponent, @Nonnull String newBudId) {
         BudComponent otherBud = BudManager.getInstance().getRandomOtherBud(playerBudComponent, newBudComponent);
         if (otherBud == null) {
             return;
         }
-        IBudProfile newBudProfile = BudProfileMapper.getInstance().getProfileForBudType(newBudType);
-        String situationInfo = newBudProfile.getNPCDisplayName() + " just joined the group. Greet them in character. "
+        BudDefinition newBudProfile = BudRegistry.getInstance().get(newBudId);
+        String situationInfo = newBudProfile.getDisplayName() + " just joined the group. Greet them in character. "
                 + newBudProfile.getPronounHint();
         BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.GREETING, situationInfo);
         long now = System.currentTimeMillis();
@@ -155,28 +154,28 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private static NPCEntity spawnBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull BudType budType) {
-        IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budType);
+            @Nonnull String budId) {
+        BudDefinition budProfile = BudRegistry.getInstance().get(budId);
         Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
-                .create(store, budType.getName(), position)
+                .create(store, budProfile.getNpcTypeId(), position)
                 .withRotation(new Vector3f(0, 0, 0))
                 .withInventory()
-                .addWeapon(budProfile.getWeaponID(), 1, (short) 0)
-                .addArmor(budProfile.getArmorID())
+                .addWeapon(budProfile.getWeaponId(), 1, (short) 0)
+                .addArmor(budProfile.getArmorId())
                 .spawn();
         return (NPCEntity) result.second();
     }
 
     private BudComponent registerBudComponent(@Nonnull Store<EntityStore> store, NPCEntity bud,
-            @Nonnull PlayerRef playerRef, @Nonnull BudType budType) {
+            @Nonnull PlayerRef playerRef, @Nonnull String budId) {
         Ref<EntityStore> ref = bud.getReference();
         if (ref == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Invalid NPCEntity reference for bud: " + bud);
             return null;
         }
-        BudComponent budComponent = BudComponent.create(bud, budType, playerRef);
+        BudComponent budComponent = BudComponent.create(bud, budId, playerRef);
         store.addComponent(ref, BudComponent.getComponentType(), budComponent);
         return budComponent;
     }

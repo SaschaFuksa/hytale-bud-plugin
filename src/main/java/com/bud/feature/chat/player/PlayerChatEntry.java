@@ -50,7 +50,7 @@ public record PlayerChatEntry(@Nonnull String playerMessage, @Nonnull BudCompone
     @Override
     public Set<String> getConversationParticipants() {
         return Objects.requireNonNull(
-                Set.of(this.budComponent.getPlayerRef().getUsername(), this.getBudProfile().getNPCDisplayName()));
+                Set.of(this.budComponent.getPlayerRef().getUsername(), this.getBudProfile().getDisplayName()));
     }
 
     @Nonnull

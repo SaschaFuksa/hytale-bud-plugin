@@ -123,8 +123,8 @@ The plugin is primarily controlled via simple chat commands:
 
 #### Creation Commands
 
-*   **`/bud create`** - Creates all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud create [--veri|--gronkh|--keyleth]`** - Target a specific buddy for spawning or teleportation.
+*   **`/bud create`** - Creates the default roster of Buds (configured in `buds/roster.yml`; ships as Veri, Gronkh, Keyleth).
+*   **`/bud create <bud>`** - Target a specific Bud id for spawning or teleportation. Tab-completes against every Bud defined in `buds/*.yml`, not just the default roster.
 *   **`/bud reset`** - Recreate all your buddies.
 
 #### Deletion Commands
@@ -231,6 +231,13 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 - Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
 
+
+### 🧬 Bud Registry (`buds/*.yml`)
+Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/<id>.yml` in the mod's runtime data folder (`id`, `displayName`, `color`, `npcTypeId`, `weaponId`, `armorId`, `pronoun`, `favoriteDay`, `promptKey`, `sounds`). Adding a new Bud only needs a new YAML file plus matching game assets (NPC type, weapon/armor, a prompt file under `prompts/buds/`, and optionally its own card item) — no plugin rebuild required.
+
+`buds/roster.yml` lists `defaultBuds` (at most 3) — the Buds `/bud create` spawns when called without an id. Buds that exist but aren't in the roster are still summonable individually via `/bud create <id>`.
+
+Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.

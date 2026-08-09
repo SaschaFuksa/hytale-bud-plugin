@@ -10,12 +10,12 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
-import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -80,8 +80,8 @@ public class BudReactionChainTracker {
 
             this.chainDepthByPlayer.put(playerKey, depth + 1);
 
-            IBudProfile speakerProfile = BudProfileMapper.getInstance().getProfileForBudType(speaker.getBudType());
-            String situationInfo = speakerProfile.getNPCDisplayName() + " just said to you: \"" + message
+            BudDefinition speakerProfile = BudRegistry.getInstance().get(speaker.getBudId());
+            String situationInfo = speakerProfile.getDisplayName() + " just said to you: \"" + message
                     + "\". Reply to them directly, in character. " + speakerProfile.getPronounHint();
             BudReactionEntry replyEntry = new BudReactionEntry(mentionedBud, BudReactionKind.NAMED_REPLY,
                     situationInfo);

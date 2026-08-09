@@ -10,6 +10,7 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.config.LLMConfig;
 import com.bud.core.config.OrchestratorConfig;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.LLMPromptManager;
 import com.bud.feature.block.BlockBreakFilterSystem;
 import com.bud.feature.block.BlockPlaceFilterSystem;
@@ -34,9 +35,7 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
-import com.bud.interaction.CardGronkhInteraction;
-import com.bud.interaction.CardKeylethInteraction;
-import com.bud.interaction.CardVeriInteraction;
+import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
@@ -70,15 +69,14 @@ public class BudPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         super.setup();
-        this.getCodecRegistry(Interaction.CODEC).register("CardKeyleth", CardKeylethInteraction.class,
-                CardKeylethInteraction.CODEC_CARD_KEYLETH);
-        this.getCodecRegistry(Interaction.CODEC).register("CardGronkh", CardGronkhInteraction.class,
-                CardGronkhInteraction.CODEC_CARD_GRONKH);
-        this.getCodecRegistry(Interaction.CODEC).register("CardVeri", CardVeriInteraction.class,
-                CardVeriInteraction.CODEC_CARD_VERI);
+        this.getCodecRegistry(Interaction.CODEC).register("CardBud", CardBudInteraction.class,
+                CardBudInteraction.CODEC_CARD_BUD);
         this.setupConfig();
         this.setupLogging();
         LLMPromptManager.getInstance().reloadMissingPrompts();
+        // Additive only for now (Phase 1 of the Bud config migration): loads/validates
+        // buds/*.yml + buds/roster.yml, nothing in the codebase reads from it yet.
+        BudRegistry.getInstance().reloadMissing();
 
         // Register BudComponent for state tracking
         ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(

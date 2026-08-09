@@ -3,7 +3,6 @@ package com.bud.core.components;
 import javax.annotation.Nonnull;
 
 import com.bud.core.types.BudState;
-import com.bud.core.types.BudType;
 import com.bud.core.types.Mood;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
@@ -22,7 +21,7 @@ public class BudComponent implements Component<EntityStore> {
     private Mood currentMood = Mood.DEFAULT;
 
     @Nonnull
-    private BudType budType = BudType.VERI;
+    private String budId = "veri";
 
     private NPCEntity bud;
 
@@ -32,11 +31,11 @@ public class BudComponent implements Component<EntityStore> {
     }
 
     @Nonnull
-    public static BudComponent create(@Nonnull NPCEntity bud, @Nonnull BudType budType, @Nonnull PlayerRef playerRef) {
+    public static BudComponent create(@Nonnull NPCEntity bud, @Nonnull String budId, @Nonnull PlayerRef playerRef) {
         BudComponent component = new BudComponent();
         component.bud = bud;
         component.playerRef = playerRef;
-        component.budType = budType;
+        component.budId = budId;
         return component;
     }
 
@@ -69,8 +68,8 @@ public class BudComponent implements Component<EntityStore> {
     }
 
     @Nonnull
-    public BudType getBudType() {
-        return budType;
+    public String getBudId() {
+        return budId;
     }
 
     @Nonnull

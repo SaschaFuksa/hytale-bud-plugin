@@ -19,8 +19,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
-import com.bud.core.types.BudType;
-import com.bud.feature.profiles.BudProfileMapper;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -46,10 +45,11 @@ public class BudManager {
         return INSTANCE;
     }
 
-    public static boolean playerHasValidBud(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull BudType budType) {
-        if (playerBudComponent.getBudTypes().contains(budType)) {
+    public static boolean playerHasValidBud(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull String budId) {
+        if (playerBudComponent.getBudIds().contains(budId)) {
+            String npcTypeId = BudRegistry.getInstance().get(budId).getNpcTypeId();
             Optional<NPCEntity> existingBud = playerBudComponent.getCurrentBuds().stream()
-                    .filter(b -> b.getNPCTypeId().equals(budType.getName()))
+                    .filter(b -> b.getNPCTypeId().equals(npcTypeId))
                     .findFirst();
             if (existingBud.isPresent()) {
                 Ref<EntityStore> ref = existingBud.get().getReference();
@@ -122,8 +122,7 @@ public class BudManager {
             if (candidate == null || candidate == excludeSpeaker) {
                 continue;
             }
-            String displayName = BudProfileMapper.getInstance()
-                    .getProfileForBudType(candidate.getBudType()).getNPCDisplayName();
+            String displayName = BudRegistry.getInstance().get(candidate.getBudId()).getDisplayName();
             if (lowerMessage.contains(displayName.toLowerCase())) {
                 return candidate;
             }
