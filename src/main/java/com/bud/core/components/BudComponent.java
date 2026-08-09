@@ -80,6 +80,10 @@ public class BudComponent implements Component<EntityStore> {
         return bud;
     }
 
+    public void setBud(@Nonnull NPCEntity bud) {
+        this.bud = bud;
+    }
+
     @Nonnull
     public PlayerRef getPlayerRef() {
         if (playerRef == null) {
