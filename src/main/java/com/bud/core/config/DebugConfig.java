@@ -12,6 +12,7 @@ public class DebugConfig {
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
     private String logLevel = "INFO"; // java.util.logging.Level name, e.g. ALL/FINE/INFO/WARNING
+    private boolean autoUpdateContentOnVersionMismatch = false;
 
     private static volatile DebugConfig instance;
 
@@ -43,6 +44,10 @@ public class DebugConfig {
         return this.logLevel;
     }
 
+    public boolean isAutoUpdateContentOnVersionMismatch() {
+        return this.autoUpdateContentOnVersionMismatch;
+    }
+
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -60,6 +65,10 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("LogLevel", Codec.STRING),
                         (config, value) -> config.logLevel = value,
                         config -> config.logLevel)
+                .add()
+                .append(new KeyedCodec<>("AutoUpdateContentOnVersionMismatch", Codec.BOOLEAN),
+                        (config, value) -> config.autoUpdateContentOnVersionMismatch = value,
+                        config -> config.autoUpdateContentOnVersionMismatch)
                 .add()
                 .build();
     }

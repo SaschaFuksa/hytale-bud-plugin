@@ -83,7 +83,7 @@ Buds are fully data-driven — there is no `BudType` enum or per-Bud Java class.
 
 ### Prompt management
 
-LLM system prompts and personality/fallback text live as YAML under `src/main/resources/prompts/` (`buds/*.yml` per companion + mood text, `interaction/*.yml`, `world/*.yml` incl. per-zone files, `system_prompt.yml`). On first server start these are copied into the mod's runtime folder; `LLMPromptManager` loads/reloads them from there at runtime (never bakes YAML content into Java). `/bud prompt` reloads missing files without a restart; `/bud prompt --reset` overwrites the runtime copies back to the packaged defaults — treat that command as destructive of user customization.
+LLM system prompts and personality/fallback text live as YAML under `src/main/resources/prompts/` (`buds/*.yml` per companion + mood text, `interaction/*.yml`, `world/*.yml` incl. per-zone files, `system_prompt.yml`). On first server start these are copied into the mod's runtime folder; `LLMPromptManager` loads/reloads them from there at runtime (never bakes YAML content into Java). `/bud prompt` reloads missing files without a restart; `/bud prompt --reset` overwrites the runtime copies back to the packaged defaults — treat that command as destructive of user customization. A single shared `versions.yml` (`ContentVersion`, `com.bud.core.content`, fields `promptVersion`/`budVersion`) is compared against the runtime copy on every load to warn when a server's copy is older than the packaged content — see "Versioning / changelog" below and `DebugConfig.AutoUpdateContentOnVersionMismatch`. `com.bud.core.registry.BudRegistry` follows the identical pattern for `buds/*.yml`/`roster.yml` (its own `budVersion` field in the same `versions.yml`), reloadable via `/bud reload buds [--reset]`.
 
 ### Commands
 
@@ -97,6 +97,20 @@ Under `com.bud.feature.chat.conversation`: `ConversationMemoryService` is the en
 
 Engine ECS callbacks (filter systems) run on the world thread; LLM calls are dispatched onto virtual threads (`Thread.ofVirtual()` in `Orchestrator.dispatch`, and the shared executor in `LLMCaller`) so blocking HTTP calls to the LLM never stall the world tick. `BudManager` has an `executeOnWorldThread` fallback for entity-store queries that must run on the world thread but might be invoked off it.
 
+## Null-safety (`@Nonnull`/`@Nullable`)
+
+This project enforces JSR-305 null annotations for real: `.settings/org.eclipse.jdt.core.prefs` has `nullanalysis=enabled` with `javax.annotation.Nonnull`/`Nullable`, and several checks set to `warning` (not `ignore`). Treat those warnings as required fixes, not IDE noise — don't add `@SuppressWarnings` for them without asking first.
+
+- **Overriding a method:** you may only *widen* inherited parameter nullability (accept `@Nullable` where the parent does — never add `@Nonnull` on a param the parent left unannotated/nullable, that's an LSP violation JDT reports as "illegal redefinition"), and you may only *narrow* the return type to `@Nonnull` if it's actually guaranteed. Don't guess the parent's real annotations — check the actual signature in the Hytale SDK (`reference/server`, e.g. `javap -v path/To/Class.class`) before annotating an override.
+- **"Unchecked conversion to `@Nonnull`" warnings** (own `@Nonnull`-declared method returning an unannotated JDK/SDK value, e.g. `Collections.unmodifiableSet(...)`, `Map.get(...)`, an SDK getter): fix at the root, not by patching every call site. If a shared helper is the actual source (e.g. a tracker method that always returns non-null but isn't annotated), annotate/fix it once there. Use `Objects.requireNonNull(...)` only where null is genuinely impossible; where a real null case exists, add a proper check — these have turned up actual latent NPE bugs before (e.g. an SDK getter that's nullable in practice reaching a `@Nonnull` constructor param further downstream).
+- **Verify, don't assume:** after a fix, force a fresh diagnostics pass and read what the language server actually reports — silence isn't proof, especially right after touching annotations on an overridden method.
+
+## Code comments
+
+Don't comment private methods/classes. Public interface methods only get a comment if something is genuinely non-obvious from the name/signature alone. Clean naming/structure should carry the explanation, not prose next to it — comments rot and stop matching the code they describe.
+
+Narrow exception: a one-line comment is fine where its absence would predictably cause someone (including a future Claude session) to "fix" a deliberate workaround back into a bug — e.g. a non-obvious SDK constraint forcing an unusual shape, like the `manifest.json` note above about never hand-editing the generated file. This is for "would break if removed," not "would be nice to explain" — don't use it as a loophole to explain what code already says.
+
 ## Configuration reference
 
 The user-facing config keys (LLM, Reaction, Orchestrator, Debug, Conversation sections) are documented in [README.md](README.md)'s "⚙️ Configuration (LLM)" section — treat that table as the source of truth when adding/renaming a config field, and keep it in sync with the corresponding `com.bud.core.config.*` class.
@@ -104,3 +118,5 @@ The user-facing config keys (LLM, Reaction, Orchestrator, Debug, Conversation se
 ## Versioning / changelog
 
 Bump `version` in `build.gradle.kts` and add an entry to [CHANGELOG.md](CHANGELOG.md) (Added/Fixed/Performance sections) for user-facing changes; the README's "New in X.Y.Z" section is a shorter highlight reel of the same and links back to the full changelog.
+
+Separately, bump the relevant field in `versions.yml` (`promptVersion` and/or `budVersion`, `ContentVersion`/`com.bud.core.content`) whenever the *content* of the corresponding packaged YAML changes meaningfully (prompt wording, Bud personality/fallback text, `buds/*.yml` definitions, `roster.yml`) — this is what `LLMPromptManager`/`BudRegistry` compare against a server's runtime copy at startup to warn (`/bud prompt --reset` / `/bud reload buds --reset`) when a local copy has drifted out of date. Easy to forget on a routine prompt tweak since it's not enforced by any check — treat it as part of the change, not an afterthought.

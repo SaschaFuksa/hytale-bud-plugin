@@ -19,7 +19,7 @@ public abstract class AbstractYamlMessage {
         }
     }
 
-    private static <T> T loadFromStream(Class<T> clazz, InputStream is) {
+    protected static <T> T loadFromStream(Class<T> clazz, InputStream is) {
         LoaderOptions options = new LoaderOptions();
         Yaml yaml = new Yaml(new Constructor(clazz, options));
         yaml.setBeanAccess(BeanAccess.FIELD);

@@ -77,7 +77,10 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             existingBudTeleports.add(budComponent);
         }
 
+        int total = event.budIds().size();
+        int spawnCounter = 0;
         for (String budId : event.budIds()) {
+            int spawnIndex = spawnCounter++;
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Creating Bud of id " + budId);
             if (budId == null || !BudRegistry.getInstance().exists(budId)) {
@@ -86,7 +89,7 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
                 continue;
 
             }
-            this.createBud(store, playerRef, budId, playerBudComponent, event.triggerGreetings());
+            this.createBud(store, playerRef, budId, playerBudComponent, event.triggerGreetings(), spawnIndex, total);
         }
 
         if (!existingBudTeleports.isEmpty()) {
@@ -101,13 +104,14 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private void createBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull String budId, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings) {
+            @Nonnull String budId, @Nonnull PlayerBudComponent playerBudComponent, boolean triggerGreetings,
+            int index, int total) {
         if (BudManager.playerHasValidBud(playerBudComponent, budId)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Player already has Bud of id " + budId);
             return;
         }
-        NPCEntity bud = spawnBud(store, playerRef, budId);
+        NPCEntity bud = spawnBud(store, playerRef, budId, index, total);
         if (bud == null) {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] Failed to spawn Bud of id " + budId);
@@ -154,9 +158,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
     }
 
     private static NPCEntity spawnBud(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nonnull String budId) {
+            @Nonnull String budId, int index, int total) {
         BudDefinition budProfile = BudRegistry.getInstance().get(budId);
-        Vector3d position = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
+        Vector3d position = BudManager.getInstance().getSpawnPosition(playerRef, index, total);
         Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
                 .create(store, budProfile.getNpcTypeId(), position)
                 .withRotation(new Vector3f(0, 0, 0))

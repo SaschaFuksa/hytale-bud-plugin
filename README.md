@@ -145,6 +145,11 @@ The plugin is primarily controlled via simple chat commands:
 *   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
 *   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
 
+#### Reload Commands
+
+*   **`/bud reload buds`** - Reload missing Bud definitions (`buds/*.yml`, `roster.yml`) without restarting the server.
+*   **`/bud reload buds --reset`** - Reset all Bud definitions to default (use with caution, backup your custom Bud definitions first!).
+
 #### Debug Commands
 
 *   **`/bud debug`** - Shows the available debug flags.
@@ -209,6 +214,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
 | `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
 | `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
+| `AutoUpdateContentOnVersionMismatch` | Local-dev convenience: automatically reset prompts/Bud content to the packaged version on a `versions.yml` mismatch at startup, instead of just logging a warning. Overwrites your customizations - leave `false` on a live server. | `false` |
 
 ### Conversation Configuration
 

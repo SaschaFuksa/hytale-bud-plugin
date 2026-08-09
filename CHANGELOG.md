@@ -13,12 +13,14 @@ All notable changes to this project will be documented in this file.
   - `/bud memory delete <bud> <index> [--legendary]` — remove a memory by index. `/bud memory` and `/bud memory --legendary` now print the index of each entry so you know what to pass here.
   - `/bud delete --playername <name>` — delete another player's Buds (admin only).
   - `/bud create <bud>` now takes a generic, tab-completed Bud id instead of fixed `--veri`/`--gronkh`/`--keyleth` flags.
+- Global version file and prompt/bud-config reloading
 
 ### Fixed
 - Orchestration of messages: Only send one message per tick
 - Higher cooldown times of message channels
 - `/bud delete --world` and `/bud delete --playername <other player>` now require admin permission, closing a griefing vector where any player could wipe every Bud on the server with one command.
 - Upgrades server version
+- Buds will now spawn in front of player
 
 ### Performance
 - Skip the memory-summary LLM call entirely for trivial one-line Bud responses (configurable via `ConversationMemoryMinMessageLength`, default 40 characters), instead of always generating a summary and discarding it afterwards.

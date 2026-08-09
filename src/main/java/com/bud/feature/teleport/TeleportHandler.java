@@ -64,7 +64,7 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
             return;
         }
 
-        Vector3d targetPos = BudManager.getInstance().getPlayerPositionWithOffset(playerRef);
+        Vector3d targetPos = BudManager.getInstance().getSpawnPosition(playerRef, 0, 1);
         store.getExternalData().getWorld().execute(() -> {
             budComponent.getBud().moveTo(budRef, targetPos.x, targetPos.y, targetPos.z, store);
             store.addComponent(budRef, Teleport.getComponentType(),

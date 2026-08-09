@@ -19,6 +19,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.BudPlugin;
+import com.bud.core.config.DebugConfig;
+import com.bud.core.content.ContentVersion;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 /**
@@ -38,6 +40,7 @@ public class BudRegistry {
 
     private final Map<String, BudDefinition> definitions = new ConcurrentHashMap<>();
     private final List<String> defaultBudIds = new ArrayList<>();
+    private volatile boolean contentVersionMismatch = false;
 
     private BudRegistry() {
     }
@@ -60,11 +63,40 @@ public class BudRegistry {
     }
 
     private void loadAll(boolean overwriteDefaults) {
-        Path budsDir = BudPlugin.getInstance().getDataDirectory().resolve("buds");
+        Path rootDataDir = BudPlugin.getInstance().getDataDirectory();
+        Path budsDir = Objects.requireNonNull(rootDataDir.resolve("buds"));
         copyPackagedDefaults(budsDir, overwriteDefaults);
+        this.contentVersionMismatch = checkContentVersion(rootDataDir, budsDir, overwriteDefaults);
         loadDefinitions(budsDir);
         loadRoster(budsDir.resolve(ROSTER_FILE));
         debugLog();
+    }
+
+    private boolean checkContentVersion(@Nonnull Path rootDataDir, @Nonnull Path budsDir, boolean overwriteDefaults) {
+        ContentVersion.ensurePackagedCopy(rootDataDir, overwriteDefaults);
+        ContentVersion packaged = ContentVersion.loadFromClasspath("/versions.yml");
+        ContentVersion runtime = ContentVersion.load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
+        int packagedVersion = ContentVersion.budVersionOf(packaged);
+        int runtimeVersion = ContentVersion.budVersionOf(runtime);
+        if (runtimeVersion >= packagedVersion) {
+            return false;
+        }
+        if (!overwriteDefaults && DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] Bud content outdated (runtime v" + runtimeVersion
+                    + ", packaged v" + packagedVersion
+                    + ") - AutoUpdateContentOnVersionMismatch is enabled, resetting to packaged defaults.");
+            copyPackagedDefaults(budsDir, true);
+            return false;
+        }
+        LoggerUtil.getLogger().warning(() -> "[BUD] Bud content outdated (runtime v" + runtimeVersion
+                + ", packaged v" + packagedVersion
+                + "). Run '/bud reload buds --reset' to update (overwrites your customizations!).");
+        return true;
+    }
+
+    /** Whether the last load detected the runtime bud content as older than the packaged version. */
+    public boolean isContentVersionMismatch() {
+        return this.contentVersionMismatch;
     }
 
     private void copyPackagedDefaults(Path budsDir, boolean overwrite) {

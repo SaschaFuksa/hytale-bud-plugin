@@ -25,6 +25,8 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -156,6 +158,56 @@ public class BudManager {
     }
 
     private static final int MAX_SPAWN_POSITION_ATTEMPTS = 8;
+
+    private static final int[] FRONT_SPAWN_DISTANCES = { 3, 2, 1 };
+
+    private static final double FRONT_SPAWN_FAN_SPACING = 1.5;
+
+    /**
+     * Resolves a spawn position for a Bud: prefers a free spot in front of the player
+     * (see {@link #getSpawnPositionInFrontOfPlayer(PlayerRef, int, int)}), falling back to the
+     * existing random-offset search ({@link #getPlayerPositionWithOffset(PlayerRef)}) if none is found.
+     *
+     * @param index 0-based position of this Bud among a batch spawned together, used to fan multiple
+     *              Buds out side by side instead of stacking them on top of each other.
+     * @param total total number of Buds spawned together in this batch.
+     */
+    @Nonnull
+    public Vector3d getSpawnPosition(@Nonnull PlayerRef playerRef, int index, int total) {
+        Vector3d frontPosition = getSpawnPositionInFrontOfPlayer(playerRef, index, total);
+        return frontPosition != null ? frontPosition : getPlayerPositionWithOffset(playerRef);
+    }
+
+    /**
+     * Tries to find a free spawn position in front of the player, stepping the distance down
+     * ({@link #FRONT_SPAWN_DISTANCES}) if the closer stages are blocked. When spawning several Buds
+     * at once ({@code total > 1}), positions are fanned out side by side (perpendicular to the
+     * player's facing direction) based on {@code index} instead of all landing on the same spot.
+     *
+     * @return a free position, or {@code null} if none of the distance stages were free.
+     */
+    @Nullable
+    public Vector3d getSpawnPositionInFrontOfPlayer(@Nonnull PlayerRef playerRef, int index, int total) {
+        World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
+        if (world == null) {
+            return null;
+        }
+        Vector3d playerPos = getPlayerPosition(playerRef);
+        Rotation3f rotation = playerRef.getTransform().getRotation();
+        float yaw = rotation.yaw();
+        Vector3d forward = Transform.getDirection(0f, yaw);
+        Vector3d right = Transform.getDirection(0f, yaw - (float) (Math.PI / 2));
+        double lateralOffset = (index - (total - 1) / 2.0) * FRONT_SPAWN_FAN_SPACING;
+        for (int distance : FRONT_SPAWN_DISTANCES) {
+            double x = playerPos.x + forward.x * distance + right.x * lateralOffset;
+            double y = playerPos.y + 0.5;
+            double z = playerPos.z + forward.z * distance + right.z * lateralOffset;
+            if (isSpawnPositionFree(world, x, y, z)) {
+                return new Vector3d(x, y, z);
+            }
+        }
+        return null;
+    }
 
     @Nonnull
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {

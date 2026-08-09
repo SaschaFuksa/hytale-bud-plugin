@@ -5,11 +5,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
 import com.bud.BudPlugin;
+import com.bud.core.config.DebugConfig;
+import com.bud.core.content.ContentVersion;
 import com.bud.feature.bud.MoodMessage;
 import com.bud.feature.combat.CombatMessage;
 import com.bud.feature.combat.EntityCategoriesMessage;
@@ -34,6 +37,7 @@ public class LLMPromptManager {
     private Map<String, String> systemPrompts = new ConcurrentHashMap<>();
     private Map<String, String> moodMessage = new ConcurrentHashMap<>();
     private ItemMessage itemPromptMessage;
+    private volatile boolean contentVersionMismatch = false;
 
     private LLMPromptManager() {
     }
@@ -54,9 +58,11 @@ public class LLMPromptManager {
     }
 
     private void loadPrompts(boolean overwriteDefaults) {
-        Path dataDir = BudPlugin.getInstance().getDataDirectory().resolve("prompts");
+        Path rootDataDir = BudPlugin.getInstance().getDataDirectory();
+        Path dataDir = rootDataDir.resolve("prompts");
 
         copyDefaults(dataDir, overwriteDefaults);
+        this.contentVersionMismatch = checkContentVersion(rootDataDir, overwriteDefaults);
 
         loadBuds(dataDir.resolve("buds"));
         this.worldInfoTemplate = WorldMessage.load(dataDir.resolve("world/world_system_info.yml"));
@@ -107,6 +113,33 @@ public class LLMPromptManager {
                 }
             }
         }
+    }
+
+    private boolean checkContentVersion(@Nonnull Path rootDataDir, boolean overwriteDefaults) {
+        ContentVersion.ensurePackagedCopy(rootDataDir, overwriteDefaults);
+        ContentVersion packaged = ContentVersion.loadFromClasspath("/versions.yml");
+        ContentVersion runtime = ContentVersion.load(Objects.requireNonNull(rootDataDir.resolve("versions.yml")));
+        int packagedVersion = ContentVersion.promptVersionOf(packaged);
+        int runtimeVersion = ContentVersion.promptVersionOf(runtime);
+        if (runtimeVersion >= packagedVersion) {
+            return false;
+        }
+        if (!overwriteDefaults && DebugConfig.getInstance().isAutoUpdateContentOnVersionMismatch()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] Prompt content outdated (runtime v" + runtimeVersion
+                    + ", packaged v" + packagedVersion
+                    + ") - AutoUpdateContentOnVersionMismatch is enabled, resetting to packaged defaults.");
+            copyDefaults(rootDataDir.resolve("prompts"), true);
+            return false;
+        }
+        LoggerUtil.getLogger().warning(() -> "[BUD] Prompt content outdated (runtime v" + runtimeVersion
+                + ", packaged v" + packagedVersion
+                + "). Run '/bud prompt --reset' to update (overwrites your customizations!).");
+        return true;
+    }
+
+    /** Whether the last load detected the runtime prompt content as older than the packaged version. */
+    public boolean isContentVersionMismatch() {
+        return this.contentVersionMismatch;
     }
 
     private void loadBuds(Path budsDir) {
