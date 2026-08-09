@@ -1,16 +1,18 @@
 package com.bud.app.commands;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.bud.creation.BudCreationEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.arguments.system.FlagArg;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -18,17 +20,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class CreationCommand extends AbstractPlayerCommand {
 
-    private final FlagArg veriFlag;
-
-    private final FlagArg keylethFlag;
-
-    private final FlagArg gronkhFlag;
+    @Nonnull
+    private final OptionalArg<String> budIdArg;
 
     public CreationCommand() {
         super("create", "Bud creation commands.");
-        this.veriFlag = this.withFlagArg("veri", "Create Veri Bud.");
-        this.keylethFlag = this.withFlagArg("keyleth", "Create Keyleth Bud.");
-        this.gronkhFlag = this.withFlagArg("gronkh", "Create Gronkh Bud.");
+        this.budIdArg = Objects.requireNonNull(this.withOptionalArg("bud",
+                "Bud id to create. Omit to create the default roster (see roster.yml).",
+                new BudIdArgumentType()));
     }
 
     @Override
@@ -39,26 +38,19 @@ public class CreationCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        if (this.veriFlag.get(context)) {
+        String budId = context.get(this.budIdArg);
+        if (budId != null) {
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating Veri Bud for player " + playerRef.getUsername());
-            this.dispatchCreation(ref, Set.of(BudType.VERI));
-        } else if (this.keylethFlag.get(context)) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating Keyleth Bud for player " + playerRef.getUsername());
-            this.dispatchCreation(ref, Set.of(BudType.KEYLETH));
-        } else if (this.gronkhFlag.get(context)) {
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating Gronkh Bud for player " + playerRef.getUsername());
-            this.dispatchCreation(ref, Set.of(BudType.GRONKH));
+                    .fine(() -> "[BUD] Creating Bud '" + budId + "' for player " + playerRef.getUsername());
+            this.dispatchCreation(ref, Set.of(budId));
         } else {
             LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Creating all Buds for player " + playerRef.getUsername());
-            this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
+                    .fine(() -> "[BUD] Creating default Buds for player " + playerRef.getUsername());
+            this.dispatchCreation(ref, new HashSet<>(BudRegistry.getInstance().getDefaultBudIds()));
         }
     }
 
-    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<BudType> buds) {
+    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<String> buds) {
         if (buds.isEmpty()) {
             return;
         }

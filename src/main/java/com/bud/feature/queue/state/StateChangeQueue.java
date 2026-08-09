@@ -5,12 +5,13 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.feature.bud.reaction.BudReactionKind;
 import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.AbstractQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -18,7 +19,6 @@ import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.state.LLMStateMessageCreation;
 import com.bud.feature.state.StateChangeEvent;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -91,13 +91,13 @@ public class StateChangeQueue extends AbstractQueue {
             if (otherBud == null) {
                 return;
             }
-            IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
+            BudDefinition budProfile = BudRegistry.getInstance().get(budComponent.getBudId());
             String stateDescription = switch (newState) {
                 case PET_SITTING -> "sitting down and resting";
                 case PET_PASSIVE -> "being passive and just tagging along";
                 case PET_DEFENSIVE -> "back to being alert and defensive";
             };
-            String situationInfo = budProfile.getNPCDisplayName() + " is now " + stateDescription
+            String situationInfo = budProfile.getDisplayName() + " is now " + stateDescription
                     + ". React to this in character. " + budProfile.getPronounHint();
             BudReactionEntry reactionEntry = new BudReactionEntry(otherBud, BudReactionKind.STATE_CHANGE,
                     situationInfo);

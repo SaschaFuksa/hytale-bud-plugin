@@ -17,6 +17,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.LLMConfig;
+import com.bud.core.registry.BudDefinition;
 import com.bud.feature.LLMPromptManager;
 import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.feature.bud.reaction.BudReactionKind;
@@ -28,7 +29,6 @@ import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.LLMCaller;
 import com.bud.llm.client.JsonUtils;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.IPromptContext;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -90,7 +90,7 @@ public class ConversationMemoryService {
         return new Prompt(prompt.systemPrompt(), userPromptBuilder.toString());
     }
 
-    public void afterInteraction(@Nonnull LLMInteractionEntry interactionEntry, @Nonnull IBudProfile budProfile,
+    public void afterInteraction(@Nonnull LLMInteractionEntry interactionEntry, @Nonnull BudDefinition budProfile,
             String message) {
         if (message == null || message.isBlank() || !ConversationConfig.getInstance().isEnableConversationMemory()
                 || !LLMConfig.getInstance().isEnableLLM()) {
@@ -110,14 +110,14 @@ public class ConversationMemoryService {
         int messageLength = message.trim().length();
         int minMessageLength = ConversationConfig.getInstance().getConversationMemoryMinMessageLength();
         if (messageLength < minMessageLength) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Skipping memory summary for " + budProfile.getNPCDisplayName()
+            LoggerUtil.getLogger().fine(() -> "[BUD] Skipping memory summary for " + budProfile.getDisplayName()
                     + " because message is below minimum length: " + message);
             return;
         }
 
         SummaryCandidate summaryCandidate = summarizeResponse(memoryContext, budProfile, message);
         if (summaryCandidate == null) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Memory candidate discarded for " + budProfile.getNPCDisplayName()
+            LoggerUtil.getLogger().fine(() -> "[BUD] Memory candidate discarded for " + budProfile.getDisplayName()
                     + " because no valid structured summary was produced.");
             return;
         }
@@ -130,7 +130,7 @@ public class ConversationMemoryService {
         }
 
         if (summaryCandidate.importance() < config.getConversationMemoryMinImportance()) {
-            LoggerUtil.getLogger().fine(() -> "[BUD] Memory candidate discarded for " + budProfile.getNPCDisplayName()
+            LoggerUtil.getLogger().fine(() -> "[BUD] Memory candidate discarded for " + budProfile.getDisplayName()
                     + " because importance " + summaryCandidate.importance()
                     + " is below threshold " + config.getConversationMemoryMinImportance() + ".");
             return;
@@ -142,14 +142,14 @@ public class ConversationMemoryService {
                 summaryCandidate.summary(),
                 summaryCandidate.importance(),
                 summaryCandidate.importance(),
-                budProfile.getNPCDisplayName(),
+                budProfile.getDisplayName(),
                 memoryContext.mode(),
-                buildStoredParticipants(summaryCandidate.participants(), budProfile.getNPCDisplayName()),
+                buildStoredParticipants(summaryCandidate.participants(), budProfile.getDisplayName()),
                 System.currentTimeMillis(),
                 false);
         int maxDepth = Math.max(1, config.getConversationMemoryDepth());
         synchronized (getConversationLock(ownerKey)) {
-            this.regularStore.addDecayedAndNew(ownerKey, budProfile.getNPCDisplayName(), newEntry,
+            this.regularStore.addDecayedAndNew(ownerKey, budProfile.getDisplayName(), newEntry,
                     config.getConversationMemoryDecayFactor(), config.getConversationMemoryMinImportance(), maxDepth);
         }
         persistOwnerMemories(ownerKey, interactionEntry.promptContext().getBudComponent().getPlayerRef());
@@ -288,12 +288,12 @@ public class ConversationMemoryService {
         return Objects.requireNonNull(List.copyOf(combined));
     }
 
-    private void storeLegendaryMemory(@Nonnull MemoryContext memoryContext, @Nonnull IBudProfile budProfile,
+    private void storeLegendaryMemory(@Nonnull MemoryContext memoryContext, @Nonnull BudDefinition budProfile,
             @Nonnull SummaryCandidate candidate, @Nonnull IPromptContext promptContext) {
         String ownerKey = normalizeParticipant(memoryContext.ownerKey());
         String contextPairKey = memoryContext.pairKey();
         String bucketKey = contextPairKey != null ? contextPairKey
-                : this.legendaryStore.legendaryKey(ownerKey, budProfile.getNPCDisplayName());
+                : this.legendaryStore.legendaryKey(ownerKey, budProfile.getDisplayName());
         int maxSlots = Math.max(1, ConversationConfig.getInstance().getLegendaryMemorySlotsPerBud());
 
         ConversationMemoryEntry candidateEntry = new ConversationMemoryEntry(
@@ -301,16 +301,16 @@ public class ConversationMemoryService {
                 candidate.summary(),
                 candidate.importance(),
                 candidate.importance(),
-                budProfile.getNPCDisplayName(),
+                budProfile.getDisplayName(),
                 memoryContext.mode(),
-                buildStoredParticipants(candidate.participants(), budProfile.getNPCDisplayName()),
+                buildStoredParticipants(candidate.participants(), budProfile.getDisplayName()),
                 System.currentTimeMillis(),
                 true);
 
         boolean stored;
         synchronized (getConversationLock(ownerKey)) {
             stored = this.legendaryStore.storeOrReplace(ownerKey, bucketKey, candidateEntry, maxSlots,
-                    budProfile.getNPCDisplayName());
+                    budProfile.getDisplayName());
         }
 
         if (stored) {
@@ -319,7 +319,7 @@ public class ConversationMemoryService {
         }
     }
 
-    private void triggerLegendaryReaction(@Nonnull IPromptContext promptContext, @Nonnull IBudProfile budProfile,
+    private void triggerLegendaryReaction(@Nonnull IPromptContext promptContext, @Nonnull BudDefinition budProfile,
             @Nonnull ConversationMemoryEntry candidateEntry) {
         try {
             PlayerRef playerRef = promptContext.getBudComponent().getPlayerRef();
@@ -339,7 +339,7 @@ public class ConversationMemoryService {
                 if (otherBud == null) {
                     return;
                 }
-                String situationInfo = budProfile.getNPCDisplayName() + " just had a defining moment: \""
+                String situationInfo = budProfile.getDisplayName() + " just had a defining moment: \""
                         + candidateEntry.summary() + "\". React to this in character. "
                         + budProfile.getPronounHint();
                 BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.LEGENDARY_MEMORY,
@@ -359,7 +359,7 @@ public class ConversationMemoryService {
         }
     }
 
-    private SummaryCandidate summarizeResponse(@Nonnull MemoryContext context, @Nonnull IBudProfile budProfile,
+    private SummaryCandidate summarizeResponse(@Nonnull MemoryContext context, @Nonnull BudDefinition budProfile,
             @Nonnull String message) {
         try {
             LLMPromptManager promptManager = LLMPromptManager.getInstance();
@@ -372,7 +372,7 @@ public class ConversationMemoryService {
             StringBuilder userPromptBuilder = new StringBuilder();
             userPromptBuilder.append("Conversation mode: ").append(context.mode()).append("\n")
                     .append("Interaction type: ").append(context.interactionType()).append("\n")
-                    .append("Speaker: ").append(budProfile.getNPCDisplayName()).append("\n")
+                    .append("Speaker: ").append(budProfile.getDisplayName()).append("\n")
                     .append("Known participants: ").append(String.join(", ", context.participants()))
                     .append("\n")
                     .append("Current conversation input: ").append(context.input()).append("\n")
@@ -414,7 +414,7 @@ public class ConversationMemoryService {
     }
 
     private MemoryContext createMemoryContext(@Nonnull LLMInteractionEntry interactionEntry,
-            @Nonnull IBudProfile budProfile) {
+            @Nonnull BudDefinition budProfile) {
         IPromptContext promptContext = interactionEntry.promptContext();
         if (promptContext instanceof ConversationContext conversationContext) {
             String normalizedOwnerKey = normalizeParticipant(conversationContext.getConversationOwnerKey());
@@ -422,7 +422,7 @@ public class ConversationMemoryService {
             if (promptContext instanceof DialogEntry(var _, var _, String previousSpeakerName, var _, var _)
                     && previousSpeakerName != null && !previousSpeakerName.isBlank()) {
                 pairKey = this.legendaryStore.pairKey(normalizedOwnerKey, previousSpeakerName,
-                        budProfile.getNPCDisplayName());
+                        budProfile.getDisplayName());
             }
             return new MemoryContext(
                     normalizedOwnerKey,
@@ -434,7 +434,7 @@ public class ConversationMemoryService {
         }
 
         String ownerKey = promptContext.getBudComponent().getPlayerRef().getUsername();
-        Set<String> participants = Objects.requireNonNull(Set.of(ownerKey, budProfile.getNPCDisplayName()));
+        Set<String> participants = Objects.requireNonNull(Set.of(ownerKey, budProfile.getDisplayName()));
         return new MemoryContext(
                 normalizeParticipant(ownerKey),
                 ConversationMode.GENERAL,

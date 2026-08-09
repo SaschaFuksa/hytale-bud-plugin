@@ -14,18 +14,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
 import static com.bud.core.types.BudState.PET_DEFENSIVE;
-import com.bud.core.types.BudType;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldResolver;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -46,10 +48,11 @@ public class BudManager {
         return INSTANCE;
     }
 
-    public static boolean playerHasValidBud(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull BudType budType) {
-        if (playerBudComponent.getBudTypes().contains(budType)) {
+    public static boolean playerHasValidBud(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull String budId) {
+        if (playerBudComponent.getBudIds().contains(budId)) {
+            String npcTypeId = BudRegistry.getInstance().get(budId).getNpcTypeId();
             Optional<NPCEntity> existingBud = playerBudComponent.getCurrentBuds().stream()
-                    .filter(b -> b.getNPCTypeId().equals(budType.getName()))
+                    .filter(b -> b.getNPCTypeId().equals(npcTypeId))
                     .findFirst();
             if (existingBud.isPresent()) {
                 Ref<EntityStore> ref = existingBud.get().getReference();
@@ -122,8 +125,7 @@ public class BudManager {
             if (candidate == null || candidate == excludeSpeaker) {
                 continue;
             }
-            String displayName = BudProfileMapper.getInstance()
-                    .getProfileForBudType(candidate.getBudType()).getNPCDisplayName();
+            String displayName = BudRegistry.getInstance().get(candidate.getBudId()).getDisplayName();
             if (lowerMessage.contains(displayName.toLowerCase())) {
                 return candidate;
             }
@@ -157,6 +159,80 @@ public class BudManager {
     }
 
     private static final int MAX_SPAWN_POSITION_ATTEMPTS = 8;
+
+    private static final int[] FRONT_SPAWN_DISTANCES = { 3, 2, 1 };
+
+    private static final double FRONT_SPAWN_FAN_SPACING = 1.5;
+
+    /**
+     * Resolves a spawn position for a Bud: prefers a free spot in front of the
+     * player
+     * (see {@link #getSpawnPositionInFrontOfPlayer(PlayerRef, int, int)}), falling
+     * back to the
+     * existing random-offset search
+     * ({@link #getPlayerPositionWithOffset(PlayerRef)}) if none is found.
+     *
+     * @param index 0-based position of this Bud among a batch spawned together,
+     *              used to fan multiple
+     *              Buds out side by side instead of stacking them on top of each
+     *              other.
+     * @param total total number of Buds spawned together in this batch.
+     */
+    @Nonnull
+    public Vector3d getSpawnPosition(@Nonnull PlayerRef playerRef, int index, int total) {
+        Vector3d frontPosition = getSpawnPositionInFrontOfPlayer(playerRef, index, total);
+        return frontPosition != null ? frontPosition : getPlayerPositionWithOffset(playerRef);
+    }
+
+    /**
+     * Tries to find a free spawn position in front of the player, stepping the
+     * distance down
+     * ({@link #FRONT_SPAWN_DISTANCES}) if the closer stages are blocked. When
+     * spawning several Buds
+     * at once ({@code total > 1}), positions are fanned out side by side
+     * (perpendicular to the
+     * player's facing direction) based on {@code index} instead of all landing on
+     * the same spot.
+     *
+     * @return a free position, or {@code null} if none of the distance stages were
+     *         free.
+     */
+    @Nullable
+    public Vector3d getSpawnPositionInFrontOfPlayer(@Nonnull PlayerRef playerRef, int index, int total) {
+        World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
+        if (world == null) {
+            return null;
+        }
+        Vector3d playerPos = getPlayerPosition(playerRef);
+        Rotation3f rotation = playerRef.getTransform().getRotation();
+        float yaw = rotation.yaw();
+        Vector3d forward = Transform.getDirection(0f, yaw);
+        Vector3d right = Transform.getDirection(0f, yaw - (float) (Math.PI / 2));
+        double lateralOffset = (index - (total - 1) / 2.0) * FRONT_SPAWN_FAN_SPACING;
+        for (int distance : FRONT_SPAWN_DISTANCES) {
+            double x = playerPos.x + forward.x * distance + right.x * lateralOffset;
+            double y = playerPos.y + 0.5;
+            double z = playerPos.z + forward.z * distance + right.z * lateralOffset;
+            if (isSpawnPositionFree(world, x, y, z)) {
+                return new Vector3d(x, y, z);
+            }
+        }
+        return null;
+    }
+
+    @Nonnull
+    public Vector3f getRotationFacingPlayer(@Nonnull PlayerRef playerRef, @Nonnull Vector3d budPosition) {
+        Vector3d playerPos = getPlayerPosition(playerRef);
+        float playerYaw = playerRef.getTransform().getRotation().yaw();
+        Vector3d forward = Transform.getDirection(0f, playerYaw);
+        Vector3d right = Transform.getDirection(0f, playerYaw - (float) (Math.PI / 2));
+        double toPlayerX = playerPos.x - budPosition.x;
+        double toPlayerZ = playerPos.z - budPosition.z;
+        double forwardComponent = toPlayerX * forward.x + toPlayerZ * forward.z;
+        double rightComponent = toPlayerX * right.x + toPlayerZ * right.z;
+        float budYaw = playerYaw + (float) Math.atan2(-rightComponent, forwardComponent);
+        return new Vector3f(0f, budYaw, 0f);
+    }
 
     @Nonnull
     public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {

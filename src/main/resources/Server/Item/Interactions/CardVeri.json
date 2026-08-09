@@ -1,5 +1,6 @@
 {
-    "Type": "CardVeri",
+    "Type": "CardBud",
+    "BudId": "veri",
     "Effects": {
         "ItemAnimationId": "SwingLeft"
     }

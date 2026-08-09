@@ -1,0 +1,7 @@
+{
+    "Type": "CardBud",
+    "BudId": "roster",
+    "Effects": {
+        "ItemAnimationId": "SwingLeft"
+    }
+}

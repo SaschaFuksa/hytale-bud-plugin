@@ -18,13 +18,13 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -62,7 +62,7 @@ public class DialogModeTracker extends AbstractTracker {
         this.sessions.remove(playerName.toLowerCase());
     }
 
-    public void onDialogInteractionCompleted(@Nonnull ConversationContext context, @Nonnull IBudProfile budProfile,
+    public void onDialogInteractionCompleted(@Nonnull ConversationContext context, @Nonnull BudDefinition budProfile,
             String message) {
         if (context.getConversationMode() != ConversationMode.DIALOG_MODE) {
             return;
@@ -79,7 +79,7 @@ public class DialogModeTracker extends AbstractTracker {
             state.nextTurnAt = System.currentTimeMillis()
                     + TimeUnit.SECONDS.toMillis(ConversationConfig.getInstance().getDialogModeTurnIntervalSeconds());
             if (message != null && !message.isBlank()) {
-                state.lastSpeakerName = budProfile.getNPCDisplayName();
+                state.lastSpeakerName = budProfile.getDisplayName();
                 state.lastMessage = message.trim();
             }
         }
@@ -209,8 +209,7 @@ public class DialogModeTracker extends AbstractTracker {
             return null;
         }
         for (BudComponent budComponent : budComponents) {
-            String budName = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType())
-                    .getNPCDisplayName();
+            String budName = BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName();
             if (lastSpeakerName == null || !lastSpeakerName.equalsIgnoreCase(budName)) {
                 return budComponent;
             }
@@ -223,8 +222,7 @@ public class DialogModeTracker extends AbstractTracker {
         Set<String> participants = new LinkedHashSet<>();
         participants.add(playerName);
         for (BudComponent budComponent : budComponents) {
-            participants.add(BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType())
-                    .getNPCDisplayName());
+            participants.add(BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName());
         }
         return participants;
     }

@@ -2,6 +2,7 @@ package com.bud.feature.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -9,8 +10,9 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.chat.ChatEvent;
+import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -26,7 +28,7 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 public class CleanupUtil {
 
     public static void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store,
-            @Nonnull Set<BudType> budTypes) {
+            @Nonnull Set<String> budIds) {
         store.getExternalData().getWorld().execute(() -> {
             try {
                 Ref<EntityStore> ref = playerRef.getReference();
@@ -38,14 +40,17 @@ public class CleanupUtil {
                 ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
                 List<String> removedBuds = new ArrayList<>();
                 for (NPCEntity bud : buds) {
-                    for (BudType budType : budTypes) {
-                        if (bud.getNPCTypeId().equals(budType.getName())) {
-                            playerBudComponent.removeCurrentBud(bud, budType);
+                    for (String rawBudId : budIds) {
+                        String budId = Objects.requireNonNull(rawBudId);
+                        String npcTypeId = BudRegistry.getInstance().get(budId).getNpcTypeId();
+                        if (bud.getNPCTypeId().equals(npcTypeId)) {
+                            playerBudComponent.removeCurrentBud(bud, budId);
                             Ref<EntityStore> budRef = bud.getReference();
                             if (budRef != null) {
                                 despawnBud(budRef, store);
                             }
-                            removedBuds.add(budType.getName().split("_")[0]);
+                            Orchestrator.getInstance().purgeBud(playerRef.getUsername(), budId);
+                            removedBuds.add(BudRegistry.getInstance().get(budId).getDisplayName());
                         }
                     }
                 }
@@ -93,9 +98,10 @@ public class CleanupUtil {
                 PlayerBudComponent playerBudComponent = store.getComponent(playerRef,
                         PlayerBudComponent.getComponentType());
                 if (playerBudComponent != null) {
-                    playerBudComponent.removeCurrentBud(bud, budComponent.getBudType());
+                    playerBudComponent.removeCurrentBud(bud, budComponent.getBudId());
                 }
                 despawnBud(ref, store);
+                Orchestrator.getInstance().purgeBud(player.getUsername(), budComponent.getBudId());
                 LoggerUtil.getLogger()
                         .info(() -> "[BUD] Removing NPC \"" + bud.getNPCTypeId() + "\""
                                 + " for player " + player.getUsername());

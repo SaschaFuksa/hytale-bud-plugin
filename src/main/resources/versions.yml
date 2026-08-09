@@ -1,0 +1,6 @@
+budVersion: 1
+promptVersion: 1
+excludedBuds:
+  - "roster.yml"
+#excludedPrompts:
+#  - "buds/veri.yml"

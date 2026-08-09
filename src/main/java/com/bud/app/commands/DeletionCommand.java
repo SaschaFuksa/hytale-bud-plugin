@@ -1,5 +1,6 @@
 package com.bud.app.commands;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -7,7 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.bud.core.BudManager;
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.util.CleanupUtil;
 import com.hypixel.hytale.component.Ref;
@@ -81,13 +82,13 @@ public class DeletionCommand extends AbstractPlayerCommand {
         }
 
         if (this.veriFlag.get(context)) {
-            this.cleanupBuds(targetPlayerRef, store, Set.of(BudType.VERI));
+            this.cleanupBuds(targetPlayerRef, store, Set.of("veri"));
         } else if (this.keylethFlag.get(context)) {
-            this.cleanupBuds(targetPlayerRef, store, Set.of(BudType.KEYLETH));
+            this.cleanupBuds(targetPlayerRef, store, Set.of("keyleth"));
         } else if (this.gronkhFlag.get(context)) {
-            this.cleanupBuds(targetPlayerRef, store, Set.of(BudType.GRONKH));
+            this.cleanupBuds(targetPlayerRef, store, Set.of("gronkh"));
         } else {
-            this.cleanupBuds(targetPlayerRef, store, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
+            this.cleanupBuds(targetPlayerRef, store, new HashSet<>(BudRegistry.getInstance().getDefaultBudIds()));
         }
     }
 
@@ -107,7 +108,7 @@ public class DeletionCommand extends AbstractPlayerCommand {
         return false;
     }
 
-    private void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store, Set<BudType> buds) {
+    private void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store, Set<String> buds) {
         if (buds.isEmpty()) {
             return;
         }

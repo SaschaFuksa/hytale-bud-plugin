@@ -85,7 +85,8 @@ public class WorldTracker extends AbstractTracker {
                         return;
                     }
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
-                    String weatherId = weather != null ? weather.getId() : "unknown";
+                    String rawWeatherId = weather != null ? weather.getId() : null;
+                    String weatherId = rawWeatherId != null ? rawWeatherId : "unknown";
                     TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(entityStore);
                     WeatherEntry weatherEntry = new WeatherEntry(weatherId, timeOfDay, budComponent);
 

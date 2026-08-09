@@ -123,8 +123,8 @@ The plugin is primarily controlled via simple chat commands:
 
 #### Creation Commands
 
-*   **`/bud create`** - Creates all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud create [--veri|--gronkh|--keyleth]`** - Target a specific buddy for spawning or teleportation.
+*   **`/bud create`** - Creates the default roster of Buds (configured in `buds/roster.yml`; ships as Veri, Gronkh, Keyleth).
+*   **`/bud create <bud>`** - Target a specific Bud id for spawning or teleportation. Tab-completes against every Bud defined in `buds/*.yml`, not just the default roster.
 *   **`/bud reset`** - Recreate all your buddies.
 
 #### Deletion Commands
@@ -144,6 +144,11 @@ The plugin is primarily controlled via simple chat commands:
 
 *   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
 *   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
+
+#### Reload Commands
+
+*   **`/bud reload buds`** - Reload missing Bud definitions (`buds/*.yml`, `roster.yml`) without restarting the server.
+*   **`/bud reload buds --reset`** - Reset all Bud definitions to default (use with caution, backup your custom Bud definitions first!).
 
 #### Debug Commands
 
@@ -209,6 +214,18 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
 | `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
 | `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
+| `AutoUpdateContentOnVersionMismatch` | Local-dev convenience: automatically reset prompts/Bud content to the packaged version on a `versions.yml` mismatch at startup, instead of just logging a warning. Overwrites your customizations - leave `false` on a live server. Files listed under `excludedPrompts`/`excludedBuds` in `versions.yml` are skipped during this automatic reset (an explicit `--reset` command still overwrites everything). | `true` |
+
+`versions.yml` in the mod's data directory is the single place to manage content versioning: `budVersion`/`promptVersion` track the currently-synced content, and the optional `excludedPrompts`/`excludedBuds` lists (file paths relative to `prompts/`/`buds/`) mark files to keep untouched during an automatic update - for content you've customized yourself, at your own risk:
+```yaml
+budVersion: 2
+promptVersion: 2
+excludedPrompts:
+  - "buds/gronkh.yml"
+excludedBuds:
+  - "gronkh.yml"
+```
+The plugin only ever updates the version numbers here (never the exclusion lists) when syncing content, so your exclusions survive every automatic update.
 
 ### Conversation Configuration
 
@@ -231,6 +248,13 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 - Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
 
 
+
+### 🧬 Bud Registry (`buds/*.yml`)
+Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/<id>.yml` in the mod's runtime data folder (`id`, `displayName`, `color`, `npcTypeId`, `weaponId`, `armorId`, `pronoun`, `favoriteDay`, `promptKey`, `sounds`). Adding a new Bud only needs a new YAML file plus matching game assets (NPC type, weapon/armor, a prompt file under `prompts/buds/`, and optionally its own card item) — no plugin rebuild required.
+
+`buds/roster.yml` lists `defaultBuds` (at most 3) — the Buds `/bud create` spawns when called without an id. Buds that exist but aren't in the roster are still summonable individually via `/bud create <id>`.
+
+Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.

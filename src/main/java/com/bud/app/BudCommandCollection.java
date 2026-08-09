@@ -5,6 +5,7 @@ import com.bud.app.commands.DebugCommand;
 import com.bud.app.commands.DeletionCommand;
 import com.bud.app.commands.MemoryCommand;
 import com.bud.app.commands.PromptCommand;
+import com.bud.app.commands.ReloadCommand;
 import com.bud.app.commands.ResetCommand;
 import com.bud.app.commands.StateCommand;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
@@ -19,6 +20,7 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new StateCommand());
         this.addSubCommand(new MemoryCommand());
         this.addSubCommand(new PromptCommand());
+        this.addSubCommand(new ReloadCommand());
         this.addSubCommand(new DebugCommand());
     }
 

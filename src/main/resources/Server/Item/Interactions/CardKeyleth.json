@@ -1,5 +1,6 @@
 {
-    "Type": "CardKeyleth",
+    "Type": "CardBud",
+    "BudId": "keyleth",
     "Effects": {
         "ItemAnimationId": "SwingLeft"
     }

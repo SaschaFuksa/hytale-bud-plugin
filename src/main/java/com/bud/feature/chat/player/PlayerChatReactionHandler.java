@@ -3,6 +3,7 @@ package com.bud.feature.chat.player;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -11,7 +12,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
@@ -25,10 +26,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
-
-    private static final String VERI = "veri";
-    private static final String GRONKH = "gronkh";
-    private static final String KEYLETH = "keyleth";
 
     @Override
     public void accept(PlayerChatEvent event) {
@@ -104,25 +101,21 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
     private static List<BudComponent> getMentionedBudComponents(@Nonnull String message,
             @Nonnull List<BudComponent> allBudComponents) {
         String lowerMessage = " " + message.toLowerCase() + " ";
-        Set<BudType> mentionedTypes = new LinkedHashSet<>();
+        Set<String> mentionedIds = new LinkedHashSet<>();
 
-        if (containsWord(lowerMessage, VERI)) {
-            mentionedTypes.add(BudType.VERI);
-        }
-        if (containsWord(lowerMessage, GRONKH)) {
-            mentionedTypes.add(BudType.GRONKH);
-        }
-        if (containsWord(lowerMessage, KEYLETH)) {
-            mentionedTypes.add(BudType.KEYLETH);
+        for (String budId : BudRegistry.getInstance().getIds()) {
+            if (containsWord(lowerMessage, Objects.requireNonNull(budId))) {
+                mentionedIds.add(budId);
+            }
         }
 
-        if (mentionedTypes.isEmpty()) {
+        if (mentionedIds.isEmpty()) {
             return List.of();
         }
 
         List<BudComponent> result = new ArrayList<>();
         for (BudComponent budComponent : allBudComponents) {
-            if (mentionedTypes.contains(budComponent.getBudType())) {
+            if (mentionedIds.contains(budComponent.getBudId())) {
                 result.add(budComponent);
             }
         }

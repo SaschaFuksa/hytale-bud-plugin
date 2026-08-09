@@ -3,8 +3,8 @@ package com.bud.feature.queue;
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
-import com.bud.feature.profiles.BudProfileMapper;
-import com.bud.llm.profiles.IBudProfile;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.llm.prompt.IPromptContext;
 
 public interface IQueueEntry extends IPromptContext {
@@ -20,8 +20,8 @@ public interface IQueueEntry extends IPromptContext {
 
     @Nonnull
     @Override
-    default IBudProfile getBudProfile() {
-        return BudProfileMapper.getInstance().getProfileForBudType(getBudComponent().getBudType());
+    default BudDefinition getBudProfile() {
+        return BudRegistry.getInstance().get(getBudComponent().getBudId());
     }
 
 }

@@ -55,8 +55,8 @@ public class BudDebugInfo {
                 }
                 PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
                 if (playerBudComponent != null) {
-                    playerBudComponent.getBudTypes().forEach(budType -> LoggerUtil.getLogger()
-                            .fine(() -> "Player has Bud of type: " + budType));
+                    playerBudComponent.getBudIds().forEach(budId -> LoggerUtil.getLogger()
+                            .fine(() -> "Player has Bud of id: " + budId));
                 } else {
                     LoggerUtil.getLogger().warning(() -> "PlayerBudComponent: NULL");
                 }

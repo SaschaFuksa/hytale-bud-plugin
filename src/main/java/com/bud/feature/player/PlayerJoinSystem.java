@@ -1,6 +1,7 @@
 package com.bud.feature.player;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
 
@@ -10,7 +11,8 @@ import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
+import com.bud.feature.LLMPromptManager;
 import com.bud.feature.block.RecentBlockCache;
 import com.bud.feature.bud.MoodTracker;
 import com.bud.feature.bud.reaction.BudReactionChainTracker;
@@ -43,6 +45,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class PlayerJoinSystem extends RefSystem<EntityStore> {
 
+    private static final AtomicBoolean VERSION_MISMATCH_REMINDER_PENDING = new AtomicBoolean(true);
+
     @Override
     public Query<EntityStore> getQuery() {
         return Archetype.of(PlayerRef.getComponentType());
@@ -71,10 +75,10 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             initializePlayerStateBaseline(store, ref, playerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
-            Set<BudType> budTypes = playerBudComponent.getBudTypes();
-            if (!budTypes.isEmpty()) {
+            Set<String> budIds = playerBudComponent.getBudIds();
+            if (!budIds.isEmpty()) {
                 BudCreationQueue.getInstance()
-                        .addToCache(new BudCreationEntry(ref, budTypes));
+                        .addToCache(new BudCreationEntry(ref, budIds));
             }
             ConversationMemoryService.getInstance().restoreForOwner(playerRef.getUsername(), playerBudComponent);
         }
@@ -95,6 +99,22 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (DebugConfig.getInstance().isEnablePlayerInfo()) {
             BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
         }
+        remindContentVersionMismatchOnce();
+    }
+
+    private static void remindContentVersionMismatchOnce() {
+        if (!VERSION_MISMATCH_REMINDER_PENDING.compareAndSet(true, false)) {
+            return;
+        }
+        boolean mismatch = LLMPromptManager.getInstance().isContentVersionMismatch()
+                || BudRegistry.getInstance().isContentVersionMismatch();
+        if (!mismatch) {
+            return;
+        }
+        LoggerUtil.getLogger().warning(
+                () -> "[BUD] Reminder: packaged prompt and/or Bud content is newer than the runtime copy. "
+                        + "Run '/bud prompt --reset' and/or '/bud reload buds --reset' to update "
+                        + "(overwrites your customizations!).");
     }
 
     @Override
