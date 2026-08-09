@@ -13,7 +13,7 @@ prompts:
     You want to say something about the last combat actions of your Buddy.
     First, you get some details about your personality.
     Second, you get information about your view about combats.
-    Third, you get information about the combat situation: who attacked/run away whom.
+    Third, you get information about the combat situation: who attacked/ran away whom.
     Fourth, you get some details about the enemy, like their name and type and also about their category.
     Finally, select the info referring to the enemy and say something related.
   world: |

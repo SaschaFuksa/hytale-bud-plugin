@@ -51,7 +51,7 @@ categories:
   mythic:
     info: "Mythic: legendary, high threat, fascinating but deadly."
     entities:
-      dragon: "Dragon: apex apex, elemental power, hoard guardian."
+      dragon: "Dragon: apex, elemental power, hoard guardian."
       emberwulf: "Emberwulf: flame-born wolf, leaves scorched earth."
       wraith: "Wraith: spectral horror, drains life force."
       yeti: "Yeti: massive snow beast, mountain guardian."
