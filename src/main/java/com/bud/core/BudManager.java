@@ -3,6 +3,7 @@ package com.bud.core;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -170,6 +171,10 @@ public class BudManager {
 
     private static final double MIN_SPAWN_SEPARATION_SQ = MIN_SPAWN_SEPARATION * MIN_SPAWN_SEPARATION;
 
+    private static final int LATERAL_SEARCH_RADIUS = 2;
+
+    private static final double LATERAL_SEARCH_STEP = 1.0;
+
     @Nonnull
     public Vector3d getSpawnPosition(@Nonnull PlayerRef playerRef, int index, int total) {
         return getSpawnPosition(playerRef, index, total, new HashSet<>());
@@ -195,19 +200,51 @@ public class BudManager {
         Vector3d playerPos = getPlayerPosition(playerRef);
         Rotation3f rotation = playerRef.getTransform().getRotation();
         float yaw = rotation.yaw();
-        Vector3d forward = Transform.getDirection(0f, yaw);
-        Vector3d right = Transform.getDirection(0f, yaw - (float) (Math.PI / 2));
-        double lateralOffset = (index - (total - 1) / 2.0) * FRONT_SPAWN_FAN_SPACING;
+        Vector3d forward = Objects.requireNonNull(Transform.getDirection(0f, yaw));
+        Vector3d right = Objects.requireNonNull(Transform.getDirection(0f, yaw - (float) (Math.PI / 2)));
+        double preferredLateral = (index - (total - 1) / 2.0) * FRONT_SPAWN_FAN_SPACING;
         for (int distance : FRONT_SPAWN_DISTANCES) {
-            double x = playerPos.x + forward.x * distance + right.x * lateralOffset;
-            double y = playerPos.y + 0.5;
-            double z = playerPos.z + forward.z * distance + right.z * lateralOffset;
-            Vector3d candidate = new Vector3d(x, y, z);
-            if (isSpawnPositionFree(world, x, y, z) && !isReserved(candidate, reservedPositions)) {
+            Vector3d candidate = findFreeLateralPosition(world, playerPos, forward, right, distance, preferredLateral,
+                    reservedPositions);
+            if (candidate != null) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    @Nullable
+    private static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d playerPos,
+            @Nonnull Vector3d forward, @Nonnull Vector3d right, int distance, double preferredLateral,
+            @Nonnull Set<Vector3d> reservedPositions) {
+        Vector3d center = candidateAt(world, playerPos, forward, right, distance, preferredLateral,
+                reservedPositions);
+        if (center != null) {
+            return center;
+        }
+        for (int step = 1; step <= LATERAL_SEARCH_RADIUS; step++) {
+            Vector3d rightCandidate = candidateAt(world, playerPos, forward, right, distance,
+                    preferredLateral + step * LATERAL_SEARCH_STEP, reservedPositions);
+            if (rightCandidate != null) {
+                return rightCandidate;
+            }
+            Vector3d leftCandidate = candidateAt(world, playerPos, forward, right, distance,
+                    preferredLateral - step * LATERAL_SEARCH_STEP, reservedPositions);
+            if (leftCandidate != null) {
+                return leftCandidate;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Vector3d candidateAt(@Nonnull World world, @Nonnull Vector3d playerPos, @Nonnull Vector3d forward,
+            @Nonnull Vector3d right, int distance, double lateralOffset, @Nonnull Set<Vector3d> reservedPositions) {
+        double x = playerPos.x + forward.x * distance + right.x * lateralOffset;
+        double y = playerPos.y + 0.5;
+        double z = playerPos.z + forward.z * distance + right.z * lateralOffset;
+        Vector3d candidate = new Vector3d(x, y, z);
+        return isSpawnPositionFree(world, x, y, z) && !isReserved(candidate, reservedPositions) ? candidate : null;
     }
 
     @Nullable
@@ -237,8 +274,8 @@ public class BudManager {
     public Vector3f getRotationFacingPlayer(@Nonnull PlayerRef playerRef, @Nonnull Vector3d budPosition) {
         Vector3d playerPos = getPlayerPosition(playerRef);
         float playerYaw = playerRef.getTransform().getRotation().yaw();
-        Vector3d forward = Transform.getDirection(0f, playerYaw);
-        Vector3d right = Transform.getDirection(0f, playerYaw - (float) (Math.PI / 2));
+        Vector3d forward = Objects.requireNonNull(Transform.getDirection(0f, playerYaw));
+        Vector3d right = Objects.requireNonNull(Transform.getDirection(0f, playerYaw - (float) (Math.PI / 2)));
         double toPlayerX = playerPos.x - budPosition.x;
         double toPlayerZ = playerPos.z - budPosition.z;
         double forwardComponent = toPlayerX * forward.x + toPlayerZ * forward.z;
@@ -281,8 +318,9 @@ public class BudManager {
                 && world.getBlock(blockX, blockY + 1, blockZ) == BlockType.EMPTY_ID;
     }
 
-    public Vector3d getPlayerPosition(PlayerRef playerRef) {
-        return playerRef.getTransform().getPosition();
+    @Nonnull
+    public Vector3d getPlayerPosition(@Nonnull PlayerRef playerRef) {
+        return Objects.requireNonNull(playerRef.getTransform().getPosition());
     }
 
     public void registerPlayer(@Nonnull PlayerRef playerRef) {
