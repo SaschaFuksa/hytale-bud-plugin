@@ -102,6 +102,21 @@ public class Orchestrator {
         LoggerUtil.getLogger().fine(() -> "[Orchestrator] Cleared state for player " + playerName);
     }
 
+    public void purgeBud(String playerName, String budId) {
+        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerName);
+        if (playerQueues == null) {
+            return;
+        }
+        for (PriorityQueue<OrchestratorQueue> queue : playerQueues.values()) {
+            synchronized (queue) {
+                queue.removeIf(event -> event.interactionEntry() != null
+                        && budId.equals(event.interactionEntry().getBudComponent().getBudId()));
+            }
+        }
+        LoggerUtil.getLogger().info(() -> "[Orchestrator] Purged queued events for despawned bud '" + budId
+                + "', player " + playerName);
+    }
+
     private void tick() {
         try {
             long now = System.currentTimeMillis();

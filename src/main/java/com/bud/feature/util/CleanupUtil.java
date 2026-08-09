@@ -12,6 +12,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudRegistry;
 import com.bud.feature.chat.ChatEvent;
+import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -48,6 +49,7 @@ public class CleanupUtil {
                             if (budRef != null) {
                                 despawnBud(budRef, store);
                             }
+                            Orchestrator.getInstance().purgeBud(playerRef.getUsername(), budId);
                             removedBuds.add(BudRegistry.getInstance().get(budId).getDisplayName());
                         }
                     }
@@ -99,6 +101,7 @@ public class CleanupUtil {
                     playerBudComponent.removeCurrentBud(bud, budComponent.getBudId());
                 }
                 despawnBud(ref, store);
+                Orchestrator.getInstance().purgeBud(player.getUsername(), budComponent.getBudId());
                 LoggerUtil.getLogger()
                         .info(() -> "[BUD] Removing NPC \"" + bud.getNPCTypeId() + "\""
                                 + " for player " + player.getUsername());
