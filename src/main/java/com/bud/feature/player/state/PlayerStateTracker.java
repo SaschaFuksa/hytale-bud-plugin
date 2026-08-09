@@ -1,8 +1,11 @@
 package com.bud.feature.player.state;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nonnull;
 
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
@@ -89,7 +92,8 @@ public class PlayerStateTracker extends AbstractTracker {
                         return;
                     }
 
-                    for (String effectId : newEffectIds) {
+                    for (String rawEffectId : newEffectIds) {
+                        String effectId = Objects.requireNonNull(rawEffectId);
                         PlayerEffectClassifier.Category category = PlayerEffectClassifier.classify(effectId);
                         if (category == PlayerEffectClassifier.Category.NEUTRAL) {
                             continue;
@@ -121,6 +125,7 @@ public class PlayerStateTracker extends AbstractTracker {
         }
     }
 
+    @Nonnull
     public static Set<String> resolveActiveEffectIds(EffectControllerComponent effectController) {
         Set<String> ids = new HashSet<>();
         for (int index : effectController.getActiveEffectIndexes()) {

@@ -2,6 +2,7 @@ package com.bud.core.registry;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -18,7 +19,7 @@ public class BudRoster extends AbstractYamlMessage {
 
     @Nonnull
     public List<String> getDefaultBuds() {
-        return defaultBuds != null ? defaultBuds : List.of();
+        return defaultBuds != null ? defaultBuds : Objects.requireNonNull(List.of());
     }
 
     public static BudRoster load(Path path) {

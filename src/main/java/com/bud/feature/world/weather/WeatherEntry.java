@@ -1,5 +1,7 @@
 package com.bud.feature.world.weather;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
 import com.bud.core.components.BudComponent;
@@ -10,7 +12,8 @@ public record WeatherEntry(@Nonnull String weatherName, @Nonnull TimeOfDay timeO
         @Nonnull BudComponent budComponent) implements IQueueEntry {
 
     public WeatherEntry {
-        weatherName = WeatherInterpreter.resolveDisplayName(cleanWeatherName(weatherName), timeOfDay);
+        weatherName = Objects.requireNonNull(
+                WeatherInterpreter.resolveDisplayName(cleanWeatherName(weatherName), Objects.requireNonNull(timeOfDay)));
     }
 
     @Nonnull

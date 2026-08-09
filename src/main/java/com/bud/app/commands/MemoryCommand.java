@@ -118,7 +118,7 @@ public class MemoryCommand extends AbstractPlayerCommand {
     private void sendLegendaryMemories(@Nonnull PlayerRef playerRef, @Nonnull Set<String> budIds) {
         boolean any = false;
         for (String budId : budIds) {
-            String budName = BudRegistry.getInstance().get(budId).getDisplayName();
+            String budName = BudRegistry.getInstance().get(Objects.requireNonNull(budId)).getDisplayName();
             List<ConversationMemoryEntry> memories = ConversationMemoryService.getInstance()
                     .getLegendaryMemoriesForBud(playerRef.getUsername(), budName);
             for (ConversationMemoryEntry memory : memories) {

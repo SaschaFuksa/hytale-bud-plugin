@@ -3,6 +3,7 @@ package com.bud.feature.chat.player;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -103,7 +104,7 @@ public class PlayerChatReactionHandler implements Consumer<PlayerChatEvent> {
         Set<String> mentionedIds = new LinkedHashSet<>();
 
         for (String budId : BudRegistry.getInstance().getIds()) {
-            if (containsWord(lowerMessage, budId)) {
+            if (containsWord(lowerMessage, Objects.requireNonNull(budId))) {
                 mentionedIds.add(budId);
             }
         }

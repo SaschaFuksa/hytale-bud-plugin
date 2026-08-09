@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -164,7 +165,7 @@ public class BudRegistry {
 
     @Nonnull
     public static String normalize(@Nullable String budId) {
-        return budId == null ? "" : budId.trim().toLowerCase(Locale.ROOT);
+        return budId == null ? "" : Objects.requireNonNull(budId.trim().toLowerCase(Locale.ROOT));
     }
 
     public boolean exists(@Nullable String budId) {
@@ -182,13 +183,13 @@ public class BudRegistry {
 
     @Nonnull
     public Set<String> getIds() {
-        return Collections.unmodifiableSet(definitions.keySet());
+        return Objects.requireNonNull(Collections.unmodifiableSet(definitions.keySet()));
     }
 
     /** IDs used by the "create all" shorthand (`/bud create` without a flag). At most 3. */
     @Nonnull
     public List<String> getDefaultBudIds() {
-        return Collections.unmodifiableList(defaultBudIds);
+        return Objects.requireNonNull(Collections.unmodifiableList(defaultBudIds));
     }
 
     public void debugLog() {

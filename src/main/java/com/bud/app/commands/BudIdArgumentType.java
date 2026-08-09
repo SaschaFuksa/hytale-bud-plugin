@@ -24,7 +24,7 @@ final class BudIdArgumentType extends SingleArgumentType<String> {
 
     @Nonnull
     @Override
-    public String parse(@Nonnull String input, @Nonnull ParseResult result) {
+    public String parse(String input, ParseResult result) {
         String budId = BudRegistry.normalize(input);
         if (!BudRegistry.getInstance().exists(budId)) {
             result.fail(Message.raw("Unknown bud id: " + input + ". Valid: "
@@ -34,8 +34,9 @@ final class BudIdArgumentType extends SingleArgumentType<String> {
     }
 
     @Override
-    public void suggest(CommandSender sender, String currentInput, int argIndex, SuggestionResult result) {
-        String prefix = currentInput == null ? "" : currentInput.toLowerCase(Locale.ROOT);
+    public void suggest(@Nonnull CommandSender sender, @Nonnull String currentInput, int argIndex,
+            @Nonnull SuggestionResult result) {
+        String prefix = currentInput.toLowerCase(Locale.ROOT);
         for (String budId : BudRegistry.getInstance().getIds()) {
             if (budId.startsWith(prefix)) {
                 result.suggest(budId);

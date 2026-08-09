@@ -1,5 +1,7 @@
 package com.bud.feature;
 
+import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
 import com.bud.core.config.LLMConfig;
@@ -84,9 +86,9 @@ public class LLMInteractionManager {
 
     @Nonnull
     private Message formatBudSpeech(@Nonnull BudDefinition budProfile, @Nonnull String message) {
-        String trimmedMessage = message.trim();
+        String trimmedMessage = Objects.requireNonNull(message.trim());
         Message prefix = Message.raw(budProfile.getDisplayName() + ": ").color(budProfile.getColor());
-        return Message.join(prefix, Message.raw(trimmedMessage));
+        return Objects.requireNonNull(Message.join(prefix, Message.raw(trimmedMessage)));
     }
 
 }

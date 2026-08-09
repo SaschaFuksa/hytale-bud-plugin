@@ -2,6 +2,7 @@ package com.bud.feature.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -38,7 +39,8 @@ public class CleanupUtil {
                 ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
                 List<String> removedBuds = new ArrayList<>();
                 for (NPCEntity bud : buds) {
-                    for (String budId : budIds) {
+                    for (String rawBudId : budIds) {
+                        String budId = Objects.requireNonNull(rawBudId);
                         String npcTypeId = BudRegistry.getInstance().get(budId).getNpcTypeId();
                         if (bud.getNPCTypeId().equals(npcTypeId)) {
                             playerBudComponent.removeCurrentBud(bud, budId);

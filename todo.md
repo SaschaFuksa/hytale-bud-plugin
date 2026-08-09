@@ -62,6 +62,38 @@ Noch offen/ungetestet: ob `runServer` das `sounds`-Feld in den Bud-YAMLs korrekt
 ## Verifikation
 
 - [x] `.\gradlew build` grün
-- [ ] `.\gradlew runServer`: Login, `/bud create` (alle drei), `/bud create veri` (einzeln), Card-Item benutzen (Primary = spawn, Secondary = despawn), `/bud debug --componentData`, `/bud debug --mood` — alles sollte wie vorher funktionieren, nur ohne `BudType` im Code.
-- [ ] Alter Spielstand (falls vorhanden) lädt ohne Fehler, bestehende Buds werden erkannt.
+- [x] `.\gradlew runServer`: Login, `/bud create` (alle drei), Card-Item benutzen (Primary = spawn, Secondary = despawn) — vom Nutzer manuell getestet, funktioniert.
+- [x] Alter Spielstand lädt ohne Fehler, bestehende Buds werden erkannt (Save enthielt `"BudTypes": ["Gronkh","Veri","Keyleth"]`, wird korrekt normalisiert).
 - [x] `grep -rn "BudType\|IBudProfile\|IBudSound\|BudProfileMapper" src/main/java` liefert keine Treffer mehr (nur noch ein wire-kompatibler Codec-Key-String `"BudTypes"` und zwei erklärende Doc-Kommentare).
+- [x] Migration wird jetzt geloggt: `PlayerBudComponent` schreibt beim Laden pro geändertem Eintrag `[BUD] Migrated legacy 'BudTypes' entry '<alt>' to bud id '<neu>' on load.` (nur bei tatsächlicher Änderung).
+
+Phasen 2/3/5 sind damit vollständig abgeschlossen. Weiter unten: neuer Punkt, der beim Review der Migration aufgefallen ist.
+
+## Phase 6 — Null-Safety-Lint aufräumen ✅
+
+Der Java-Linter in VS Code (Eclipse JDT, `nullanalysis=enabled` in `.settings/org.eclipse.jdt.core.prefs`, `@Nonnull`/`@Nullable` aus `javax.annotation`) meldet nach der Migration mehrere Hinweise. **Nicht mit `@SuppressWarnings` wegdrücken — nur nach Rücksprache ignorieren.** Sauber lösen heißt: entweder echten Null-Check einbauen, oder `Objects.requireNonNull(...)` an der Stelle, wo eine JDK-/SDK-Methode (z. B. `Collections.unmodifiableSet`, `List.of`, `String.join`) laut Compiler nicht als `@Nonnull` deklariert ist, obwohl sie es faktisch ist.
+
+**Ein echtes Problem, kein reines Lint-Hint** — zuerst das:
+
+- [x] `BudIdArgumentType.java` (Zeile 27, 37): "Illegal redefinition of parameter" + "Missing non-null annotation" beim Override von `SingleArgumentType<String>.parse(...)` und `ArgumentType<String>.suggest(...)`. Tatsächliche Signatur per `javap -v` gegen die Hytale-Server-`.class`-Dateien verifiziert (nicht geraten): `SingleArgumentType<String>.parse(String, ParseResult)` hat **beide Parameter unannotiert** (Return `@Nullable`) → `@Nonnull` auf `input`/`result` in der Überschreibung entfernt (Rückgabe bleibt `@Nonnull`, da `BudRegistry.normalize(...)` nie `null` liefert — zulässige Verschärfung des Rückgabewerts). `ArgumentType<String>.suggest(CommandSender, String, int, SuggestionResult)` hat **alle drei Referenz-Parameter `@Nonnull`** (`sender`, `textAlreadyEntered`/`currentInput`, `result`) → alle drei in der Überschreibung mit `@Nonnull` versehen (dabei fiel auf, dass ein erster Fix-Versuch `currentInput` fälschlich als unannotiert eingestuft hatte — per Sanity-Check mit einem bewusst kaputten Symbol verifiziert, dass der Linter die Datei überhaupt neu bewertet, dann den echten Fehler gefunden und korrigiert). Der überflüssige `currentInput == null`-Check im Body wurde entfernt, da der Parameter jetzt vertraglich nie `null` ist.
+
+**Reine "unchecked conversion to @Nonnull"-Hints** (JDT traut unannotierten JDK-Rückgabewerten nicht, wo unsere eigenen Methoden `@Nonnull` versprechen) — je Zeile geprüft, ob wirklich nie `null` möglich ist (dann `Objects.requireNonNull(...)` beim Return) oder ob doch ein Null-Fall existiert (dann echten Check + ggf. `@Nullable` auf die eigene Methode):
+
+- [x] `MemoryCommand.java:121` — `budId` aus `for (String budId : budIds)` (Set-Element-Nullability unbekannt) an `BudRegistry.get(@Nonnull)`; nie `null` (Set kommt aus String-Literalen) → `Objects.requireNonNull(budId)`.
+- [x] `PlayerBudComponent.java:273` — dieselbe Situation in `resolveBudId(...)`, `budId` aus `BudRegistry.getIds()` → `Objects.requireNonNull(budId)`.
+- [x] `BudDefinition.java:33` — `String.trim()/toLowerCase()` sind unannotierte JDK-Methoden, aber im `id != null`-Zweig nie `null` → `Objects.requireNonNull(...)` um den Ausdruck.
+- [x] `BudRegistry.java:167,185,191` — `String.trim()/toLowerCase()`, `Collections.unmodifiableSet(...)`, `Collections.unmodifiableList(...)` sind unannotierte JDK-Methoden, aber faktisch nie `null` → je `Objects.requireNonNull(...)`.
+- [x] `BudRoster.java:21` — `List.of()`-Zweig unannotiert, aber nie `null` → `Objects.requireNonNull(List.of())`.
+- [x] `PlayerChatReactionHandler.java:106` — `budId` aus `BudRegistry.getIds()` an `containsWord(@Nonnull, @Nonnull)` → `Objects.requireNonNull(budId)`.
+- [x] `LLMInteractionManager.java:89` — `Message.join(...)` ist eine unannotierte Hytale-SDK-Methode, aber nie `null` → `Objects.requireNonNull(...)`.
+- [x] `PlayerJoinSystem.java:135` + `PlayerStateTracker.java:87` — gleiche Ursache: `PlayerStateTracker.resolveActiveEffectIds(...)` war selbst nicht `@Nonnull` deklariert, obwohl es nie `null` zurückgibt (baut immer ein `HashSet` auf). Statt an beiden Call-Sites zu wrappen, die Quelle mit `@Nonnull` annotiert — behebt beide Stellen sauber an der Wurzel.
+- [x] `PlayerStateTracker.java:93,106` — `effectId` aus `for (String effectId : newEffectIds)` (Set-Element-Nullability unbekannt), aber nie `null` (Set wird aus bereits gefilterten Werten gebaut) → Schleifenvariable einmal per `Objects.requireNonNull(rawEffectId)` umbenannt/zugewiesen, deckt beide Verwendungen ab.
+- [x] `CleanupUtil.java:42,49` — dieselbe Situation für `budId` aus `for (String budId : budIds)`, ein `Objects.requireNonNull(rawBudId)` am Schleifenkopf deckt beide Zeilen ab.
+- [x] `WeatherEntry.java:13` — `WeatherInterpreter.resolveDisplayName(...)` ist bereits `@Nonnull` deklariert und ruft intern nur `@Nonnull`-Methoden auf, trotzdem meldet JDT hier unchecked conversion (Record-Compact-Constructor-Eigenheit) → `Objects.requireNonNull(...)` um die Zuweisung.
+- [x] `WorldTracker.java:90` — **echter Null-Fall, kein reines Lint-Hint**: `Weather.getId()` ist im Hytale-SDK unannotiert *und* kann laut anderer Stellen im Code (`DebugCommand`) tatsächlich `null` sein. Die bisherige Ternary prüfte nur `weather != null`, nicht `weather.getId() != null` — dadurch hätte ein `null`-Ergebnis direkt in `WeatherEntry`s `@Nonnull`-Konstruktor-Parameter durchgereicht werden können (dort wäre es in `cleanWeatherName(...)` ohnehin mit NPE gecrasht). Fix: `weather.getId() != null` zusätzlich geprüft, Fallback bleibt `"unknown"` — echte Robustheitsverbesserung, keine reine Annotation-Kosmetik.
+- [x] `CardBudInteraction.java:63,68` — `Set.of(budId)` ist eine unannotierte JDK-Methode, aber nie `null` → `Objects.requireNonNull(Set.of(budId))` bei der Zuweisung deckt beide Verwendungsstellen ab.
+
+Verifikation: nach jedem Fix per gezieltem No-Op-Touch (Edit + Revert) erneut geprüft, dass der Sprachserver für die betroffene Datei tatsächlich 0 Diagnostics meldet (nicht nur "keine Antwort bekommen") — inkl. eines bewussten Fehler-Sanity-Checks in `BudIdArgumentType.java`, um zu bestätigen, dass der Linter die Datei überhaupt neu auswertet.
+
+- [x] Problems-Panel leer (für alle 14 betroffenen Dateien einzeln per Touch-Test verifiziert; keine neuen `@SuppressWarnings` hinzugefügt — `grep -rn "@SuppressWarnings" src/main/java` zeigt nur die zwei vor dieser Phase bereits vorhandenen, unabhängigen Stellen in `BudPlugin.java` und `RecentItemCache.java`)
+- [x] `.\gradlew build` grün (`.\gradlew clean build` erfolgreich)

@@ -1,5 +1,6 @@
 package com.bud.interaction;
 
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -55,7 +56,7 @@ public class CardBudInteraction extends SimpleInteraction {
                 LoggerUtil.getLogger().warning(() -> "[BUD] PlayerRef not present for " + budId);
                 return;
             }
-            Set<String> budIds = Set.of(budId);
+            Set<String> budIds = Objects.requireNonNull(Set.of(budId));
             if (type == InteractionType.Primary) {
                 LoggerUtil.getLogger()
                         .info(() -> "[BUD] Spawning " + budId + " for " + playerRef.getUsername());

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -270,7 +271,7 @@ public class PlayerBudComponent implements Component<EntityStore> {
         try {
             String npcTypeId = bud.getNPCTypeId();
             for (String budId : BudRegistry.getInstance().getIds()) {
-                if (BudRegistry.getInstance().get(budId).getNpcTypeId().equals(npcTypeId)) {
+                if (BudRegistry.getInstance().get(Objects.requireNonNull(budId)).getNpcTypeId().equals(npcTypeId)) {
                     return budId;
                 }
             }

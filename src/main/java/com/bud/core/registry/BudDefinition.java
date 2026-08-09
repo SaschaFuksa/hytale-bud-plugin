@@ -2,6 +2,7 @@ package com.bud.core.registry;
 
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -30,7 +31,7 @@ public class BudDefinition extends AbstractYamlMessage {
 
     @Nonnull
     public String getId() {
-        return id != null ? id.trim().toLowerCase(Locale.ROOT) : "";
+        return id != null ? Objects.requireNonNull(id.trim().toLowerCase(Locale.ROOT)) : "";
     }
 
     @Nonnull
