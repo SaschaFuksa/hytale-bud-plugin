@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   - `/bud create <bud>` now takes a generic, tab-completed Bud id instead of fixed `--veri`/`--gronkh`/`--keyleth` flags.
 - **Central Version Management**: Global version file and prompt/bud-config reloading
 - **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
+- **Bud Cards**: Optical rework and texture now matches the card.
 
 
 ### Fixed

@@ -8,19 +8,19 @@
   "Model": "Items/card.blockymodel",
   "Texture": "Items/card_roster.png",
   "IconProperties": {
-    "Scale": 0.9,
+    "Scale": 0.7,
     "Rotation": [
-      43,
-      102,
-      19
+      28,
+      91,
+      0
     ],
     "Translation": [
-      -14,
-      -2
+      -7,
+      -13
     ]
   },
   "Light": {
-    "Color": "#6ae"
+    "Color": "#fff"
   },
   "Recipe": {
     "Input": [
@@ -29,20 +29,36 @@
         "Quantity": 1
       },
       {
+        "ItemId": "Weapon_Shortbow_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Weapon_Daggers_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Stamina3",
+        "Quantity": 3
+      },
+      {
         "ItemId": "Plant_Crop_Mana3",
         "Quantity": 3
       },
       {
-        "ItemId": "Rock_Ice",
-        "Quantity": 30
-      },
-      {
-        "ItemId": "Rock_Stone_Cobble_Mossy",
-        "Quantity": 90
+        "ItemId": "Plant_Crop_Health3",
+        "Quantity": 3
       },
       {
         "ItemId": "Ingredient_Bar_Silver",
-        "Quantity": 20
+        "Quantity": 60
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 60
+      },
+      {
+        "ItemId": "Ingredient_Fire_Essence",
+        "Quantity": 10
       },
       {
         "ItemId": "Ingredient_Ice_Essence",
@@ -50,7 +66,7 @@
       },
       {
         "ItemId": "Ingredient_Life_Essence_Concentrated",
-        "Quantity": 1
+        "Quantity": 3
       }
     ],
     "BenchRequirement": [
