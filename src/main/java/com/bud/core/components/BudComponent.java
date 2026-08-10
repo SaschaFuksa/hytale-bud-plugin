@@ -16,6 +16,7 @@ public class BudComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, BudComponent> TYPE;
 
+    @Nonnull
     private BudState currentState = BudState.PET_DEFENSIVE;
 
     private Mood currentMood = Mood.DEFAULT;
@@ -59,10 +60,11 @@ public class BudComponent implements Component<EntityStore> {
         return TYPE;
     }
 
-    public void setCurrentState(BudState state) {
+    public void setCurrentState(@Nonnull BudState state) {
         this.currentState = state;
     }
 
+    @Nonnull
     public BudState getCurrentState() {
         return currentState;
     }

@@ -285,12 +285,12 @@ public class BudManager {
     }
 
     @Nonnull
-    public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef) {
+    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef) {
         return getPlayerPositionWithOffset(playerRef, new HashSet<>());
     }
 
     @Nonnull
-    public Vector3d getPlayerPositionWithOffset(PlayerRef playerRef, @Nonnull Set<Vector3d> reservedPositions) {
+    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef, @Nonnull Set<Vector3d> reservedPositions) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         ThreadLocalRandom random = ThreadLocalRandom.current();

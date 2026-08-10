@@ -17,6 +17,7 @@ import com.bud.core.registry.BudRegistry;
 import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
+import com.bud.feature.state.StateChangeEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
@@ -106,6 +107,7 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         budComponent.setBud(newBud);
         store.addComponent(newRef, BudComponent.getComponentType(), budComponent);
         playerBudComponent.addBud(newBud, budComponent.getBudId());
+        StateChangeEvent.dispatch(newBud, playerRef, budComponent.getCurrentState());
 
         if (event.shouldSendReaction()) {
             TeleportQueue.getInstance().addToCache(new TeleportEntry(budComponent, store));
