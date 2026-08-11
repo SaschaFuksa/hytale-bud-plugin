@@ -43,6 +43,11 @@ public class CardBudInteraction extends SimpleInteraction {
         super("card_bud");
     }
 
+    @Nonnull
+    public String getBudId() {
+        return budId;
+    }
+
     @Override
     protected void tick0(boolean firstRun, float time, @Nonnull InteractionType type,
             @Nonnull InteractionContext context,

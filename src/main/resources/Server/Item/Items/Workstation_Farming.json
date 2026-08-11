@@ -1,0 +1,102 @@
+{
+  "TranslationProperties": {
+    "Name": "Farming Workstation",
+    "Description": "A workstation where a Bud with the Farming role can be put to work."
+  },
+  "Icon": "Icons/ItemsGenerated/Bench_Furnace.png",
+  "Categories": [
+    "Furniture.Benches"
+  ],
+  "Recipe": {
+    "Input": [
+      {
+        "ResourceTypeId": "Wood_Trunk",
+        "Quantity": 6
+      },
+      {
+        "ResourceTypeId": "Rock",
+        "Quantity": 6
+      }
+    ],
+    "Output": [
+      {
+        "ItemId": "Workstation_Farming"
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Crafting"
+        ],
+        "Id": "Workbench"
+      }
+    ],
+    "TimeSeconds": 3
+  },
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Benches/Furnace.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Benches/Furnace_Texture_Off.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "BlockEntity": {
+      "Components": {
+        "ItemContainerBlock": {
+          "Capacity": 2
+        },
+        "WorkstationBlockEntity": {
+          "WorkRole": "Farming"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Benches"
+      }
+    },
+    "HitboxType": "Bench_Furnace",
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#5C583E",
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "Interactions": {
+      "Use": "Open_Container"
+    },
+    "TextureComputedColor": "#29281F"
+  },
+  "PlayerAnimationsId": "Block",
+  "IconProperties": {
+    "Scale": 0.365,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      12,
+      -17.4
+    ]
+  },
+  "Tags": {
+    "Type": [
+      "Bench"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 1,
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}
