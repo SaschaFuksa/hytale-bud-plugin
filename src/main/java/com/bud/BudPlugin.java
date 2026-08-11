@@ -10,6 +10,7 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.config.LLMConfig;
 import com.bud.core.config.OrchestratorConfig;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.config.WorkConfig;
 import com.bud.core.registry.BudRegistry;
 import com.bud.feature.LLMPromptManager;
 import com.bud.feature.block.BlockBreakFilterSystem;
@@ -54,6 +55,7 @@ public class BudPlugin extends JavaPlugin {
     private final Config<OrchestratorConfig> orchestratorConfig;
     private final Config<ConversationConfig> conversationConfig;
     private final Config<DebugConfig> debugConfig;
+    private final Config<WorkConfig> workConfig;
 
     @SuppressWarnings("null")
     public BudPlugin(JavaPluginInit init) {
@@ -64,6 +66,7 @@ public class BudPlugin extends JavaPlugin {
         this.orchestratorConfig = this.withConfig("Orchestrator", OrchestratorConfig.CODEC);
         this.conversationConfig = this.withConfig("Conversation", ConversationConfig.CODEC);
         this.debugConfig = this.withConfig("Debug", DebugConfig.CODEC);
+        this.workConfig = this.withConfig("Work", WorkConfig.CODEC);
     }
 
     @Override
@@ -74,8 +77,6 @@ public class BudPlugin extends JavaPlugin {
         this.setupConfig();
         this.setupLogging();
         LLMPromptManager.getInstance().reloadMissingPrompts();
-        // Additive only for now (Phase 1 of the Bud config migration): loads/validates
-        // buds/*.yml + buds/roster.yml, nothing in the codebase reads from it yet.
         BudRegistry.getInstance().reloadMissing();
 
         // Register BudComponent for state tracking
@@ -120,6 +121,8 @@ public class BudPlugin extends JavaPlugin {
         this.conversationConfig.save();
         DebugConfig.setInstance(this.debugConfig.get());
         this.debugConfig.save();
+        WorkConfig.setInstance(this.workConfig.get());
+        this.workConfig.save();
     }
 
     private void registerEvents() {

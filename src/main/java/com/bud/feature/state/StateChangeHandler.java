@@ -2,6 +2,7 @@ package com.bud.feature.state;
 
 import java.util.function.Consumer;
 
+import com.bud.core.types.BudState;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.Role;
@@ -29,8 +30,12 @@ public class StateChangeHandler implements Consumer<StateChangeEvent> {
 
         stateSupport.setState(stateIndex, subStateIndex, true, false);
 
-        MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
-        markedSupport.setMarkedEntity("LockedTarget", event.owner().getReference());
+        if (event.newState() != BudState.WORKING) {
+            // A working Bud must not lock onto/follow the player - see docs/bud-worker-mode-plan.md
+            // "Working-State / Kampf-Lock".
+            MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
+            markedSupport.setMarkedEntity("LockedTarget", event.owner().getReference());
+        }
         LoggerUtil.getLogger().fine(() -> "[BUD] Changed state to " + event.newState().getStateName() + " for NPC: " +
                 bud.getNPCTypeId());
     }

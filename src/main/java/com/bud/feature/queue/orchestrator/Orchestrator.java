@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bud.core.config.OrchestratorConfig;
+import com.bud.core.types.BudState;
 import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.bud.reaction.BudReactionChainTracker;
 import com.bud.feature.bud.reaction.BudReactionEntry;
@@ -249,6 +250,13 @@ public class Orchestrator {
                 LLMInteractionEntry entry = event.interactionEntry();
                 if (entry == null) {
                     LoggerUtil.getLogger().severe(() -> "[Orchestrator] Missing interaction entry for event: " + event);
+                    return;
+                }
+                if (entry.getBudComponent().getCurrentState() == BudState.WORKING) {
+                    // Queued before the Bud started working, or a native Role state change slipped
+                    // through - see docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock".
+                    LoggerUtil.getLogger().finer(() -> "[Orchestrator] Skipping " + event.eventType()
+                            + " for player " + event.playerName() + ": Bud is Working.");
                     return;
                 }
                 String message = interactionManager.processInteraction(entry);

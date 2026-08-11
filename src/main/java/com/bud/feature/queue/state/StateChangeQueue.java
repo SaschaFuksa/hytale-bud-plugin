@@ -60,6 +60,14 @@ public class StateChangeQueue extends AbstractQueue {
         BudComponent budComponent = entry.getBudComponent();
         budComponent.setCurrentState(entry.newState());
         StateChangeEvent.dispatch(budComponent.getBud(), budComponent.getPlayerRef(), entry.newState());
+        if (entry.newState() == BudState.WORKING) {
+            // Working transitions must stay side-effect free (no LLM chat, no bud-to-bud reaction) - see
+            // docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock". Callers that want a Working
+            // transition dispatch StateChangeEvent directly instead of routing through this queue (see
+            // StateCommand's debug path); this guard also catches native Role state changes picked up by
+            // StateChangeSystem.
+            return;
+        }
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {
             LoggerUtil.getLogger()
@@ -96,6 +104,8 @@ public class StateChangeQueue extends AbstractQueue {
                 case PET_SITTING -> "sitting down and resting";
                 case PET_PASSIVE -> "being passive and just tagging along";
                 case PET_DEFENSIVE -> "back to being alert and defensive";
+                case WORKING -> throw new IllegalStateException(
+                        "Working state changes must never reach triggerStateChangeReaction (handleStateChange returns early for WORKING - no LLM/social reaction while working)");
             };
             String situationInfo = budProfile.getDisplayName() + " is now " + stateDescription
                     + ". React to this in character. " + budProfile.getPronounHint();

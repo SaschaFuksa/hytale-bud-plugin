@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.types.BudState;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -94,6 +95,12 @@ public class DamageFilterSystem extends DamageEventSystem {
         if (BudManager.getInstance().findBudComponent(npc) == null) {
             Ref<EntityStore> opponentRef = npc.getReference();
             for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
+                BudComponent workerCheck = BudManager.getInstance().findBudComponent(bud);
+                if (workerCheck != null && workerCheck.getCurrentState() == BudState.WORKING) {
+                    // A working Bud must not assist in combat - see docs/bud-worker-mode-plan.md
+                    // "Working-State / Kampf-Lock".
+                    continue;
+                }
                 Role budRole = bud.getRole();
                 if (budRole != null) {
                     try {

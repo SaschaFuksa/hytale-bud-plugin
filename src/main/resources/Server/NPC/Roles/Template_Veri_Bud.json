@@ -1102,6 +1102,23 @@
               }
             }
           ]
+        },
+        {
+          "$Comment": "=== MODE 4: WORKING (Placeholder - Bud stands still while working, see docs/bud-worker-mode-plan.md) ===",
+          "Sensor": {
+            "Type": "State",
+            "State": "Working"
+          },
+          "BodyMotion": {
+            "Type": "Nothing"
+          },
+          "Actions": [
+            {
+              "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into Working from outside - the Sensor above already requires State == Working.",
+              "Type": "State",
+              "State": "Working"
+            }
+          ]
         }
       ]
     }

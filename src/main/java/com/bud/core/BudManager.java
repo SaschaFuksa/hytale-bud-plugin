@@ -92,13 +92,13 @@ public class BudManager {
                 continue;
             }
             BudComponent budComponent = findBudComponent(bud);
-            if (budComponent != null) {
+            if (isEligibleForReaction(budComponent)) {
                 return budComponent;
             }
         }
         for (NPCEntity bud : buds) {
             BudComponent budComponent = findBudComponent(bud);
-            if (budComponent != null) {
+            if (isEligibleForReaction(budComponent)) {
                 return budComponent;
             }
         }
@@ -120,6 +120,13 @@ public class BudManager {
         return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
+    // Buds currently working never author combat/ambient/etc. reactions - see
+    // docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock". Every reaction-trigger filter system
+    // picks its speaking Bud through this or getRandomOtherBud, so gating here covers all of them at once.
+    private static boolean isEligibleForReaction(@Nullable BudComponent candidate) {
+        return candidate != null && candidate.getCurrentState() != BudState.WORKING;
+    }
+
     @Nullable
     public BudComponent findBudByNameMention(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull String message,
             @Nonnull BudComponent excludeSpeaker) {
@@ -138,7 +145,7 @@ public class BudManager {
     }
 
     private static boolean isOtherBud(BudComponent candidate, BudComponent excluded) {
-        return candidate != null && candidate != excluded;
+        return isEligibleForReaction(candidate) && candidate != excluded;
     }
 
     @Nullable

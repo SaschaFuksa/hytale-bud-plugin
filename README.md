@@ -3,6 +3,7 @@
   <img src="https://fuksa.de/hytale/buddies.avif" width="600px">
   <p><i>Used template by <a href="https://github.com/UpcraftLP">Up</a>, slightly modified by <a href="https://github.com/Kaupenjoe">Kaupenjoe</a>.</i><br>
   <i>Inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends">MyFriends</a> by LukeysMods.</i></p>
+  Bud Work Feature inspired by <a href="https://www.curseforge.com/hytale/mods/ancient-constructs">Ancient Constructs</a> by <a href="https://www.curseforge.com/members/danbagh/projects">DanBagh</a>.
 </div>
 
 <br>

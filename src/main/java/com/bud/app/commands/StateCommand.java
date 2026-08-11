@@ -8,6 +8,7 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
+import com.bud.feature.state.StateChangeEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -27,11 +28,15 @@ public class StateCommand extends AbstractPlayerCommand {
 
     private final FlagArg sittingFlag;
 
+    private final FlagArg workingFlag;
+
     public StateCommand() {
         super("state", "Commands for checking and managing Bud state.");
         this.defensiveFlag = this.withFlagArg("defensive", "Change Bud state to defensive mode.");
         this.passiveFlag = this.withFlagArg("passive", "Change Bud state to passive mode.");
         this.sittingFlag = this.withFlagArg("sitting", "Change Bud state to sitting mode.");
+        this.workingFlag = this.withFlagArg("working",
+                "Debug: change Bud state to working mode (no LLM reaction, bypasses the state queue).");
     }
 
     @Override
@@ -57,6 +62,11 @@ public class StateCommand extends AbstractPlayerCommand {
                     .fine(() -> "[BUD] Changing Bud state to sitting mode for player "
                             + playerRef.getUsername());
             this.changeState(ref, store, BudState.PET_SITTING);
+        } else if (this.workingFlag.get(context)) {
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Changing Bud state to working mode (debug) for player "
+                            + playerRef.getUsername());
+            this.setWorkingSilently(ref, store, playerRef);
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to next state for player " + playerRef.getUsername());
@@ -91,6 +101,26 @@ public class StateCommand extends AbstractPlayerCommand {
             }
             StateChangeQueue.getInstance()
                     .addToCache(new StateChangeEntry(resolvedTargetState, budComponent));
+        }
+    }
+
+    // Debug-only path for Phase 2 testing (see TODO-worker-mode.md): dispatches StateChangeEvent
+    // directly instead of routing through StateChangeQueue, same pattern as TeleportHandler - no LLM
+    // chat, no bud-to-bud reaction while working (docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock").
+    private void setWorkingSilently(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
+            @Nonnull PlayerRef playerRef) {
+        PlayerBudComponent playerComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
+        for (NPCEntity bud : playerComponent.getCurrentBuds()) {
+            Ref<EntityStore> budRef = bud.getReference();
+            if (budRef == null || !budRef.isValid()) {
+                continue;
+            }
+            BudComponent budComponent = store.getComponent(budRef, BudComponent.getComponentType());
+            if (budComponent == null || budComponent.getCurrentState() == BudState.WORKING) {
+                continue;
+            }
+            budComponent.setCurrentState(BudState.WORKING);
+            StateChangeEvent.dispatch(budComponent.getBud(), playerRef, BudState.WORKING);
         }
     }
 

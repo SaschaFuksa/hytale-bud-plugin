@@ -6,7 +6,8 @@ public enum BudState {
 
     PET_DEFENSIVE("PetDefensive"),
     PET_PASSIVE("PetPassive"),
-    PET_SITTING("PetSitting");
+    PET_SITTING("PetSitting"),
+    WORKING("Working");
 
     private final String stateName;
 
