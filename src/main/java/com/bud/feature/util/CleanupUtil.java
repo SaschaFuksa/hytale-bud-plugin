@@ -37,6 +37,10 @@ public class CleanupUtil {
                 }
                 PlayerBudComponent playerBudComponent = store.getComponent(ref,
                         PlayerBudComponent.getComponentType());
+                if (playerBudComponent == null) {
+                    ChatEvent.dispatch(playerRef, "No Buds found to remove.");
+                    return;
+                }
                 ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
                 List<String> removedBuds = new ArrayList<>();
                 for (NPCEntity bud : buds) {

@@ -75,8 +75,9 @@ public class BudManager {
         };
     }
 
-    public BudComponent getRandomBudComponent(PlayerBudComponent playerBudComponent) {
-        if (!playerBudComponent.hasBuds()) {
+    @Nullable
+    public BudComponent getRandomBudComponent(@Nullable PlayerBudComponent playerBudComponent) {
+        if (playerBudComponent == null || !playerBudComponent.hasBuds()) {
             return null;
         }
         ConcurrentLinkedQueue<NPCEntity> buds = playerBudComponent.getCurrentBuds();
