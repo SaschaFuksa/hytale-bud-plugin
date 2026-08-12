@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.config.DebugConfig;
 import com.bud.core.types.BudState;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
@@ -32,11 +33,12 @@ public class StateCommand extends AbstractPlayerCommand {
 
     public StateCommand() {
         super("state", "Commands for checking and managing Bud state.");
-        this.defensiveFlag = this.withFlagArg("defensive", "Change Bud state to defensive mode.");
-        this.passiveFlag = this.withFlagArg("passive", "Change Bud state to passive mode.");
-        this.sittingFlag = this.withFlagArg("sitting", "Change Bud state to sitting mode.");
-        this.workingFlag = this.withFlagArg("working",
-                "Debug: change Bud state to working mode (no LLM reaction, bypasses the state queue).");
+        defensiveFlag = withFlagArg("defensive", "Change Bud state to defensive mode.");
+        passiveFlag = withFlagArg("passive", "Change Bud state to passive mode.");
+        sittingFlag = withFlagArg("sitting", "Change Bud state to sitting mode.");
+        workingFlag = withFlagArg("working",
+                "Debug (disabled by default, see DebugConfig.EnableWorkingStateDebugCommand): change Bud state "
+                        + "to working mode without a Workstation.");
     }
 
     @Override
@@ -47,30 +49,37 @@ public class StateCommand extends AbstractPlayerCommand {
     @Override
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
-        if (this.defensiveFlag.get(context)) {
+        if (defensiveFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to defensive mode for player "
                             + playerRef.getUsername());
-            this.changeState(ref, store, BudState.PET_DEFENSIVE);
-        } else if (this.passiveFlag.get(context)) {
+            changeState(ref, store, BudState.PET_DEFENSIVE);
+        } else if (passiveFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to passive mode for player "
                             + playerRef.getUsername());
-            this.changeState(ref, store, BudState.PET_PASSIVE);
-        } else if (this.sittingFlag.get(context)) {
+            changeState(ref, store, BudState.PET_PASSIVE);
+        } else if (sittingFlag.get(context)) {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to sitting mode for player "
                             + playerRef.getUsername());
-            this.changeState(ref, store, BudState.PET_SITTING);
-        } else if (this.workingFlag.get(context)) {
+            changeState(ref, store, BudState.PET_SITTING);
+        } else if (workingFlag.get(context)) {
+            if (!DebugConfig.getInstance().isEnableWorkingStateDebugCommand()) {
+                LoggerUtil.getLogger()
+                        .warning(
+                                () -> "[BUD] --working is disabled (see DebugConfig.EnableWorkingStateDebugCommand) for "
+                                        + playerRef.getUsername());
+                return;
+            }
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to working mode (debug) for player "
                             + playerRef.getUsername());
-            this.setWorkingSilently(ref, store, playerRef);
+            setWorkingSilently(ref, store, playerRef);
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to next state for player " + playerRef.getUsername());
-            this.changeState(ref, store, null);
+            changeState(ref, store, null);
         }
     }
 
@@ -104,9 +113,14 @@ public class StateCommand extends AbstractPlayerCommand {
         }
     }
 
-    // Debug-only path for Phase 2 testing (see TODO-worker-mode.md): dispatches StateChangeEvent
-    // directly instead of routing through StateChangeQueue, same pattern as TeleportHandler - no LLM
-    // chat, no bud-to-bud reaction while working (docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock").
+    // Debug-only path (gated by DebugConfig.EnableWorkingStateDebugCommand, off by
+    // default since Phase 4
+    // added the real trigger - Workstation binding): dispatches StateChangeEvent
+    // directly instead of
+    // routing through StateChangeQueue, same pattern as TeleportHandler - no LLM
+    // chat, no bud-to-bud
+    // reaction while working (docs/bud-worker-mode-plan.md "Working-State /
+    // Kampf-Lock").
     private void setWorkingSilently(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
             @Nonnull PlayerRef playerRef) {
         PlayerBudComponent playerComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());

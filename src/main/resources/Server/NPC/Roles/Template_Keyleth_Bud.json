@@ -1110,19 +1110,53 @@
           ]
         },
         {
-          "$Comment": "=== MODE 4: WORKING (Placeholder - Bud stands still while working, see docs/bud-worker-mode-plan.md) ===",
+          "$Comment": "=== MODE 4: WORKING (Sub-states: .Default while actively working, .Resting when the Workstation is out of fuel or manually paused - see docs/bud-worker-mode-plan.md, 'Working/Resting Sub-States'. Both sub-states are set programmatically only (WorkstationFuelTickSystem via StateSupport.setSubState(...)), never reachable via a JSON Action/player interaction.) ===",
           "Sensor": {
             "Type": "State",
             "State": "Working"
           },
-          "BodyMotion": {
-            "Type": "Nothing"
-          },
-          "Actions": [
+          "Instructions": [
             {
-              "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into Working from outside - the Sensor above already requires State == Working.",
-              "Type": "State",
-              "State": "Working"
+              "$Comment": "--- .Resting: fuel exhausted or the native Processing Bench 'TURN OFF' toggle is active - Crouch/sitting pose (swapped from the initial placement, see docs/bud-worker-mode-plan.md, 'Working/Resting-Animation vertauscht') ---",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Resting"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "Crouch",
+                  "Crouch": true
+                },
+                {
+                  "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into .Resting from outside - the Sensor above already requires State == .Resting.",
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "$Comment": "--- .Default: actively working - standing/active pose (Crouch: false), not sitting (Sascha explicitly OK with a default/placeholder animation for v1, real movement follows in Phase 5). Implicitly the entry sub-state, same as MODE 3's own .Default above, which also has no explicit setter anywhere in this file. ---",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "Crouch",
+                  "Crouch": false
+                },
+                {
+                  "$Comment": "Self-referential no-op setter for the top-level Working state itself - moved here (nested, instead of directly under the Sensor above) so this Instruction stays Sensor+Instructions only, mirroring MODE 3's proven shape. MODE 3's PetDefensive/SAFETY-1/2 pattern already proves a top-level state's setter can live nested arbitrarily deep and still satisfy validation. Never opens a new transition into Working from outside - the Sensor above already requires State == Working.",
+                  "Type": "State",
+                  "State": "Working"
+                }
+              ]
             }
           ]
         }

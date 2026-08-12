@@ -38,6 +38,7 @@ import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationFilterSystem;
+import com.bud.feature.work.WorkstationFuelTickSystem;
 import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -105,6 +106,7 @@ public class BudPlugin extends JavaPlugin {
                         WorkstationBlockEntity.CODEC);
         WorkstationBlockEntity.setComponentType(workstationBlockEntityType);
         this.getChunkStoreRegistry().registerSystem(new WorkstationFilterSystem());
+        this.getChunkStoreRegistry().registerSystem(new WorkstationFuelTickSystem());
 
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommandCollection());

@@ -221,22 +221,29 @@ public class BudManager {
         return null;
     }
 
+    /**
+     * Searches for a free position at {@code distance} blocks along {@code forward} from {@code basePos},
+     * fanning laterally along {@code right} (see {@link #getSpawnPositionInFrontOfPlayer}) if the preferred
+     * spot is blocked. Generic over any base position/facing, not just a player's - reused as-is for
+     * Workstation Bud spawn placement (see {@code WorkstationBindingHandler}, docs/bud-worker-mode-plan.md,
+     * "Spawn-Position vor der Station") instead of duplicating this search.
+     */
     @Nullable
-    private static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d playerPos,
+    public static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d basePos,
             @Nonnull Vector3d forward, @Nonnull Vector3d right, int distance, double preferredLateral,
             @Nonnull Set<Vector3d> reservedPositions) {
-        Vector3d center = candidateAt(world, playerPos, forward, right, distance, preferredLateral,
+        Vector3d center = candidateAt(world, basePos, forward, right, distance, preferredLateral,
                 reservedPositions);
         if (center != null) {
             return center;
         }
         for (int step = 1; step <= LATERAL_SEARCH_RADIUS; step++) {
-            Vector3d rightCandidate = candidateAt(world, playerPos, forward, right, distance,
+            Vector3d rightCandidate = candidateAt(world, basePos, forward, right, distance,
                     preferredLateral + step * LATERAL_SEARCH_STEP, reservedPositions);
             if (rightCandidate != null) {
                 return rightCandidate;
             }
-            Vector3d leftCandidate = candidateAt(world, playerPos, forward, right, distance,
+            Vector3d leftCandidate = candidateAt(world, basePos, forward, right, distance,
                     preferredLateral - step * LATERAL_SEARCH_STEP, reservedPositions);
             if (leftCandidate != null) {
                 return leftCandidate;

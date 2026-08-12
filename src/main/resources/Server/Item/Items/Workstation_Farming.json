@@ -38,19 +38,45 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Blocks/Benches/Furnace.blockymodel",
+    "CustomModel": "Items/workbench-mining.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Benches/Furnace_Texture_Off.png",
+        "Texture": "Items/workbench-mining.png",
         "Weight": 1
       }
     ],
     "VariantRotation": "NESW",
+    "Bench": {
+      "Type": "Processing",
+      "AllowNoInputProcessing": true,
+      "Id": "WorkstationFarming",
+      "Input": [
+        {},
+        {}
+      ],
+      "Fuel": [
+        {}
+      ],
+      "OutputSlotsCount": 4
+    },
+    "State": {
+      "Definitions": {
+        "Processing": {
+          "Light": {
+            "Color": "#B72"
+          }
+        },
+        "ProcessCompleted": {
+          "Light": {
+            "Color": "#B72"
+          }
+        }
+      }
+    },
     "BlockEntity": {
       "Components": {
-        "ItemContainerBlock": {
-          "Capacity": 2
-        },
+        "BenchBlock": {},
+        "ProcessingBenchBlock": {},
         "WorkstationBlockEntity": {
           "WorkRole": "Farming"
         }
@@ -74,7 +100,7 @@
     "BlockSoundSetId": "Stone",
     "PhysicalMaterialId": "Stone",
     "Interactions": {
-      "Use": "Open_Container"
+      "Use": "Open_Processing_Bench"
     },
     "TextureComputedColor": "#29281F"
   },

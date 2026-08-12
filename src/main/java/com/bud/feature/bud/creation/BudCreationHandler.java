@@ -82,6 +82,12 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             if (!event.budIds().contains(budComponent.getBudId())) {
                 continue;
             }
+            if (budComponent.getCurrentState() == BudState.WORKING) {
+                // Stays at its workstation - it already counts as "owned" for the dedup check in
+                // createBud(...) (BudManager.playerHasValidBud), so it won't be spawned a second time
+                // either. See docs/bud-worker-mode-plan.md, "Working-State / Kampf-Lock".
+                continue;
+            }
             existingBudTeleports.add(budComponent);
         }
 

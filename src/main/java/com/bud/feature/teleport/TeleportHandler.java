@@ -14,6 +14,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudDefinition;
 import com.bud.core.registry.BudRegistry;
+import com.bud.core.types.BudState;
 import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
@@ -56,6 +57,16 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         BudComponent budComponent = event.budComponent();
         PlayerRef playerRef = budComponent.getPlayerRef();
         Store<EntityStore> store = event.store();
+
+        if (budComponent.getCurrentState() == BudState.WORKING) {
+            // A working Bud stays at its workstation - never pulled to the player via waystone/`/bud
+            // create` follow-teleports. Primary guard: callers (BudCreationHandler, TeleportFilterSystem)
+            // also skip queueing Working Buds for teleport, this is defense-in-depth for any future
+            // caller. See docs/bud-worker-mode-plan.md, "Working-State / Kampf-Lock".
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Skipping teleport for working Bud " + budComponent.getBudId());
+            return;
+        }
 
         NPCEntity oldBud = budComponent.getBud();
         Ref<EntityStore> oldRef = oldBud.getReference();

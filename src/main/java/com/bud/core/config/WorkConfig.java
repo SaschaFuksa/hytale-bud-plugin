@@ -11,7 +11,8 @@ public class WorkConfig {
     private int fieldRadius = 1;
     private int treeMinDistance = 3;
     private int oreMinDistance = 2;
-    private int fuelDurationSeconds = 600;
+    private int fuelDurationSeconds = 10;
+    private int rebindRetrySeconds = 10;
 
     private static volatile WorkConfig instance;
 
@@ -43,6 +44,10 @@ public class WorkConfig {
         return this.fuelDurationSeconds;
     }
 
+    public int getRebindRetrySeconds() {
+        return this.rebindRetrySeconds;
+    }
+
     static {
         CODEC = BuilderCodec.builder(WorkConfig.class, WorkConfig::new)
                 .append(new KeyedCodec<>("FieldRadius", Codec.INTEGER),
@@ -60,6 +65,10 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("FuelDurationSeconds", Codec.INTEGER),
                         (config, value) -> config.fuelDurationSeconds = value,
                         config -> config.fuelDurationSeconds)
+                .add()
+                .append(new KeyedCodec<>("RebindRetrySeconds", Codec.INTEGER),
+                        (config, value) -> config.rebindRetrySeconds = value,
+                        config -> config.rebindRetrySeconds)
                 .add()
                 .build();
     }

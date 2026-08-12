@@ -13,6 +13,10 @@ public class DebugConfig {
     private boolean enableMoodChangeDebugInfo = false;
     private String logLevel = "INFO"; // java.util.logging.Level name, e.g. ALL/FINE/INFO/WARNING
     private boolean autoUpdateContentOnVersionMismatch = true;
+    // Gates `/bud state --working` (see StateCommand) - a debug-only path that sets WORKING without a
+    // Workstation. Now that Workstation binding (Phase 4) is the real trigger, this must stay off by
+    // default so WORKING isn't a normal, always-available player command.
+    private boolean enableWorkingStateDebugCommand = false;
 
     private static volatile DebugConfig instance;
 
@@ -48,6 +52,10 @@ public class DebugConfig {
         return this.autoUpdateContentOnVersionMismatch;
     }
 
+    public boolean isEnableWorkingStateDebugCommand() {
+        return this.enableWorkingStateDebugCommand;
+    }
+
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -69,6 +77,10 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("AutoUpdateContentOnVersionMismatch", Codec.BOOLEAN),
                         (config, value) -> config.autoUpdateContentOnVersionMismatch = value,
                         config -> config.autoUpdateContentOnVersionMismatch)
+                .add()
+                .append(new KeyedCodec<>("EnableWorkingStateDebugCommand", Codec.BOOLEAN),
+                        (config, value) -> config.enableWorkingStateDebugCommand = value,
+                        config -> config.enableWorkingStateDebugCommand)
                 .add()
                 .build();
     }
