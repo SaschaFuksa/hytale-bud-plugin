@@ -440,16 +440,61 @@ Details/Begründung in `docs/bud-worker-mode-plan.md`, "Rollen-Vererbung: Duplik
 - [x] **Empfehlung abgegeben, nicht umgesetzt:** generisches Gerüst (MODE 1–4) könnte als `Component`-Datei(en) extrahiert werden, referenziert von allen drei weiterhin `"Type": "Generic"` bleibenden Bud-Dateien; rollenspezifisches Arbeitsverhalten bliebe zusätzliche, eigene Instructions je Datei. Restrisiko benannt: `_ImportStates`/`_ExportStates`/`ParentState`-Ummapping nicht laufzeit-verifiziert, Fehler würde alle drei Buds gleichzeitig treffen (Single Point of Failure) statt nur eine Datei wie heute. Vorschlag: falls gewünscht, klein anfangen (nur Working/`.Resting`/`.Default`, nicht alle vier Modes auf einmal) und ingame verifizieren, bevor mehr angefasst wird — vor oder nach Phase 9/10, keine Präferenz meinerseits. Die Faustregel oben verhindert die konkrete Fehlerklasse aus diesem Auftrag bereits unabhängig davon.
 - [ ] **Entscheidung liegt bei Sascha** — nichts weiter zu tun, bis er sich äußert.
 
-**Phase 5 abgeschlossen und bestätigt — Phase 6 startet mit einem Umsetzungsvorschlag (siehe Plan-Doc), Code erst nach Rückmeldung.**
+**Phase 5 abgeschlossen und bestätigt — Phase 6 umgesetzt, grüner Build, wartet auf Ingame-Test.**
 
-## Phase 6 — Farming-Loop: Pflanzen/Gießen/Wachstum
+## Phase 6 — Farming-Loop: Pflanzen/Gießen/Wachstum (Code fertig, Ingame-Test steht aus)
 
-Umsetzungsvorschlag (Struktur, noch nicht umgesetzt) in `docs/bud-worker-mode-plan.md`, "Phase 6 — Umsetzungsvorschlag (Rückmeldung ausstehend)".
+Umsetzung + vier Präzisierungen (Arbeitsreihenfolge, Saatgut-Verbrauch, Erntereife-Erkennung, Scope-Schnitt) in `docs/bud-worker-mode-plan.md`, "Phase 6 — Umsetzung (abgeschlossen)".
 
-- [ ] `PlantSeedAction` — liest Slot-1-Item, pflanzt über Rezept-Mapping (siehe Phase 8) das passende Gemüse.
-- [ ] `WaterSoilAction`.
-- [ ] `FindGrownCropSensor` — liest `FarmingBlock.currentStageSet`/`generation`, meldet "erntereif" erst bei finaler Stufe.
-  - Test: kompletter Zyklus Pflanzen → Gießen → Warten. Sensor-Log mit tatsächlich sichtbarem Wachstum abgleichen — kein Vorschnellernten.
+- [x] `WorkType`-Enum (`TILL`/`PLANT`/`WATER`/`HARVEST`), `BudComponent.workType`/`pendingCropBlockType`, `WorkConfig.PlantIntervalSeconds`/`WaterIntervalSeconds`/`WaterDurationSeconds`.
+- [x] `FarmWorkAction` (ersetzt `TillSoilAction`) — eine Java-Action, verzweigt intern per `switch` nach Arbeitsart, kein zweiter JSON-Eintrag (Regel a).
+- [x] `WorkstationSeedUtil` — liest Seedbag aus Input-Slot 2, hartkodiertes Seed→Crop-Mapping (Rezept-YAML folgt in Phase 8).
+- [x] `WorkstationFuelTickSystem.findNextWorkAssignment` — vier deterministische Prioritätsstufen (Ernten > Gießen > Pflanzen > Tillen) über eine gemeinsame `serpentinePositions`-Liste, erster Treffer gewinnt.
+- [x] Erntereife über echten Laufzeit-Blockzustand (`BlockType.getStateForBlock` gegen `FarmingData.getStages()`), nicht über die ursprünglich vorgeschlagene Duration-Heuristik — bewusste Annahme (nur Carrot, lineare Stufen) im Plan-Doc markiert.
+- [x] `HARVEST` wird erkannt und zugewiesen, `FarmWorkAction`-Zweig ist bewusst No-Op (Scope-Schnitt, tatsächliches Ernten ist Phase 7).
+- [x] `.\gradlew build` grün (nur dokumentierter `NPCAnimationSlot`-Deprecation-Hinweis, kein Fehler).
+- [x] **Ingame-Test (Sascha) fand 2 Bugs — behoben, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Bugfix-Runde":**
+  - [x] Bug 1: Pflanzen immer auf derselben Stelle, Saatgut lief leer — `isPlantCandidate`/`isHarvestCandidate` verglichen `BlockMaterial.Empty` statt Blockidentität (Crop ist immer Material Empty, auch bepflanzt) → auf `above == BlockType.EMPTY` umgestellt.
+  - [x] Saatgut-Verbrauch von Zuweisung auf erfolgreiche Ausführung verschoben (`FarmWorkAction.executePlant`), löst den Seedbag zur Ausführungszeit erneut auf statt den zwischengespeicherten Wert blind zu übernehmen.
+  - [x] Bug 2: Ohne Saatgut kein Gießen — `isWaterCandidate` verlangte fälschlich eine Pflanze über der Scholle; native Bewässerung hängt nur am Bodenblock → Pflanzen-Voraussetzung komplett entfernt.
+  - [x] Ergänzung: sauberer Leerlaufzustand, wenn keine Stufe einen Kandidaten findet — kein Flackern in `Resting`, kein Bewegen ohne Ziel, kein Scan pro Tick (neues `WorkConfig.IdleRetrySeconds`, Default `5`).
+  - [x] Temporäres `[BUD][WORK-DEBUG]`-Logging an Zuweisung (`logAssignment`) und Ausführung (`FarmWorkAction.execute`/`executePlant`) ergänzt, um die Diagnose ingame zu belegen.
+- [x] **Erneuter Ingame-Test (Sascha) fand Bug 3 — behoben, siehe `docs/bud-worker-mode-plan.md`, "Nachtrag: WATER wiederholte sich trotz obigem Fix" + "Nachtrag 2: Aushungerungs-Absicherung":**
+  - [x] WATER wurde weiterhin endlos an derselben Stelle wiederholt (Log-Beleg: 66 `[BUD][WORK-DEBUG]`-Zeilen, letzte ~30 im Sekundentakt dieselbe Position) — `FarmWorkAction.executeWater` mutierte `TilledSoilBlock` über `world.getBlockComponentHolder(...)`, das laut `javap` immer eine losgelöste Kopie (`Store.copyEntity`) liefert, keine Live-Instanz; Mutation ging nie in den Chunk-Store zurück. Umgestellt auf denselben `Ref`+`Store.getComponent`-Pfad, den die native `UseWateringCanInteraction.waterBlockAt` selbst nutzt (`WorldChunk.getBlockComponentEntity`/`BlockModule.ensureBlockEntity` → `chunkStore.getStore().getComponent(ref, ...)`), inkl. `WorldChunk.setTicking(...)`.
+  - [x] Gegengeprüft: derselbe Verdacht für den Saatgut-Verbrauch in `executePlant` (liest `ProcessingBenchBlock` ebenfalls über `getBlockComponentHolder`) — per `javap` gegen `ProcessingBenchBlock.clone()` verifiziert, dass die Container-Felder nur per Referenz kopiert werden (geteiltes Objekt), kein Fix nötig.
+  - [x] **Generische Aushungerungs-Absicherung** (Sascha: "keine Prioritätsstufe darf die darunterliegenden dauerhaft aushungern") — `WorkstationBlockEntity` merkt sich die letzte (Position, Arbeitsart), zwei identische Zuweisungen in Folge werden wie ein Timeout behandelt (bestehender `recentlyFailedTargets`-Mechanismus aus Phase 5 wiederverwendet, nichts Neues gebaut). Deckt auch `HARVEST` ab, das in Phase 6 bewusst No-Op ist und sonst nach der ersten Reife für immer alles darunter blockieren würde.
+  - [x] Gießen von Sascha ingame bestätigt.
+- [x] **Zweite Politur-Runde (Sascha), siehe `docs/bud-worker-mode-plan.md`, "Phase 6, zweite Bugfix-/Politur-Runde":**
+  - [x] Arbeitsreihenfolge umgedreht auf TILL > PLANT > WATER > HARVEST (natürlicher Feldablauf statt "fertige Arbeit zuerst") — nur die vier Prüfschleifen in `findNextWorkAssignment` umsortiert, Kandidaten-Erkennung selbst unverändert.
+  - [x] Aushungerungs-Absicherung gegen die neue Reihenfolge gegengeprüft: bleibt korrekt (reagiert auf Zuweisungsergebnis, nicht auf Stufenposition), `HARVEST` kommt strukturell garantiert dran, sobald TILL/PLANT/WATER in einem Scan leer ausgehen — Kapazitätsgrenze (sehr großes Feld, kurzes Gießintervall) als Dimensionierungshinweis im Plan-Doc festgehalten, kein Fix nötig.
+  - [x] Werkzeug pro Arbeitsart (`FarmWorkAction.equipToolFor`, SDK-Weg per `javap` gegen `ActionInventory`/`InventoryHelper.useItem`/`clearItemInHand` ermittelt): TILL → `Tool_Hoe_Crude`, WATER → `Tool_Watering_Can` (Id gegen Asset verifiziert), PLANT/HARVEST → leere Hand (Referenz-Gardener equipt auch keinen Seedbag). Pauschale Hacken-Equip-Action aus `Template_Keyleth_Bud.json`s `.Default`-Bookkeeping entfernt.
+  - [x] Temporäres `[BUD][WORK-DEBUG]`-Logging vollständig entfernt (beide Änderungen ohne Laufzeit-Diagnose verifizierbar).
+  - [x] `.\gradlew build` grün.
+- [x] **Regression direkt nach der Werkzeug-Runde (Sascha): Keyleth lief zum Block, tat aber nichts (kein Tillen/Gießen, kein Werkzeug) — behoben, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Werkzeug-Regression":**
+  - [x] `InventoryHelper.useItem` per `javap` geprüft: legt ein fehlendes Item bei Bedarf selbst in einem freien Hotbar-Slot an (kein zwingender Vorbesitz nötig) - wahrscheinlichster Bruchpunkt ist eine zu kleine/fehlende Hotbar-Kapazität beim Fallback auf Slot 0, nicht abschließend ohne laufenden Server bewiesen.
+  - [x] Strukturell abgesichert (beide Maßnahmen, nicht nur eine): `tryEquipToolFor` läuft jetzt **nach** der eigentlichen Arbeit im `switch`, zusätzlich in `try`/`catch (RuntimeException)` gekapselt — kosmetischer Nebenschritt kann die Kernfunktion nicht mehr mitreißen (gleiche Lehre wie der Phase-5-World-Thread-Crash).
+  - [x] Werkzeuge beim Spawn ins Inventar: neues `BudSpawner.addTool(itemId, slot)` (Wrapper um `addWeapon`, bekannter Slot statt Laufzeit-Suche), `WorkstationBindingHandler.withWorkTools` vergibt `Tool_Hoe_Crude`/`Tool_Watering_Can` an Slot 0/1 für `WorkRole.FARMING`-Buds bei Spawn/Teleport an die Station.
+  - [x] Item-Ids in geteilte `com.bud.feature.work.FarmToolItems`-Konstanten gezogen (vorher private Duplikate in `FarmWorkAction`).
+  - [x] Temporäres `[BUD][EQUIP-DEBUG]`-Logging in `equipToolFor` wieder eingebaut (erreicht? welches Item? Ergebnis?), da Punkt 1 nicht abschließend verifiziert werden konnte.
+  - [x] `.\gradlew build` grün.
+  - [ ] **Logging entfernen, sobald Sascha bestätigt** (`[BUD][EQUIP-DEBUG]`-Fundstelle: `FarmWorkAction.equipToolFor`).
+- [x] **Saatgut-Verallgemeinerung + drittes Werkzeug (Sascha, Cowork-Fund), siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Saatgut-Verallgemeinerung + drittes Werkzeug":**
+  - [x] PLANT-Werkzeug ergänzt: `Utility_Bag_Seed` (Id gegen Asset verifiziert) statt leerer Hände - `FarmToolItems.PLANT_TOOL_ITEM`, `equipToolFor` und `withWorkTools` (dritter Spawn-Slot) angepasst. HARVEST bleibt bei leerer Hand.
+  - [x] Bug behoben: `WorkstationSeedUtil` kannte nur Carrot (ein einziger Map-Eintrag) — auf Namenskonvention umgestellt (`Plant_Seeds_<Sorte>` → `Plant_Crop_<Sorte>_Block`, `_Eternal`-Varianten analog), verifiziert regelmäßig über alle Feldfrüchte in `reference/assets/Server/Item/Items/Plant/Crop/`. Ergebnis wird vor Rückgabe gegen `BlockType.fromString(...)` geprüft, damit Sonderfälle (z. B. `Plant_Seeds_Wild` → tatsächlich `Plant_Crop_Wild_Grass_Block`, nicht das abgeleitete `Plant_Crop_Wild_Block`) sauber als nicht pflanzbar durchfallen statt in einem ungültigen `setBlock` zu enden.
+  - [x] Bestätigt, nicht neu gebaut: PLANT-Zuweisung war schon immer hinter `cropBlockType != null` gated (gleiche Behandlung wie leerer Seedbag) - eine nicht auflösbare Saat blockiert die Station nicht, TILL/WATER/HARVEST laufen weiter.
+  - [x] Einmaliges Warn-Logging pro unauflösbarer Saatgut-Id ergänzt (`LOGGED_UNRESOLVED_SEEDS`), kein Log-Spam bei Dauerbetrieb.
+  - [x] Bekannte, bewusst nicht behobene Konsequenz im Plan-Doc festgehalten: `isHarvestCandidate` prüft weiterhin nur gegen den hartkodierten Carrot-Blocktyp - andere Feldfrüchte werden nie als erntereif erkannt, bis das als eigener Schritt beauftragt wird.
+  - [x] `.\gradlew build` grün.
+- [x] **Pflanzen griff immer noch nicht (Sascha, Log-Beleg) + Saatgut-Whitelist, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Pflanz-Regression + Saatgut-Whitelist":**
+  - [x] Native Stufeninitialisierung per `javap` geprüft (Saschas Verdacht) und als bereits automatisch bestätigt: `WorldChunk.setBlock` hängt den `FarmingBlock`-Holder selbst an, `FarmingSystems$OnFarmBlockAdded` initialisiert `currentStageSet`/`lastTickGameTime` generisch für jede neu hinzugefügte Komponente - kein Unterschied zwischen nativer Platzierung und unserem `world.setBlock`.
+  - [x] Tatsächliche Ursache gefunden: `FarmWorkAction.executePlant` suchte die Station über `bud.getWorkstationAnchor()`, das aber bewusst `localY + 1.0` liefert (die Stelle, auf der der Bud steht, nicht der Stationsblock) - `ProcessingBenchBlock`-Lookup schlug dadurch jedes Mal still fehl, `executePlant` stieg vor `setBlock` aus. Die `[BUD][EQUIP-DEBUG]`-Logs bewiesen das nicht, da `tryEquipToolFor` erst nach dem `switch` läuft und ein `return` in `executePlant` den äußeren `switch` unberührt lässt. Fix: `Math.floor(anchor.y) - 1`.
+  - [x] Temporäres `[BUD][PLANT-DEBUG]`-Logging um den `setBlock`-Aufruf ergänzt (Blocktyp, Koordinate, Zustand davor/danach).
+  - [x] Saatgut-Whitelist: neue `work/farming.yml` (Laufzeit-Ordner-Konvention wie `prompts/`/`buds/`), `FarmingRecipeConfig` lädt `Map<WorkRole, Set<String>>`, `WorkRole.FARMING` mit den 14 von Sascha verifizierten Feldfrüchten (Aubergine, Carrot, Cauliflower, Chilli, Corn, Cotton, Lettuce, Onion, Potato, Pumpkin, Rice, Tomato, Turnip, Wheat) vorbelegt.
+  - [x] `WorkstationSeedUtil.resolveCropBlockType` prüft die Whitelist vor der Namenskonvention-Ableitung (kein Logging bei Ablehnung - gewolltes Verhalten, kein Fehler).
+  - [x] `WorkstationFilterSystem`s bestehender Slot-Filter (Phase 3) lehnt nicht erlaubtes Saatgut jetzt zusätzlich zu Bud-Karten ab (`WorkstationSeedUtil.isAllowedOrNotASeed`) - landet im Idealfall gar nicht erst im Slot; `resolveCropBlockType`s eigene Prüfung bleibt zweite Absicherung.
+  - [x] `.\gradlew build` grün.
+  - [ ] **Logging entfernen, sobald Sascha bestätigt** (`[BUD][EQUIP-DEBUG]`: `FarmWorkAction.equipToolFor`; `[BUD][PLANT-DEBUG]`: `FarmWorkAction.executePlant`).
+- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** Pflanzen funktioniert tatsächlich (Crop-Block erscheint und bleibt sichtbar); Werkzeug wechselt sichtbar beim Arbeitsartwechsel (Hacke/Gießkanne/Saatgut-Beutel/leere Hand bei Ernte); nicht erlaubtes Saatgut (Blumen/Pilze/Bäume) wird von Slot 2 abgelehnt bzw. mindestens nicht gepflanzt; Reihenfolge stimmt (erst komplett tillen, dann pflanzen, dann gießen, Ernte wartet bis der Rest erledigt ist); kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
 
 ## Phase 7 — Ernte + Lieferung
 

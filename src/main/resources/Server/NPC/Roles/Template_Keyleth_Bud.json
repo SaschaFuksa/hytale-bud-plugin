@@ -1120,7 +1120,7 @@
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: sitting pose, hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Till-Loop reorder below. ---",
+              "$Comment": "--- .Resting: sitting pose, hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Farm-Loop reorder below. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Resting"
@@ -1146,7 +1146,7 @@
               ]
             },
             {
-              "$Comment": "--- .Default bookkeeping: Crouch:false + hoe equipped + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Till-Loop below sets. Re-equipping every tick is a harmless no-op, same as the Crouch/State self-setters below. ---",
+              "$Comment": "--- .Default bookkeeping: Crouch:false + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Farm-Loop below sets. Tool-in-hand is NOT set here - FarmWorkAction.equipToolFor switches it per work type (till/water/plant-or-harvest empty hand) each time it executes, see docs/bud-worker-mode-plan.md, 'Phase 6, Werkzeug pro Arbeitsart'. ---",
               "Continue": true,
               "Sensor": {
                 "Type": "State",
@@ -1158,12 +1158,6 @@
                   "Crouch": false
                 },
                 {
-                  "Type": "Inventory",
-                  "UseTarget": false,
-                  "Operation": "Equip",
-                  "Item": "Tool_Hoe_Crude"
-                },
-                {
                   "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": "Working"
@@ -1171,7 +1165,7 @@
               ]
             },
             {
-              "$Comment": "--- Till-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block within WorkConfig.FieldRadius/FieldMaxHeight in serpentine order and writes it to BudComponent.workTarget - this WorkTarget Sensor only reads it back, no scanning/range here. Seeks toward it every tick; TillSoilAction's own canExecute re-checks interaction distance and the field radius before actually tilling, so approaching and tilling share one Instruction. No Timeout wrapper - see docs/bud-worker-mode-plan.md for why. TillSoilAction plays its own swing animation directly rather than a second Action here - see docs/bud-worker-mode-plan.md, 'Animation direkt aus Java statt zweiter Action'. ---",
+              "$Comment": "--- Farm-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block and work type (till/plant/water/harvest-detect) within WorkConfig.FieldRadius/FieldMaxHeight in serpentine order and writes both to BudComponent - this WorkTarget Sensor only reads the position back, no scanning/range here. Seeks toward it every tick; FarmWorkAction's own canExecute re-checks interaction distance and the field radius, then branches on the assigned work type internally, so approaching and working share one Instruction. No Timeout wrapper, no second Action - see docs/bud-worker-mode-plan.md, 'Phase 5 — Drei tragende Regeln für Phase 6-10'. ---",
               "Sensor": {
                 "Type": "And",
                 "Sensors": [
@@ -1193,7 +1187,7 @@
               "ActionsBlocking": true,
               "Actions": [
                 {
-                  "Type": "TillSoil"
+                  "Type": "FarmWork"
                 }
               ]
             },

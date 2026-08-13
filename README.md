@@ -216,6 +216,10 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `FieldMaxHeight` | Maximum vertical distance (blocks) from the Workstation a tillable block may be at | `3` |
 | `TargetTimeoutSeconds` | How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another | `8` |
 | `TillIntervalSeconds` | Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one | `1` |
+| `PlantIntervalSeconds` | Pacing: how long a working Bud waits after planting a seed before the Workstation releases the next one | `1` |
+| `WaterIntervalSeconds` | Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one | `1` |
+| `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered | `600` |
+| `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (Phase 9, not yet implemented) | `3` |
 | `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (Phase 10, not yet implemented) | `2` |
 | `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |
@@ -269,6 +273,9 @@ Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/
 `buds/roster.yml` lists `defaultBuds` (at most 3) — the Buds `/bud create` spawns when called without an id. Buds that exist but aren't in the roster are still summonable individually via `/bud create <id>`.
 
 Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
+
+### 🌾 Farming Recipes (`work/farming.yml`)
+Which seeds a working Bud is willing to plant is data-driven too, per `WorkRole` (so a future Foresting/Alchemy station gets its own list without touching Farming's). `work/farming.yml` in the mod's runtime data folder has an `allowedSeeds` map keyed by role name (currently just `FARMING`) listing allowed seed item ids (`Plant_Seeds_*`) — edit the list to add/remove crops without a rebuild. Same copy-on-first-start convention as `buds/`/`prompts/`: the packaged default is only written if the file is missing, custom edits are left untouched.
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.

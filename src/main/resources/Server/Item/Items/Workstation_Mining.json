@@ -1,9 +1,9 @@
 {
   "TranslationProperties": {
-    "Name": "Farming Workstation",
-    "Description": "A workstation where a Bud with the Farming role can be put to work."
+    "Name": "Mining Workstation",
+    "Description": "A workstation where a Bud with the Mining role can be put to work."
   },
-  "Icon": "Icons/ItemsGenerated/icon_farming.png",
+  "Icon": "Icons/ItemsGenerated/icon_mining.png",
   "Categories": [
     "Furniture.Benches"
   ],
@@ -20,7 +20,7 @@
     ],
     "Output": [
       {
-        "ItemId": "Workstation_Farming"
+        "ItemId": "Workstation_Mining"
       }
     ],
     "BenchRequirement": [
@@ -38,10 +38,10 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Items/workbench-farming.blockymodel",
+    "CustomModel": "Items/workbench-mining.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Items/workbench-farming.png",
+        "Texture": "Items/workbench-mining.png",
         "Weight": 1
       }
     ],
@@ -49,7 +49,7 @@
     "Bench": {
       "Type": "Processing",
       "AllowNoInputProcessing": true,
-      "Id": "WorkstationFarming",
+      "Id": "WorkstationMining",
       "Input": [
         {},
         {}
@@ -70,15 +70,6 @@
           "Light": {
             "Color": "#B72"
           }
-        }
-      }
-    },
-    "BlockEntity": {
-      "Components": {
-        "BenchBlock": {},
-        "ProcessingBenchBlock": {},
-        "WorkstationBlockEntity": {
-          "WorkRole": "Farming"
         }
       }
     },
