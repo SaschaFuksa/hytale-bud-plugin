@@ -3,7 +3,7 @@
     "Name": "Farming Workstation",
     "Description": "A workstation where a Bud with the Farming role can be put to work."
   },
-  "Icon": "Icons/ItemsGenerated/Bench_Furnace.png",
+  "Icon": "Icons/ItemsGenerated/Workstation_Farming.png",
   "Categories": [
     "Furniture.Benches"
   ],
@@ -106,15 +106,15 @@
   },
   "PlayerAnimationsId": "Block",
   "IconProperties": {
-    "Scale": 0.365,
+    "Scale": 0.4,
     "Rotation": [
       22.5,
       45,
       22.5
     ],
     "Translation": [
-      12,
-      -17.4
+      14,
+      -18
     ]
   },
   "Tags": {
