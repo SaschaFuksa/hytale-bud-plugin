@@ -719,6 +719,41 @@ Sauberer, eigenständig begründeter Ansatz statt Nachbau der ungeklärten nativ
 
 `.\gradlew build` grün, kein neues Diagnose-Logging nötig (Ursache bereits über die Kombination aus Sascha's Beobachtung + `javap`-Vergleich zur Vorversion eingegrenzt, kein Raten).
 
+## Till-Animation unsichtbar (auch nach Java-Umzug) — Ursache im Modell-Asset gefunden
+
+**Befund:** alles funktioniert (Tillen, Reihenfolge, Tempo, Hacke, Gras verschwindet) - nur die Animation bleibt unsichtbar, auch nach zwei Namens-/Slot-Varianten (`Action`/`Swing_Right`, dann `Status`/`Interact`, beide an belegten Vorbildern orientiert).
+
+### 1) Temporäres Logging in `TillSoilAction.playTillAnimation` (noch drin, bis Sascha bestätigt)
+
+Loggt: Methode erreicht, `NPCEntity`-Component vorhanden, aufgelöstes `Model` (`getModelAssetId()`), ob `TILL_ANIMATION` in `model.getAnimationSetMap().keySet()` enthalten ist (plus die volle verfügbare Liste), `ActiveAnimationComponent` vorhanden, aktuell in dem Slot gespeicherte Animation (relevant wegen der unten dokumentierten "gleiche Animation im selben Nicht-Action-Slot wird nicht neu getriggert"-Regel), und die `playAnimation`-Aufrufparameter.
+
+### 2) `NPCEntity.playAnimation` per `javap -p -c` vollständig durchverfolgt — Modellauflösung bestätigt der Verdacht
+
+- Validiert den Animationsnamen gegen `ModelComponent.getModel().getAnimationSetMap()` **nur wenn `slot != Action`** - bei `Slot: Action` (Saschas erster Versuch) wird diese Prüfung komplett übersprungen, keine Log-Zeile zu erwarten, unabhängig davon ob der Name gültig ist.
+- Fehlt die `ActiveAnimationComponent` auf der Entity, loggt die Engine selbst `"Missing active animation component for entity: %s"` (WARNING) und bricht ab, ohne zu spielen.
+- Für einen Nicht-`Action`-Slot (Saschas zweiter Versuch, `Status`): wenn im Slot bereits **dieselbe** Animation als aktiv vermerkt ist, wird der eigentliche Abspiel-Aufruf (`AnimationUtils.playAnimation`) übersprungen - nur `Action` triggert immer neu.
+- **Modellauflösung, die eigentliche Ursache:** `ModelComponent.getModel()` liefert das über `"Model"` referenzierte Mesh, aber die **Animationsliste kommt aus einem komplett getrennten Feld, `AnimationSets`, im Modell-Asset selbst (`Server/Models/*.json`)** - nicht automatisch aus dem `.blockymodel`-Ordner abgeleitet, den `"Model"` referenziert. Unser `Server/Models/Keyleth_Bud.json` hat `"Parent": "Player"` und `"Model": ".../Kweebec_Sapling/Models/Model.blockymodel"`, aber **kein eigenes `"AnimationSets"`-Feld** - die tatsächlich aufgelöste Animationsliste ist also die von `Player` geerbte (bestätigt z. B. durch das bereits funktionierende `.Spin`/`IdlePassive`, das **nur** in `Player.json` definiert ist, nicht in `Kweebec_Sapling.json`). `Player.json` kennt weder `"Swing_Right"` noch `"Interact"` - **beide Versuche liefen also gegen eine Animationsliste, die diese Namen strukturell nie enthalten konnte**, unabhängig vom Slot.
+
+### 3) Welche Animationen sind für unser Modell tatsächlich registriert — und Fix
+
+`Kweebec_Sapling.json` (`Server/Models/Intelligent/Kweebec/Kweebec_Sapling.json`, dasselbe Mesh, eigenständiges Modell-Asset mit eigenem `"AnimationSets"`) deklariert `"Interact"` explizit: `{"Animations": [{"Animation": "NPC/Intelligent/Kweebec_Sapling/Animations/Flavor/Interact.blockyanim", "Looping": false}]}`. Diese Datei zeigt, welche Namen für das Kweebec-Rig tatsächlich funktionieren (`reference/assets/Common/NPC/Intelligent/Kweebec_Sapling/Animations/*.blockyanim` listet die rohen Clip-Dateien, aber erst der Eintrag in `AnimationSets` macht einen Namen für `playAnimation` auflösbar).
+
+**Vor dem Fix geklärt, nicht angenommen:** ob ein eigenes, partielles `"AnimationSets"` in `Keyleth_Bud.json` das von `Player` geerbte Set (Walk/Run/Idle/... - für die Basisbewegung nötig) überschreiben oder nur ergänzen würde. Per `javap -p -c` gegen `ModelAsset` (`AssetBuilderCodec$Builder.appendInherited(...)`, der Setter-Lambda für das Feld `AnimationSets`) bestätigt: der Setter ruft `MapUtil.combineUnmodifiable(this.animationSetMap, value)` auf, **nachdem** das Feld bereits durch den separaten Parent-Inherit-Callback (`child.animationSetMap = parent.animationSetMap`) vorbefüllt wurde - ein echter Key-für-Key-Merge, keine vollständige Ersetzung. Ein eigenes, minimales `"AnimationSets"` in `Keyleth_Bud.json` ist damit gefahrlos, ohne die geerbten Player-Animationen zu verlieren.
+
+**Fix:** `Server/Models/Keyleth_Bud.json` um
+```json
+"AnimationSets": {
+  "Interact": {
+    "Animations": [
+      {"Animation": "NPC/Intelligent/Kweebec_Sapling/Animations/Flavor/Interact.blockyanim", "Looping": false}
+    ]
+  }
+}
+```
+ergänzt - identischer Eintrag wie in `Kweebec_Sapling.json`, da dasselbe Rig. `TillSoilAction` bleibt bei `Slot: Status` / `Animation: "Interact"` (Saschas letzter Stand, unverändert) - jetzt sollte die Auflösung tatsächlich greifen.
+
+**Diagnose-Logging bleibt für diese Testrunde drin** (Punkt 1) als zusätzliche Bestätigung - danach vollständig entfernen.
+
 ## LLM-Reaktionen (bewusst zurückgestellt)
 
 Für v1 komplett weggelassen — erst reiner Arbeits-Loop, dann später:

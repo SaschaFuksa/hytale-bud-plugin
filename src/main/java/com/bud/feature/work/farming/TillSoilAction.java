@@ -1,6 +1,7 @@
 package com.bud.feature.work.farming;
 
 import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -9,10 +10,15 @@ import org.joml.Vector3d;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.model.config.Model;
+import com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -91,16 +97,49 @@ public class TillSoilAction extends ActionBase {
     }
 
     private static void playTillAnimation(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: reached=true");
         ComponentType<EntityStore, NPCEntity> npcType = NPCEntity.getComponentType();
         if (npcType == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: NPCEntity component type is null");
             return;
         }
         NPCEntity npc = store.getComponent(ref, npcType);
         if (npc == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: NPCEntity component is null");
             return;
         }
-        npc.playAnimation(ref, Objects.requireNonNull(NPCAnimationSlot.Status.getMappedSlot()), TILL_ANIMATION,
-                store);
+
+        ComponentType<EntityStore, ModelComponent> modelType = ModelComponent.getComponentType();
+        ModelComponent modelComponent = modelType != null ? store.getComponent(ref, modelType) : null;
+        Model model = modelComponent != null ? modelComponent.getModel() : null;
+        if (model != null) {
+            Set<String> availableAnimations = model.getAnimationSetMap().keySet();
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: model="
+                    + model.getModelAssetId() + " hasAnimation(" + TILL_ANIMATION + ")="
+                    + availableAnimations.contains(TILL_ANIMATION) + " availableAnimations=" + availableAnimations);
+        } else {
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: ModelComponent/Model is null "
+                    + "(modelComponent=" + (modelComponent != null) + ")");
+        }
+
+        AnimationSlot mappedSlot = NPCAnimationSlot.Status.getMappedSlot();
+        ComponentType<EntityStore, ActiveAnimationComponent> activeAnimType = ActiveAnimationComponent
+                .getComponentType();
+        ActiveAnimationComponent activeAnimationComponent = activeAnimType != null
+                ? store.getComponent(ref, activeAnimType)
+                : null;
+        if (activeAnimationComponent == null) {
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: ActiveAnimationComponent is "
+                    + "null - native playAnimation logs its own warning and returns without playing anything");
+        } else if (mappedSlot != null) {
+            String currentlyPlaying = activeAnimationComponent.getActiveAnimations()[mappedSlot.ordinal()];
+            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: slot=" + mappedSlot
+                    + " animation=" + TILL_ANIMATION + " currentlyPlayingInSlot=" + currentlyPlaying
+                    + " (native playAnimation no-ops for non-Action slots if this already equals the new animation)");
+        }
+
+        npc.playAnimation(ref, Objects.requireNonNull(mappedSlot), TILL_ANIMATION, store);
+        LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] playTillAnimation: playAnimation call completed");
     }
 
     /**

@@ -399,7 +399,19 @@ Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Regression nach der 
 - [x] Fix (Sascha-Vorgabe): Animation direkt aus `TillSoilAction.execute()` per `NPCEntity.playAnimation(Ref, AnimationSlot, String, ComponentAccessor)` (Signatur per `javap` bestätigt) statt zweiter JSON-Action — komplett außerhalb jeder `ActionList`-Sequenzierung. `Template_Keyleth_Bud.json`s Till-Loop hat wieder nur `{"Type": "TillSoil"}` in `Actions`, exakt die zuvor bestätigt funktionierende Struktur.
 - [x] Kein neues Diagnose-Logging nötig — Ursache über Saschas Beobachtung + Bytecode-Vergleich zur Vorversion eingegrenzt.
 - [x] Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
-- [ ] **Ausstehend (Sascha):** Ingame-Test — tillt Keyleth wieder, inkl. sichtbarer Animation? Danach die restliche Abrundung bestätigen: geordnete Bearbeitung (kein Zickzack), Arbeitstempo (~1s zwischen Blöcken), Hacke weg im Ruhezustand, Gras/Bewuchs verschwindet mit dem Boden.
+- [x] **Bestätigt (Sascha):** Tillen, Reihenfolge, Tempo, Hacke, Gras — alles funktioniert. Nur die Animation blieb unsichtbar, auch nach zwei Namens-/Slot-Varianten (`Action`/`Swing_Right`, `Status`/`Interact`).
+
+### Till-Animation unsichtbar — Ursache im Modell-Asset gefunden (behoben)
+
+Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Till-Animation unsichtbar (auch nach Java-Umzug)".
+
+- [x] Temporäres Logging in `TillSoilAction.playTillAnimation` ergänzt: Methode erreicht, `NPCEntity`/`ModelComponent`/`ActiveAnimationComponent` vorhanden, aufgelöstes Modell + verfügbare Animationsliste, aktuell im Slot gespeicherte Animation, Aufrufparameter — noch drin, bis Sascha bestätigt.
+- [x] `NPCEntity.playAnimation` per `javap -p -c` vollständig durchverfolgt: Modell-Validierung wird bei `Slot: Action` übersprungen (erklärt Saschas ersten Versuch), fehlende `ActiveAnimationComponent` würde eigene Engine-Warnung loggen, Nicht-`Action`-Slots triggern dieselbe Animation nicht neu.
+- [x] **Ursache gefunden:** die Animationsliste kommt aus dem `AnimationSets`-Feld im Modell-Asset selbst (`Server/Models/*.json`), nicht automatisch aus dem per `"Model"` referenzierten `.blockymodel`-Ordner. `Keyleth_Bud.json` hat `"Parent": "Player"`, aber kein eigenes `AnimationSets` — die tatsächlich aufgelöste Liste ist die von `Player` geerbte, die weder `Swing_Right` noch `Interact` kennt (bestätigt u. a. durch das bereits funktionierende `.Spin`/`IdlePassive`, das nur in `Player.json` existiert).
+- [x] Vor dem Fix geklärt statt angenommen: `ModelAsset`s `AnimationSets`-Setter per `javap` geprüft — `MapUtil.combineUnmodifiable(inheritedMap, ownMap)`, echter Merge, keine Ersetzung. Ein eigenes, partielles `AnimationSets` ist damit gefahrlos (Player-Animationen wie Walk/Run/Idle bleiben erhalten).
+- [x] Fix: `Server/Models/Keyleth_Bud.json` um `"AnimationSets": {"Interact": {...}}` ergänzt — identischer Eintrag wie in `Kweebec_Sapling.json` (dasselbe Rig). `TillSoilAction` bleibt bei `Slot: Status`/`Interact` (Saschas letzter Stand).
+- [x] Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
+- [ ] **Ausstehend (Sascha):** Ingame-Test — Animation jetzt sichtbar? Danach Diagnose-Logging vollständig entfernen und Phase 5 endgültig abhaken.
 
 **Phase 5 damit funktional abgeschlossen. Keine Phase 6 ohne Rücksprache — Ingame-Test steht noch aus.**
 
