@@ -215,6 +215,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `FieldRadius` | Horizontal radius (blocks) around a bound Workstation within which a working Bud may till soil | `5` |
 | `FieldMaxHeight` | Maximum vertical distance (blocks) from the Workstation a tillable block may be at | `3` |
 | `TargetTimeoutSeconds` | How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another | `8` |
+| `TillIntervalSeconds` | Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one | `1` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (Phase 9, not yet implemented) | `3` |
 | `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (Phase 10, not yet implemented) | `2` |
 | `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |

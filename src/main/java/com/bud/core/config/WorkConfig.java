@@ -11,6 +11,7 @@ public class WorkConfig {
     private int fieldRadius = 5;
     private int fieldMaxHeight = 3;
     private int targetTimeoutSeconds = 8;
+    private int tillIntervalSeconds = 1;
     private int treeMinDistance = 3;
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
@@ -42,6 +43,10 @@ public class WorkConfig {
         return this.targetTimeoutSeconds;
     }
 
+    public int getTillIntervalSeconds() {
+        return this.tillIntervalSeconds;
+    }
+
     public int getTreeMinDistance() {
         return this.treeMinDistance;
     }
@@ -71,6 +76,10 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("TargetTimeoutSeconds", Codec.INTEGER),
                         (config, value) -> config.targetTimeoutSeconds = value,
                         config -> config.targetTimeoutSeconds)
+                .add()
+                .append(new KeyedCodec<>("TillIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.tillIntervalSeconds = value,
+                        config -> config.tillIntervalSeconds)
                 .add()
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,

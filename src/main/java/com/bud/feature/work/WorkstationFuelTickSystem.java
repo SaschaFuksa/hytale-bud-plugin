@@ -1,6 +1,5 @@
 package com.bud.feature.work;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -32,10 +31,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     private static final short CARD_SLOT = 0;
     private static final short FEED_SLOT = 0;
 
-    private static boolean shouldLogDebug() {
-        return true;
-    }
-
     @Nonnull
     @Override
     public Query<ChunkStore> getQuery() {
@@ -47,7 +42,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<ChunkStore> archetypeChunk,
             @Nonnull Store<ChunkStore> store, @Nonnull CommandBuffer<ChunkStore> commandBuffer) {
-        LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] WorkstationFuelTickSystem.tick: entered");
         WorkstationBlockEntity workstation = archetypeChunk.getComponent(index,
                 WorkstationBlockEntity.getComponentType());
         if (workstation == null) {
@@ -61,13 +55,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
 
         BudComponent boundBud = workstation.getBoundBud();
-        boolean debug = shouldLogDebug();
-        if (debug) {
-            boolean isActive = processingBenchBlock.isActive();
-            boolean isResting = workstation.isResting();
-            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] tick: ticking=true boundBud="
-                    + (boundBud != null) + " isResting=" + isResting + " isActive(TURN-ON)=" + isActive);
-        }
         if (boundBud == null) {
             tryRebind(store, archetypeChunk, index, workstation, processingBenchBlock, dt);
             return;
@@ -86,7 +73,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
 
         try {
-            updateWorkTarget(workstation, boundBud, dt, store.getExternalData().getWorld(), debug);
+            updateWorkTarget(workstation, boundBud, dt, store.getExternalData().getWorld());
         } catch (RuntimeException e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Failed to update work target for Workstation - "
                     + "skipping this tick: " + e);
@@ -156,12 +143,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             "Soil_Mud", "Soil_Mud_Dry", "Soil_Needles", "Soil_Pathway");
 
     private static void updateWorkTarget(@Nonnull WorkstationBlockEntity workstation, @Nonnull BudComponent boundBud,
-            float dt, @Nonnull World world, boolean debug) {
+            float dt, @Nonnull World world) {
         Vector3d anchor = boundBud.getWorkstationAnchor();
-        if (debug) {
-            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] updateWorkTarget: called anchor=" + anchor
-                    + " currentTarget=" + boundBud.getWorkTarget());
-        }
         if (anchor == null) {
             return;
         }
@@ -177,11 +160,16 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             boundBud.setWorkTarget(null);
         }
 
-        Vector3d candidate = findNearestTillableBlock(world, anchor, workstation, debug);
-        if (debug) {
-            LoggerUtil.getLogger()
-                    .warning(() -> "[BUD-TEMP-DEBUG] updateWorkTarget: scan result candidate=" + candidate);
+        // Pacing (Sascha, Phase-5-Abrundung): the station itself gates how soon the next block is released,
+        // giving room for the till animation instead of tilling as fast as the world ticks. See
+        // docs/bud-worker-mode-plan.md.
+        float tillCooldown = boundBud.getTillCooldownSecondsRemaining();
+        if (tillCooldown > 0) {
+            boundBud.setTillCooldownSecondsRemaining(Math.max(0f, tillCooldown - dt));
+            return;
         }
+
+        Vector3d candidate = findNextTillableBlock(world, anchor, workstation);
         boundBud.setWorkTarget(candidate);
         workstation.setTargetElapsedSeconds(0f);
     }
@@ -200,9 +188,18 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above.getMaterial() == BlockMaterial.Empty;
     }
 
+    /**
+     * Sweeps the field in a fixed boustrophedon (serpentine) order - row by row outward from the anchor,
+     * alternating direction each row, no jump back to the row start - instead of picking whichever candidate
+     * happens to be nearest each time. Nearest-candidate picking made the Bud zigzag across the field
+     * (Sascha); this order is a pure function of (anchor, radius, maxHeight, recently-failed positions), so
+     * it stays stable across ticks without any persisted scan cursor - blocks already tilled simply drop out
+     * of {@link #isTillable}, letting the sweep progress row by row on its own. See
+     * docs/bud-worker-mode-plan.md, "Geordnete Feldbearbeitung".
+     */
     @Nullable
-    private static Vector3d findNearestTillableBlock(@Nonnull World world, @Nonnull Vector3d anchor,
-            @Nonnull WorkstationBlockEntity workstation, boolean debug) {
+    private static Vector3d findNextTillableBlock(@Nonnull World world, @Nonnull Vector3d anchor,
+            @Nonnull WorkstationBlockEntity workstation) {
         int radius = WorkConfig.getInstance().getFieldRadius();
         int maxHeight = WorkConfig.getInstance().getFieldMaxHeight();
         int anchorX = (int) Math.floor(anchor.x);
@@ -210,13 +207,12 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         int anchorZ = (int) Math.floor(anchor.z);
         long radiusSquared = (long) radius * radius;
 
-        int positionsChecked = 0;
-        Set<String> sampledBlockTypeNames = debug ? new LinkedHashSet<>() : null;
-
-        Vector3i bestPosition = null;
-        long bestDistanceSquared = Long.MAX_VALUE;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
+        for (int dz = -radius; dz <= radius; dz++) {
+            boolean rowForward = (dz + radius) % 2 == 0;
+            int dxStart = rowForward ? -radius : radius;
+            int dxEnd = rowForward ? radius : -radius;
+            int dxStep = rowForward ? 1 : -1;
+            for (int dx = dxStart; rowForward ? dx <= dxEnd : dx >= dxEnd; dx += dxStep) {
                 long horizontalDistanceSquared = (long) dx * dx + (long) dz * dz;
                 if (horizontalDistanceSquared > radiusSquared) {
                     continue;
@@ -226,33 +222,18 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     if (workstation.isRecentlyFailedTarget(position)) {
                         continue;
                     }
-                    positionsChecked++;
                     BlockType blockType = getBlockType(world, position.x, position.y, position.z);
-                    if (sampledBlockTypeNames != null && sampledBlockTypeNames.size() < 15) {
-                        sampledBlockTypeNames.add(blockType != null ? blockType.getId() : "null");
-                    }
                     if (!isTillable(blockType)) {
                         continue;
                     }
                     if (!hasFreeTopFace(world, position.x, position.y, position.z)) {
                         continue;
                     }
-                    if (horizontalDistanceSquared < bestDistanceSquared) {
-                        bestDistanceSquared = horizontalDistanceSquared;
-                        bestPosition = position;
-                    }
+                    return new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5);
                 }
             }
         }
-        if (debug) {
-            int finalPositionsChecked = positionsChecked;
-            LoggerUtil.getLogger().warning(() -> "[BUD-TEMP-DEBUG] findNearestTillableBlock: anchor=(" + anchorX
-                    + "," + anchorY + "," + anchorZ + ") radius=" + radius + " maxHeight=" + maxHeight
-                    + " positionsChecked=" + finalPositionsChecked + " sampledBlockTypeNames=" + sampledBlockTypeNames);
-        }
-        return bestPosition != null
-                ? new Vector3d(bestPosition.x + 0.5, bestPosition.y + 0.5, bestPosition.z + 0.5)
-                : null;
+        return null;
     }
 
     private static boolean isEmpty(@Nullable ItemStack itemStack) {

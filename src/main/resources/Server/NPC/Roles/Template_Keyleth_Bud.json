@@ -1120,7 +1120,7 @@
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: sitting pose. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Till-Loop reorder below. ---",
+              "$Comment": "--- .Resting: sitting pose, hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Till-Loop reorder below. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Resting"
@@ -1134,6 +1134,11 @@
                   "Crouch": true
                 },
                 {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
                   "$Comment": "Self-referential no-op setter, required by engine validation. Never opens a transition into .Resting from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": ".Resting"
@@ -1141,7 +1146,7 @@
               ]
             },
             {
-              "$Comment": "--- .Default bookkeeping: Crouch:false + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Till-Loop below sets. ---",
+              "$Comment": "--- .Default bookkeeping: Crouch:false + hoe equipped + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Till-Loop below sets. Re-equipping every tick is a harmless no-op, same as the Crouch/State self-setters below. ---",
               "Continue": true,
               "Sensor": {
                 "Type": "State",
@@ -1153,6 +1158,12 @@
                   "Crouch": false
                 },
                 {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "Equip",
+                  "Item": "Tool_Hoe_Crude"
+                },
+                {
                   "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": "Working"
@@ -1160,7 +1171,7 @@
               ]
             },
             {
-              "$Comment": "--- Till-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block within WorkConfig.FieldRadius and writes it to BudComponent.workTarget - this WorkTarget Sensor only reads it back, no scanning/range here. Seeks toward it every tick; TillSoilAction's own canExecute re-checks interaction distance and the field radius before actually tilling, so approaching and tilling share one Instruction. TEMP DIAGNOSIS (Sascha): Timeout wrapper removed - javap against ActionTimeout/ActionWithDelay showed execute() only fires once its own internal delay countdown (driven externally via EntitySupport.registerDelay/processDelay) completes, independent of the inner Action's canExecute - this is the suspected reason TillSoilAction.canExecute kept returning true every tick without a single execute(). Bare TillSoil here isolates whether the wrapper or the Action itself was the blocker. ---",
+              "$Comment": "--- Till-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block within WorkConfig.FieldRadius/FieldMaxHeight in serpentine order and writes it to BudComponent.workTarget - this WorkTarget Sensor only reads it back, no scanning/range here. Seeks toward it every tick; TillSoilAction's own canExecute re-checks interaction distance and the field radius before actually tilling, so approaching and tilling share one Instruction. No Timeout wrapper - see docs/bud-worker-mode-plan.md for why. TillSoilAction plays its own swing animation directly rather than a second Action here - see docs/bud-worker-mode-plan.md, 'Animation direkt aus Java statt zweiter Action'. ---",
               "Sensor": {
                 "Type": "And",
                 "Sensors": [

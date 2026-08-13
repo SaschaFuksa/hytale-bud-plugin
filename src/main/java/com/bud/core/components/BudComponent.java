@@ -37,6 +37,8 @@ public class BudComponent implements Component<EntityStore> {
     @Nullable
     private Vector3d workTarget;
 
+    private float tillCooldownSecondsRemaining;
+
     public BudComponent() {
     }
 
@@ -127,6 +129,14 @@ public class BudComponent implements Component<EntityStore> {
 
     public void setWorkTarget(@Nullable Vector3d workTarget) {
         this.workTarget = workTarget;
+    }
+
+    public float getTillCooldownSecondsRemaining() {
+        return tillCooldownSecondsRemaining;
+    }
+
+    public void setTillCooldownSecondsRemaining(float tillCooldownSecondsRemaining) {
+        this.tillCooldownSecondsRemaining = tillCooldownSecondsRemaining;
     }
 
     @Override

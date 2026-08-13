@@ -375,8 +375,33 @@ Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Diagnoselauf eindeut
 - [x] `ActionSequence` (Gardener-Vergleich) per `javap` geprüft: delegiert 1:1 an ihre eigene `ActionList`, keine strukturelle Sonderbehandlung gegenüber einer nackten Action — erklärt laut Bytecode keinen Unterschied, warum der Gardener funktioniert.
 - [x] Gegentest umgesetzt: `Timeout`-Wrapper in `Template_Keyleth_Bud.json`s Till-Loop entfernt, `{"Type": "TillSoil"}` direkt in `Actions`. Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
 - [x] Nebenbefund (Ziel 1,5 Blöcke unter Anker) geprüft: plausibel — Höhenlimit (`FieldMaxHeight=3`) greift korrekt, Oberflächenfilter prüft lokal unabhängig vom Höhenunterschied, kein Logikfehler identifiziert, aber ohne visuelle in-game-Kontrolle nicht 100% von echtem Geländeversatz zu unterscheiden.
-- [x] Diagnose-Logging bleibt drin, bis `execute()` nachweislich läuft.
-- [ ] **Ausstehend (Sascha):** Server neu starten, testen ob Keyleth jetzt tillt (Gegentest ohne Timeout). Wenn ja: Wrapper bestätigt als Ursache, Ersatz für die kosmetische Pause überlegen. Wenn nein: weiter tiefer im Action-Lebenszyklus suchen. `[BUD-TEMP-DEBUG]`-Zeilen weiter mitliefern.
+- [x] **Bestätigt (Sascha):** Gegentest erfolgreich — Keyleth tillt nachweislich Feld für Feld, `ActionTimeout`-Wrapper zweifelsfrei als Ursache bestätigt.
+
+### Phase 5 Abrundung: geordnete Feldbearbeitung, Arbeitstempo, Werkzeug/Animation, Bewuchs (behoben)
+
+Details/Begründung in `docs/bud-worker-mode-plan.md`, "Phase 5 abgeschlossen: Abrundung".
+
+- [x] Diagnose-Logging (`[BUD-TEMP-DEBUG]`) vollständig entfernt aus `WorkstationFuelTickSystem`, `WorkTargetSensor`, `TillSoilAction`.
+- [x] `ActionTimeout`-Befund im Plan-Doc als bestätigte Ursache festgehalten, inkl. Warnung: nicht wieder als Taktgeber verwenden (auch nicht mit `Sequence`), solange die `processDelay`-Kette bei uns ungeklärt bleibt.
+- [x] Geordnete Feldbearbeitung: `findNearestTillableBlock` → `findNextTillableBlock`, Boustrophedon/Serpentine statt nächstgelegener Kandidat — deterministisch, kein eigener Scan-Cursor nötig (bereits getillte Blöcke fallen selbst aus `isTillable` heraus).
+- [x] `WorkConfig.TillIntervalSeconds` (Default `1`) — Arbeitstempo jetzt in Java (`TillSoilAction`/`WorkstationFuelTickSystem`/`BudComponent.tillCooldownSecondsRemaining`), kein `ActionTimeout` mehr im Spiel.
+- [x] Werkzeug: `Tool_Hoe_Crude` equippen in `.Default` (jeden Tick, No-op-Muster), `ClearHeldItem` in `.Resting`. Item-Id aus `reference/assets` verifiziert. Animation ursprünglich als zweite `PlayAnimation`-Action vor `TillSoil` geplant — siehe Regression unten, jetzt direkt aus Java.
+- [x] Bewuchs über getilltem Block: `Hoe_Till.json` geprüft (reines `ChangeBlock`, keine explizite Räumung), native Support-Mechanik (`Plant_Grass_Lush.json`) geprüft, aber `Soil_Dirt_Tilled` behält `Type=Soil` — erklärt das native Verhalten nicht vollständig. Eigener, begründeter Ansatz: `TillSoilAction.execute()` räumt den Block über dem Ziel, falls er nicht `BlockType.EMPTY` ist (deckt sich mit der bereits von `hasFreeTopFace` verlangten Durchlässigkeit an der Zielauswahl selbst, keine blinde Räumung).
+- [x] Nebenbefund `InventorySize` (Gardener: 36) für Phase 7 im Plan-Doc vermerkt.
+- [x] Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün nach jedem Punkt.
+- [x] **Regression gemeldet (Sascha):** mit der zweiten `PlayAnimation`-Action in der `ActionsBlocking`-Liste tillte Keyleth gar nicht mehr, keine Animation sichtbar — siehe nächster Abschnitt.
+
+### Regression: zwei-Actions-Liste stoppte das Tillen komplett (behoben)
+
+Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Regression nach der Abrundung: Tillen komplett gestoppt".
+
+- [x] Verdacht (gleiche Fehlerklasse wie `ActionTimeout`) per `javap -p -c` gegen `ActionPlayAnimation` geprüft: kein `canExecute`-Override, kein `startDelay`/`registerDelay` — ein einziger synchroner `execute()`-Aufruf, kein Delay-Mechanismus wie bei `ActionTimeout`. Exakte Fehlerklasse bytecode-seitig nicht bestätigt, aber Saschas Beobachtung ("steht vor dem Grasblock") belegt: Zielsuche/Cooldown/Seek funktionieren, der Fehler sitzt ausschließlich im zweiten `Actions`-Eintrag.
+- [x] Fix (Sascha-Vorgabe): Animation direkt aus `TillSoilAction.execute()` per `NPCEntity.playAnimation(Ref, AnimationSlot, String, ComponentAccessor)` (Signatur per `javap` bestätigt) statt zweiter JSON-Action — komplett außerhalb jeder `ActionList`-Sequenzierung. `Template_Keyleth_Bud.json`s Till-Loop hat wieder nur `{"Type": "TillSoil"}` in `Actions`, exakt die zuvor bestätigt funktionierende Struktur.
+- [x] Kein neues Diagnose-Logging nötig — Ursache über Saschas Beobachtung + Bytecode-Vergleich zur Vorversion eingegrenzt.
+- [x] Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
+- [ ] **Ausstehend (Sascha):** Ingame-Test — tillt Keyleth wieder, inkl. sichtbarer Animation? Danach die restliche Abrundung bestätigen: geordnete Bearbeitung (kein Zickzack), Arbeitstempo (~1s zwischen Blöcken), Hacke weg im Ruhezustand, Gras/Bewuchs verschwindet mit dem Boden.
+
+**Phase 5 damit funktional abgeschlossen. Keine Phase 6 ohne Rücksprache — Ingame-Test steht noch aus.**
 
 ### Korrektur nach Phase 5: Farming-Instructions gehören nur zu Keyleth (behoben)
 
