@@ -1,6 +1,9 @@
 package com.bud.core.components;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.joml.Vector3d;
 
 import com.bud.core.types.BudState;
 import com.bud.core.types.Mood;
@@ -27,6 +30,12 @@ public class BudComponent implements Component<EntityStore> {
     private NPCEntity bud;
 
     private PlayerRef playerRef;
+
+    @Nullable
+    private Vector3d workstationAnchor;
+
+    @Nullable
+    private Vector3d workTarget;
 
     public BudComponent() {
     }
@@ -100,6 +109,24 @@ public class BudComponent implements Component<EntityStore> {
 
     public Mood getCurrentMood() {
         return currentMood;
+    }
+
+    @Nullable
+    public Vector3d getWorkstationAnchor() {
+        return workstationAnchor;
+    }
+
+    public void setWorkstationAnchor(@Nullable Vector3d workstationAnchor) {
+        this.workstationAnchor = workstationAnchor;
+    }
+
+    @Nullable
+    public Vector3d getWorkTarget() {
+        return workTarget;
+    }
+
+    public void setWorkTarget(@Nullable Vector3d workTarget) {
+        this.workTarget = workTarget;
     }
 
     @Override

@@ -11,11 +11,8 @@ public class DebugConfig {
     private boolean enablePlayerInfo = false;
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
-    private String logLevel = "INFO"; // java.util.logging.Level name, e.g. ALL/FINE/INFO/WARNING
+    private String logLevel = "INFO";
     private boolean autoUpdateContentOnVersionMismatch = true;
-    // Gates `/bud state --working` (see StateCommand) - a debug-only path that sets WORKING without a
-    // Workstation. Now that Workstation binding (Phase 4) is the real trigger, this must stay off by
-    // default so WORKING isn't a normal, always-available player command.
     private boolean enableWorkingStateDebugCommand = false;
 
     private static volatile DebugConfig instance;

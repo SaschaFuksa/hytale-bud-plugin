@@ -120,9 +120,6 @@ public class BudManager {
         return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
-    // Buds currently working never author combat/ambient/etc. reactions - see
-    // docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock". Every reaction-trigger filter system
-    // picks its speaking Bud through this or getRandomOtherBud, so gating here covers all of them at once.
     private static boolean isEligibleForReaction(@Nullable BudComponent candidate) {
         return candidate != null && candidate.getCurrentState() != BudState.WORKING;
     }
@@ -222,10 +219,14 @@ public class BudManager {
     }
 
     /**
-     * Searches for a free position at {@code distance} blocks along {@code forward} from {@code basePos},
-     * fanning laterally along {@code right} (see {@link #getSpawnPositionInFrontOfPlayer}) if the preferred
-     * spot is blocked. Generic over any base position/facing, not just a player's - reused as-is for
-     * Workstation Bud spawn placement (see {@code WorkstationBindingHandler}, docs/bud-worker-mode-plan.md,
+     * Searches for a free position at {@code distance} blocks along {@code forward}
+     * from {@code basePos},
+     * fanning laterally along {@code right} (see
+     * {@link #getSpawnPositionInFrontOfPlayer}) if the preferred
+     * spot is blocked. Generic over any base position/facing, not just a player's -
+     * reused as-is for
+     * Workstation Bud spawn placement (see {@code WorkstationBindingHandler},
+     * docs/bud-worker-mode-plan.md,
      * "Spawn-Position vor der Station") instead of duplicating this search.
      */
     @Nullable
@@ -305,7 +306,8 @@ public class BudManager {
     }
 
     @Nonnull
-    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef, @Nonnull Set<Vector3d> reservedPositions) {
+    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef,
+            @Nonnull Set<Vector3d> reservedPositions) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -325,7 +327,7 @@ public class BudManager {
         return new Vector3d(targetPos.x, targetPos.y + 0.5, targetPos.z);
     }
 
-    private static boolean isSpawnPositionFree(@Nonnull World world, double x, double y, double z) {
+    public static boolean isSpawnPositionFree(@Nonnull World world, double x, double y, double z) {
         int blockX = (int) Math.floor(x);
         int blockY = (int) Math.floor(y);
         int blockZ = (int) Math.floor(z);

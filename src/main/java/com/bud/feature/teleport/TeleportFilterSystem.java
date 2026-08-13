@@ -82,8 +82,6 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
                 List<BudComponent> budComponents = new ArrayList<>();
                 for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
                     BudComponent budComponent = BudManager.getInstance().findBudComponent(bud);
-                    // A working Bud stays at its workstation - never pulled along on a waystone jump.
-                    // See docs/bud-worker-mode-plan.md, "Working-State / Kampf-Lock".
                     if (budComponent != null && budComponent.getCurrentState() != BudState.WORKING) {
                         budComponents.add(budComponent);
                     }

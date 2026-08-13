@@ -279,9 +279,122 @@ Details/Begründungen in `docs/bud-worker-mode-plan.md`, "Phase-4-Ingame-Test, R
 
 ## Phase 5 — Farming-Loop: Boden
 
-- [ ] `FindUntilledSoilSensor` — scannt Feld (Radius aus `WorkConfig`) um Station nach Dirt/Grass ohne `TilledSoilBlock`-State.
-- [ ] `TillSoilAction` — löst die native Till-Interaction aus (kein eigener Till-Code, siehe Plan-Doc).
-  - Test: Bud tillt sichtbar Boden im Feld, bleibt innerhalb der Feldgrenze.
+Blaupause komplett gelesen: `AncientConstructs-1.2.2`s `Construct_Worker_Gardener.json`. Details/Begründungen in `docs/bud-worker-mode-plan.md`, "Phase 5 — Farming-Loop: Boden, Vorab-Verifikation".
+
+### Vorab-Verifikation (nativer Weg vs. eigene Klassen) — abgeschlossen
+
+- [x] **Finden (Sensor): nativ ausreichend, kein `FindUntilledSoilSensor` nötig.** Nativer `"Type": "Block"`-Sensor + eigene `BlockSet`-Asset (kein Java) — verifiziert über `BuilderSensorBlock`s `requireAsset(...)`/`BlockSetExistsValidator`.
+- [x] **Tillen (Action): nativ NICHT ausreichend, eigene `TillSoilAction` nötig — konkret bewiesen, nicht nur vermutet.** `ActionPlaceBlock.canExecute(...)` (komplett durchverfolgt) validiert über `BlockPlacementHelper.canPlaceBlock`/`canPlaceUnitBlock` — dieselbe "Ziel muss leer sein"-Prüfung wie normales Blockplatzieren, würde das Ersetzen eines massiven Dirt-Blocks strukturell ablehnen. Kein natives `ChangeBlock`-NPC-Action, `BlockHitInteraction` hart an Charge-Attacken gekoppelt.
+- [x] **Positionsübergabe Sensor→Action verifiziert** (nicht geraten): `Action.canExecute(Ref, Role, InfoProvider, double, Store)` — `InfoProvider` ist real Teil der Signatur (Phase-0-Zusammenfassung hatte das nicht vollständig wiedergegeben). `ActionPlaceBlock` liest darüber generisch die Position via `infoProvider.getPositionProvider().providePosition(...)` — unsere `TillSoilAction` bekommt automatisch dieselbe Position vom vorangehenden nativen Block-Sensor.
+- [x] `NPCPlugin.get()` (öffentlicher Static-Singleton) löst die in Phase 0 zurückgestellte Frage nach einer `NPCPlugin`-Instanz für `registerCoreComponentType(...)`.
+- [x] `World`/`BlockAccessor.setBlock(int,int,int,String)` (genauer: `IChunkAccessorSync.setBlock(...)`, `void`, nicht `boolean`) reicht für den eigentlichen Blockwechsel, kein manuelles `WorldChunk`/Chunk-Key-Handling nötig.
+- [x] **Feld-Radius:** `WorkConfig.FieldRadius` bleibt die einzige durchgesetzte Grenze — geprüft in Java (`TillSoilAction` gegen einen neuen `BudComponent.workstationAnchor`), nicht im JSON. Die JSON-Sensor-`Range` ist bewusst nur ein großzügiger nativer Suchradius, kein Duplikat. Begründung: `"Compute"`-Parameter sind rein statisch beim Rollen-Laden geparst, kein Weg zu einem Live-Java-Wert ohne unverifizierten eigenen Compute-Provider.
+
+### Umsetzung
+
+- [x] `src/main/resources/Server/Item/Block/Sets/Bud_Tillable_Soil.json` — eigene `BlockSet`-Asset, exakt die 16 Quell-Block-IDs aus `Hoe_Till.json`s `Changes`-Map (Format an `Feran_Bed.json` orientiert).
+- [x] `BudComponent.workstationAnchor` (`@Nullable Vector3d`, nicht persistiert, gleiches Muster wie `currentState`/`currentMood`) — gesetzt in `WorkstationBindingHandler.performBind(...)` (neue `resolveStationGroundPosition(...)`, aus der bestehenden Spawn-Positions-Auflösung extrahiert statt dupliziert), gelöscht in `despawnBoundBud(...)`.
+- [x] `com.bud.feature.work.farming.BuilderActionTillSoil` + `TillSoilAction` (`ActionBase`, keine JSON-Extra-Felder) — `canExecute` liest Position via `InfoProvider`, prüft `WorkConfig.FieldRadius` gegen `BudComponent.workstationAnchor`; `execute` ruft `world.setBlock(x,y,z,"Soil_Dirt_Tilled")`. In `BudPlugin.setup()` registriert: `NPCPlugin.get().registerCoreComponentType("TillSoil", BuilderActionTillSoil::new)`.
+- [x] Alle drei `Template_{Veri,Keyleth,Gronkh}_Bud.json` identisch erweitert: zwei neue Sibling-Instructions innerhalb MODE 4s `Instructions`-Array (nicht in `.Default` verschachtelt, um die unbelegte "Actions+Instructions im selben Objekt"-Kombination zu vermeiden — stattdessen `{"Type":"And","Sensors":[{State:.Default},{Block-Sensor}]}` als Gate, exakt das Gardener-Sibling-Priority-Muster). Priorität 1: großer Range (10) → `Seek`. Priorität 2: kleiner Range (1.75) → `Timeout` → `{"Type":"TillSoil"}`. Nur aktiv während `.Default` (nicht `.Resting`) — Futter-/Bench-Aus-Gate damit automatisch geerbt aus Phase 4, kein Extra-Code nötig.
+- [x] Mit PowerShell `ConvertFrom-Json` auf allen drei Dateien geprüft, `.\gradlew build` grün nach jedem Block.
+- [ ] **Ingame-Test noch offen (braucht Sascha, wichtigster Punkt hier — Rollen-JSONs wurden erneut angefasst):** Serverstart sauber (keine `FAIL`/`Reference to unknown builder`-Zeilen)? Keyleth tillt sichtbar Boden im Feld um die Station? Bleibt innerhalb der Feldgrenze (`WorkConfig.FieldRadius`, aktuell Default `1` — sehr klein, ggf. für einen sichtbaren Test hochsetzen)? Hört bei leerem Futter/TURN OFF auf zu tillen und geht in die Ruhepose?
+
+### Serverstart-Regression nach Phase 5 (behoben) — `FAIL: ...Template_*_Bud.json: Once`/`Enabled`
+
+Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Serverstart-Regression nach Phase 5: `FAIL: ...Template_*_Bud.json: Once`/`Enabled` — Ursache & Fix".
+
+- [x] Ursache per `javap` bestätigt: `BuilderActionTillSoil.readConfig(JsonElement)` rief `readCommonConfig(json)` ein zweites Mal auf — `BuilderBase.readConfig(BuilderContext, ...)` (engine-verwaltet) ruft das bereits automatisch vor dem Subklassen-`readConfig` auf. Vergleich mit nativem `BuilderActionSetBlockToPlace` bestätigt: kein erneuter Aufruf im Subklassen-Override.
+- [x] Sascha-Frage 3 (Registrierungs-Timing) geprüft und widerlegt: `BudPlugin.setup()` läuft laut Log um 17:02:45, zwei Sekunden vor `"Loading NPC assets phase..."` (17:02:47). `AncientConstructs-1.2.2` registriert seine sechs Actions/Sensoren nach `javap`-Befund über dasselbe Muster (`registerCoreComponentType(...)` in `setup()`) — kein Timing-Problem.
+- [x] Fix: `readConfig(JsonElement)`-Override ersatzlos entfernt (geerbter Default `return this;` reicht, `TillSoilAction` hat keine eigenen Felder), ungenutzte Imports entfernt. `.\gradlew build` grün.
+- [x] **Ingame-Test:** Serverstart sauber, aber Keyleth blieb in einer Endlosschleife stehen (Deadlock, s. u.) — siehe nächster Abschnitt.
+
+### Deadlock durch gecachten nativen Block-Sensor — Architekturumstellung (behoben)
+
+Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Phase 5, Redesign: Deadlock durch gecachten nativen Block-Sensor — Architekturumstellung".
+
+- [x] Ursache per `javap` gegen `SensorBlock` bestätigt: der native Sensor cacht sein gefundenes Ziel (`BlockTarget`) und prüft bei Wiederverwendung nur gegen seine eigene, NPC-relative Range — kennt `TillSoilAction`s `FieldRadius`-Ablehnung nicht, das abgelehnte Ziel bleibt dauerhaft gecacht.
+- [x] `ActionStorePosition`/`SensorReadPosition`/`ActionSetLeashPosition`/`SensorLeash` vorab geprüft (`javap -p -c`, alle vier) — kein Java-seitiger Setter für einen `MarkedEntitySupport`-Slot vorhanden, native Lösung damit nicht möglich, minimaler eigener Sensor bestätigt als kleinste tragfähige Option.
+- [x] Neue Architektur umgesetzt: `WorkstationFuelTickSystem.updateWorkTarget(...)` wählt das Ziel (Station bestimmt, Bud führt nur aus), `BudComponent.workTarget` (neues Feld) trägt es, `WorkTargetSensor`/`BuilderWorkTargetSensor` (`"Type": "WorkTarget"`) lesen es nur zurück, kein Scannen/Range im Sensor.
+- [x] Einfacher Skip-Mechanismus: `WorkstationBlockEntity.recentlyFailedTargets` (4er-FIFO, kein TTL nötig) + `targetElapsedSeconds` gegen neues `WorkConfig.TargetTimeoutSeconds` (Default 8s) — nicht erreichbare/tillbare Ziele werden übersprungen statt die Schleife zu blockieren.
+- [x] Keyleth-Rollen-JSON: nativer Block-Sensor + `Range: 10` entfernt, eine Instruction kombiniert `WorkTarget`-Sensor + `Seek`-BodyMotion + `Timeout→TillSoil`-Action (Präzedenz für Actions+BodyMotion im selben Objekt: `.Resting`-Instruction, MODE 4). Mit PowerShell `ConvertFrom-Json` geprüft.
+- [x] Detail 1 (Distanz war 3D statt horizontal+Höhe getrennt): `TillSoilAction.isWithinFieldRadius` prüft jetzt `dx²+dz²` gegen `FieldRadius` und Höhe separat gegen neues `WorkConfig.FieldMaxHeight` (Default 3). `TillSoilAction` prüft zusätzlich eine `INTERACTION_RANGE` (1.75, per `TransformComponent`) — ersetzt die frühere Sensor-Prioritätsstufe.
+- [x] Detail 2 (`WorkConfig` Live-Reload): geprüft, `WorkConfig.setInstance(...)` läuft nur einmal in `BudPlugin.setup()`, kein Reload-Mechanismus vorhanden (kein Bug) — **für den Testablauf wichtig: nach einer `WorkConfig`-Änderung Server neu starten, nicht nur Config-Datei speichern.**
+- [x] `[BUD-TEMP-DEBUG]`-Logging aus `TillSoilAction` wieder entfernt.
+- [x] README-Konfigurationstabelle um neuen "Work Configuration"-Abschnitt ergänzt (bestand vorher komplett nicht, obwohl `WorkConfig` seit Phase 4 existiert).
+- [x] `.\gradlew build` grün nach jedem Block.
+- [x] **Ingame-Test:** Serverstart + Deadlock behoben, aber neuer Absturz: `IllegalArgumentException: Unknown key! Bud_Tillable_Soil` in `BlockSetModule.blockInSet(...)` auf dem World-Thread — siehe nächster Abschnitt.
+
+### Server-Crash: `BlockSetModule` kannte unser BlockSet nicht (behoben)
+
+Details/Log-Belege in `docs/bud-worker-mode-plan.md`, "Server-Crash: `BlockSetModule` kannte unser BlockSet nicht — Ursache & Fix".
+
+- [x] Ursache per Server-Log-Zeitstempel bestätigt: `BlockSetModule` baut seine Lookup-Tabelle beim Core-Modul-Setup, **vor** dem Laden der Plugin-Assets — kennt `Bud_Tillable_Soil` deshalb nie.
+- [x] Alternative (a) geprüft (BlockSet-Asset live über den Asset-Store lesen) — verworfen: `BlockSet` (die Konfig-Klasse selbst) ist per `javap -v` ebenfalls `@Deprecated(forRemoval=true)`, zweiter unabhängiger Fund.
+- [x] Umgesetzt: Alternative (b) — die 16 tillbaren Blocktyp-Namen als Java-Konstante (`WorkstationFuelTickSystem.TILLABLE_BLOCK_TYPES`), Zugehörigkeit über `BlockType.getId()` (nicht deprecated), kein Asset-Store-Zugriff mehr, keine Timing-Abhängigkeit.
+- [x] Absicherung: `WorkstationFuelTickSystem.tick()` umschließt `updateWorkTarget(...)` jetzt mit `try/catch(RuntimeException)` — ein Fehler beim Ziel-Scan darf den World-Thread nie wieder crashen, egal welcher Art.
+- [x] Regel fürs Plan-Doc festgehalten: Plugin-Assets laden nach Core-Modul-Init — jede Java-API mit einer beim Start einmalig gebauten Index-Tabelle kennt Plugin-Assets grundsätzlich nicht, unabhängig vom Deprecation-Status.
+- [x] `provideFeature(Feature.Position)`-Fix in `BuilderWorkTargetSensor` (Sascha) gegengeprüft: Signatur/Platzierung korrekt, kein doppelter `readCommonConfig`-Aufruf.
+- [x] `.\gradlew build` grün.
+- [x] **Ingame-Test:** kein Absturz mehr, aber Keyleth bleibt regungslos stehen, ohne jede Log-Zeile — Ursache in der fünfstufigen Kette (Kandidat finden → workTarget setzen → WorkTargetSensor → Seek → TillSoil) unklar.
+
+### Diagnoselauf für stille Endlosschleife (läuft, wartet auf Saschas Log)
+
+- [x] Gedrosseltes `[BUD-TEMP-DEBUG]`-Logging (WARNING, alle 2s je Klasse) über alle sechs Stufen gebaut: `WorkstationFuelTickSystem.tick` (boundBud/isResting/isActive), `updateWorkTarget` (Aufruf, currentTarget, Scan-Ergebnis), `findNearestTillableBlock` (Anker, Radius/MaxHeight, Anzahl geprüfter Positionen, Stichprobe der tatsächlich gelesenen `world.getBlockType(...).getId()`-Namen — Hauptverdacht: weichen von `TILLABLE_BLOCK_TYPES` ab), `WorkTargetSensor.matches` (Aufruf, workTarget, Ergebnis), `TillSoilAction.canExecute`/`execute` (erreicht, Interaction-/Field-Radius-Ergebnis, tatsächliches Tillen).
+- [x] `.\gradlew build` grün (inkl. Saschas `addWeapon`-Entfernung aus `spawnAtStation`/`teleportToStation` gegengeprüft).
+- [x] **Hinweis:** beide gelieferten Logs (`2026-08-13_13-39-42`/`13-51-07`) enthielten keine `[BUD-TEMP-DEBUG]`-Zeile — gegen ein älteres Jar getestet, Diagnoselauf muss wiederholt werden. Instrumentierung unverändert gelassen.
+- [x] **Echte Lücke (Sascha beobachtet + korrekt diagnostiziert), unabhängig gefixt:** `findNearestTillableBlock` akzeptierte auch vergrabene tillbare Blöcke (Erde unter Gras/unter der Workstation) - nie tillbar, da Tillen eine freie Oberseite voraussetzt (native `Seed_Condition.json`: `"Face": "Up"`). Erklärt das beobachtete "läuft in die Workstation, bleibt stehen". Fix per `javap` gegen `BlockPlacementHelper` verifiziert (dieselbe Klasse aus der Phase-5-Vorab-Verifikation): `BlockType.getMaterial() == BlockMaterial.Empty` ist die native Prüfung für "Position frei" - jetzt als `hasFreeTopFace(...)` auf den Block über jedem Kandidaten angewendet, siehe `docs/bud-worker-mode-plan.md`, "Nur Oberflächenblöcke sind tillbar".
+- [x] `.\gradlew build` komplett grün.
+- [x] Server neu gestartet, aber wieder keine `[BUD-TEMP-DEBUG]`-Zeile trotz belegt tickendem System (`"Workstation refed..."`-Log aus derselben Klasse) — zwei Ursachen gefunden, siehe die zwei folgenden Abschnitte.
+
+### Walk-MotionController: fehlende Stufen-Parameter (behoben, alle drei Dateien)
+
+Details/Begründung in `docs/bud-worker-mode-plan.md`, "Walk-MotionController: fehlende Stufen-Parameter".
+
+- [x] Native Defaults per `javap` geprüft: `MaxClimbHeight=1.3`, `DescendFlatness=0.7`, `DescendSpeedCompensation=0.9` — keines davon `0`. Saschas Test-Kriterium damit nicht erfüllt, exakte Ursache des Stehenbleibens bleibt offen bis zum wiederholten Diagnoselauf.
+- [x] Trotzdem ergänzt (generisches Bud-Verhalten, nicht farming-spezifisch — Begründung im Plan-Doc): alle drei `Template_*_Bud.json` bekommen `MaxClimbHeight: 1`, `DescendFlatness: 0.7`, `DescendSpeedCompensation: 0.5` (Gardener-Werte) im Walk-Eintrag.
+- [x] **Für Phase 7 vermerkt:** Gardener hat `InventorySize: 36`, unsere Buds nicht — für die Ernte relevant, jetzt noch nicht nötig.
+- [x] Mit PowerShell `ConvertFrom-Json` auf allen drei Dateien geprüft, `.\gradlew build` grün.
+
+### Instrumentierung lieferte weiterhin nichts — Overflow im Drossel-Timer gefunden (behoben)
+
+Details in `docs/bud-worker-mode-plan.md`, "Instrumentierung lieferte weiterhin keine `[BUD-TEMP-DEBUG]`-Zeilen".
+
+- [x] Ursache gefunden: `lastDebugLogNanos = Long.MIN_VALUE` als Sentinel gegen `System.nanoTime()` (beliebiger Ursprung laut JavaDoc) diffen kann bei der Subtraktion überlaufen und den allerersten Check fälschlich `false` ergeben lassen — in allen drei instrumentierten Klassen identisch.
+- [x] Drossel für diesen Lauf komplett deaktiviert (`shouldLogDebug()` gibt immer `true` zurück) in `WorkstationFuelTickSystem`, `WorkTargetSensor`, `TillSoilAction`.
+- [x] Zusätzliche, völlig ungedrosselte erste Zeile ganz am Anfang von `WorkstationFuelTickSystem.tick()` (`"tick: entered"`), um "System tickt nicht" von "Logging kommt nicht durch" zu trennen.
+- [x] Logger/Methode gegengeprüft: identisch zu den sichtbaren Zeilen (`LoggerUtil.getLogger()`), kein Unterschied gefunden.
+- [x] `.\gradlew build` grün.
+- [x] Diagnoselauf lieferte diesmal eindeutige Zeilen: `tick`/`updateWorkTarget`/`WorkTargetSensor.matches`/`TillSoilAction.canExecute` laufen jeden Tick, alle Prüfungen grün — aber nie eine `execute`-Zeile. Siehe nächster Abschnitt.
+
+### Action-Lebenszyklus: `ActionTimeout`-Wrapper als Ursache identifiziert, Gegentest umgesetzt
+
+Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Diagnoselauf eindeutig: `canExecute` grün, `execute` nie".
+
+- [x] Lebenszyklus-Methoden geprüft (`javap` gegen `ActionCrouch`/`ActionPlaceBlock`): beide überschreiben nur `canExecute`/`execute`, keine Extra-Methode — `TillSoilAction` fehlt nichts, das ist nicht die Ursache.
+- [x] `ActionTimeout`/`ActionWithDelay` per `javap -p -c` verfolgt: `canExecute()` ruft die innere Action immer auf (erklärt die grünen `TillSoilAction.canExecute`-Zeilen), gibt selbst aber nur `true` zurück, wenn der eigene Delay-Countdown abgelaufen ist (`!isDelaying()`) — `ActionList.execute()` ruft `execute()` nachweislich nur bei `canExecute()==true` auf. Der Countdown hängt von einer externen `EntitySupport.registerDelay`/`processDelay`-Tick-Kette ab, die sich ohne Live-Trace nicht abschließend verifizieren ließ, aber exakt zum beobachteten Symptom passt.
+- [x] `ActionSequence` (Gardener-Vergleich) per `javap` geprüft: delegiert 1:1 an ihre eigene `ActionList`, keine strukturelle Sonderbehandlung gegenüber einer nackten Action — erklärt laut Bytecode keinen Unterschied, warum der Gardener funktioniert.
+- [x] Gegentest umgesetzt: `Timeout`-Wrapper in `Template_Keyleth_Bud.json`s Till-Loop entfernt, `{"Type": "TillSoil"}` direkt in `Actions`. Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
+- [x] Nebenbefund (Ziel 1,5 Blöcke unter Anker) geprüft: plausibel — Höhenlimit (`FieldMaxHeight=3`) greift korrekt, Oberflächenfilter prüft lokal unabhängig vom Höhenunterschied, kein Logikfehler identifiziert, aber ohne visuelle in-game-Kontrolle nicht 100% von echtem Geländeversatz zu unterscheiden.
+- [x] Diagnose-Logging bleibt drin, bis `execute()` nachweislich läuft.
+- [ ] **Ausstehend (Sascha):** Server neu starten, testen ob Keyleth jetzt tillt (Gegentest ohne Timeout). Wenn ja: Wrapper bestätigt als Ursache, Ersatz für die kosmetische Pause überlegen. Wenn nein: weiter tiefer im Action-Lebenszyklus suchen. `[BUD-TEMP-DEBUG]`-Zeilen weiter mitliefern.
+
+### Korrektur nach Phase 5: Farming-Instructions gehören nur zu Keyleth (behoben)
+
+- [x] Till-Loop-Instructions (Seek + `TillSoil`) versehentlich in alle drei Rollen-Dateien eingefügt — aus `Template_Veri_Bud.json`/`Template_Gronkh_Bud.json` wieder entfernt, nur in `Template_Keyleth_Bud.json` (FARMING) belassen. Generisches Gerüst (Working/`.Resting`/`.Default`) bleibt unverändert in allen drei.
+- [x] **Faustregel festgehalten** (Plan-Doc, Phase 5): gemeinsames Bud-Verhalten → alle drei Dateien; rollenspezifisches Arbeitsverhalten → nur die Datei des zuständigen Buds. Vor jeder künftigen Rollen-JSON-Änderung kurz prüfen, welche Kategorie zutrifft.
+- [x] Mit PowerShell `ConvertFrom-Json` auf allen drei Dateien geprüft, `.\gradlew build` grün.
+
+### Duplikations-Analyse (Sascha-Auftrag, Recherche abgeschlossen, NICHT umgesetzt)
+
+Details/Begründung in `docs/bud-worker-mode-plan.md`, "Rollen-Vererbung: Duplikations-Analyse".
+
+- [x] Vollständiger Scan von `reference/assets/Server/NPC/Roles` (975 Dateien, nicht nur Stichproben): kein Abstract referenziert ein anderes Abstract (0/54).
+- [x] **Entscheidende Frage beantwortet:** `Variant`+`Reference`+`Modify` (Präzedenz: `Template_Animal_Neutral.json` ← `Chicken.json` u. a., >50 Beispiele) überschreibt nachweislich **ausschließlich Parameterwerte** — 0 von 465 Variants kombinieren `Reference` mit eigenem `Instructions`, 0 `Modify`-Blöcke enthalten je den Schlüssel `"Instructions"`. Eigene Instructions lassen sich über diesen Mechanismus **nicht** hinzufügen.
+- [x] Passenderer Mechanismus gefunden: `"Type": "Component"` (159 native Dateien) — echte, komponierbare Instruction-Fragmente, referenzierbar an beliebiger Stelle im Baum, mehrfach kombinierbar. Nicht auf kleine Schnipsel beschränkt (`Component_Trork_Instruction_Idle.json` z. B. 1032 Zeilen).
+- [x] **Empfehlung abgegeben, nicht umgesetzt:** generisches Gerüst (MODE 1–4) könnte als `Component`-Datei(en) extrahiert werden, referenziert von allen drei weiterhin `"Type": "Generic"` bleibenden Bud-Dateien; rollenspezifisches Arbeitsverhalten bliebe zusätzliche, eigene Instructions je Datei. Restrisiko benannt: `_ImportStates`/`_ExportStates`/`ParentState`-Ummapping nicht laufzeit-verifiziert, Fehler würde alle drei Buds gleichzeitig treffen (Single Point of Failure) statt nur eine Datei wie heute. Vorschlag: falls gewünscht, klein anfangen (nur Working/`.Resting`/`.Default`, nicht alle vier Modes auf einmal) und ingame verifizieren, bevor mehr angefasst wird — vor oder nach Phase 9/10, keine Präferenz meinerseits. Die Faustregel oben verhindert die konkrete Fehlerklasse aus diesem Auftrag bereits unabhängig davon.
+- [ ] **Entscheidung liegt bei Sascha** — nichts weiter zu tun, bis er sich äußert.
+
+**Keine Phase 6 ohne Rücksprache** — Ingame-Test von Phase 5 steht noch aus.
 
 ## Phase 6 — Farming-Loop: Pflanzen/Gießen/Wachstum
 

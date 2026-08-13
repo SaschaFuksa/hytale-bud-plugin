@@ -97,8 +97,6 @@ public class DamageFilterSystem extends DamageEventSystem {
             for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
                 BudComponent workerCheck = BudManager.getInstance().findBudComponent(bud);
                 if (workerCheck != null && workerCheck.getCurrentState() == BudState.WORKING) {
-                    // A working Bud must not assist in combat - see docs/bud-worker-mode-plan.md
-                    // "Working-State / Kampf-Lock".
                     continue;
                 }
                 Role budRole = bud.getRole();

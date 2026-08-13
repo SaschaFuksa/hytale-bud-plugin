@@ -105,7 +105,10 @@
       "RunThresholdRange": 0.1,
       "Gravity": 10,
       "MaxFallSpeed": 20,
-      "Acceleration": 10
+      "Acceleration": 10,
+      "MaxClimbHeight": 1,
+      "DescendFlatness": 0.7,
+      "DescendSpeedCompensation": 0.5
     }
   ],
   "Instructions": [
@@ -1110,14 +1113,14 @@
           ]
         },
         {
-          "$Comment": "=== MODE 4: WORKING (Sub-states: .Default while actively working, .Resting when the Workstation is out of fuel or manually paused - see docs/bud-worker-mode-plan.md, 'Working/Resting Sub-States'. Both sub-states are set programmatically only (WorkstationFuelTickSystem via StateSupport.setSubState(...)), never reachable via a JSON Action/player interaction.) ===",
+          "$Comment": "=== MODE 4: WORKING (.Default = actively working, .Resting = out of fuel/paused. Both sub-states are set only from Java, never from a JSON Action.) ===",
           "Sensor": {
             "Type": "State",
             "State": "Working"
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: fuel exhausted or the native Processing Bench 'TURN OFF' toggle is active - Crouch/sitting pose (swapped from the initial placement, see docs/bud-worker-mode-plan.md, 'Working/Resting-Animation vertauscht') ---",
+              "$Comment": "--- .Resting: sitting pose. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Till-Loop reorder below. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Resting"
@@ -1131,20 +1134,18 @@
                   "Crouch": true
                 },
                 {
-                  "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into .Resting from outside - the Sensor above already requires State == .Resting.",
+                  "$Comment": "Self-referential no-op setter, required by engine validation. Never opens a transition into .Resting from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": ".Resting"
                 }
               ]
             },
             {
-              "$Comment": "--- .Default: actively working - standing/active pose (Crouch: false), not sitting (Sascha explicitly OK with a default/placeholder animation for v1, real movement follows in Phase 5). Implicitly the entry sub-state, same as MODE 3's own .Default above, which also has no explicit setter anywhere in this file. ---",
+              "$Comment": "--- .Default bookkeeping: Crouch:false + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Till-Loop below sets. ---",
+              "Continue": true,
               "Sensor": {
                 "Type": "State",
                 "State": ".Default"
-              },
-              "BodyMotion": {
-                "Type": "Nothing"
               },
               "Actions": [
                 {
@@ -1152,11 +1153,48 @@
                   "Crouch": false
                 },
                 {
-                  "$Comment": "Self-referential no-op setter for the top-level Working state itself - moved here (nested, instead of directly under the Sensor above) so this Instruction stays Sensor+Instructions only, mirroring MODE 3's proven shape. MODE 3's PetDefensive/SAFETY-1/2 pattern already proves a top-level state's setter can live nested arbitrarily deep and still satisfy validation. Never opens a new transition into Working from outside - the Sensor above already requires State == Working.",
+                  "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": "Working"
                 }
               ]
+            },
+            {
+              "$Comment": "--- Till-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block within WorkConfig.FieldRadius and writes it to BudComponent.workTarget - this WorkTarget Sensor only reads it back, no scanning/range here. Seeks toward it every tick; TillSoilAction's own canExecute re-checks interaction distance and the field radius before actually tilling, so approaching and tilling share one Instruction. TEMP DIAGNOSIS (Sascha): Timeout wrapper removed - javap against ActionTimeout/ActionWithDelay showed execute() only fires once its own internal delay countdown (driven externally via EntitySupport.registerDelay/processDelay) completes, independent of the inner Action's canExecute - this is the suspected reason TillSoilAction.canExecute kept returning true every tick without a single execute(). Bare TillSoil here isolates whether the wrapper or the Action itself was the blocker. ---",
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Default"
+                  },
+                  {
+                    "Type": "WorkTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 2.0,
+                "StopDistance": 1.0,
+                "RelativeSpeed": 0.5
+              },
+              "ActionsBlocking": true,
+              "Actions": [
+                {
+                  "Type": "TillSoil"
+                }
+              ]
+            },
+            {
+              "$Comment": "--- .Default idle fallback: no work target assigned - stand still. ---",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              }
             }
           ]
         }

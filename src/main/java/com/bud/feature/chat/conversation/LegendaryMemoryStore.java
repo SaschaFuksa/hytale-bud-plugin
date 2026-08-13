@@ -52,9 +52,6 @@ final class LegendaryMemoryStore {
                 combined.addAll(mapEntry.getValue());
             }
         }
-        // Sort by creation time so the displayed/deleted index is stable and deterministic,
-        // independent of ConcurrentHashMap's iteration order (which can shift when other
-        // buds' legendary memories are added/replaced concurrently in the background).
         combined.sort(Comparator.comparingLong(entry -> entry.createdAt()));
         return Objects.requireNonNull(List.copyOf(combined));
     }

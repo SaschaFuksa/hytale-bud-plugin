@@ -31,8 +31,6 @@ public class StateChangeHandler implements Consumer<StateChangeEvent> {
         stateSupport.setState(stateIndex, subStateIndex, true, false);
 
         if (event.newState() != BudState.WORKING) {
-            // A working Bud must not lock onto/follow the player - see docs/bud-worker-mode-plan.md
-            // "Working-State / Kampf-Lock".
             MarkedEntitySupport markedSupport = role.getMarkedEntitySupport();
             markedSupport.setMarkedEntity("LockedTarget", event.owner().getReference());
         }

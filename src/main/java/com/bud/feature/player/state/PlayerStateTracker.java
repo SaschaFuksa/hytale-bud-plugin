@@ -101,12 +101,6 @@ public class PlayerStateTracker extends AbstractTracker {
 
                         BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
                         if (budComponent == null) {
-                            // Not necessarily a problem: getRandomBudComponent filters out Buds currently in
-                            // BudState.WORKING (see BudManager.isEligibleForReaction) - a player whose only
-                            // Bud is bound to a Workstation legitimately has zero eligible Buds for the
-                            // whole time it's working, so this fires repeatedly and harmlessly in that case.
-                            // Downgraded from warning - see docs/bud-worker-mode-plan.md, "'No BudComponent
-                            // found for player'-Log".
                             LoggerUtil.getLogger().fine(() -> "[BUD] No eligible (non-Working) BudComponent found "
                                     + "for player: " + playerRef.getUsername());
                             continue;

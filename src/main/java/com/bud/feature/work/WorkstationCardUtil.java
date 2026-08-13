@@ -16,11 +16,6 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
-/**
- * Shared Bud-card helpers used by both {@link WorkstationFilterSystem} (Slot-0 insert validation) and
- * {@link WorkstationBindingHandler} (bind/unbind on any container change) - see
- * docs/bud-worker-mode-plan.md, "Phase 3 — Verifikationsergebnisse", Punkt 3.
- */
 final class WorkstationCardUtil {
 
     private WorkstationCardUtil() {

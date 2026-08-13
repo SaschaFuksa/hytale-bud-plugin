@@ -30,6 +30,9 @@ public class StateChangeSystem extends EntityTickingSystem<EntityStore> {
         if (budComponent == null) {
             return;
         }
+        if (budComponent.getCurrentState() == BudState.WORKING) {
+            return;
+        }
         Role role = budComponent.getBud().getRole();
         if (role == null) {
             return;

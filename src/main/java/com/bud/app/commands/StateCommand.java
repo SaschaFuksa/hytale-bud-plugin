@@ -113,14 +113,6 @@ public class StateCommand extends AbstractPlayerCommand {
         }
     }
 
-    // Debug-only path (gated by DebugConfig.EnableWorkingStateDebugCommand, off by
-    // default since Phase 4
-    // added the real trigger - Workstation binding): dispatches StateChangeEvent
-    // directly instead of
-    // routing through StateChangeQueue, same pattern as TeleportHandler - no LLM
-    // chat, no bud-to-bud
-    // reaction while working (docs/bud-worker-mode-plan.md "Working-State /
-    // Kampf-Lock").
     private void setWorkingSilently(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
             @Nonnull PlayerRef playerRef) {
         PlayerBudComponent playerComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());

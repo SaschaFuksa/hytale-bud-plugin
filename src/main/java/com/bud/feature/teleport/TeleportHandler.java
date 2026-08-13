@@ -59,10 +59,6 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         Store<EntityStore> store = event.store();
 
         if (budComponent.getCurrentState() == BudState.WORKING) {
-            // A working Bud stays at its workstation - never pulled to the player via waystone/`/bud
-            // create` follow-teleports. Primary guard: callers (BudCreationHandler, TeleportFilterSystem)
-            // also skip queueing Working Buds for teleport, this is defense-in-depth for any future
-            // caller. See docs/bud-worker-mode-plan.md, "Working-State / Kampf-Lock".
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Skipping teleport for working Bud " + budComponent.getBudId());
             return;

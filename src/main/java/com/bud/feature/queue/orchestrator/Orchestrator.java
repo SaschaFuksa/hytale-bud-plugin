@@ -253,8 +253,6 @@ public class Orchestrator {
                     return;
                 }
                 if (entry.getBudComponent().getCurrentState() == BudState.WORKING) {
-                    // Queued before the Bud started working, or a native Role state change slipped
-                    // through - see docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock".
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Skipping " + event.eventType()
                             + " for player " + event.playerName() + ": Bud is Working.");
                     return;

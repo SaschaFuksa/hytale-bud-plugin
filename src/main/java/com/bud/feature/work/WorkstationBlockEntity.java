@@ -1,9 +1,13 @@
 package com.bud.feature.work;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.WorkRole;
@@ -29,9 +33,6 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     @Nullable
     private UUID ownerPlayerId;
 
-    // Runtime-only binding state (Phase 4), not persisted - like BudComponent's own bud/playerRef fields,
-    // this is a live link re-established from the container's current contents on block (re)load rather
-    // than restored from disk. See docs/bud-worker-mode-plan.md, "Bindung + Fuel-Timer (Phase 4)".
     @Nullable
     private BudComponent boundBud;
 
@@ -39,11 +40,14 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     private boolean resting;
 
-    // Runtime-only throttle (not persisted, same reasoning as fuelSecondsRemaining/resting above) for the
-    // rebind-retry in WorkstationFuelTickSystem: covers the case where the Workstation's block/chunk loads
-    // (owner-online resolution fails) before the owning player has finished logging back in - see
-    // docs/bud-worker-mode-plan.md, "Persistenz über Relog/Neustart".
     private float rebindRetrySecondsRemaining;
+
+    private float targetElapsedSeconds;
+
+    private static final int RECENTLY_FAILED_CAPACITY = 4;
+
+    @Nonnull
+    private final Deque<Vector3i> recentlyFailedTargets = new ArrayDeque<>(RECENTLY_FAILED_CAPACITY);
 
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
@@ -123,6 +127,25 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     public void setRebindRetrySecondsRemaining(float rebindRetrySecondsRemaining) {
         this.rebindRetrySecondsRemaining = rebindRetrySecondsRemaining;
+    }
+
+    public float getTargetElapsedSeconds() {
+        return targetElapsedSeconds;
+    }
+
+    public void setTargetElapsedSeconds(float targetElapsedSeconds) {
+        this.targetElapsedSeconds = targetElapsedSeconds;
+    }
+
+    public boolean isRecentlyFailedTarget(@Nonnull Vector3i position) {
+        return recentlyFailedTargets.contains(position);
+    }
+
+    public void addRecentlyFailedTarget(@Nonnull Vector3i position) {
+        if (recentlyFailedTargets.size() >= RECENTLY_FAILED_CAPACITY) {
+            recentlyFailedTargets.removeFirst();
+        }
+        recentlyFailedTargets.addLast(position);
     }
 
     @Override

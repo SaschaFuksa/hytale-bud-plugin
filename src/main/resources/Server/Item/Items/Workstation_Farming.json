@@ -38,10 +38,10 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Transparent",
-    "CustomModel": "Items/workbench-mining.blockymodel",
+    "CustomModel": "Items/workbench-farming.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Items/workbench-mining.png",
+        "Texture": "Items/workbench-farming.png",
         "Weight": 1
       }
     ],

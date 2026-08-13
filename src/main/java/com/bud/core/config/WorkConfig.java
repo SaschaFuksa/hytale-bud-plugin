@@ -8,10 +8,12 @@ public class WorkConfig {
 
     public static final BuilderCodec<WorkConfig> CODEC;
 
-    private int fieldRadius = 1;
+    private int fieldRadius = 5;
+    private int fieldMaxHeight = 3;
+    private int targetTimeoutSeconds = 8;
     private int treeMinDistance = 3;
     private int oreMinDistance = 2;
-    private int fuelDurationSeconds = 10;
+    private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
 
     private static volatile WorkConfig instance;
@@ -30,6 +32,14 @@ public class WorkConfig {
 
     public int getFieldRadius() {
         return this.fieldRadius;
+    }
+
+    public int getFieldMaxHeight() {
+        return this.fieldMaxHeight;
+    }
+
+    public int getTargetTimeoutSeconds() {
+        return this.targetTimeoutSeconds;
     }
 
     public int getTreeMinDistance() {
@@ -53,6 +63,14 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("FieldRadius", Codec.INTEGER),
                         (config, value) -> config.fieldRadius = value,
                         config -> config.fieldRadius)
+                .add()
+                .append(new KeyedCodec<>("FieldMaxHeight", Codec.INTEGER),
+                        (config, value) -> config.fieldMaxHeight = value,
+                        config -> config.fieldMaxHeight)
+                .add()
+                .append(new KeyedCodec<>("TargetTimeoutSeconds", Codec.INTEGER),
+                        (config, value) -> config.targetTimeoutSeconds = value,
+                        config -> config.targetTimeoutSeconds)
                 .add()
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,
