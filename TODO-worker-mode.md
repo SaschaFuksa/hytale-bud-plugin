@@ -411,9 +411,18 @@ Details/Bytecode-Belege in `docs/bud-worker-mode-plan.md`, "Till-Animation unsic
 - [x] Vor dem Fix geklärt statt angenommen: `ModelAsset`s `AnimationSets`-Setter per `javap` geprüft — `MapUtil.combineUnmodifiable(inheritedMap, ownMap)`, echter Merge, keine Ersetzung. Ein eigenes, partielles `AnimationSets` ist damit gefahrlos (Player-Animationen wie Walk/Run/Idle bleiben erhalten).
 - [x] Fix: `Server/Models/Keyleth_Bud.json` um `"AnimationSets": {"Interact": {...}}` ergänzt — identischer Eintrag wie in `Kweebec_Sapling.json` (dasselbe Rig). `TillSoilAction` bleibt bei `Slot: Status`/`Interact` (Saschas letzter Stand).
 - [x] Mit PowerShell `ConvertFrom-Json` geprüft, `.\gradlew build` grün.
-- [ ] **Ausstehend (Sascha):** Ingame-Test — Animation jetzt sichtbar? Danach Diagnose-Logging vollständig entfernen und Phase 5 endgültig abhaken.
+- [x] **Bestätigt (Sascha):** Animation sichtbar. Diagnose-Logging aus `TillSoilAction.playTillAnimation` vollständig entfernt, `.\gradlew build` grün.
 
-**Phase 5 damit funktional abgeschlossen. Keine Phase 6 ohne Rücksprache — Ingame-Test steht noch aus.**
+## Phase 5 — abgeschlossen (Sascha bestätigt ingame)
+
+Keyleth tillt mit Hacke und sichtbarer Animation, zeilenweise (Boustrophedon), ~1 Block/Sekunde, Gras verschwindet mit dem Boden, Feldgrenze wird eingehalten.
+
+Drei tragende, wiederverwendbare Erkenntnisse für Phase 6–10 im Plan-Doc festgehalten (siehe `docs/bud-worker-mode-plan.md`, "Phase 5 — Drei tragende Regeln für Phase 6–10"):
+- [x] a) Mehrschrittige Abläufe gehören in eine einzige Java-Action, nicht in mehrere JSON-Actions/`ActionTimeout` — JSON bleibt dünne Anbindung.
+- [x] b) Zielwahl und Tempo gehören in die Station (`WorkstationFuelTickSystem`), nicht in Sensoren — native Sensoren cachen und kennen keinen Anker.
+- [x] c) Animationen kommen aus `AnimationSets` im Modell-Asset (`Server/Models/*.json`, Parent-gemerged), nicht aus dem Mesh — Gronkh/Veri brauchen in Phase 9/10 denselben eigenen Eintrag.
+
+**Zurückgestellt, bewusst noch offen:** charakterspezifische Ruheposen (Keyleth: `Sit`/`Sit_Down`/`Sit_Up`; Gronkh später: `Laydown`/`Rest`/`Sleep`) statt des aktuellen generischen `Crouch` in `.Resting`. Kein Blocker für Phase 6, aber vor Phase 9/10 (Gronkh) aufgreifen, da Gronkhs Charakter ("ausgesprochen faul") explizit davon profitiert.
 
 ### Korrektur nach Phase 5: Farming-Instructions gehören nur zu Keyleth (behoben)
 
@@ -431,9 +440,11 @@ Details/Begründung in `docs/bud-worker-mode-plan.md`, "Rollen-Vererbung: Duplik
 - [x] **Empfehlung abgegeben, nicht umgesetzt:** generisches Gerüst (MODE 1–4) könnte als `Component`-Datei(en) extrahiert werden, referenziert von allen drei weiterhin `"Type": "Generic"` bleibenden Bud-Dateien; rollenspezifisches Arbeitsverhalten bliebe zusätzliche, eigene Instructions je Datei. Restrisiko benannt: `_ImportStates`/`_ExportStates`/`ParentState`-Ummapping nicht laufzeit-verifiziert, Fehler würde alle drei Buds gleichzeitig treffen (Single Point of Failure) statt nur eine Datei wie heute. Vorschlag: falls gewünscht, klein anfangen (nur Working/`.Resting`/`.Default`, nicht alle vier Modes auf einmal) und ingame verifizieren, bevor mehr angefasst wird — vor oder nach Phase 9/10, keine Präferenz meinerseits. Die Faustregel oben verhindert die konkrete Fehlerklasse aus diesem Auftrag bereits unabhängig davon.
 - [ ] **Entscheidung liegt bei Sascha** — nichts weiter zu tun, bis er sich äußert.
 
-**Keine Phase 6 ohne Rücksprache** — Ingame-Test von Phase 5 steht noch aus.
+**Phase 5 abgeschlossen und bestätigt — Phase 6 startet mit einem Umsetzungsvorschlag (siehe Plan-Doc), Code erst nach Rückmeldung.**
 
 ## Phase 6 — Farming-Loop: Pflanzen/Gießen/Wachstum
+
+Umsetzungsvorschlag (Struktur, noch nicht umgesetzt) in `docs/bud-worker-mode-plan.md`, "Phase 6 — Umsetzungsvorschlag (Rückmeldung ausstehend)".
 
 - [ ] `PlantSeedAction` — liest Slot-1-Item, pflanzt über Rezept-Mapping (siehe Phase 8) das passende Gemüse.
 - [ ] `WaterSoilAction`.
