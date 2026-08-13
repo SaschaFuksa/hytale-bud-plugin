@@ -7,6 +7,7 @@ import org.joml.Vector3d;
 
 import com.bud.core.types.BudState;
 import com.bud.core.types.Mood;
+import com.bud.core.types.WorkType;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -37,7 +38,13 @@ public class BudComponent implements Component<EntityStore> {
     @Nullable
     private Vector3d workTarget;
 
-    private float tillCooldownSecondsRemaining;
+    @Nullable
+    private WorkType workType;
+
+    @Nullable
+    private String pendingCropBlockType;
+
+    private float workCooldownSecondsRemaining;
 
     public BudComponent() {
     }
@@ -131,12 +138,30 @@ public class BudComponent implements Component<EntityStore> {
         this.workTarget = workTarget;
     }
 
-    public float getTillCooldownSecondsRemaining() {
-        return tillCooldownSecondsRemaining;
+    @Nullable
+    public WorkType getWorkType() {
+        return workType;
     }
 
-    public void setTillCooldownSecondsRemaining(float tillCooldownSecondsRemaining) {
-        this.tillCooldownSecondsRemaining = tillCooldownSecondsRemaining;
+    public void setWorkType(@Nullable WorkType workType) {
+        this.workType = workType;
+    }
+
+    @Nullable
+    public String getPendingCropBlockType() {
+        return pendingCropBlockType;
+    }
+
+    public void setPendingCropBlockType(@Nullable String pendingCropBlockType) {
+        this.pendingCropBlockType = pendingCropBlockType;
+    }
+
+    public float getWorkCooldownSecondsRemaining() {
+        return workCooldownSecondsRemaining;
+    }
+
+    public void setWorkCooldownSecondsRemaining(float workCooldownSecondsRemaining) {
+        this.workCooldownSecondsRemaining = workCooldownSecondsRemaining;
     }
 
     @Override

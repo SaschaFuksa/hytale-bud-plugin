@@ -11,6 +11,7 @@ import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.WorkRole;
+import com.bud.core.types.WorkType;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -48,6 +49,14 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     @Nonnull
     private final Deque<Vector3i> recentlyFailedTargets = new ArrayDeque<>(RECENTLY_FAILED_CAPACITY);
+
+    @Nullable
+    private Vector3i lastAssignedPosition;
+
+    @Nullable
+    private WorkType lastAssignedWorkType;
+
+    private int consecutiveRepeatCount;
 
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
@@ -146,6 +155,32 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
             recentlyFailedTargets.removeFirst();
         }
         recentlyFailedTargets.addLast(position);
+    }
+
+    @Nullable
+    public Vector3i getLastAssignedPosition() {
+        return lastAssignedPosition;
+    }
+
+    public void setLastAssignedPosition(@Nullable Vector3i lastAssignedPosition) {
+        this.lastAssignedPosition = lastAssignedPosition;
+    }
+
+    @Nullable
+    public WorkType getLastAssignedWorkType() {
+        return lastAssignedWorkType;
+    }
+
+    public void setLastAssignedWorkType(@Nullable WorkType lastAssignedWorkType) {
+        this.lastAssignedWorkType = lastAssignedWorkType;
+    }
+
+    public int getConsecutiveRepeatCount() {
+        return consecutiveRepeatCount;
+    }
+
+    public void setConsecutiveRepeatCount(int consecutiveRepeatCount) {
+        this.consecutiveRepeatCount = consecutiveRepeatCount;
     }
 
     @Override

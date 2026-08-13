@@ -16,6 +16,7 @@ import com.bud.core.config.WorkConfig;
 import com.bud.core.registry.BudDefinition;
 import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
+import com.bud.core.types.WorkRole;
 import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.state.StateChangeEvent;
@@ -209,14 +210,24 @@ final class WorkstationBindingHandler {
         return null;
     }
 
+    @Nonnull
+    private static BudSpawner withWorkTools(@Nonnull BudSpawner spawner, @Nonnull BudDefinition budProfile) {
+        if (budProfile.getWorkRole() == WorkRole.FARMING) {
+            spawner.addTool(FarmToolItems.TILL_TOOL_ITEM, (short) 0)
+                    .addTool(FarmToolItems.WATER_TOOL_ITEM, (short) 1)
+                    .addTool(FarmToolItems.PLANT_TOOL_ITEM, (short) 2);
+        }
+        return spawner;
+    }
+
     @Nullable
     private static BudComponent spawnAtStation(@Nonnull Store<EntityStore> entityStore,
             @Nonnull PlayerBudComponent ownerBuds, @Nonnull String budId, @Nonnull Vector3d position) {
         BudDefinition budProfile = BudRegistry.getInstance().get(budId);
-        Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
+        Pair<Ref<EntityStore>, INonPlayerCharacter> result = withWorkTools(BudSpawner
                 .create(entityStore, budProfile.getNpcTypeId(), position)
                 .withInventory()
-                .addArmor(budProfile.getArmorId())
+                .addArmor(budProfile.getArmorId()), budProfile)
                 .spawn();
         if (result == null || result.first() == null) {
             return null;
@@ -255,10 +266,10 @@ final class WorkstationBindingHandler {
         playerBudComponent.removeCurrentBud(oldBud, budComponent.getBudId());
 
         BudDefinition budProfile = BudRegistry.getInstance().get(budComponent.getBudId());
-        Pair<Ref<EntityStore>, INonPlayerCharacter> result = BudSpawner
+        Pair<Ref<EntityStore>, INonPlayerCharacter> result = withWorkTools(BudSpawner
                 .create(entityStore, budProfile.getNpcTypeId(), position)
                 .withInventory()
-                .addArmor(budProfile.getArmorId())
+                .addArmor(budProfile.getArmorId()), budProfile)
                 .spawn();
         if (result == null || result.first() == null) {
             return null;

@@ -1,5 +1,9 @@
 package com.bud.feature.work;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -10,20 +14,29 @@ import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkType;
+import com.hypixel.hytale.builtin.adventure.farming.config.stages.BlockStateFarmingStageData;
+import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.BenchBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.farming.FarmingData;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.farming.FarmingStageData;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.role.Role;
 
 public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
@@ -73,7 +86,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
 
         try {
-            updateWorkTarget(workstation, boundBud, dt, store.getExternalData().getWorld());
+            updateWorkTarget(workstation, boundBud, dt, store, processingBenchBlock);
         } catch (RuntimeException e) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Failed to update work target for Workstation - "
                     + "skipping this tick: " + e);
@@ -142,8 +155,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             "Soil_Grass_Dry", "Soil_Grass_Full", "Soil_Grass_Sunny", "Soil_Leaves",
             "Soil_Mud", "Soil_Mud_Dry", "Soil_Needles", "Soil_Pathway");
 
+    private static final String TILLED_SOIL_BLOCK_TYPE = "Soil_Dirt_Tilled";
+
+    private static final String KNOWN_CROP_BASE_BLOCK_TYPE = "Plant_Crop_Carrot_Block";
+
+    private static final int STARVATION_REPEAT_THRESHOLD = 2;
+
     private static void updateWorkTarget(@Nonnull WorkstationBlockEntity workstation, @Nonnull BudComponent boundBud,
-            float dt, @Nonnull World world) {
+            float dt, @Nonnull Store<ChunkStore> chunkStore, @Nonnull ProcessingBenchBlock processingBenchBlock) {
         Vector3d anchor = boundBud.getWorkstationAnchor();
         if (anchor == null) {
             return;
@@ -158,20 +177,184 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             workstation.addRecentlyFailedTarget(new Vector3i((int) Math.floor(currentTarget.x),
                     (int) Math.floor(currentTarget.y), (int) Math.floor(currentTarget.z)));
             boundBud.setWorkTarget(null);
+            boundBud.setWorkType(null);
+            boundBud.setPendingCropBlockType(null);
         }
 
-        // Pacing (Sascha, Phase-5-Abrundung): the station itself gates how soon the next block is released,
-        // giving room for the till animation instead of tilling as fast as the world ticks. See
-        // docs/bud-worker-mode-plan.md.
-        float tillCooldown = boundBud.getTillCooldownSecondsRemaining();
-        if (tillCooldown > 0) {
-            boundBud.setTillCooldownSecondsRemaining(Math.max(0f, tillCooldown - dt));
+        float cooldown = boundBud.getWorkCooldownSecondsRemaining();
+        if (cooldown > 0) {
+            boundBud.setWorkCooldownSecondsRemaining(Math.max(0f, cooldown - dt));
             return;
         }
 
-        Vector3d candidate = findNextTillableBlock(world, anchor, workstation);
-        boundBud.setWorkTarget(candidate);
+        World world = chunkStore.getExternalData().getWorld();
+        WorkAssignment assignment = findNextWorkAssignment(world, anchor, workstation, processingBenchBlock);
+        if (assignment == null) {
+            boundBud.setWorkCooldownSecondsRemaining(WorkConfig.getInstance().getIdleRetrySeconds());
+            return;
+        }
+
+        if (assignment.position().equals(workstation.getLastAssignedPosition())
+                && assignment.workType() == workstation.getLastAssignedWorkType()) {
+            int repeats = workstation.getConsecutiveRepeatCount() + 1;
+            if (repeats >= STARVATION_REPEAT_THRESHOLD) {
+                // TEMPORARY DEBUG LOGGING (Phase 6 partial-field regression, Sascha) - remove
+                // once
+                // ingame-confirmed.
+                LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] Starvation guard fired: " + assignment.workType()
+                        + " at " + assignment.position() + " repeated " + repeats + "x, blacklisting.");
+                workstation.addRecentlyFailedTarget(assignment.position());
+                workstation.setConsecutiveRepeatCount(0);
+                boundBud.setWorkCooldownSecondsRemaining(WorkConfig.getInstance().getIdleRetrySeconds());
+                return;
+            }
+            workstation.setConsecutiveRepeatCount(repeats);
+        } else {
+            workstation.setConsecutiveRepeatCount(0);
+        }
+        workstation.setLastAssignedPosition(assignment.position());
+        workstation.setLastAssignedWorkType(assignment.workType());
+
+        boundBud.setWorkTarget(assignment.target());
+        boundBud.setWorkType(assignment.workType());
+        boundBud.setPendingCropBlockType(assignment.cropBlockType());
         workstation.setTargetElapsedSeconds(0f);
+    }
+
+    private record WorkAssignment(@Nonnull Vector3d target, @Nonnull Vector3i position, @Nonnull WorkType workType,
+            @Nullable String cropBlockType) {
+    }
+
+    @Nullable
+    private static WorkAssignment findNextWorkAssignment(@Nonnull World world, @Nonnull Vector3d anchor,
+            @Nonnull WorkstationBlockEntity workstation, @Nonnull ProcessingBenchBlock processingBenchBlock) {
+        List<Vector3i> positions = serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
+                WorkConfig.getInstance().getFieldMaxHeight());
+
+        Instant now = currentGameTime(world);
+
+        int tillCount = 0;
+        Vector3i tillWinner = null;
+        for (Vector3i position : positions) {
+            if (!workstation.isRecentlyFailedTarget(position) && isTillCandidate(world, position)) {
+                tillCount++;
+                if (tillWinner == null) {
+                    tillWinner = position;
+                }
+            }
+        }
+
+        ItemStack seedStack = processingBenchBlock.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
+        String cropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
+        int plantCount = 0;
+        Vector3i plantWinner = null;
+        if (cropBlockType != null) {
+            for (Vector3i position : positions) {
+                if (!workstation.isRecentlyFailedTarget(position) && isPlantCandidate(world, position)) {
+                    plantCount++;
+                    if (plantWinner == null) {
+                        plantWinner = position;
+                    }
+                }
+            }
+        }
+
+        int waterCount = 0;
+        Vector3i waterWinner = null;
+        for (Vector3i position : positions) {
+            if (!workstation.isRecentlyFailedTarget(position) && isWaterCandidate(world, position, now)) {
+                waterCount++;
+                if (waterWinner == null) {
+                    waterWinner = position;
+                }
+            }
+        }
+
+        int harvestCount = 0;
+        Vector3i harvestWinner = null;
+        for (Vector3i position : positions) {
+            if (!workstation.isRecentlyFailedTarget(position) && isHarvestCandidate(world, position)) {
+                harvestCount++;
+                if (harvestWinner == null) {
+                    harvestWinner = position;
+                }
+            }
+        }
+
+        WorkAssignment winner;
+        if (tillWinner != null) {
+            winner = toAssignment(tillWinner, WorkType.TILL, null);
+        } else if (plantWinner != null) {
+            winner = toAssignment(plantWinner, WorkType.PLANT, cropBlockType);
+        } else if (waterWinner != null) {
+            winner = toAssignment(waterWinner, WorkType.WATER, null);
+        } else if (harvestWinner != null) {
+            winner = toAssignment(harvestWinner, WorkType.HARVEST, null);
+        } else {
+            winner = null;
+        }
+
+        int finalTillCount = tillCount;
+        int finalPlantCount = plantCount;
+        int finalWaterCount = waterCount;
+        int finalHarvestCount = harvestCount;
+        WorkAssignment finalWinner = winner;
+        int positionCount = positions.size();
+        LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] anchor=" + anchor + " radius="
+                + WorkConfig.getInstance().getFieldRadius() + " maxHeight="
+                + WorkConfig.getInstance().getFieldMaxHeight()
+                + " positionsChecked=" + positionCount + " till=" + finalTillCount + " plant=" + finalPlantCount
+                + " water=" + finalWaterCount + " harvest=" + finalHarvestCount + " winner="
+                + (finalWinner != null ? finalWinner.workType() + "@" + finalWinner.position() : "none"));
+        if (finalWinner == null) {
+            logExclusionSamples(world, workstation, positions);
+        } else if (plantCount == 0 && cropBlockType != null) {
+            logExclusionSamples(world, workstation, positions);
+        }
+
+        return winner;
+    }
+
+    private static void logExclusionSamples(@Nonnull World world, @Nonnull WorkstationBlockEntity workstation,
+            @Nonnull List<Vector3i> positions) {
+        int logged = 0;
+        for (Vector3i position : positions) {
+            if (logged >= 5) {
+                break;
+            }
+            if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+                continue;
+            }
+            boolean recentlyFailed = workstation.isRecentlyFailedTarget(position);
+            BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+            boolean isPlantable = above != null && above == BlockType.EMPTY;
+            if (isPlantable && !recentlyFailed) {
+                continue;
+            }
+            String aboveId = above != null ? above.getId() : "null";
+            String aboveMaterial = above != null ? String.valueOf(above.getMaterial()) : "n/a";
+            boolean isEmptySentinel = above != null && above == BlockType.EMPTY;
+            logged++;
+            int loggedIndex = logged;
+            LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] tilled-but-excluded sample #" + loggedIndex + " at "
+                    + position + " - recentlyFailed=" + recentlyFailed + " above=" + aboveId + " material="
+                    + aboveMaterial + " isEmptySentinel=" + isEmptySentinel);
+        }
+    }
+
+    @Nonnull
+    private static WorkAssignment toAssignment(Vector3i position, @Nonnull WorkType workType,
+            @Nullable String cropBlockType) {
+        return new WorkAssignment(new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5), position,
+                workType, cropBlockType);
+    }
+
+    @Nonnull
+    private static Instant currentGameTime(@Nonnull World world) {
+        Store<EntityStore> entityStore = world.getEntityStore().getStore();
+        WorldTimeResource timeResource = (WorldTimeResource) entityStore
+                .getResource(WorldTimeResource.getResourceType());
+        return timeResource.getGameTime();
     }
 
     @Nullable
@@ -179,8 +362,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return world.getBlockType(x, y, z);
     }
 
-    private static boolean isTillable(@Nullable BlockType blockType) {
-        return blockType != null && TILLABLE_BLOCK_TYPES.contains(blockType.getId());
+    private static boolean isTilledSoil(@Nullable BlockType blockType) {
+        return blockType != null && TILLED_SOIL_BLOCK_TYPE.equals(blockType.getId());
     }
 
     private static boolean hasFreeTopFace(@Nonnull World world, int x, int y, int z) {
@@ -188,25 +371,82 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above.getMaterial() == BlockMaterial.Empty;
     }
 
-    /**
-     * Sweeps the field in a fixed boustrophedon (serpentine) order - row by row outward from the anchor,
-     * alternating direction each row, no jump back to the row start - instead of picking whichever candidate
-     * happens to be nearest each time. Nearest-candidate picking made the Bud zigzag across the field
-     * (Sascha); this order is a pure function of (anchor, radius, maxHeight, recently-failed positions), so
-     * it stays stable across ticks without any persisted scan cursor - blocks already tilled simply drop out
-     * of {@link #isTillable}, letting the sweep progress row by row on its own. See
-     * docs/bud-worker-mode-plan.md, "Geordnete Feldbearbeitung".
-     */
-    @Nullable
-    private static Vector3d findNextTillableBlock(@Nonnull World world, @Nonnull Vector3d anchor,
-            @Nonnull WorkstationBlockEntity workstation) {
-        int radius = WorkConfig.getInstance().getFieldRadius();
-        int maxHeight = WorkConfig.getInstance().getFieldMaxHeight();
+    private static boolean isTillCandidate(@Nonnull World world, Vector3i position) {
+        BlockType blockType = getBlockType(world, position.x, position.y, position.z);
+        return blockType != null && TILLABLE_BLOCK_TYPES.contains(blockType.getId())
+                && hasFreeTopFace(world, position.x, position.y, position.z);
+    }
+
+    private static boolean isPlantCandidate(@Nonnull World world, Vector3i position) {
+        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+            return false;
+        }
+        BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+        return above != null && above == BlockType.EMPTY;
+    }
+
+    private static boolean isWaterCandidate(@Nonnull World world, Vector3i position, @Nonnull Instant now) {
+        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+            return false;
+        }
+        ComponentType<ChunkStore, TilledSoilBlock> soilType = TilledSoilBlock.getComponentType();
+        if (soilType == null) {
+            return false;
+        }
+        Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
+        if (holder == null) {
+            return false;
+        }
+        TilledSoilBlock soil = holder.getComponent(soilType);
+        if (soil == null) {
+            return true;
+        }
+        Instant wateredUntil = soil.getWateredUntil();
+        return wateredUntil == null || !wateredUntil.isAfter(now);
+    }
+
+    private static boolean isHarvestCandidate(@Nonnull World world, Vector3i position) {
+        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+            return false;
+        }
+        // Same Material trap as isPlantCandidate: the crop itself is Material Empty at
+        // every growth
+        // stage, so only a true air-identity check tells "nothing here" apart from "our
+        // own crop".
+        BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+        if (above == null || above == BlockType.EMPTY) {
+            return false;
+        }
+        BlockType cropBase = BlockType.fromString(KNOWN_CROP_BASE_BLOCK_TYPE);
+        if (cropBase == null) {
+            return false;
+        }
+        String currentState = cropBase.getStateForBlock(above);
+        if (currentState == null) {
+            return false;
+        }
+        FarmingData farming = cropBase.getFarming();
+        if (farming == null) {
+            return false;
+        }
+        Map<String, FarmingStageData[]> stages = farming.getStages();
+        FarmingStageData[] stageSet = stages != null ? stages.get(farming.getStartingStageSet()) : null;
+        if (stageSet == null || stageSet.length == 0) {
+            return false;
+        }
+        FarmingStageData lastStage = stageSet[stageSet.length - 1];
+        return lastStage instanceof BlockStateFarmingStageData blockStage
+                && currentState.equals(blockStage.getState());
+    }
+
+    @Nonnull
+    private static List<Vector3i> serpentinePositions(@Nonnull Vector3d anchor, int radius, int maxHeight) {
         int anchorX = (int) Math.floor(anchor.x);
         int anchorY = (int) Math.floor(anchor.y);
         int anchorZ = (int) Math.floor(anchor.z);
         long radiusSquared = (long) radius * radius;
 
+        List<Vector3i> positions = new ArrayList<>();
         for (int dz = -radius; dz <= radius; dz++) {
             boolean rowForward = (dz + radius) % 2 == 0;
             int dxStart = rowForward ? -radius : radius;
@@ -218,22 +458,11 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     continue;
                 }
                 for (int dy = -maxHeight; dy <= maxHeight; dy++) {
-                    Vector3i position = new Vector3i(anchorX + dx, anchorY + dy, anchorZ + dz);
-                    if (workstation.isRecentlyFailedTarget(position)) {
-                        continue;
-                    }
-                    BlockType blockType = getBlockType(world, position.x, position.y, position.z);
-                    if (!isTillable(blockType)) {
-                        continue;
-                    }
-                    if (!hasFreeTopFace(world, position.x, position.y, position.z)) {
-                        continue;
-                    }
-                    return new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5);
+                    positions.add(new Vector3i(anchorX + dx, anchorY + dy, anchorZ + dz));
                 }
             }
         }
-        return null;
+        return positions;
     }
 
     private static boolean isEmpty(@Nullable ItemStack itemStack) {

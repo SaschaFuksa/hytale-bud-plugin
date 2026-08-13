@@ -36,10 +36,11 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
+import com.bud.feature.work.FarmingRecipeConfig;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationFilterSystem;
 import com.bud.feature.work.WorkstationFuelTickSystem;
-import com.bud.feature.work.farming.BuilderActionTillSoil;
+import com.bud.feature.work.farming.BuilderActionFarmWork;
 import com.bud.feature.work.farming.BuilderWorkTargetSensor;
 import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -48,10 +49,10 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
-import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
+import com.hypixel.hytale.server.npc.NPCPlugin;
 
 public class BudPlugin extends JavaPlugin {
 
@@ -85,6 +86,7 @@ public class BudPlugin extends JavaPlugin {
         this.setupLogging();
         LLMPromptManager.getInstance().reloadMissingPrompts();
         BudRegistry.getInstance().reloadMissing();
+        FarmingRecipeConfig.getInstance().reloadMissing();
 
         // Register BudComponent for state tracking
         ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(
@@ -101,7 +103,6 @@ public class BudPlugin extends JavaPlugin {
                         PlayerBudComponent.CODEC);
         PlayerBudComponent.setComponentType(playerBudComponentType);
 
-        // Register WorkstationBlockEntity (Phase 3 of Bud Worker Mode, see docs/bud-worker-mode-plan.md)
         ComponentType<ChunkStore, WorkstationBlockEntity> workstationBlockEntityType = this.getChunkStoreRegistry()
                 .registerComponent(
                         WorkstationBlockEntity.class,
@@ -111,9 +112,7 @@ public class BudPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(new WorkstationFilterSystem());
         this.getChunkStoreRegistry().registerSystem(new WorkstationFuelTickSystem());
 
-        // Register the custom NPC Action for Farming (Phase 5 of Bud Worker Mode, see
-        // docs/bud-worker-mode-plan.md, "Phase 5 — Farming-Loop: Boden, Vorab-Verifikation")
-        NPCPlugin.get().registerCoreComponentType("TillSoil", BuilderActionTillSoil::new);
+        NPCPlugin.get().registerCoreComponentType("FarmWork", BuilderActionFarmWork::new);
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
 
         // Register commands

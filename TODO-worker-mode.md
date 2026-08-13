@@ -493,8 +493,14 @@ Umsetzung + vier Präzisierungen (Arbeitsreihenfolge, Saatgut-Verbrauch, Erntere
   - [x] `WorkstationSeedUtil.resolveCropBlockType` prüft die Whitelist vor der Namenskonvention-Ableitung (kein Logging bei Ablehnung - gewolltes Verhalten, kein Fehler).
   - [x] `WorkstationFilterSystem`s bestehender Slot-Filter (Phase 3) lehnt nicht erlaubtes Saatgut jetzt zusätzlich zu Bud-Karten ab (`WorkstationSeedUtil.isAllowedOrNotASeed`) - landet im Idealfall gar nicht erst im Slot; `resolveCropBlockType`s eigene Prüfung bleibt zweite Absicherung.
   - [x] `.\gradlew build` grün.
-  - [ ] **Logging entfernen, sobald Sascha bestätigt** (`[BUD][EQUIP-DEBUG]`: `FarmWorkAction.equipToolFor`; `[BUD][PLANT-DEBUG]`: `FarmWorkAction.executePlant`).
-- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** Pflanzen funktioniert tatsächlich (Crop-Block erscheint und bleibt sichtbar); Werkzeug wechselt sichtbar beim Arbeitsartwechsel (Hacke/Gießkanne/Saatgut-Beutel/leere Hand bei Ernte); nicht erlaubtes Saatgut (Blumen/Pilze/Bäume) wird von Slot 2 abgelehnt bzw. mindestens nicht gepflanzt; Reihenfolge stimmt (erst komplett tillen, dann pflanzen, dann gießen, Ernte wartet bis der Rest erledigt ist); kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
+  - [x] Säen und Gießen von Sascha ingame bestätigt (Screenshot) - `[BUD][EQUIP-DEBUG]`/`[BUD][PLANT-DEBUG]`-Logging entfernt, Zweck erfüllt.
+- [x] **Neue Regression: Feld nur zur Hälfte bepflanzt trotz Saatgut im Slot — Untersuchung per gezieltem Logging statt Vermutung, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Feld-Teilbearbeitung":**
+  - [x] Temporäres `[BUD][SCAN-DEBUG]`-Logging in `findNextWorkAssignment` ergänzt: Kandidatenzahl je Arbeitsart, gewinnende Position, geprüfte Grenzen (Anchor/Radius/MaxHeight), Anzahl geprüfter Positionen.
+  - [x] Zusatz-Logging `logExclusionSamples`: bis zu 5 Beispielpositionen mit getilltem Boden, die trotzdem kein PLANT-Kandidat sind, inkl. Ausschlussgrund (`recentlyFailed` vs. Blocktyp/Material über der Position) - testet gezielt Saschas Hauptverdacht (Blockraum darüber gilt fälschlich als belegt).
+  - [x] Logging für die Aushungerungs-Absicherung (Kandidat 1 aus Saschas Liste): loggt jedes Mal, wenn der Wiederholungsschutz eine Position auf die Sperrliste setzt.
+  - [x] `.\gradlew build` grün.
+  - [ ] **Logging entfernen, sobald Sascha bestätigt** (`[BUD][SCAN-DEBUG]`-Fundstellen: `WorkstationFuelTickSystem.findNextWorkAssignment`, `logExclusionSamples`, Aushungerungs-Guard in `updateWorkTarget`).
+- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** komplettes Feld wird bepflanzt, nicht nur die Hälfte; Log-Analyse der `[BUD][SCAN-DEBUG]`-Zeilen für den Zeitpunkt, an dem Keyleth aufhört, zur weiteren Diagnose bereitstellen; Werkzeug wechselt sichtbar beim Arbeitsartwechsel; nicht erlaubtes Saatgut wird von Slot 2 abgelehnt bzw. nicht gepflanzt; Reihenfolge stimmt; kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
 
 ## Phase 7 — Ernte + Lieferung
 

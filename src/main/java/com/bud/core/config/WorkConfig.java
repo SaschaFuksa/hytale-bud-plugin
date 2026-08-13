@@ -12,6 +12,10 @@ public class WorkConfig {
     private int fieldMaxHeight = 3;
     private int targetTimeoutSeconds = 8;
     private int tillIntervalSeconds = 1;
+    private int plantIntervalSeconds = 1;
+    private int waterIntervalSeconds = 1;
+    private int waterDurationSeconds = 600;
+    private int idleRetrySeconds = 5;
     private int treeMinDistance = 3;
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
@@ -47,6 +51,22 @@ public class WorkConfig {
         return this.tillIntervalSeconds;
     }
 
+    public int getPlantIntervalSeconds() {
+        return this.plantIntervalSeconds;
+    }
+
+    public int getWaterIntervalSeconds() {
+        return this.waterIntervalSeconds;
+    }
+
+    public int getWaterDurationSeconds() {
+        return this.waterDurationSeconds;
+    }
+
+    public int getIdleRetrySeconds() {
+        return this.idleRetrySeconds;
+    }
+
     public int getTreeMinDistance() {
         return this.treeMinDistance;
     }
@@ -80,6 +100,22 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("TillIntervalSeconds", Codec.INTEGER),
                         (config, value) -> config.tillIntervalSeconds = value,
                         config -> config.tillIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("PlantIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.plantIntervalSeconds = value,
+                        config -> config.plantIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("WaterIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.waterIntervalSeconds = value,
+                        config -> config.waterIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("WaterDurationSeconds", Codec.INTEGER),
+                        (config, value) -> config.waterDurationSeconds = value,
+                        config -> config.waterDurationSeconds)
+                .add()
+                .append(new KeyedCodec<>("IdleRetrySeconds", Codec.INTEGER),
+                        (config, value) -> config.idleRetrySeconds = value,
+                        config -> config.idleRetrySeconds)
                 .add()
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,

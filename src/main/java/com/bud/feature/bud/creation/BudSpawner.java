@@ -83,6 +83,10 @@ public class BudSpawner {
         return this;
     }
 
+    public BudSpawner addTool(@Nonnull String toolItemId, short slot) {
+        return addWeapon(toolItemId, 1, slot);
+    }
+
     public BudSpawner addArmor(@Nonnull String armorType) {
         this.armors.add(new ArmorConfig(armorType));
         return this;

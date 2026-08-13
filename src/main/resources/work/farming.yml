@@ -1,0 +1,16 @@
+allowedSeeds:
+  FARMING:
+    - Plant_Seeds_Aubergine
+    - Plant_Seeds_Carrot
+    - Plant_Seeds_Cauliflower
+    - Plant_Seeds_Chilli
+    - Plant_Seeds_Corn
+    - Plant_Seeds_Cotton
+    - Plant_Seeds_Lettuce
+    - Plant_Seeds_Onion
+    - Plant_Seeds_Potato
+    - Plant_Seeds_Pumpkin
+    - Plant_Seeds_Rice
+    - Plant_Seeds_Tomato
+    - Plant_Seeds_Turnip
+    - Plant_Seeds_Wheat

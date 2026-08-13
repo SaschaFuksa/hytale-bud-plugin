@@ -921,6 +921,22 @@ Neue `src/main/resources/work/farming.yml` (gleiche Konvention wie `prompts/`/`b
 
 `.\gradlew build` grün.
 
+## Phase 6, Feld-Teilbearbeitung (Sascha, nach bestätigtem Säen/Gießen)
+
+Säen und Gießen ingame bestätigt (Screenshot) - `[BUD][EQUIP-DEBUG]`/`[BUD][PLANT-DEBUG]`-Logging aus der vorigen Runde entfernt, Zweck erfüllt. Neues Problem: Keyleth bearbeitet nur etwa die Hälfte des Felds und hört auf, obwohl Saatgut vorhanden und der Rest getillt-aber-unbepflanzt ist. Auf Saschas ausdrücklichen Wunsch **per gezieltem Logging untersucht statt vermutet** - drei benannte Kandidaten, keiner davon vorschnell "gefixt".
+
+**Temporäres `[BUD][SCAN-DEBUG]`-Logging** in `findNextWorkAssignment` (`WorkstationFuelTickSystem`), pro Scan-Durchlauf:
+- Kandidatenzahl je Arbeitsart (TILL/PLANT/WATER/HARVEST) und die jeweils gewinnende Position, statt wie im Normalbetrieb nur beim ersten Treffer pro Stufe abzubrechen (Zählung braucht einen vollständigen Durchlauf je Stufe - Auswahllogik/Priorität bleibt dabei unverändert: die Methode gibt weiterhin exakt dieselbe Zuweisung zurück wie vor der Instrumentierung).
+- Die tatsächlich geprüften Grenzen (Anchor-Position, `FieldRadius`, `FieldMaxHeight`) und die Gesamtzahl geprüfter Positionen - direkt vergleichbar mit der sichtbaren Ausdehnung des getillten Feldbereichs (Kandidat 2).
+- `logExclusionSamples`: bis zu 5 Positionen mit getilltem Boden, die trotzdem **kein** PLANT-Kandidat sind (oder auf der Sperrliste stehen), mit dem konkreten Ausschlussgrund (`recentlyFailed` sowie Blocktyp/Material direkt darüber) - läuft immer, wenn insgesamt kein Kandidat gefunden wurde, oder wenn PLANT trotz vorhandenem Saatgut null Kandidaten hatte. Zielt direkt auf Saschas Hauptverdacht: eine `above`-Bedingung in `isPlantCandidate`, die für einen Teil des Felds nie erfüllt ist.
+- Zusätzlich in `updateWorkTarget`: ein Log-Eintrag, sobald die Aushungerungs-Absicherung (Kandidat 1) tatsächlich eine Position auf die `recentlyFailedTargets`-Sperrliste setzt, mit Arbeitsart, Position und Wiederholungszahl - macht sichtbar, ob/wie oft das im betroffenen Feldbereich überhaupt auslöst.
+
+Alle drei von Sascha benannten Kandidaten bleiben damit direkt aus dem Log ablesbar, ohne dass vorher eine Hypothese ausgewählt werden musste: Kandidat 1 (Wiederholungsschutz) zeigt sich am `Starvation guard fired`-Log und/oder daran, ob betroffene Positionen in `logExclusionSamples` als `recentlyFailed=true` auftauchen; Kandidat 2 (Feldgrenzen/`isPlantCandidate`) zeigt sich an den geloggten Grenzen vs. der sichtbaren Feldausdehnung und an den `above`-Werten der Ausschluss-Beispiele; Kandidat 3 (Sweep bricht ab) zeigt sich an `positionsChecked` (sollte für ein gegebenes `FieldRadius`/`FieldMaxHeight` immer gleich groß sein, unabhängig davon, wo der Sweep "aufhört") verglichen mit den Kandidatenzahlen.
+
+**Bleibt bis Saschas Bestätigung/Log-Auswertung stehen, dann entfernen** - siehe TODO-worker-mode.md.
+
+`.\gradlew build` grün.
+
 ## LLM-Reaktionen (bewusst zurückgestellt)
 
 Für v1 komplett weggelassen — erst reiner Arbeits-Loop, dann später:

@@ -56,7 +56,9 @@ public class WorkstationFilterSystem extends RefSystem<ChunkStore> {
                                                 .matchesWorkRole(itemStack, workRole));
                 processingBenchBlock.getInputContainer().setSlotFilter(FilterActionType.ADD, SECONDARY_INPUT_SLOT,
                                 (actionType, container, slot,
-                                                itemStack) -> WorkstationCardUtil.resolveBudId(itemStack) == null);
+                                                itemStack) -> WorkstationCardUtil.resolveBudId(itemStack) == null
+                                                                && WorkstationSeedUtil.isAllowedOrNotASeed(itemStack,
+                                                                                workRole));
                 processingBenchBlock.getInputContainer().registerChangeEvent(
                                 event -> WorkstationBindingHandler.reevaluate(store, ref, workstation,
                                                 processingBenchBlock, benchBlock));
