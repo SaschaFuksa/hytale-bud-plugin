@@ -85,6 +85,7 @@
   "MaxHealth": {
     "Compute": "MaxHealth"
   },
+  "HotbarSize": 8,
   "AttitudeGroup": {
     "Compute": "AttitudeGroup"
   },

@@ -3,8 +3,6 @@ package com.bud.feature.work;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,7 +13,6 @@ import org.joml.Vector3i;
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
-import com.hypixel.hytale.builtin.adventure.farming.config.stages.BlockStateFarmingStageData;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.BenchBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
@@ -29,10 +26,10 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.protocol.BlockMaterial;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.farming.FarmingData;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.farming.FarmingStageData;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -111,8 +108,17 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             int index, @Nonnull WorkstationBlockEntity workstation, @Nonnull ProcessingBenchBlock processingBenchBlock,
             float dt) {
         ItemStack card = processingBenchBlock.getInputContainer().getItemStack(CARD_SLOT);
+        // A different card in the slot (identity, not just role/id) than the one the last bind attempt
+        // used is the "Karte neu eingelegt" state change that re-enables retries after giving up - see
+        // docs/bud-worker-mode-plan.md, "Phase 6, Rebind-Retry darf nicht endlos wiederholen".
+        if (card != workstation.getLastAttemptedCard()) {
+            workstation.setBindFailureCount(0);
+        }
         if (!WorkstationCardUtil.matchesWorkRole(card, workstation.getWorkRole())) {
             workstation.setRebindRetrySecondsRemaining(0f);
+            return;
+        }
+        if (workstation.hasGivenUpBinding()) {
             return;
         }
         float remaining = workstation.getRebindRetrySecondsRemaining() - dt;
@@ -126,6 +132,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             return;
         }
         Ref<ChunkStore> ref = archetypeChunk.getReferenceTo(index);
+        workstation.setLastAttemptedCard(card);
         WorkstationBindingHandler.reevaluate(store, ref, workstation, processingBenchBlock, benchBlock);
     }
 
@@ -148,16 +155,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         processingBenchBlock.getFuelContainer().removeItemStackFromSlot(FEED_SLOT, 1);
         return true;
     }
-
-    private static final Set<String> TILLABLE_BLOCK_TYPES = Set.of(
-            "Soil_Dirt", "Soil_Dirt_Burnt", "Soil_Dirt_Cold", "Soil_Dirt_Dry",
-            "Soil_Grass", "Soil_Grass_Burnt", "Soil_Grass_Cold", "Soil_Grass_Deep",
-            "Soil_Grass_Dry", "Soil_Grass_Full", "Soil_Grass_Sunny", "Soil_Leaves",
-            "Soil_Mud", "Soil_Mud_Dry", "Soil_Needles", "Soil_Pathway");
-
-    private static final String TILLED_SOIL_BLOCK_TYPE = "Soil_Dirt_Tilled";
-
-    private static final String KNOWN_CROP_BASE_BLOCK_TYPE = "Plant_Crop_Carrot_Block";
 
     private static final int STARVATION_REPEAT_THRESHOLD = 2;
 
@@ -259,24 +256,73 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             }
         }
 
-        int waterCount = 0;
-        Vector3i waterWinner = null;
+        // WATER_NEW (a tilled tile that has never been watered at all) is finite per position - once
+        // watered, it never returns to "never watered", it can only later need a refresh - so it belongs
+        // among the other finite tiers, same reasoning as "Phase 6, Endliche vor wiederkehrender Arbeit".
+        // Placed before FERTILIZE: a tile needs its first watering before a fertilizer bonus matters.
+        int waterNewCount = 0;
+        Vector3i waterNewWinner = null;
         for (Vector3i position : positions) {
-            if (!workstation.isRecentlyFailedTarget(position) && isWaterCandidate(world, position, now)) {
-                waterCount++;
-                if (waterWinner == null) {
-                    waterWinner = position;
+            if (!workstation.isRecentlyFailedTarget(position) && isNeverWateredCandidate(world, position)) {
+                waterNewCount++;
+                if (waterNewWinner == null) {
+                    waterNewWinner = position;
                 }
             }
         }
 
+        int fertilizeCount = 0;
+        Vector3i fertilizeWinner = null;
+        for (Vector3i position : positions) {
+            if (!workstation.isRecentlyFailedTarget(position) && isFertilizeCandidate(world, position)) {
+                fertilizeCount++;
+                if (fertilizeWinner == null) {
+                    fertilizeWinner = position;
+                }
+            }
+        }
+
+        // Checked once per station per scan, not per position - the output container belongs to the
+        // station, not to any single tile. A full output skips the whole HARVEST tier for this scan
+        // (Sascha: never assign it, don't discover "full" mid-execution) rather than leaving the Bud
+        // stuck in front of a ripe tile it can't do anything useful with - same starvation-class lesson
+        // as the earlier WATER-over-FERTILIZE and HARVEST-no-op fixes this phase. TILL/PLANT/FERTILIZE
+        // and (if applicable) WATER_REFRESH still run normally.
+        boolean outputHasRoom = hasHarvestOutputRoom(processingBenchBlock);
+        if (!outputHasRoom) {
+            if (!workstation.isOutputFullLogged()) {
+                workstation.setOutputFullLogged(true);
+                LoggerUtil.getLogger().warning(
+                        () -> "[BUD] Workstation output is full - HARVEST paused until a slot is emptied.");
+            }
+        } else {
+            workstation.setOutputFullLogged(false);
+        }
+
         int harvestCount = 0;
         Vector3i harvestWinner = null;
+        if (outputHasRoom) {
+            for (Vector3i position : positions) {
+                if (!workstation.isRecentlyFailedTarget(position) && isHarvestCandidate(world, position)) {
+                    harvestCount++;
+                    if (harvestWinner == null) {
+                        harvestWinner = position;
+                    }
+                }
+            }
+        }
+
+        // WATER_REFRESH (already watered at least once, but the duration has expired) is the one
+        // genuinely recurring tier - deliberately last, below every finite tier including WATER_NEW, so
+        // a field with even one still-unwatered tile finishes that before re-watering anything (Sascha:
+        // otherwise the order depends on WaterDurationSeconds instead of actual field progress).
+        int waterRefreshCount = 0;
+        Vector3i waterRefreshWinner = null;
         for (Vector3i position : positions) {
-            if (!workstation.isRecentlyFailedTarget(position) && isHarvestCandidate(world, position)) {
-                harvestCount++;
-                if (harvestWinner == null) {
-                    harvestWinner = position;
+            if (!workstation.isRecentlyFailedTarget(position) && isWaterRefreshCandidate(world, position, now)) {
+                waterRefreshCount++;
+                if (waterRefreshWinner == null) {
+                    waterRefreshWinner = position;
                 }
             }
         }
@@ -286,33 +332,80 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = toAssignment(tillWinner, WorkType.TILL, null);
         } else if (plantWinner != null) {
             winner = toAssignment(plantWinner, WorkType.PLANT, cropBlockType);
-        } else if (waterWinner != null) {
-            winner = toAssignment(waterWinner, WorkType.WATER, null);
+        } else if (waterNewWinner != null) {
+            winner = toAssignment(waterNewWinner, WorkType.WATER, null);
+        } else if (fertilizeWinner != null) {
+            winner = toAssignment(fertilizeWinner, WorkType.FERTILIZE, null);
         } else if (harvestWinner != null) {
             winner = toAssignment(harvestWinner, WorkType.HARVEST, null);
+        } else if (waterRefreshWinner != null) {
+            winner = toAssignment(waterRefreshWinner, WorkType.WATER, null);
         } else {
             winner = null;
         }
 
         int finalTillCount = tillCount;
         int finalPlantCount = plantCount;
-        int finalWaterCount = waterCount;
+        int finalWaterNewCount = waterNewCount;
+        int finalFertilizeCount = fertilizeCount;
         int finalHarvestCount = harvestCount;
+        int finalWaterRefreshCount = waterRefreshCount;
         WorkAssignment finalWinner = winner;
         int positionCount = positions.size();
         LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] anchor=" + anchor + " radius="
                 + WorkConfig.getInstance().getFieldRadius() + " maxHeight="
                 + WorkConfig.getInstance().getFieldMaxHeight()
                 + " positionsChecked=" + positionCount + " till=" + finalTillCount + " plant=" + finalPlantCount
-                + " water=" + finalWaterCount + " harvest=" + finalHarvestCount + " winner="
-                + (finalWinner != null ? finalWinner.workType() + "@" + finalWinner.position() : "none"));
+                + " waterNew=" + finalWaterNewCount + " fertilize=" + finalFertilizeCount + " harvest="
+                + finalHarvestCount + " waterRefresh=" + finalWaterRefreshCount
+                + " winner=" + (finalWinner != null ? finalWinner.workType() + "@" + finalWinner.position() : "none"));
         if (finalWinner == null) {
             logExclusionSamples(world, workstation, positions);
+            logFieldCensus(world, positions);
         } else if (plantCount == 0 && cropBlockType != null) {
             logExclusionSamples(world, workstation, positions);
+            logFieldCensus(world, positions);
         }
 
         return winner;
+    }
+
+    private static void logFieldCensus(@Nonnull World world, @Nonnull List<Vector3i> positions) {
+        java.util.Map<String, Integer> groundHistogram = new java.util.TreeMap<>();
+        java.util.Map<String, Integer> aboveTilledHistogram = new java.util.TreeMap<>();
+        int tilledCount = 0;
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
+        java.util.Set<Integer> tilledYs = new java.util.TreeSet<>();
+
+        for (Vector3i position : positions) {
+            BlockType ground = getBlockType(world, position.x, position.y, position.z);
+            String groundId = ground != null ? ground.getId() : "null";
+            groundHistogram.merge(groundId, 1, Integer::sum);
+            if (!isTilledSoil(ground)) {
+                continue;
+            }
+            tilledCount++;
+            minX = Math.min(minX, position.x);
+            maxX = Math.max(maxX, position.x);
+            minZ = Math.min(minZ, position.z);
+            maxZ = Math.max(maxZ, position.z);
+            tilledYs.add(position.y);
+            BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+            String aboveId = above != null ? above.getId() : "null";
+            String sentinel = (above != null && above == BlockType.EMPTY) ? "[==EMPTY]" : "[!=EMPTY]";
+            aboveTilledHistogram.merge(aboveId + sentinel, 1, Integer::sum);
+        }
+
+        int finalTilled = tilledCount;
+        String bounds = finalTilled > 0
+                ? "x[" + minX + ".." + maxX + "] z[" + minZ + ".." + maxZ + "] y" + tilledYs
+                : "none";
+        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] tilledInRange=" + finalTilled + " bounds=" + bounds);
+        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] groundBlocks=" + groundHistogram);
+        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] aboveTilled=" + aboveTilledHistogram);
     }
 
     private static void logExclusionSamples(@Nonnull World world, @Nonnull WorkstationBlockEntity workstation,
@@ -363,7 +456,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     }
 
     private static boolean isTilledSoil(@Nullable BlockType blockType) {
-        return blockType != null && TILLED_SOIL_BLOCK_TYPE.equals(blockType.getId());
+        return blockType != null && blockType.getId() != null
+                && FarmingRecipeConfig.getInstance().isTilledSoilBlock(blockType.getId());
     }
 
     private static boolean hasFreeTopFace(@Nonnull World world, int x, int y, int z) {
@@ -373,7 +467,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
     private static boolean isTillCandidate(@Nonnull World world, Vector3i position) {
         BlockType blockType = getBlockType(world, position.x, position.y, position.z);
-        return blockType != null && TILLABLE_BLOCK_TYPES.contains(blockType.getId())
+        return blockType != null && blockType.getId() != null
+                && FarmingRecipeConfig.getInstance().isTillableBlock(blockType.getId())
                 && hasFreeTopFace(world, position.x, position.y, position.z);
     }
 
@@ -385,7 +480,33 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above == BlockType.EMPTY;
     }
 
-    private static boolean isWaterCandidate(@Nonnull World world, Vector3i position, @Nonnull Instant now) {
+    /**
+     * A tile that was never watered at all (no {@code TilledSoilBlock} component yet, or one exists but
+     * {@code wateredUntil} was never set) - kept separate from {@link #isWaterRefreshCandidate} so it can
+     * sit at a different priority (see the finite-vs-recurring split at the call site in
+     * {@link #findNextWorkAssignment}).
+     */
+    private static boolean isNeverWateredCandidate(@Nonnull World world, Vector3i position) {
+        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+            return false;
+        }
+        ComponentType<ChunkStore, TilledSoilBlock> soilType = TilledSoilBlock.getComponentType();
+        if (soilType == null) {
+            return false;
+        }
+        Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
+        if (holder == null) {
+            return false;
+        }
+        TilledSoilBlock soil = holder.getComponent(soilType);
+        return soil == null || soil.getWateredUntil() == null;
+    }
+
+    /**
+     * A tile that was watered at least once but the duration has since expired - the genuinely
+     * recurring counterpart to {@link #isNeverWateredCandidate}.
+     */
+    private static boolean isWaterRefreshCandidate(@Nonnull World world, Vector3i position, @Nonnull Instant now) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -399,44 +520,76 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
         TilledSoilBlock soil = holder.getComponent(soilType);
         if (soil == null) {
-            return true;
+            return false;
         }
         Instant wateredUntil = soil.getWateredUntil();
-        return wateredUntil == null || !wateredUntil.isAfter(now);
+        return wateredUntil != null && !wateredUntil.isAfter(now);
     }
 
+    /**
+     * Same read-only pattern as {@link #isWaterRefreshCandidate} - a {@code Holder} copy is fine here since
+     * this only reads the already-persisted {@code fertilized} flag, never mutates it (the actual write
+     * in {@code FarmWorkAction} goes through the live {@code Ref}/{@code Store} path instead, same
+     * reasoning as watering).
+     */
+    private static boolean isFertilizeCandidate(@Nonnull World world, Vector3i position) {
+        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
+            return false;
+        }
+        ComponentType<ChunkStore, TilledSoilBlock> soilType = TilledSoilBlock.getComponentType();
+        if (soilType == null) {
+            return false;
+        }
+        Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
+        if (holder == null) {
+            return false;
+        }
+        TilledSoilBlock soil = holder.getComponent(soilType);
+        return soil == null || !soil.isFertilized();
+    }
+
+    /**
+     * Fully generic, no per-variety code or config: {@code BlockGathering.isHarvestable()}
+     * (bytecode-verified: {@code harvest != null}) is the exact same signal the native harvest
+     * interaction chain uses ({@code HarvestCropInteraction} -> {@code FarmingUtil.harvest0} both check
+     * {@code blockType.getGathering().getHarvest()} on the placed block itself, not a resolved "base"
+     * type) - a crop only declares a {@code Gathering.Harvest} entry on its final ripe growth stage
+     * (verified against {@code Plant_Crop_Carrot_Block.json}: only {@code State.Definitions.StageFinal}
+     * has one), so its mere presence already means "ripe". Superseded the earlier
+     * {@code FarmingData}/{@code getStateForBlock} comparison hardcoded to
+     * {@code Plant_Crop_Carrot_Block} - see docs/bud-worker-mode-plan.md, "Phase 7 - Erntereife
+     * generisch erkannt".
+     */
     private static boolean isHarvestCandidate(@Nonnull World world, Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
-        // Same Material trap as isPlantCandidate: the crop itself is Material Empty at
-        // every growth
-        // stage, so only a true air-identity check tells "nothing here" apart from "our
-        // own crop".
         BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
         if (above == null || above == BlockType.EMPTY) {
             return false;
         }
-        BlockType cropBase = BlockType.fromString(KNOWN_CROP_BASE_BLOCK_TYPE);
-        if (cropBase == null) {
+        BlockGathering gathering = above.getGathering();
+        return gathering != null && gathering.isHarvestable();
+    }
+
+    /**
+     * A conservative capacity check, not an exact simulation of the actual drops: any completely empty
+     * output slot counts as "room", even though a partially-filled but stackable slot might also still
+     * fit more - see docs/bud-worker-mode-plan.md, "Phase 7 - Ernte in Output-Slots" for why this
+     * deliberate simplification was chosen over resolving the drops just to check capacity.
+     */
+    private static boolean hasHarvestOutputRoom(@Nonnull ProcessingBenchBlock processingBenchBlock) {
+        ItemContainer output = processingBenchBlock.getOutputContainer();
+        if (output == null) {
             return false;
         }
-        String currentState = cropBase.getStateForBlock(above);
-        if (currentState == null) {
-            return false;
+        short capacity = output.getCapacity();
+        for (short slot = 0; slot < capacity; slot++) {
+            if (isEmpty(output.getItemStack(slot))) {
+                return true;
+            }
         }
-        FarmingData farming = cropBase.getFarming();
-        if (farming == null) {
-            return false;
-        }
-        Map<String, FarmingStageData[]> stages = farming.getStages();
-        FarmingStageData[] stageSet = stages != null ? stages.get(farming.getStartingStageSet()) : null;
-        if (stageSet == null || stageSet.length == 0) {
-            return false;
-        }
-        FarmingStageData lastStage = stageSet[stageSet.length - 1];
-        return lastStage instanceof BlockStateFarmingStageData blockStage
-                && currentState.equals(blockStage.getState());
+        return false;
     }
 
     @Nonnull

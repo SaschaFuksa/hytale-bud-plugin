@@ -7,7 +7,7 @@ armorId: Armor_Trork_Chest
 pronoun: HE
 favoriteDay: FRIDAY
 promptKey: Gronkh
-workRole: MINING
+workRole: FORESTING
 sounds:
   defensive: SFX_Trork_Exertion
   passive: SFX_Trork_Alerted

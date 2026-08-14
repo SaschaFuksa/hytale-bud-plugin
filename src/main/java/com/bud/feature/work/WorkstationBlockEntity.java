@@ -18,6 +18,7 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
@@ -57,6 +58,15 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     private WorkType lastAssignedWorkType;
 
     private int consecutiveRepeatCount;
+
+    private static final int MAX_BIND_ATTEMPTS = 5;
+
+    private int bindFailureCount;
+
+    @Nullable
+    private ItemStack lastAttemptedCard;
+
+    private boolean outputFullLogged;
 
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
@@ -181,6 +191,35 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     public void setConsecutiveRepeatCount(int consecutiveRepeatCount) {
         this.consecutiveRepeatCount = consecutiveRepeatCount;
+    }
+
+    public int getBindFailureCount() {
+        return bindFailureCount;
+    }
+
+    public void setBindFailureCount(int bindFailureCount) {
+        this.bindFailureCount = bindFailureCount;
+    }
+
+    public boolean hasGivenUpBinding() {
+        return bindFailureCount >= MAX_BIND_ATTEMPTS;
+    }
+
+    @Nullable
+    public ItemStack getLastAttemptedCard() {
+        return lastAttemptedCard;
+    }
+
+    public void setLastAttemptedCard(@Nullable ItemStack lastAttemptedCard) {
+        this.lastAttemptedCard = lastAttemptedCard;
+    }
+
+    public boolean isOutputFullLogged() {
+        return outputFullLogged;
+    }
+
+    public void setOutputFullLogged(boolean outputFullLogged) {
+        this.outputFullLogged = outputFullLogged;
     }
 
     @Override

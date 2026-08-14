@@ -1,6 +1,7 @@
 package com.bud.feature.work.farming;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -13,6 +14,7 @@ import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.FarmToolItems;
+import com.bud.feature.work.FarmingRecipeConfig;
 import com.bud.feature.work.WorkstationSeedUtil;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
@@ -22,10 +24,14 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.HarvestingDropType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
@@ -42,7 +48,6 @@ import com.hypixel.hytale.server.npc.util.InventoryHelper;
 
 public class FarmWorkAction extends ActionBase {
 
-    private static final String TILLED_BLOCK_TYPE = "Soil_Dirt_Tilled";
 
     private static final double INTERACTION_RANGE = 1.75;
 
@@ -92,12 +97,8 @@ public class FarmWorkAction extends ActionBase {
             case TILL -> executeTill(world, x, y, z);
             case PLANT -> executePlant(world, bud, x, y, z);
             case WATER -> executeWater(store, world, x, y, z);
-            case HARVEST -> {
-                // Detection-only in Phase 6 - actually harvesting/collecting the drop is Phase
-                // 7. Clearing
-                // the target here just lets the Workstation re-scan next cycle instead of
-                // getting stuck.
-            }
+            case FERTILIZE -> executeFertilize(world, x, y, z);
+            case HARVEST -> executeHarvest(world, bud, x, y, z);
         }
         tryEquipToolFor(ref, store, workType);
         playWorkAnimation(ref, store);
@@ -124,17 +125,14 @@ public class FarmWorkAction extends ActionBase {
             case TILL -> FarmToolItems.TILL_TOOL_ITEM;
             case WATER -> FarmToolItems.WATER_TOOL_ITEM;
             case PLANT -> FarmToolItems.PLANT_TOOL_ITEM;
-            case HARVEST -> null;
+            case FERTILIZE -> FarmToolItems.FERTILIZE_TOOL_ITEM;
+            case HARVEST -> FarmToolItems.HARVEST_TOOL_ITEM;
         };
-        if (toolItemId != null) {
-            InventoryHelper.useItem(ref, toolItemId, (byte) -1, store);
-        } else {
-            InventoryHelper.clearItemInHand(ref, (byte) -1, store);
-        }
+        InventoryHelper.useItem(ref, toolItemId, (byte) -1, store);
     }
 
     private static void executeTill(@Nonnull World world, int x, int y, int z) {
-        world.setBlock(x, y, z, TILLED_BLOCK_TYPE);
+        world.setBlock(x, y, z, FarmingRecipeConfig.getInstance().getTilledSoilTargetBlock());
         clearOvergrowth(world, x, y, z);
     }
 
@@ -172,6 +170,84 @@ public class FarmWorkAction extends ActionBase {
     }
 
     private static void executeWater(@Nonnull Store<EntityStore> store, @Nonnull World world, int x, int y, int z) {
+        Instant now = ((WorldTimeResource) store.getResource(WorldTimeResource.getResourceType())).getGameTime();
+        mutateLiveTilledSoil(world, x, y, z,
+                soil -> soil.setWateredUntil(now.plusSeconds(WorkConfig.getInstance().getWaterDurationSeconds())));
+    }
+
+    private static void executeFertilize(@Nonnull World world, int x, int y, int z) {
+        mutateLiveTilledSoil(world, x, y, z, soil -> soil.setFertilized(true));
+    }
+
+    /**
+     * Reuses the native drop-resolution the player's Sickle uses ({@code BlockHarvestUtils.getDrops},
+     * called the exact same way {@code FarmingUtil.giveDrops} does - bytecode-verified) instead of
+     * re-implementing weighted drop-list rolls ourselves. Everything else is our own: drops go straight
+     * into the Workstation's own output container, never the Bud's inventory (it doesn't survive a
+     * restart - {@code BudComponent}'s codec is empty, the Bud is respawned fresh on rebind - the bench
+     * container is natively persisted), and the tile is fully cleared back to empty rather than
+     * following the native "regrow via StageSetAfterHarvest" path, so it re-qualifies for
+     * {@code isPlantCandidate} immediately - see docs/bud-worker-mode-plan.md, "Phase 7 - Ernte in
+     * Output-Slots" for why the native {@code FarmingUtil.harvest} entrypoint itself isn't reused here.
+     */
+    private static void executeHarvest(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
+        BlockType above = world.getBlockType(x, y + 1, z);
+        if (above == null) {
+            return;
+        }
+        BlockGathering gathering = above.getGathering();
+        HarvestingDropType harvestType = gathering != null ? gathering.getHarvest() : null;
+        if (harvestType == null) {
+            return;
+        }
+        Vector3d anchor = bud.getWorkstationAnchor();
+        if (anchor == null) {
+            return;
+        }
+        ComponentType<ChunkStore, ProcessingBenchBlock> benchType = ProcessingBenchBlock.getComponentType();
+        if (benchType == null) {
+            return;
+        }
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorY = (int) Math.floor(anchor.y) - 1;
+        int anchorZ = (int) Math.floor(anchor.z);
+        Holder<ChunkStore> anchorHolder = world.getBlockComponentHolder(anchorX, anchorY, anchorZ);
+        if (anchorHolder == null) {
+            return;
+        }
+        ProcessingBenchBlock bench = anchorHolder.getComponent(benchType);
+        if (bench == null) {
+            return;
+        }
+        ItemContainer output = bench.getOutputContainer();
+        if (output == null) {
+            return;
+        }
+        List<ItemStack> drops = BlockHarvestUtils.getDrops(above, 1, harvestType.getItemId(),
+                harvestType.getDropListId());
+        if (!output.canAddItemStacks(drops, false, false)) {
+            // The assignment-time check (WorkstationFuelTickSystem.hasHarvestOutputRoom) only looked for
+            // any empty slot, not whether THIS specific harvest's drops actually fit - leave the crop
+            // ripe, no partial add, nothing mutated. Next scan retries; the starvation guard keeps a
+            // stuck case from looping forever once the output genuinely can't take more.
+            return;
+        }
+        output.addItemStacks(drops, false, false, false);
+        world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
+    }
+
+    /**
+     * {@code World.getBlockComponentHolder} returns a detached copy via {@code Store.copyEntity} -
+     * mutating a component obtained through it never reaches the real block, bytecode-verified against
+     * both that method and the native {@code UseWateringCanInteraction.waterBlockAt} (see
+     * docs/bud-worker-mode-plan.md, "Nachtrag: WATER wiederholte sich trotz obigem Fix"). Follows the
+     * same live path the native code uses instead: resolve the block's own {@code Ref} and mutate the
+     * component through the {@code Store} directly, then flag the block ticking exactly as the native
+     * interaction does. Shared between {@link #executeWater} and {@link #executeFertilize} since both
+     * are a one-field mutation on the same live {@code TilledSoilBlock}.
+     */
+    private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
+            @Nonnull java.util.function.Consumer<TilledSoilBlock> mutator) {
         WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
         if (chunk == null) {
             return;
@@ -191,8 +267,7 @@ public class FarmWorkAction extends ActionBase {
         if (soil == null) {
             return;
         }
-        Instant now = ((WorldTimeResource) store.getResource(WorldTimeResource.getResourceType())).getGameTime();
-        soil.setWateredUntil(now.plusSeconds(WorkConfig.getInstance().getWaterDurationSeconds()));
+        mutator.accept(soil);
         chunk.setTicking(x, y, z, true);
     }
 
@@ -202,6 +277,7 @@ public class FarmWorkAction extends ActionBase {
             case TILL -> config.getTillIntervalSeconds();
             case PLANT -> config.getPlantIntervalSeconds();
             case WATER -> config.getWaterIntervalSeconds();
+            case FERTILIZE -> config.getFertilizeIntervalSeconds();
             case HARVEST -> config.getTillIntervalSeconds();
         };
     }

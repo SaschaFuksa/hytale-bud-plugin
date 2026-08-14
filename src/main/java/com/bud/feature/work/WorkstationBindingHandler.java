@@ -118,11 +118,13 @@ final class WorkstationBindingHandler {
         if (ownerBuds == null) {
             LoggerUtil.getLogger().warning(
                     () -> "[BUD] Owner of Workstation is not currently online/resolvable - skipping bind for now.");
+            recordBindFailure(workstation, "owner offline");
             return;
         }
         Vector3d position = resolveSpawnPositionNextToStation(chunkStore, world, ref);
         if (position == null) {
             LoggerUtil.getLogger().severe(() -> "[BUD] Could not resolve Workstation world position - skipping bind.");
+            recordBindFailure(workstation, "no spawn position");
             return;
         }
 
@@ -133,8 +135,10 @@ final class WorkstationBindingHandler {
         if (bound == null) {
             final String failedBudId = budId;
             LoggerUtil.getLogger().severe(() -> "[BUD] Failed to bind Bud '" + failedBudId + "' to Workstation.");
+            recordBindFailure(workstation, "spawn failed");
             return;
         }
+        workstation.setBindFailureCount(0);
 
         bound.setCurrentState(BudState.WORKING);
         StateChangeEvent.dispatch(bound.getBud(), bound.getPlayerRef(), BudState.WORKING);
@@ -149,6 +153,20 @@ final class WorkstationBindingHandler {
                 Objects.requireNonNull(BlockModule.BlockStateInfo.getComponentType()));
         if (blockStateInfo != null) {
             processingBenchBlock.setActive(true, benchBlock, blockStateInfo);
+        }
+    }
+
+    /**
+     * A repeatedly failing bind must stop retrying on its own instead of hammering
+     * {@code performBind}/{@code spawn()} every {@code RebindRetrySeconds} forever - see
+     * docs/bud-worker-mode-plan.md, "Phase 6, Rebind-Retry darf nicht endlos wiederholen". Only reset by
+     * {@code tryRebind} noticing a different card in the slot.
+     */
+    private static void recordBindFailure(@Nonnull WorkstationBlockEntity workstation, @Nonnull String reason) {
+        workstation.setBindFailureCount(workstation.getBindFailureCount() + 1);
+        if (workstation.hasGivenUpBinding()) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Giving up binding a Bud to this Workstation after repeated "
+                    + "failures (" + reason + ") - remove and reinsert the card to retry.");
         }
     }
 
@@ -215,7 +233,9 @@ final class WorkstationBindingHandler {
         if (budProfile.getWorkRole() == WorkRole.FARMING) {
             spawner.addTool(FarmToolItems.TILL_TOOL_ITEM, (short) 0)
                     .addTool(FarmToolItems.WATER_TOOL_ITEM, (short) 1)
-                    .addTool(FarmToolItems.PLANT_TOOL_ITEM, (short) 2);
+                    .addTool(FarmToolItems.PLANT_TOOL_ITEM, (short) 2)
+                    .addTool(FarmToolItems.FERTILIZE_TOOL_ITEM, (short) 3)
+                    .addTool(FarmToolItems.HARVEST_TOOL_ITEM, (short) 4);
         }
         return spawner;
     }

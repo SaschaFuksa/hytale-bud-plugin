@@ -1,6 +1,7 @@
 package com.bud.feature.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -11,6 +12,7 @@ import javax.annotation.Nonnull;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudRegistry;
+import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -68,50 +70,62 @@ public class CleanupUtil {
         });
     }
 
+    /**
+     * Searches by NPC type id, not by {@link BudComponent} registration - a Bud whose spawn failed
+     * partway through (before {@code BudComponent} was ever attached, see
+     * docs/bud-worker-mode-plan.md, "Phase 6, Verwaiste Buds nach Spawn-Fehlschlag") is invisible to a
+     * {@code BudComponent}-gated query and was exactly the kind of orphan {@code /bud delete world}
+     * couldn't reach before this. {@link BudSpawner#removeHalfSpawnedEntity} now prevents new orphans of
+     * this specific kind at the source, but this stays the general-purpose net for any future failure
+     * mode that still leaves a Bud-typed NPC without its {@code BudComponent}.
+     */
     public static void cleanupAllBuds(World world, Store<EntityStore> store) {
         ComponentType<EntityStore, NPCEntity> componentType = NPCEntity.getComponentType();
         if (componentType == null) {
             LoggerUtil.getLogger().severe(() -> "[BUD] NPCEntity component type not found.");
             return;
         }
+        Set<String> budNpcTypeIds = new HashSet<>();
+        for (String budId : BudRegistry.getInstance().getIds()) {
+            budNpcTypeIds.add(BudRegistry.getInstance().get(Objects.requireNonNull(budId)).getNpcTypeId());
+        }
         try {
-            ConcurrentLinkedQueue<BudComponent> budsToRemove = new ConcurrentLinkedQueue<>();
+            ConcurrentLinkedQueue<NPCEntity> budsToRemove = new ConcurrentLinkedQueue<>();
             store.forEachEntityParallel(
-                    BudComponent.getComponentType(),
+                    componentType,
                     (index, archetypeChunk, commandBuffer) -> {
-                        LoggerUtil.getLogger()
-                                .fine(() -> "[BUD] Checking entity for cleanup: " + index);
-                        BudComponent budComponent = archetypeChunk.getComponent(index,
-                                BudComponent.getComponentType());
-                        if (budComponent == null) {
-                            return;
+                        NPCEntity npc = archetypeChunk.getComponent(index, componentType);
+                        if (npc != null && budNpcTypeIds.contains(npc.getNPCTypeId())) {
+                            budsToRemove.add(npc);
                         }
-                        budsToRemove.add(budComponent);
                     });
-            for (BudComponent budComponent : budsToRemove) {
-                NPCEntity bud = budComponent.getBud();
+            int removedCount = 0;
+            for (NPCEntity bud : budsToRemove) {
                 Ref<EntityStore> ref = bud.getReference();
                 if (ref == null) {
                     continue;
                 }
-                PlayerRef player = budComponent.getPlayerRef();
-                Ref<EntityStore> playerRef = player.getReference();
-                if (playerRef == null) {
-                    continue;
-                }
-                PlayerBudComponent playerBudComponent = store.getComponent(playerRef,
-                        PlayerBudComponent.getComponentType());
-                if (playerBudComponent != null) {
-                    playerBudComponent.removeCurrentBud(bud, budComponent.getBudId());
+                BudComponent budComponent = store.getComponent(ref, BudComponent.getComponentType());
+                if (budComponent != null) {
+                    PlayerRef player = budComponent.getPlayerRef();
+                    Ref<EntityStore> playerRef = player.getReference();
+                    if (playerRef != null) {
+                        PlayerBudComponent playerBudComponent = store.getComponent(playerRef,
+                                PlayerBudComponent.getComponentType());
+                        if (playerBudComponent != null) {
+                            playerBudComponent.removeCurrentBud(bud, budComponent.getBudId());
+                        }
+                    }
+                    Orchestrator.getInstance().purgeBud(player.getUsername(), budComponent.getBudId());
                 }
                 despawnBud(ref, store);
-                Orchestrator.getInstance().purgeBud(player.getUsername(), budComponent.getBudId());
-                LoggerUtil.getLogger()
-                        .info(() -> "[BUD] Removing NPC \"" + bud.getNPCTypeId() + "\""
-                                + " for player " + player.getUsername());
-
+                removedCount++;
+                LoggerUtil.getLogger().info(() -> "[BUD] Removing NPC \"" + bud.getNPCTypeId() + "\""
+                        + (budComponent != null ? " for player " + budComponent.getPlayerRef().getUsername()
+                                : " (orphaned, no BudComponent)"));
             }
-            Universe.get().sendMessage(Message.raw("All buds removed."));
+            int finalRemovedCount = removedCount;
+            Universe.get().sendMessage(Message.raw("All Bud NPCs removed (" + finalRemovedCount + ")."));
         } catch (Exception e) {
             LoggerUtil.getLogger()
                     .severe(() -> "[BUD] Exception during cleanup of world " + world.getName() + ": " + e.getMessage());

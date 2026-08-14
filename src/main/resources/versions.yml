@@ -1,4 +1,4 @@
-budVersion: 2
+budVersion: 3
 promptVersion: 1
 excludedBuds:
   - "roster.yml"

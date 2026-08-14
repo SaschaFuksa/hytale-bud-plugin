@@ -14,6 +14,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
@@ -113,8 +114,25 @@ public class BudSpawner {
 
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Error spawning NPC: " + e.getMessage());
+            removeHalfSpawnedEntity();
             return null;
         }
+    }
+
+    /**
+     * A failure partway through setup (e.g. {@link #configureInventory}) must not leave the NPC entity
+     * {@code spawnNPC} already created behind as an orphan - same lesson as the Phase 5 world-thread
+     * crash and the Phase 6 tool-equip regression: a failed sub-step must not corrupt overall state. See
+     * docs/bud-worker-mode-plan.md, "Phase 6, Verwaiste Buds nach Spawn-Fehlschlag".
+     */
+    private void removeHalfSpawnedEntity() {
+        Ref<EntityStore> ref = spawnedNpcRef;
+        if (ref == null || !ref.isValid()) {
+            return;
+        }
+        store.removeEntity(ref, RemoveReason.REMOVE);
+        LoggerUtil.getLogger().warning(
+                () -> "[NPCSpawner] Removed half-spawned NPC " + npcType + " after a setup failure.");
     }
 
     private void configureInventory() {
@@ -136,12 +154,23 @@ public class BudSpawner {
         }
         ItemContainer inventory = hotbar.getInventory();
 
+        // Checked against the container's actual, resolved capacity - not trusted from the caller's
+        // slot numbers or the NPC role's configured HotbarSize - so a mismatch (e.g. an NPC type whose
+        // HotbarSize wasn't raised to match the number of addTool calls) is skipped with a clear log
+        // instead of throwing mid-spawn and leaving an orphaned entity behind (see removeHalfSpawnedEntity).
+        short hotbarCapacity = inventory.getCapacity();
         for (WeaponConfig weapon : weapons) {
+            if (weapon.slot >= hotbarCapacity) {
+                LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Skipping " + weapon.itemId + " for " + npcType
+                        + " - hotbar slot " + weapon.slot + " is outside capacity (" + hotbarCapacity
+                        + "); raise the NPC role's HotbarSize.");
+                continue;
+            }
             ItemStack itemStack = new ItemStack(weapon.itemId, weapon.quantity);
             inventory.addItemStackToSlot(weapon.slot, itemStack);
         }
 
-        if (!weapons.isEmpty()) {
+        if (!weapons.isEmpty() && weapons.get(0).slot < hotbarCapacity) {
             hotbar.setActiveSlot((byte) weapons.get(0).slot, npcRef, accessor);
         }
 

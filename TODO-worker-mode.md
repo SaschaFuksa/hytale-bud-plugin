@@ -522,13 +522,39 @@ Umsetzung + vier Präzisierungen (Arbeitsreihenfolge, Saatgut-Verbrauch, Erntere
   - [x] Werkzeug für FERTILIZE: `Tool_Fertilizer` (Id verifiziert) statt leerer Hände, analog Hacke/Gießkanne/Saatgutbeutel - weiterhin rein optisch, kein Verbrauch, kein Item-Slot. Spawn-Ausstattung (`withWorkTools`) um Slot 3 ergänzt.
   - [x] `.\gradlew build` grün.
   - [ ] **Census-/Scan-Debug-Logging entfernen, sobald Sascha bestätigt, dass Keyleth sichtbar düngt** - Fundstellen: `WorkstationFuelTickSystem.findNextWorkAssignment`, `logExclusionSamples`, `logFieldCensus`, Aushungerungs-Guard in `updateWorkTarget`.
-- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** FERTILIZE läuft sichtbar (Tool_Fertilizer in der Hand, Kachel wird als gedüngt erkannt und bleibt danach weiterhin für WATER/HARVEST erkennbar); Reihenfolge stimmt (TILL > PLANT > FERTILIZE > HARVEST > WATER); Werkzeug wechselt sichtbar beim Arbeitsartwechsel; kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
+- [x] **DRINGEND: Vierte Werkzeug-Ausstattung (Tool_Fertilizer) machte Spawn/Bindung kaputt — verwaiste Buds, endlose Retries — behoben, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Verwaiste Buds nach Spawn-Fehlschlag":**
+  - [x] Ursache: `Template_Keyleth_Bud.json` hatte kein `HotbarSize` (Default `3`), vier Werkzeuge (Slots 0-3) sprengten die Kapazität - `NPCPlugin.spawnNPC` hatte die Entity aber bereits erzeugt, bevor `configureInventory` warf.
+  - [x] `"HotbarSize": 8` gesetzt (Engine-Maximum, Headroom für künftige Werkzeuge). Zusätzlich strukturell abgesichert: `BudSpawner.configureInventory` prüft `ItemContainer.getCapacity()` zur Laufzeit vor jedem Slot-Zugriff, überspringt und loggt statt zu werfen.
+  - [x] `BudSpawner.spawn()` entfernt eine bereits erzeugte, aber mitten im Setup gescheiterte Entity jetzt explizit (`removeHalfSpawnedEntity`) - kein Fehlschlag hinterlässt mehr eine Leiche.
+  - [x] Rebind-Retry-Backoff: `WorkstationBlockEntity.bindFailureCount`/`lastAttemptedCard`, `performBind` zählt Fehlschläge hoch und loggt einmalig bei `MAX_BIND_ATTEMPTS = 5`, `tryRebind` gibt danach auf, bis eine andere Karte im Slot liegt (Identitätsvergleich) - kein endloses Hämmern mehr alle `RebindRetrySeconds`.
+  - [x] `/bud delete world` (`CleanupUtil.cleanupAllBuds`) sucht jetzt über NPC-Typ statt `BudComponent`-Registrierung - findet auch Leichen ohne `BudComponent`, bleibt als generelles Sicherheitsnetz für künftige Fehlerursachen derselben Klasse bestehen.
+  - [x] `.\gradlew build` grün.
+  - [ ] **Sascha:** `/bud delete world` einmal ausführen, um die ~20 bestehenden verwaisten Keyleths zu entfernen, bevor erneut getestet wird.
+- [x] Spawn, Werkzeuge, Tillen, Pflanzen und Düngen von Sascha ingame bestätigt - nur Gießen noch offen.
+- [x] **Gießen deckte nur die halbe Feldbreite ab, goss dabei bereits gegossene Kacheln nach (Sascha, Log-Beleg: 66 Gießkandidaten bei nur 33 tatsächlich noch bedürftigen von 79) — behoben, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Gießdauer + Wasser-Aushungerung des Feldrands":**
+  - [x] Native Gießdauer per `javap` geklärt: `Watering_Can_Use.json` (`"Duration": 86400`), `UseWateringCanInteraction` wendet sie über `Instant.plus(duration, SECONDS)` auf dieselbe `WorldTimeResource`-Uhr an wie unser eigener Code - Einheiten passen 1:1.
+  - [x] `WorkConfig.waterDurationSeconds` von `600` auf `86400` gesetzt (Default), README-Konfigtabelle erklärt Herkunft und Konsequenz eines zu kleinen Werts.
+  - [x] WATER in zwei Prioritätsstufen aufgeteilt: `isNeverWateredCandidate` (finit, vor FERTILIZE) und `isWaterRefreshCandidate` (wiederkehrend, ganz unten hinter HARVEST) - neue Reihenfolge TILL > PLANT > WATER(neu) > FERTILIZE > HARVEST > WATER(Auffrischung). Beide erzeugen weiterhin denselben `WorkType.WATER`, kein neuer WorkType nötig.
+  - [x] Damit hängt die Bearbeitungsreihenfolge strukturell am Feldfortschritt, nicht mehr an `WaterDurationSeconds` selbst.
+  - [x] `[BUD][SCAN-DEBUG]`-Logging um getrennte `waterNew`/`waterRefresh`-Zähler ergänzt.
+  - [x] `.\gradlew build` grün.
+- [x] **Gießen von Sascha ingame bestätigt — Phase 6 damit inhaltlich abgeschlossen** (Tillen, Pflanzen, Düngen, Gießen, Werkzeugwechsel, geordnete Feldbearbeitung).
+- [x] **Nachtrag festgehalten:** Saschas Gieß-Loop-Beobachtung war kein Logikfehler, sondern eine veraltete Laufzeit-Konfigkopie (`Config<T>` überschreibt bestehende Schlüssel nie mit neuen Java-Defaults) - als wiederkehrende Falle im Plan-Doc dokumentiert (gilt auch für `farming.yml`), plus ein geprüfter, aber bewusst nicht umgesetzter Vorschlag für einen `versions.yml`-Warnmechanismus analog zu `promptVersion`/`budVersion`.
 
-## Phase 7 — Ernte + Lieferung
+## Phase 7 — Ernte (Scope bewusst eng: Kisten-Abgabe entfällt, Output-Slots der Station übernehmen diese Rolle)
 
-- [ ] `HarvestCropAction` (native `HarvestCropInteraction`), Ertrag geht ins Bud-eigene Inventar.
-- [ ] `FindContainerSensor` + `PlaceInContainerAction` (Konzept aus Referenzplugin, eigene Implementierung).
-  - Test: End-to-End mit leerem Feld — Bud durchläuft Tillen → Pflanzen → Gießen → Warten → Ernten → Abliefern an Kiste, mehrfach hintereinander automatisch.
+Details/Begründungen in `docs/bud-worker-mode-plan.md`, "Phase 7 — Ernte".
+
+- [x] **Erntereife generisch erkannt, ohne Sortenliste im Code:** `isHarvestCandidate` nutzt jetzt `BlockGathering.isHarvestable()` auf dem tatsächlich platzierten Block (bytecode-verifiziert exakt `harvest != null`, dasselbe Signal, das die native Erntekette selbst prüft) statt der bisherigen, auf Carrot hartkodierten `FarmingData`/`getStateForBlock`-Auswertung. Funktioniert identisch für alle 14 erlaubten Sorten und jede künftige.
+- [x] **Ernte in Output-Slots statt Bud-Inventar:** `FarmWorkAction.executeHarvest` löst Drops über `BlockHarvestUtils.getDrops` auf (dieselbe native Methode, die auch die Sichel-Erntekette eines Spielers nutzt, bytecode-verifiziert) und schreibt sie in `ProcessingBenchBlock.getOutputContainer()` - Bud-Inventar überlebt keinen Neustart (`BudComponent`-Codec ist leer), der Bench-Container wird nativ persistiert.
+- [x] Bewusst NICHT die native `FarmingUtil.harvest(...)` selbst genutzt (gibt Drops an die erntende Entity, nicht an einen Container, und würde Sorten mit `StageSetAfterHarvest` wie Carrot automatisch nachwachsen lassen statt den Kreislauf über PLANT zu schließen) - eigene, einfachere Ausführung: Drops in den Output, Block danach immer vollständig auf `BlockType.EMPTY_KEY` gesetzt.
+- [x] **Verhalten bei vollem Output:** HARVEST wird bei vollem Output gar nicht erst zugewiesen (Sascha-Vorschlag umgesetzt) - grobe Zulassungsprüfung einmal pro Station pro Scan (`hasHarvestOutputRoom`, mindestens ein leerer Slot), plus präzise Prüfung bei der Ausführung selbst (`ItemContainer.canAddItemStacks`, natives Vorbild aus `ProcessingBenchBlock.addOutputAndEjectRemainder`) für den Randfall mehrerer Drop-Stacks. Kachel bleibt reif stehen, andere Arbeit läuft weiter, einmaliges Log statt Dauer-Spam.
+- [x] **Werkzeug:** natives Erntewerkzeug gefunden (`Tool_Sickle_Crude`, löst `HarvestCropInteraction` aus) - kein leerer-Hände-Fallback nötig, fünfter Spawn-Slot ergänzt.
+- [x] **Kreislauf schließt sich zurück zu PLANT, gegengeprüft:** Block wird nach der Ernte per Identitätsvergleich (nicht nur Material) auf `BlockType.EMPTY_KEY` gesetzt - `isPlantCandidate` erkennt die Kachel danach sofort wieder als Kandidat, kein natives Nachwachsen als Stolperfalle dazwischen.
+- [x] Bewusst nicht in dieser Runde: `cooldownSecondsFor(HARVEST)` nutzt weiterhin `TillIntervalSeconds` als Pacing-Platzhalter (seit Phase 6) - ein eigener `HarvestIntervalSeconds`-Wert wäre ein kleiner, unkomplizierter Folgeauftrag.
+- [x] `.\gradlew build` grün.
+- [ ] **Census-/Scan-Debug-Logging entfernen, sobald Sascha die Ernte bestätigt.**
+- [ ] **Ingame-Test ausstehend (Sascha):** reife Kachel (egal welche der 14 Sorten) wird geerntet, Ertrag erscheint in den Output-Slots der Station (nicht im Bud-Inventar); Kachel wird danach automatisch wieder bepflanzt (Kreislauf schließt sich ohne manuelles Eingreifen); Sichel erscheint sichtbar in der Hand beim Ernten; bei vollem Output bleibt die Kachel reif stehen, Bud arbeitet an anderer Stelle weiter, kein Hängenbleiben.
 
 ## Phase 8 — Rezept/Config-Politur
 
