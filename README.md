@@ -219,6 +219,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `PlantIntervalSeconds` | Pacing: how long a working Bud waits after planting a seed before the Workstation releases the next one | `1` |
 | `WaterIntervalSeconds` | Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one | `1` |
 | `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered | `600` |
+| `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
 | `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (Phase 9, not yet implemented) | `3` |
 | `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (Phase 10, not yet implemented) | `2` |

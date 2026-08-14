@@ -499,8 +499,30 @@ Umsetzung + vier Präzisierungen (Arbeitsreihenfolge, Saatgut-Verbrauch, Erntere
   - [x] Zusatz-Logging `logExclusionSamples`: bis zu 5 Beispielpositionen mit getilltem Boden, die trotzdem kein PLANT-Kandidat sind, inkl. Ausschlussgrund (`recentlyFailed` vs. Blocktyp/Material über der Position) - testet gezielt Saschas Hauptverdacht (Blockraum darüber gilt fälschlich als belegt).
   - [x] Logging für die Aushungerungs-Absicherung (Kandidat 1 aus Saschas Liste): loggt jedes Mal, wenn der Wiederholungsschutz eine Position auf die Sperrliste setzt.
   - [x] `.\gradlew build` grün.
-  - [ ] **Logging entfernen, sobald Sascha bestätigt** (`[BUD][SCAN-DEBUG]`-Fundstellen: `WorkstationFuelTickSystem.findNextWorkAssignment`, `logExclusionSamples`, Aushungerungs-Guard in `updateWorkTarget`).
-- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** komplettes Feld wird bepflanzt, nicht nur die Hälfte; Log-Analyse der `[BUD][SCAN-DEBUG]`-Zeilen für den Zeitpunkt, an dem Keyleth aufhört, zur weiteren Diagnose bereitstellen; Werkzeug wechselt sichtbar beim Arbeitsartwechsel; nicht erlaubtes Saatgut wird von Slot 2 abgelehnt bzw. nicht gepflanzt; Reihenfolge stimmt; kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
+  - [x] Ursache gefunden (Sascha, per Census-Logging belegt: 79 gegossene Kacheln, `tilledInRange=0`): Blockzustände ändern die Block-Id (`Soil_Dirt_Tilled` → `*Soil_Dirt_Tilled_State_Definitions_Watered`), `isTilledSoil`/`isTillCandidate` verglichen exakt gegen den nackten Namen - jede gegossene/gedüngte Kachel fiel dauerhaft aus allen Arbeitsarten heraus, nicht nur aus WATER.
+- [x] **Zustandsvarianten-Bug behoben (Sascha) + per SDK-Weg abgesichert, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Zustandsvarianten-Bug + FERTILIZE":**
+  - [x] `work/farming.yml` erweitert um `tillableBlocks`/`tilledSoilBlocks`/`tilledSoilTargetBlock`, `FarmingRecipeYaml`/`FarmingRecipeConfig` laden sie mit Fallback-Defaults, `WorkstationFuelTickSystem`/`FarmWorkAction` nutzen die Config statt entfernter hartkodierter Konstanten.
+  - [x] `FarmingRecipeConfig.isTilledSoilBlock` zusätzlich über `BlockType.getStateForBlock` abgesichert (offizieller SDK-Weg, bytecode verifiziert, dieselbe Methode, die `isHarvestCandidate` für Crop-Stufen bereits nutzt) - erkennt jede aktuelle und künftige State-Variante von `Soil_Dirt_Tilled` automatisch, die konfigurierte Liste bleibt als Override-/Erweiterungspunkt bestehen.
+  - [x] Gegengeprüft: keine gleiche Falle sonst im Worker-Code (`isHarvestCandidate` nutzte bereits `getStateForBlock`, rohe Tillable-Ground-Typen haben keine eigenen State-Definitionen).
+  - [x] Volltqualifizierte `FarmingRecipeConfig`-Referenz in `FarmWorkAction.executeTill` durch sauberen Import ersetzt.
+  - [x] `.\gradlew build` grün.
+- [x] **Neue Arbeitsart FERTILIZE (Sascha-Entscheidung: kein Item-Slot, kein Verbrauch), siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Zustandsvarianten-Bug + FERTILIZE":**
+  - [x] `WorkType.FERTILIZE`, Reihenfolge TILL > PLANT > WATER > FERTILIZE > HARVEST.
+  - [x] `isFertilizeCandidate` (analog `isWaterCandidate`, `TilledSoilBlock.fertilized`), `WorkConfig.FertilizeIntervalSeconds` (Default `1`), README-Konfigtabelle mitgezogen.
+  - [x] `FarmWorkAction.executeFertilize` über denselben Live-Component-Pfad wie Gießen (`Ref`/`Store`, nicht `Holder`) - neuer gemeinsamer `mutateLiveTilledSoil`-Helfer, `executeWater` mit umgestellt, kein doppelt gepflegter Boilerplate.
+  - [x] Werkzeug: leere Hände (kein Dünger-Item beteiligt), Arbeitsanimation wie bei den anderen Arbeitsarten.
+  - [x] Gegengeprüft: eine gedüngte Kachel bleibt für WATER/HARVEST erkennbar (fällt dank Zustandsvarianten-Fix nicht mehr aus dem System).
+  - [x] `.\gradlew build` grün.
+  - [x] Feld wird jetzt vollständig bearbeitet (Zustandsvarianten-Fix), FERTILIZE selbst griff aber trotzdem nicht - siehe nächster Punkt.
+- [x] **FERTILIZE griff nicht trotz 77 Kandidaten (Sascha, Log-Beleg) — behoben + als Entwurfsregel festgehalten, siehe `docs/bud-worker-mode-plan.md`, "Phase 6, Endliche vor wiederkehrender Arbeit":**
+  - [x] Ursache: WATER (wiederkehrend, `wateredUntil` läuft ständig neu ab) stand über FERTILIZE (einmalig pro Kachel) - eine endliche Stufe hinter einer wiederkehrenden kommt nie dran, der Wiederholungsschutz greift nicht (reagiert nur auf dieselbe Position in Folge, nicht auf Stufen-Dominanz durch wechselnde Positionen).
+  - [x] Reihenfolge geändert: TILL > PLANT > FERTILIZE > HARVEST > **WATER** (wiederkehrende Stufe ans Ende).
+  - [x] Als Entwurfsregel im Plan-Doc festgehalten: endliche Arbeitsarten immer vor wiederkehrenden, gilt für künftige Arbeitsarten (Foresting/Mining) genauso.
+  - [x] Gegengeprüft: TILL selbst ist technisch auch wiederkehrend (Boden-Zerfall laut `Soil_Dirt_Tilled.json`), verletzt die Regel aber nicht, da nichts über TILL steht. HARVEST (aktuell No-Op) bleibt oberhalb WATER vertretbar - anders als bei WATER wechselt die gewinnende Position bei HARVEST nicht, der bestehende Wiederholungsschutz greift dort zuverlässig; bei echter Ernte in Phase 7 nochmal prüfen.
+  - [x] Werkzeug für FERTILIZE: `Tool_Fertilizer` (Id verifiziert) statt leerer Hände, analog Hacke/Gießkanne/Saatgutbeutel - weiterhin rein optisch, kein Verbrauch, kein Item-Slot. Spawn-Ausstattung (`withWorkTools`) um Slot 3 ergänzt.
+  - [x] `.\gradlew build` grün.
+  - [ ] **Census-/Scan-Debug-Logging entfernen, sobald Sascha bestätigt, dass Keyleth sichtbar düngt** - Fundstellen: `WorkstationFuelTickSystem.findNextWorkAssignment`, `logExclusionSamples`, `logFieldCensus`, Aushungerungs-Guard in `updateWorkTarget`.
+- [ ] **Erneuter Ingame-Test ausstehend (Sascha):** FERTILIZE läuft sichtbar (Tool_Fertilizer in der Hand, Kachel wird als gedüngt erkannt und bleibt danach weiterhin für WATER/HARVEST erkennbar); Reihenfolge stimmt (TILL > PLANT > FERTILIZE > HARVEST > WATER); Werkzeug wechselt sichtbar beim Arbeitsartwechsel; kein Hin-und-Herspringen zwischen Arbeitsarten pro Tick.
 
 ## Phase 7 — Ernte + Lieferung
 
@@ -512,6 +534,17 @@ Umsetzung + vier Präzisierungen (Arbeitsreihenfolge, Saatgut-Verbrauch, Erntere
 
 - [ ] Seed→Crop-Mapping als YAML (`work/farming.yml`, gleiche Konvention wie `prompts/`/`buds/`), keine Hardcodes mehr aus Phase 5–7.
   - Test: anderes Gemüse per Config-Änderung, kein Recompile nötig außer YAML-Edit.
+
+## Phase 9 — LLM-Reaktionen im Arbeitsmodus (Sascha, nachträglich aufgenommen)
+
+In Phase 2 wurden Reaktionen für Buds im `WORKING`-State **vollständig** gesperrt (zentral in `BudManager.getRandomBudComponent`/`getRandomOtherBud`, zusätzlich `DamageFilterSystem` und `Orchestrator.dispatch`). Diese Sperre bleibt der Normalfall — die folgenden vier Anlässe sind bewusste, gezielte Ausnahmen und dürfen die Sperre nicht generell aufweichen.
+
+- [ ] **Karte eingelegt** → Reaktion beim Arbeitsbeginn. Der Bud kommentiert, dass er an die Arbeit geht; bud-spezifisch (Keyleth mag Farming, Gronkh hasst Arbeit — Prompt-YAML wie bei allen anderen Reaktionen).
+- [ ] **Karte entnommen** → Reaktion beim Feierabend. Achtung: die Karte entnehmen despawnt den Bud (Folgeauftrag 2). Die Reaktion muss also **vor** dem Despawn ausgelöst werden, sonst spricht eine bereits entfernte Entity.
+- [ ] **Ansprechen mit F während der Arbeit** → eigene Reaktion statt Zustandswechsel. `StateChangeSystem` überspringt Buds im `WORKING`-State inzwischen komplett, eine F-Interaktion bewirkt dort also aktuell gar nichts. Diese Lücke bekommt eine Arbeits-Reaktion (`PLAYER`-Kanal, wird vom Orchestrator ohne Cooldown sofort zugestellt).
+- [ ] **Periodischer Arbeitskommentar**, etwa jede Minute, über **alle** arbeitenden Buds hinweg — nicht pro Bud, sonst reden bei drei Stationen drei gleichzeitig. Der aktuelle `WorkType` (Tillen/Pflanzen/Gießen/Düngen/Ernten) gehört als Kontext in den Prompt, damit der Kommentar zur Tätigkeit passt. Umsetzung über den bestehenden `AMBIENT`-Kanal des Orchestrators (Cooldown-/Dedup-Mechanik ist dort vorhanden), Intervall konfigurierbar.
+
+Zu klären beim Umsetzen: wie der Working-Ausschluss punktuell umgangen wird, ohne die Phase-2-Sperre zu untergraben — vermutlich ein eigener Auswahlpfad für Arbeits-Reaktionen statt einer Ausnahme im gemeinsamen Chokepoint. Und ob der Fallback-Text ohne LLM (`createFallbackPrompt`) für die neuen Anlässe eigene Einträge in den Bud-YAMLs braucht.
 
 ## Verifikation
 
