@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.bud.BudPlugin;
 import com.bud.core.types.WorkRole;
@@ -24,20 +25,6 @@ public final class FarmingRecipeConfig {
 
     private static FarmingRecipeConfig instance;
 
-    private static final Set<String> DEFAULT_TILLABLE_BLOCKS = Objects.requireNonNull(Set.of(
-            "Soil_Dirt", "Soil_Dirt_Burnt", "Soil_Dirt_Cold", "Soil_Dirt_Dry",
-            "Soil_Grass", "Soil_Grass_Burnt", "Soil_Grass_Cold", "Soil_Grass_Deep",
-            "Soil_Grass_Dry", "Soil_Grass_Full", "Soil_Grass_Sunny", "Soil_Leaves",
-            "Soil_Mud", "Soil_Mud_Dry", "Soil_Needles", "Soil_Pathway"));
-
-    private static final Set<String> DEFAULT_TILLED_SOIL_BLOCKS = Objects.requireNonNull(Set.of(
-            "Soil_Dirt_Tilled",
-            "*Soil_Dirt_Tilled_State_Definitions_Watered",
-            "*Soil_Dirt_Tilled_State_Definitions_Fertilized",
-            "*Soil_Dirt_Tilled_State_Definitions_Fertilized_Watered"));
-
-    private static final String DEFAULT_TILLED_SOIL_TARGET_BLOCK = "Soil_Dirt_Tilled";
-
     private final Map<WorkRole, Set<String>> allowedSeedsByRole = new EnumMap<>(WorkRole.class);
 
     private final Map<WorkRole, Set<String>> allowedFuelByRole = new EnumMap<>(WorkRole.class);
@@ -46,7 +33,8 @@ public final class FarmingRecipeConfig {
 
     private final Set<String> tilledSoilBlocks = new HashSet<>();
 
-    private String tilledSoilTargetBlock = DEFAULT_TILLED_SOIL_TARGET_BLOCK;
+    @Nullable
+    private String tilledSoilTargetBlock;
 
     private FarmingRecipeConfig() {
     }
@@ -93,29 +81,28 @@ public final class FarmingRecipeConfig {
         allowedFuelByRole.clear();
         tillableBlocks.clear();
         tilledSoilBlocks.clear();
-        tilledSoilTargetBlock = DEFAULT_TILLED_SOIL_TARGET_BLOCK;
+        tilledSoilTargetBlock = null;
         if (!Files.exists(path)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Farming recipe file missing: " + path);
-            tillableBlocks.addAll(DEFAULT_TILLABLE_BLOCKS);
-            tilledSoilBlocks.addAll(DEFAULT_TILLED_SOIL_BLOCKS);
             return;
         }
         FarmingRecipeYaml yaml = FarmingRecipeYaml.load(path);
         tillableBlocks.addAll(yaml.getTillableBlocks());
         if (tillableBlocks.isEmpty()) {
-            tillableBlocks.addAll(DEFAULT_TILLABLE_BLOCKS);
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] No 'tillableBlocks' in " + path + ", using built-in defaults.");
+                    .warning(() -> "[BUD] No 'tillableBlocks' in " + path + ".");
         }
         tilledSoilBlocks.addAll(yaml.getTilledSoilBlocks());
         if (tilledSoilBlocks.isEmpty()) {
-            tilledSoilBlocks.addAll(DEFAULT_TILLED_SOIL_BLOCKS);
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] No 'tilledSoilBlocks' in " + path + ", using built-in defaults.");
+                    .warning(() -> "[BUD] No 'tilledSoilBlocks' in " + path + ".");
         }
         String targetBlock = yaml.getTilledSoilTargetBlock();
         if (targetBlock != null && !targetBlock.isBlank()) {
             tilledSoilTargetBlock = targetBlock;
+        } else {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] No 'tilledSoilTargetBlock' in " + path + ".");
         }
         for (Map.Entry<String, List<String>> entry : yaml.getAllowedSeeds().entrySet()) {
             try {
@@ -165,13 +152,16 @@ public final class FarmingRecipeConfig {
         if (tilledSoilBlocks.contains(blockTypeId)) {
             return true;
         }
-        BlockType base = BlockType.fromString(Objects.requireNonNull(tilledSoilTargetBlock));
+        if (tilledSoilTargetBlock == null) {
+            return false;
+        }
+        BlockType base = BlockType.fromString(tilledSoilTargetBlock);
         return base != null && base.getStateForBlock(blockTypeId) != null;
     }
 
-    @Nonnull
+    @Nullable
     public String getTilledSoilTargetBlock() {
-        return Objects.requireNonNull(tilledSoilTargetBlock);
+        return tilledSoilTargetBlock;
     }
 
 }

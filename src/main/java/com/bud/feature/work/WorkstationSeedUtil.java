@@ -50,14 +50,11 @@ public final class WorkstationSeedUtil {
         return cropBlockType;
     }
 
-    static boolean isAllowedOrNotASeed(@Nullable ItemStack itemStack, @Nonnull WorkRole workRole) {
+    static boolean isAllowedSeed(@Nullable ItemStack itemStack, @Nonnull WorkRole workRole) {
         if (itemStack == null || itemStack.isEmpty()) {
             return true;
         }
         String itemId = Objects.requireNonNull(itemStack.getItem().getId());
-        if (!itemId.startsWith(SEED_PREFIX)) {
-            return true;
-        }
         return FarmingRecipeConfig.getInstance().isSeedAllowed(workRole, itemId);
     }
 

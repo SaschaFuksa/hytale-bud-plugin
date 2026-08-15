@@ -58,7 +58,7 @@ public class WorkstationFilterSystem extends RefSystem<ChunkStore> {
                 processingBenchBlock.getInputContainer().setSlotFilter(FilterActionType.ADD, SECONDARY_INPUT_SLOT,
                                 (actionType, container, slot,
                                                 itemStack) -> WorkstationCardUtil.resolveBudId(itemStack) == null
-                                                                && WorkstationSeedUtil.isAllowedOrNotASeed(itemStack,
+                                                                && WorkstationSeedUtil.isAllowedSeed(itemStack,
                                                                                 workRole));
                 processingBenchBlock.getFuelContainer().setSlotFilter(FilterActionType.ADD, FEED_SLOT,
                                 (actionType, container, slot,

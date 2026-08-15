@@ -130,7 +130,11 @@ public class FarmWorkAction extends ActionBase {
     }
 
     private static void executeTill(@Nonnull World world, int x, int y, int z) {
-        world.setBlock(x, y, z, FarmingRecipeConfig.getInstance().getTilledSoilTargetBlock());
+        String tilledSoilTargetBlock = FarmingRecipeConfig.getInstance().getTilledSoilTargetBlock();
+        if (tilledSoilTargetBlock == null) {
+            return;
+        }
+        world.setBlock(x, y, z, tilledSoilTargetBlock);
         clearOvergrowth(world, x, y, z);
     }
 
