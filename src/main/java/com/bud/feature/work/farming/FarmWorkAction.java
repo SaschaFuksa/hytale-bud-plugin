@@ -227,10 +227,6 @@ public class FarmWorkAction extends ActionBase {
         }
         Ref<ChunkStore> ref = chunk.getBlockComponentEntity(x, y, z);
         if (ref == null) {
-            // Deprecated (bytecode-verified via javap, no forRemoval marker) but still the only public
-            // entrypoint that creates a block entity from the block's own BlockType.getBlockEntity() spec -
-            // no non-deprecated replacement exists, keep using it rather than reimplementing the native
-            // Holder/AddReason.SPAWN construction ourselves.
             ref = BlockModule.ensureBlockEntity(chunk, x, y, z);
         }
         if (ref == null || !ref.isValid()) {
