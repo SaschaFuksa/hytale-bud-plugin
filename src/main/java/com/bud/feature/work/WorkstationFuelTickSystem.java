@@ -109,12 +109,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             int index, @Nonnull WorkstationBlockEntity workstation, @Nonnull ProcessingBenchBlock processingBenchBlock,
             float dt) {
         ItemStack card = processingBenchBlock.getInputContainer().getItemStack(CARD_SLOT);
-        // A different card in the slot (identity, not just role/id) than the one the
-        // last bind attempt
-        // used is the "Karte neu eingelegt" state change that re-enables retries after
-        // giving up - see
-        // docs/bud-worker-mode-plan.md, "Phase 6, Rebind-Retry darf nicht endlos
-        // wiederholen".
         if (card != workstation.getLastAttemptedCard()) {
             workstation.setBindFailureCount(0);
         }
@@ -343,11 +337,15 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return world.getBlockType(x, y, z);
     }
 
-    private static boolean isTilledSoil(@Nullable BlockType blockType) {
+    private static String getBlockId(@Nullable BlockType blockType) {
         if (blockType == null) {
-            return false;
+            return null;
         }
-        String blockId = blockType.getId();
+        return blockType.getId();
+    }
+
+    private static boolean isTilledSoil(@Nullable BlockType blockType) {
+        String blockId = getBlockId(blockType);
         if (blockId == null) {
             return false;
         }
@@ -364,7 +362,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         if (blockType == null) {
             return false;
         }
-        String blockId = blockType.getId();
+        String blockId = getBlockId(blockType);
         if (blockId == null) {
             return false;
         }
@@ -380,15 +378,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above == BlockType.EMPTY;
     }
 
-    /**
-     * A tile that was never watered at all (no {@code TilledSoilBlock} component
-     * yet, or one exists but
-     * {@code wateredUntil} was never set) - kept separate from
-     * {@link #isWaterRefreshCandidate} so it can
-     * sit at a different priority (see the finite-vs-recurring split at the call
-     * site in
-     * {@link #findNextWorkAssignment}).
-     */
     private static boolean isNeverWateredCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
@@ -405,11 +394,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return soil == null || soil.getWateredUntil() == null;
     }
 
-    /**
-     * A tile that was watered at least once but the duration has since expired -
-     * the genuinely
-     * recurring counterpart to {@link #isNeverWateredCandidate}.
-     */
     private static boolean isWaterRefreshCandidate(@Nonnull World world, @Nonnull Vector3i position,
             @Nonnull Instant now) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
@@ -431,15 +415,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return wateredUntil != null && !wateredUntil.isAfter(now);
     }
 
-    /**
-     * Same read-only pattern as {@link #isWaterRefreshCandidate} - a {@code Holder}
-     * copy is fine here since
-     * this only reads the already-persisted {@code fertilized} flag, never mutates
-     * it (the actual write
-     * in {@code FarmWorkAction} goes through the live {@code Ref}/{@code Store}
-     * path instead, same
-     * reasoning as watering).
-     */
     private static boolean isFertilizeCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
@@ -456,25 +431,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return soil == null || !soil.isFertilized();
     }
 
-    /**
-     * Fully generic, no per-variety code or config:
-     * {@code BlockGathering.isHarvestable()}
-     * (bytecode-verified: {@code harvest != null}) is the exact same signal the
-     * native harvest
-     * interaction chain uses ({@code HarvestCropInteraction} ->
-     * {@code FarmingUtil.harvest0} both check
-     * {@code blockType.getGathering().getHarvest()} on the placed block itself, not
-     * a resolved "base"
-     * type) - a crop only declares a {@code Gathering.Harvest} entry on its final
-     * ripe growth stage
-     * (verified against {@code Plant_Crop_Carrot_Block.json}: only
-     * {@code State.Definitions.StageFinal}
-     * has one), so its mere presence already means "ripe". Superseded the earlier
-     * {@code FarmingData}/{@code getStateForBlock} comparison hardcoded to
-     * {@code Plant_Crop_Carrot_Block} - see docs/bud-worker-mode-plan.md, "Phase 7
-     * - Erntereife
-     * generisch erkannt".
-     */
     private static boolean isHarvestCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
@@ -487,23 +443,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return gathering != null && gathering.isHarvestable();
     }
 
-    /**
-     * Checks room for the tile's guaranteed drop only
-     * ({@code HarvestingDropType.getItemId()}), not the
-     * full (possibly RNG-augmented) drop list {@code FarmWorkAction.executeHarvest}
-     * actually resolves via
-     * {@code BlockHarvestUtils.getDrops} - bytecode-verified that
-     * {@code getItemId()} is always added
-     * deterministically (no RNG involved) regardless of whether a
-     * {@code dropListId} is also present, so
-     * this is exact for crops with no bonus drop list and a safe (if occasionally
-     * optimistic) lower bound
-     * otherwise; the real gate is the precise dry-run in {@code executeHarvest}
-     * itself. See
-     * docs/bud-worker-mode-plan.md, "Phase 7 - Ernte-Output-Sperre" for why a full
-     * drop-list resolution
-     * wasn't used here instead (RNG consumption on every scan of every ripe tile).
-     */
     private static boolean hasHarvestOutputRoom(@Nonnull World world, @Nonnull Vector3i position,
             @Nonnull ProcessingBenchBlock processingBenchBlock) {
         ItemContainer output = processingBenchBlock.getOutputContainer();
