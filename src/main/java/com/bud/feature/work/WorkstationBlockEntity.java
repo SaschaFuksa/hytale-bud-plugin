@@ -73,6 +73,8 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     private boolean outputFullReactionSent;
 
+    private boolean outOfFuelReactionSent;
+
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
             .builder(WorkstationBlockEntity.class, WorkstationBlockEntity::new)
@@ -242,6 +244,18 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     public void onOutputContainerChanged() {
         clearHarvestOutputLocks();
         outputFullReactionSent = false;
+    }
+
+    public boolean isOutOfFuelReactionSent() {
+        return outOfFuelReactionSent;
+    }
+
+    public void setOutOfFuelReactionSent(boolean outOfFuelReactionSent) {
+        this.outOfFuelReactionSent = outOfFuelReactionSent;
+    }
+
+    public void onFuelContainerChanged() {
+        outOfFuelReactionSent = false;
     }
 
     @Override

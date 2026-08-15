@@ -1,5 +1,5 @@
 budVersion: 0
-promptVersion: 1
+promptVersion: 2
 excludedBuds:
   - "roster.yml"
 #excludedPrompts:

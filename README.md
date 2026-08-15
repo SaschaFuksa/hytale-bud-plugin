@@ -196,7 +196,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
 | `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
-| `EnableWorkReactions` | Enable or disable the Working-state reactions (started/finished working, interacted-with-while-working, output storage full) | `true` |
+| `EnableWorkReactions` | Enable or disable the Working-state reactions (started/finished working, interacted-with-while-working, output storage full, out of fuel) | `true` |
 <br>
 
 ### Orchestration Configuration (Only change if needed for performance tuning)

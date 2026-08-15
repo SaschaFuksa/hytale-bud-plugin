@@ -1121,7 +1121,7 @@
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: sitting pose, hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Farm-Loop reorder below. ---",
+              "$Comment": "--- .Resting: resting pose (native Kweebec_Sapling 'Rest' flavor animation, Status slot - same PlayAnimation mechanism as Trork's campfire-sit, bytecode-verified via ActionPlayAnimation.execute -> NPCEntity.playAnimation). 'Rest' used instead of 'Sit' - 'Sit' assumes a seat height (furniture), which put Keyleth visually into the ground with no seat present; 'Rest' is the ground-level pose. Hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Farm-Loop reorder below. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Resting"
@@ -1131,8 +1131,9 @@
               },
               "Actions": [
                 {
-                  "Type": "Crouch",
-                  "Crouch": true
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Rest"
                 },
                 {
                   "Type": "Inventory",
@@ -1147,7 +1148,7 @@
               ]
             },
             {
-              "$Comment": "--- .Default bookkeeping: Crouch:false + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Farm-Loop below sets. Tool-in-hand is NOT set here - FarmWorkAction.equipToolFor switches it per work type (till/water/plant-or-harvest empty hand) each time it executes, see docs/bud-worker-mode-plan.md, 'Phase 6, Werkzeug pro Arbeitsart'. ---",
+              "$Comment": "--- .Default bookkeeping: clear the Status-slot Sit animation (empty PlayAnimation, no 'Animation' key - same clear pattern as Trork's Alerted->Status-slot-reset, bytecode-verified: empty animationId is a valid no-op state for ActionPlayAnimation) + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Farm-Loop below sets. Tool-in-hand is NOT set here - FarmWorkAction.equipToolFor switches it per work type (till/water/plant-or-harvest empty hand) each time it executes, see docs/bud-worker-mode-plan.md, 'Phase 6, Werkzeug pro Arbeitsart'. ---",
               "Continue": true,
               "Sensor": {
                 "Type": "State",
@@ -1155,8 +1156,8 @@
               },
               "Actions": [
                 {
-                  "Type": "Crouch",
-                  "Crouch": false
+                  "Type": "PlayAnimation",
+                  "Slot": "Status"
                 },
                 {
                   "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",

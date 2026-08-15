@@ -7,7 +7,8 @@ public enum WorkReactionKind {
     START("workStart", "workViewStart", 3),
     END("workEnd", "workViewEnd", 3),
     INTERACT("workInteract", "workViewInteract", 2),
-    OUTPUT_FULL("workOutputFull", "workViewOutputFull", 3);
+    OUTPUT_FULL("workOutputFull", "workViewOutputFull", 3),
+    OUT_OF_FUEL("workOutOfFuel", "workViewOutOfFuel", 3);
 
     @Nonnull
     private final String systemPromptKey;

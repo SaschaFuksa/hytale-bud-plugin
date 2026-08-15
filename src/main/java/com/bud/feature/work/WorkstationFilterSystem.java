@@ -67,8 +67,11 @@ public class WorkstationFilterSystem extends RefSystem<ChunkStore> {
                                 event -> WorkstationBindingHandler.reevaluate(store, ref, workstation,
                                                 processingBenchBlock, benchBlock));
                 processingBenchBlock.getFuelContainer().registerChangeEvent(
-                                event -> WorkstationBindingHandler.reevaluate(store, ref, workstation,
-                                                processingBenchBlock, benchBlock));
+                                event -> {
+                                        WorkstationBindingHandler.reevaluate(store, ref, workstation,
+                                                        processingBenchBlock, benchBlock);
+                                        workstation.onFuelContainerChanged();
+                                });
                 if (processingBenchBlock.getOutputContainer() != null) {
                         processingBenchBlock.getOutputContainer()
                                         .registerChangeEvent(event -> workstation.onOutputContainerChanged());

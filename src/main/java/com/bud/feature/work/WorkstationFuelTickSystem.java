@@ -79,6 +79,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             return;
         }
 
+        Ref<ChunkStore> ref = archetypeChunk.getReferenceTo(index);
+
         boolean pausedByBench = !processingBenchBlock.isActive();
         setRestingSubState(boundBud, pausedByBench || workstation.isResting());
 
@@ -88,6 +90,9 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
         if (workstation.isResting()) {
             tryResumeFromRest(workstation, boundBud, processingBenchBlock);
+            if (!workstation.isResting()) {
+                updateBlockInteractionState(store, ref, processingBenchBlock, true);
+            }
             return;
         }
 
@@ -109,8 +114,44 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
         workstation.setFuelSecondsRemaining(0f);
         workstation.setResting(true);
+        updateBlockInteractionState(store, ref, processingBenchBlock, false);
         String restingBudId = boundBud.getBudId();
         LoggerUtil.getLogger().info(() -> "[BUD] Workstation out of fuel, Bud " + restingBudId + " is resting.");
+        if (!workstation.isOutOfFuelReactionSent() && ReactionConfig.getInstance().isEnableWorkReactions()) {
+            workstation.setOutOfFuelReactionSent(true);
+            fireOutOfFuelReaction(workstation);
+        }
+    }
+
+    private static void updateBlockInteractionState(@Nonnull Store<ChunkStore> store, @Nonnull Ref<ChunkStore> ref,
+            @Nonnull ProcessingBenchBlock processingBenchBlock, boolean active) {
+        Vector3i position = WorkstationBindingHandler.resolveWorkstationBlockPosition(store, ref);
+        if (position == null) {
+            return;
+        }
+        World world = store.getExternalData().getWorld();
+        BlockType blockType = getBlockType(world, position.x, position.y, position.z);
+        if (blockType == null) {
+            return;
+        }
+        processingBenchBlock.setBlockInteractionState(active ? ProcessingBenchBlock.PROCESSING : "default",
+                blockType, world, position.x, position.y, position.z);
+    }
+
+    private static void fireOutOfFuelReaction(@Nonnull WorkstationBlockEntity workstation) {
+        BudComponent boundBud = workstation.getBoundBud();
+        if (boundBud == null) {
+            return;
+        }
+        WorkEntry workEntry = new WorkEntry(boundBud, WorkReactionKind.OUT_OF_FUEL, boundBud.getWorkType(), null);
+        LLMInteractionEntry entry = new LLMInteractionEntry(LLMWorkMessageCreation.getInstance(), workEntry);
+        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                OrchestratorChannel.ACTIVITY,
+                workEntry,
+                "workOutOfFuel",
+                boundBud.getPlayerRef().getUsername(),
+                entry,
+                System.currentTimeMillis()));
     }
 
     private static void tryRebind(@Nonnull Store<ChunkStore> store, @Nonnull ArchetypeChunk<ChunkStore> archetypeChunk,

@@ -163,6 +163,12 @@ prompts:
     Second, you get information about your personal view on work and labor.
     Third, you get the item your storage is full of, if known.
     Finally, say something short and in character about being unable to harvest more until the storage is emptied.
+  workOutOfFuel: |
+    You are working at your Workstation, but you just ran out of food and have to rest until more is provided.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is assigned.
+    Finally, say something short and in character about running out of food and needing more food to continue working.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

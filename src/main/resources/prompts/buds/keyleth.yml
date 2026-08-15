@@ -82,3 +82,4 @@ fallbacks:
   workViewEnd: Weeeee, the work is done for now, the fields can rest.
   workViewInteract: Weeeee, I am working, but I always have time for you, friend!
   workViewOutputFull: Weeeee, the harvest storage is full, we should gather it before I continue.
+  workViewOutOfFuel: Weeeee, I'm out of fuel and need to rest a moment, more please!

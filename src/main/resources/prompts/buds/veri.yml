@@ -81,3 +81,4 @@ fallbacks:
   workViewEnd: Oh! Work is done! Time to see what treasures I found!
   workViewInteract: Oh! You caught me working! Don't worry, I still have time to chat!
   workViewOutputFull: Oh! No more room to store the harvest! Come see all the treasures I found!
+  workViewOutOfFuel: Oh! I'm out of fuel and need to rest a bit, more please!
