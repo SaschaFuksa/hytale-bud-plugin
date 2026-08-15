@@ -156,14 +156,6 @@ public class BudSpawner {
         }
         ItemContainer inventory = hotbar.getInventory();
 
-        // Checked against the container's actual, resolved capacity - not trusted from
-        // the caller's
-        // slot numbers or the NPC role's configured HotbarSize - so a mismatch (e.g. an
-        // NPC type whose
-        // HotbarSize wasn't raised to match the number of addTool calls) is skipped
-        // with a clear log
-        // instead of throwing mid-spawn and leaving an orphaned entity behind (see
-        // removeHalfSpawnedEntity).
         short hotbarCapacity = inventory.getCapacity();
         for (WeaponConfig weapon : weapons) {
             if (weapon.slot >= hotbarCapacity) {

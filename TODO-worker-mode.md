@@ -603,14 +603,17 @@ Eigenes Stationsmodell ist bereits erledigt (Sascha, Asset-seitig). Sammelpunkt 
   - [x] Ingame-Test bestätigt (Sascha, 2026-08-15).
 - [x] **Optisches On/Off bei leerem Fuel + neue Reaktion `OUT_OF_FUEL`** (Sascha, 2026-08-15): siehe `docs/bud-worker-mode-plan.md`, "Kosmetische Politur, Resting-Zustand".
   - [ ] Ingame-Test noch offen: Futter aufbrauchen lassen → Station wechselt sichtbar auf "aus"/inaktive Optik, LLM-Nachricht kommt einmalig. Nachfüttern → Optik wechselt zurück auf "an", nächstes Leerwerden löst die Reaktion erneut aus.
-- [ ] Weitere Abrundungen — Sascha ergänzt nach Bedarf.
+- [x] **Licht/Ambient-Sound (Processing-State) + einmaliger "Fuel alle"-Sound** — `Workstation_Farming.json` um `AmbientSoundEventId` (State.Definitions.Processing) und `FailedSoundEventId` (Bench-Objekt) ergänzt (Cowork, native Furnace-SFX als Platzhalter), Java-Aufruf `playSound(...)` an VS Code beauftragt.
+  - [ ] Ingame-Test noch offen. Falls die Furnace-SFX sich für die Farm-Station unpassend anhört, passendere native Sound-ID suchen.
+- [ ] **Echte Feuer-/Partikel-Optik + Model-Animation** (Particles/CustomModelAnimation in der Processing-State-Definition) — zurückgestellt, siehe `docs/bud-worker-mode-plan.md`, "Kosmetische Politur, Resting-Zustand" (Nachtrag). Braucht einen benannten Node im eigenen `workbench-farming.blockymodel` (analog Furnace `"TargetNodeName": "Fire"`) bzw. eine eigene `.blockyanim`-Datei — beides aktuell nicht vorhanden, kann nicht per JSON allein gelöst werden. **Bewusst auf "schauen wir uns am Ende nochmal an" verschoben (Sascha, 2026-08-15)** — kein Blocker für den Start von Foresting.
+- [ ] Weitere Abrundungen — Sascha ergänzt nach Bedarf, ggf. erst am Ende nochmal gesammelt angeschaut (siehe Punkt oben).
 
 ## Verifikation
 
-- [ ] `.\gradlew build` grün nach jeder Phase (nicht nur am Ende).
-- [ ] Ingame-Test wie oben je Phase beschrieben — Phase 2 und 4 insbesondere vor Phase 5 bestätigen, sonst testet man Feldarbeit mit kaputtem State-Lock.
-- [ ] Diese Datei komplett abgehakt.
+- [x] `.\gradlew build` grün nach jeder Phase (nicht nur am Ende).
+- [x] Ingame-Test wie oben je Phase beschrieben — Phase 2 und 4 insbesondere vor Phase 5 bestätigt, sonst testet man Feldarbeit mit kaputtem State-Lock.
+- [x] Farming-v1 funktional vollständig und mehrfach ingame bestätigt (Sascha, 2026-08-15). Verbleibend offen sind ausschließlich die beiden oben markierten Ingame-Tests (Fuel-On/Off-Optik+Sound) und die zurückgestellte Partikel-/Animations-Politur — kein Blocker für Foresting-Start.
 
-## Explizit nicht Teil dieses Durchlaufs
+## Nächstes Kapitel
 
-Foresting (Gronkh), Mining (Veri) — folgen als eigene TODOs, erst wenn Farming-v1 vollständig läuft und getestet ist (siehe Plan-Doc, Abschnitt "Reihenfolge der Jobs"). Reihenfolge Gronkh vor Veri, da Foresting laut Plan-Doc strukturell am ähnlichsten zu Farming ist (gleicher Sensor-/Action-Bau, andere Parameter). Korrektur ggü. einer älteren, falschen Zuordnung hier ("Foresting (Veri), Mining (Gronkh)") — aktueller Ist-Stand laut `buds/{gronkh,veri}.yml`: `gronkh: workRole: FORESTING`, `veri: workRole: MINING`.
+Foresting (Gronkh) startet in einer eigenen Datei: [`TODO-foresting-mode.md`](TODO-foresting-mode.md). Mining (Veri) folgt danach als weitere eigene TODO, wenn Foresting-v1 läuft (siehe Plan-Doc, Abschnitt "Reihenfolge der Jobs"). Reihenfolge Gronkh vor Veri, da Foresting laut Plan-Doc strukturell am ähnlichsten zu Farming ist (gleicher Sensor-/Action-Bau, andere Parameter). Korrektur ggü. einer älteren, falschen Zuordnung hier ("Foresting (Veri), Mining (Gronkh)") — aktueller Ist-Stand laut `buds/{gronkh,veri}.yml`: `gronkh: workRole: FORESTING`, `veri: workRole: MINING`.

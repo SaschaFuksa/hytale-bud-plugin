@@ -12,6 +12,8 @@ public final class FarmToolItems {
 
     public static final String HARVEST_TOOL_ITEM = "Tool_Sickle_Crude";
 
+    public static final String FELL_TOOL_ITEM = "Tool_Hatchet_Cobalt";
+
     private FarmToolItems() {
     }
 

@@ -28,10 +28,49 @@ allowedSeeds:
     - Plant_Seeds_Turnip_Eternal
     - Plant_Seeds_Wheat
     - Plant_Seeds_Wheat_Eternal
+  LUMBERING:
+    - Plant_Seeds_Ash
+    - Plant_Seeds_Aspen
+    - Plant_Seeds_Azure
+    - Plant_Seeds_Bamboo
+    - Plant_Seeds_Beech
+    - Plant_Seeds_Birch
+    - Plant_Seeds_Bottletree
+    - Plant_Seeds_Cedar
+    - Plant_Seeds_Crystal
+    - Plant_Seeds_Dry
+    - Plant_Seeds_Fir
+    - Plant_Seeds_Fire
+    - Plant_Seeds_Frostwood
+    - Plant_Seeds_Gumboab
+    - Plant_Seeds_Jungle
+    - Plant_Seeds_Maple
+    - Plant_Seeds_Oak
+    - Plant_Seeds_Palm
+    - Plant_Seeds_Palo
+    - Plant_Seeds_Redwood
+    - Plant_Seeds_Sallow
+    - Plant_Seeds_Spiral
+    - Plant_Seeds_Willow
 
 allowedFuel:
   FARMING:
     - Plant_Fruit_Berries_Red
+  LUMBERING:
+    - Food_Wildmeat_Cooked
+
+seedTargetPattern:
+  FARMING:
+    prefix: Plant_Crop_
+    suffix: _Block
+  LUMBERING:
+    prefix: Plant_Sapling_
+    suffix: ""
+
+seedTargetOverrides:
+  Plant_Seeds_Fir: Plant_Sapling_Spruce
+  Plant_Seeds_Frostwood: Plant_Sapling_Ice
+  Plant_Seeds_Willow: Plant_Sapling_Windwillow
 
 tillableBlocks:
   - Soil_Dirt

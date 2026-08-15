@@ -13,6 +13,7 @@ import org.joml.Vector3i;
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
@@ -267,8 +268,12 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     @Nullable
     private static WorkAssignment findNextWorkAssignment(@Nonnull World world, @Nonnull Vector3d anchor,
             @Nonnull WorkstationBlockEntity workstation, @Nonnull ProcessingBenchBlock processingBenchBlock) {
-        List<Vector3i> positions = serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
-                WorkConfig.getInstance().getFieldMaxHeight());
+        List<Vector3i> positions = workstation.getWorkRole() == WorkRole.LUMBERING
+                ? treeEdgePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
+                        WorkConfig.getInstance().getFieldMaxHeight(),
+                        WorkConfig.getInstance().getTreeEdgePositionCount())
+                : serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
+                        WorkConfig.getInstance().getFieldMaxHeight());
 
         Instant now = currentGameTime(world);
 
@@ -286,7 +291,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         if (cropBlockType != null) {
             for (Vector3i position : positions) {
                 if (position != null && !workstation.isRecentlyFailedTarget(position)
-                        && isPlantCandidate(world, position)) {
+                        && isPlantCandidate(world, position)
+                        && !isTooCloseToExistingTree(world, workstation.getWorkRole(), position)) {
                     plantWinner = position;
                     break;
                 }
@@ -337,6 +343,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             break;
         }
 
+        Vector3i fellWinner = null;
+        for (Vector3i position : positions) {
+            if (position != null && !workstation.isRecentlyFailedTarget(position) && isFellCandidate(world, position)) {
+                fellWinner = position;
+                break;
+            }
+        }
+
         Vector3i waterRefreshWinner = null;
         if (now != null) {
             for (Vector3i position : positions) {
@@ -361,6 +375,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = toAssignment(fertilizeWinner, WorkType.FERTILIZE, null);
         } else if (harvestWinner != null) {
             winner = toAssignment(harvestWinner, WorkType.HARVEST, null);
+        } else if (fellWinner != null) {
+            winner = toAssignment(fellWinner, WorkType.FELL, null);
         } else if (waterRefreshWinner != null) {
             winner = toAssignment(waterRefreshWinner, WorkType.WATER, null);
         } else {
@@ -431,6 +447,35 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above == BlockType.EMPTY;
     }
 
+    private static boolean isTooCloseToExistingTree(@Nonnull World world, @Nonnull WorkRole workRole,
+            @Nonnull Vector3i position) {
+        if (workRole != WorkRole.LUMBERING) {
+            return false;
+        }
+        FarmingRecipeConfig.SeedTargetPattern pattern = FarmingRecipeConfig.getInstance()
+                .getSeedTargetPattern(WorkRole.LUMBERING);
+        if (pattern == null) {
+            return false;
+        }
+        int minDistance = WorkConfig.getInstance().getTreeMinDistance();
+        long minDistanceSquared = (long) minDistance * minDistance;
+        for (int dx = -minDistance; dx <= minDistance; dx++) {
+            for (int dz = -minDistance; dz <= minDistance; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                if ((long) dx * dx + (long) dz * dz > minDistanceSquared) {
+                    continue;
+                }
+                String blockId = getBlockId(getBlockType(world, position.x + dx, position.y + 1, position.z + dz));
+                if (blockId != null && blockId.startsWith(pattern.prefix())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static boolean isNeverWateredCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
@@ -496,6 +541,10 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return gathering != null && gathering.isHarvestable();
     }
 
+    private static boolean isFellCandidate(@Nonnull World world, @Nonnull Vector3i position) {
+        return WorkstationWoodUtil.isWoodBlock(getBlockType(world, position.x, position.y + 1, position.z));
+    }
+
     private static boolean hasHarvestOutputRoom(@Nonnull World world, @Nonnull Vector3i position,
             @Nonnull ProcessingBenchBlock processingBenchBlock) {
         ItemContainer output = processingBenchBlock.getOutputContainer();
@@ -559,6 +608,38 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 for (int dy = -maxHeight; dy <= maxHeight; dy++) {
                     positions.add(new Vector3i(anchorX + dx, anchorY + dy, anchorZ + dz));
                 }
+            }
+        }
+        return positions;
+    }
+
+    private static final double[] EDGE_ANGLES_DEGREES_CROSS = { 0, 90, 180, 270 };
+    private static final double[] EDGE_ANGLES_DEGREES_DIAG = { 45, 135, 225, 315 };
+
+    @Nonnull
+    private static List<Vector3i> treeEdgePositions(@Nonnull Vector3d anchor, int radius, int maxHeight,
+            int edgeCount) {
+        List<Vector3i> positions = new ArrayList<>();
+        positions.addAll(calc_edge_positions(anchor, radius, maxHeight, EDGE_ANGLES_DEGREES_CROSS));
+        if (edgeCount > 4) {
+            positions.addAll(calc_edge_positions(anchor, radius - 1, maxHeight, EDGE_ANGLES_DEGREES_DIAG));
+        }
+        return positions;
+    }
+
+    private static List<Vector3i> calc_edge_positions(@Nonnull Vector3d anchor, int radius, int maxHeight,
+            double[] angles) {
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorY = (int) Math.floor(anchor.y);
+        int anchorZ = (int) Math.floor(anchor.z);
+
+        List<Vector3i> positions = new ArrayList<>();
+        for (double angleDegrees : angles) {
+            double angleRadians = Math.toRadians(angleDegrees);
+            int dx = (int) Math.round(radius * Math.sin(angleRadians));
+            int dz = (int) Math.round(-radius * Math.cos(angleRadians));
+            for (int dy = -maxHeight; dy <= maxHeight; dy++) {
+                positions.add(new Vector3i(anchorX + dx, anchorY + dy, anchorZ + dz));
             }
         }
         return positions;

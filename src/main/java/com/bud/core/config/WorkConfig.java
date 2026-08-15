@@ -17,8 +17,10 @@ public class WorkConfig {
     private int waterDurationSeconds = 86400;
     private int fertilizeIntervalSeconds = 1;
     private int harvestIntervalSeconds = 1;
+    private int fellIntervalSeconds = 1;
     private int idleRetrySeconds = 5;
     private int treeMinDistance = 3;
+    private int treeEdgePositionCount = 8;
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
@@ -73,12 +75,20 @@ public class WorkConfig {
         return this.harvestIntervalSeconds;
     }
 
+    public int getFellIntervalSeconds() {
+        return this.fellIntervalSeconds;
+    }
+
     public int getIdleRetrySeconds() {
         return this.idleRetrySeconds;
     }
 
     public int getTreeMinDistance() {
         return this.treeMinDistance;
+    }
+
+    public int getTreeEdgePositionCount() {
+        return this.treeEdgePositionCount;
     }
 
     public int getOreMinDistance() {
@@ -131,6 +141,10 @@ public class WorkConfig {
                         (config, value) -> config.harvestIntervalSeconds = value,
                         config -> config.harvestIntervalSeconds)
                 .add()
+                .append(new KeyedCodec<>("FellIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.fellIntervalSeconds = value,
+                        config -> config.fellIntervalSeconds)
+                .add()
                 .append(new KeyedCodec<>("IdleRetrySeconds", Codec.INTEGER),
                         (config, value) -> config.idleRetrySeconds = value,
                         config -> config.idleRetrySeconds)
@@ -138,6 +152,10 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,
                         config -> config.treeMinDistance)
+                .add()
+                .append(new KeyedCodec<>("TreeEdgePositionCount", Codec.INTEGER),
+                        (config, value) -> config.treeEdgePositionCount = value,
+                        config -> config.treeEdgePositionCount)
                 .add()
                 .append(new KeyedCodec<>("OreMinDistance", Codec.INTEGER),
                         (config, value) -> config.oreMinDistance = value,

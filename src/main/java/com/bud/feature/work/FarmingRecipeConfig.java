@@ -29,6 +29,13 @@ public final class FarmingRecipeConfig {
 
     private final Map<WorkRole, Set<String>> allowedFuelByRole = new EnumMap<>(WorkRole.class);
 
+    private final Map<WorkRole, SeedTargetPattern> seedTargetPatternByRole = new EnumMap<>(WorkRole.class);
+
+    record SeedTargetPattern(@Nonnull String prefix, @Nonnull String suffix) {
+    }
+
+    private final Map<String, String> seedTargetOverrides = new java.util.HashMap<>();
+
     private final Set<String> tillableBlocks = new HashSet<>();
 
     private final Set<String> tilledSoilBlocks = new HashSet<>();
@@ -79,6 +86,8 @@ public final class FarmingRecipeConfig {
     private void load(@Nonnull Path path) {
         allowedSeedsByRole.clear();
         allowedFuelByRole.clear();
+        seedTargetPatternByRole.clear();
+        seedTargetOverrides.clear();
         tillableBlocks.clear();
         tilledSoilBlocks.clear();
         tilledSoilTargetBlock = null;
@@ -124,6 +133,20 @@ public final class FarmingRecipeConfig {
                         .warning(() -> "[BUD] Unknown WorkRole '" + roleName + "' in " + path + ", skipping.");
             }
         }
+        for (Map.Entry<String, Map<String, String>> entry : yaml.getSeedTargetPattern().entrySet()) {
+            try {
+                WorkRole role = WorkRole.valueOf(entry.getKey());
+                Map<String, String> pattern = entry.getValue();
+                String prefix = Objects.requireNonNullElse(pattern.get("prefix"), "");
+                String suffix = Objects.requireNonNullElse(pattern.get("suffix"), "");
+                seedTargetPatternByRole.put(role, new SeedTargetPattern(prefix, suffix));
+            } catch (IllegalArgumentException e) {
+                String roleName = entry.getKey();
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] Unknown WorkRole '" + roleName + "' in " + path + ", skipping.");
+            }
+        }
+        seedTargetOverrides.putAll(yaml.getSeedTargetOverrides());
     }
 
     @Nonnull
@@ -142,6 +165,16 @@ public final class FarmingRecipeConfig {
 
     public boolean isFuelAllowed(@Nonnull WorkRole workRole, @Nonnull String fuelItemId) {
         return getAllowedFuel(workRole).contains(fuelItemId);
+    }
+
+    @Nullable
+    SeedTargetPattern getSeedTargetPattern(@Nonnull WorkRole workRole) {
+        return seedTargetPatternByRole.get(workRole);
+    }
+
+    @Nullable
+    String getSeedTargetOverride(@Nonnull String seedItemId) {
+        return seedTargetOverrides.get(seedItemId);
     }
 
     public boolean isTillableBlock(@Nonnull String blockTypeId) {

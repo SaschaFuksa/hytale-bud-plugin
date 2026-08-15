@@ -1,20 +1,26 @@
 package com.bud.feature.work.farming;
 
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
+import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
-import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.FarmToolItems;
 import com.bud.feature.work.FarmingRecipeConfig;
+import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationSeedUtil;
+import com.bud.feature.work.WorkstationWoodUtil;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -91,13 +97,7 @@ public class FarmWorkAction extends ActionBase {
         int y = (int) Math.floor(target.y);
         int z = (int) Math.floor(target.z);
 
-        switch (workType) {
-            case TILL -> executeTill(world, x, y, z);
-            case PLANT -> executePlant(world, bud, x, y, z);
-            case WATER -> executeWater(store, world, x, y, z);
-            case FERTILIZE -> executeFertilize(world, x, y, z);
-            case HARVEST -> executeHarvest(world, bud, x, y, z);
-        }
+        tryExecuteWork(workType, ref, store, world, bud, x, y, z);
         tryEquipToolFor(ref, store, workType);
         playWorkAnimation(ref, store);
 
@@ -105,6 +105,23 @@ public class FarmWorkAction extends ActionBase {
         bud.setPendingCropBlockType(null);
         bud.setWorkCooldownSecondsRemaining(cooldownSecondsFor(workType));
         return true;
+    }
+
+    private static void tryExecuteWork(@Nonnull WorkType workType, @Nonnull Ref<EntityStore> ref,
+            @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
+        try {
+            switch (workType) {
+                case TILL -> executeTill(world, x, y, z);
+                case PLANT -> executePlant(world, bud, x, y, z);
+                case WATER -> executeWater(store, world, x, y, z);
+                case FERTILIZE -> executeFertilize(world, x, y, z);
+                case HARVEST -> executeHarvest(world, bud, x, y, z);
+                case FELL -> executeFell(ref, store, world, x, y, z);
+            }
+        } catch (RuntimeException e) {
+            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to execute " + workType
+                    + " work action - skipping this attempt (NPC tick would otherwise crash): " + e);
+        }
     }
 
     private static void tryEquipToolFor(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
@@ -125,6 +142,7 @@ public class FarmWorkAction extends ActionBase {
             case PLANT -> FarmToolItems.PLANT_TOOL_ITEM;
             case FERTILIZE -> FarmToolItems.FERTILIZE_TOOL_ITEM;
             case HARVEST -> FarmToolItems.HARVEST_TOOL_ITEM;
+            case FELL -> FarmToolItems.FELL_TOOL_ITEM;
         };
         InventoryHelper.useItem(ref, toolItemId, (byte) -1, store);
     }
@@ -162,8 +180,12 @@ public class FarmWorkAction extends ActionBase {
         if (bench == null || bench.getInputContainer() == null) {
             return;
         }
+        WorkstationBlockEntity workstation = anchorHolder.getComponent(WorkstationBlockEntity.getComponentType());
+        if (workstation == null) {
+            return;
+        }
         ItemStack seedStack = bench.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
-        String liveCropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, WorkRole.FARMING);
+        String liveCropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
         if (!cropBlockType.equals(liveCropBlockType)) {
             return;
         }
@@ -223,6 +245,52 @@ public class FarmWorkAction extends ActionBase {
         world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
     }
 
+    private static final int[][] FELL_NEIGHBOR_OFFSETS = {
+            { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 }
+    };
+
+    private static final int MAX_FELL_BLOCKS_PER_ACTION = 256;
+
+    private static void executeFell(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
+            @Nonnull World world, int x, int y, int z) {
+        Vector3i base = new Vector3i(x, y + 1, z);
+        if (!WorkstationWoodUtil.isWoodBlock(world.getBlockType(base.x, base.y, base.z))) {
+            return;
+        }
+        Store<ChunkStore> chunkAccessor = world.getChunkStore().getStore();
+        Deque<Vector3i> queue = new ArrayDeque<>();
+        Set<Vector3i> visited = new HashSet<>();
+        queue.add(base);
+        visited.add(base);
+        int brokenCount = 0;
+        while (!queue.isEmpty() && brokenCount < MAX_FELL_BLOCKS_PER_ACTION) {
+            Vector3i current = queue.poll();
+            if (!WorkstationWoodUtil.isWoodBlock(world.getBlockType(current.x, current.y, current.z))) {
+                continue;
+            }
+            breakWoodBlock(ref, store, world, chunkAccessor, current);
+            brokenCount++;
+            for (int[] offset : FELL_NEIGHBOR_OFFSETS) {
+                Vector3i neighbor = new Vector3i(current.x + offset[0], current.y + offset[1], current.z + offset[2]);
+                if (visited.add(neighbor)
+                        && WorkstationWoodUtil.isWoodBlock(world.getBlockType(neighbor.x, neighbor.y, neighbor.z))) {
+                    queue.add(neighbor);
+                }
+            }
+        }
+    }
+
+    private static void breakWoodBlock(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> entityAccessor,
+            @Nonnull World world, @Nonnull Store<ChunkStore> chunkAccessor, @Nonnull Vector3i position) {
+        Ref<ChunkStore> chunkRef = world.getChunkStore()
+                .getChunkReference(ChunkUtil.indexChunkFromBlock(position.x, position.z));
+        if (chunkRef == null || !chunkRef.isValid()) {
+            return;
+        }
+        ItemStack tool = new ItemStack(FarmToolItems.FELL_TOOL_ITEM, 1);
+        BlockHarvestUtils.performBlockBreak(ref, tool, position, chunkRef, entityAccessor, chunkAccessor);
+    }
+
     private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
             @Nonnull java.util.function.Consumer<TilledSoilBlock> mutator) {
         WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
@@ -231,7 +299,7 @@ public class FarmWorkAction extends ActionBase {
         }
         Ref<ChunkStore> ref = chunk.getBlockComponentEntity(x, y, z);
         if (ref == null) {
-            ref = BlockModule.ensureBlockEntity(chunk, x, y, z);
+            ref = ensureBlockEntityOrFetchExisting(chunk, x, y, z);
         }
         if (ref == null || !ref.isValid()) {
             return;
@@ -248,6 +316,17 @@ public class FarmWorkAction extends ActionBase {
         chunk.setTicking(x, y, z, true);
     }
 
+    @Nullable
+    private static Ref<ChunkStore> ensureBlockEntityOrFetchExisting(@Nonnull WorldChunk chunk, int x, int y, int z) {
+        try {
+            return BlockModule.ensureBlockEntity(chunk, x, y, z);
+        } catch (IllegalArgumentException e) {
+            // Block component entity already exists (stale getBlockComponentEntity lookup raced with it) -
+            // fetch the existing one instead of crashing the NPC tick.
+            return chunk.getBlockComponentEntity(x, y, z);
+        }
+    }
+
     private static float cooldownSecondsFor(@Nonnull WorkType workType) {
         WorkConfig config = WorkConfig.getInstance();
         return switch (workType) {
@@ -256,6 +335,7 @@ public class FarmWorkAction extends ActionBase {
             case WATER -> config.getWaterIntervalSeconds();
             case FERTILIZE -> config.getFertilizeIntervalSeconds();
             case HARVEST -> config.getHarvestIntervalSeconds();
+            case FELL -> config.getFellIntervalSeconds();
         };
     }
 

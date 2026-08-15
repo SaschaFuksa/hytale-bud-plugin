@@ -19,10 +19,6 @@ public final class WorkstationSeedUtil {
 
     private static final String SEED_PREFIX = "Plant_Seeds_";
 
-    private static final String CROP_PREFIX = "Plant_Crop_";
-
-    private static final String CROP_SUFFIX = "_Block";
-
     private static final String ETERNAL_SUFFIX = "_Eternal";
 
     @Nonnull
@@ -41,7 +37,7 @@ public final class WorkstationSeedUtil {
         if (!FarmingRecipeConfig.getInstance().isSeedAllowed(workRole, seedItemId)) {
             return null;
         }
-        String cropBlockType = deriveCropBlockType(seedItemId);
+        String cropBlockType = deriveCropBlockType(seedItemId, workRole);
         if (cropBlockType == null && LOGGED_UNRESOLVED_SEEDS.add(seedItemId)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Seedbag holds " + seedItemId
                     + " but no matching crop block could be resolved/verified for it - PLANT stays skipped"
@@ -59,8 +55,21 @@ public final class WorkstationSeedUtil {
     }
 
     @Nullable
-    private static String deriveCropBlockType(@Nonnull String seedItemId) {
+    private static String deriveCropBlockType(@Nonnull String seedItemId, @Nonnull WorkRole workRole) {
         if (!seedItemId.startsWith(SEED_PREFIX)) {
+            return null;
+        }
+        String override = FarmingRecipeConfig.getInstance().getSeedTargetOverride(seedItemId);
+        if (override != null) {
+            return BlockType.fromString(override) != null ? override : null;
+        }
+        FarmingRecipeConfig.SeedTargetPattern pattern = FarmingRecipeConfig.getInstance()
+                .getSeedTargetPattern(workRole);
+        if (pattern == null) {
+            if (LOGGED_UNRESOLVED_SEEDS.add(seedItemId)) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] No 'seedTargetPattern' configured for WorkRole "
+                        + workRole + " - PLANT stays skipped for " + seedItemId + ".");
+            }
             return null;
         }
         String rest = seedItemId.substring(SEED_PREFIX.length());
@@ -69,7 +78,7 @@ public final class WorkstationSeedUtil {
         if (variety.isEmpty()) {
             return null;
         }
-        String candidate = CROP_PREFIX + variety + CROP_SUFFIX + (eternal ? ETERNAL_SUFFIX : "");
+        String candidate = pattern.prefix() + variety + pattern.suffix() + (eternal ? ETERNAL_SUFFIX : "");
         return BlockType.fromString(candidate) != null ? candidate : null;
     }
 
