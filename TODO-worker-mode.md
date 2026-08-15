@@ -553,13 +553,24 @@ Details/Begründungen in `docs/bud-worker-mode-plan.md`, "Phase 7 — Ernte".
 - [x] **Kreislauf schließt sich zurück zu PLANT, gegengeprüft:** Block wird nach der Ernte per Identitätsvergleich (nicht nur Material) auf `BlockType.EMPTY_KEY` gesetzt - `isPlantCandidate` erkennt die Kachel danach sofort wieder als Kandidat, kein natives Nachwachsen als Stolperfalle dazwischen.
 - [x] Bewusst nicht in dieser Runde: `cooldownSecondsFor(HARVEST)` nutzt weiterhin `TillIntervalSeconds` als Pacing-Platzhalter (seit Phase 6) - ein eigener `HarvestIntervalSeconds`-Wert wäre ein kleiner, unkomplizierter Folgeauftrag.
 - [x] `.\gradlew build` grün.
-- [ ] **Census-/Scan-Debug-Logging entfernen, sobald Sascha die Ernte bestätigt.**
-- [ ] **Ingame-Test ausstehend (Sascha):** reife Kachel (egal welche der 14 Sorten) wird geerntet, Ertrag erscheint in den Output-Slots der Station (nicht im Bud-Inventar); Kachel wird danach automatisch wieder bepflanzt (Kreislauf schließt sich ohne manuelles Eingreifen); Sichel erscheint sichtbar in der Hand beim Ernten; bei vollem Output bleibt die Kachel reif stehen, Bud arbeitet an anderer Stelle weiter, kein Hängenbleiben.
+- [x] **Ingame-Test bestätigt (Sascha, 2026-08-14):** reife Karotte wurde geerntet, Ertrag (Karotte + Essence) erschien in den Output-Slots der Station, Kachel wurde automatisch neu bepflanzt. Kreislauf funktioniert. Voller-Output-Fall (Bud arbeitet an anderer Stelle weiter) noch nicht separat gegengetestet.
+- [x] **Census-/Scan-Debug-Logging entfernt** (`[BUD][SCAN-DEBUG]`, `[BUD][CENSUS]`, `logExclusionSamples`, `logFieldCensus`, Starvation-Guard-Log) - Ernte ist bestätigt. Die einmalige Output-voll-Warnung bleibt als reguläres Betriebslog (`.warning`) bestehen, das ist kein Debug-Log.
 
-## Phase 8 — Rezept/Config-Politur
+## Regression/Verfeinerung nach Phase 7 — Output-Voll-Erkennung zu grob (Sascha-Anforderung, umgesetzt)
 
-- [ ] Seed→Crop-Mapping als YAML (`work/farming.yml`, gleiche Konvention wie `prompts/`/`buds/`), keine Hardcodes mehr aus Phase 5–7.
-  - Test: anderes Gemüse per Config-Änderung, kein Recompile nötig außer YAML-Edit.
+`hasHarvestOutputRoom` war stationsweit und item-agnostisch: "Raum vorhanden" bedeutete nur "mindestens ein komplett leerer Slot", unabhängig davon, welche Sorte als nächstes geerntet würde. Details/Begründungen in `docs/bud-worker-mode-plan.md`, "Phase 7, Ernte-Output-Sperre pro Kachel".
+
+- [x] **`OutputSlotsCount` 4 → 8 verifiziert:** greift per `javap` bestätigt auch bei bereits platzierten Stationen (`ProcessingBenchBlock.setupSlots` läuft über `BenchSystems$ProcessingBenchLifecycle.onEntityAdded` bei jedem `AddReason`, auch beim Chunk-/Weltladen; `ItemContainer.ensureContainerCapacity` migriert bestehende Items verlustfrei in den größeren Container). Kein neu platzierter Test-Block nötig, normaler Serverneustart genügt - anders als bei `ItemContainerBlock` in Phase 3b.
+- [x] **Pro-Kachel-Sperre umgesetzt:** `WorkstationBlockEntity.lockedHarvestOutputTargets` (`Set<Vector3i>`) ersetzt das alte `outputFullLogged`-Flag. `findNextWorkAssignment` prüft jede reife, nicht bereits gesperrte Kachel einzeln (`hasHarvestOutputRoom(world, position, processingBenchBlock)`); passt das erwartete Item nicht mehr, wird nur diese eine Kachel gesperrt und einmalig gewarnt - andere reife Kacheln (auch anderer Sorten) laufen im selben Scan normal weiter.
+- [x] **Sperrung wird aufgehoben, ohne pro Scan neu zu prüfen:** `WorkstationFilterSystem.onEntityAdded` registriert einen `ItemContainer.registerChangeEvent`-Listener auf `getOutputContainer()` (gleiches Muster wie die bestehenden Input-/Fuel-Listener) - bei jeder Änderung am Output werden alle gesperrten Kacheln **dieser Station** freigegeben (`workstation.clearHarvestOutputLocks()`), strikt pro Station.
+- [x] **RNG-Frage geklärt, kein Umbau nötig:** per `javap` gegen `BlockHarvestUtils.getDrops`/`ItemModule.getRandomItemDrops` verifiziert - `getItemId()` wird immer deterministisch hinzugefügt (kein RNG-Zweig), `getRandomItemDrops` nutzt `ThreadLocalRandom.current()` (kein geteilter Zustand). Variante a in ihrer einfachsten Form reicht: `HarvestingDropType.getItemId()` direkt als Raumprüfungs-Item, kein YAML-Mapping nötig, keine `getDrops`-Aufrufe im Scan-Pfad.
+- [x] `.\gradlew build` grün.
+- [x] **Ingame-Test bestätigt (Sascha, 2026-08-14):** bei vollem Output hat Keyleth nicht mehr weiter geerntet, Pro-Kachel-Sperre greift wie vorgesehen. Sascha-Beobachtung: 8 Output-Slots sind eine gute Wahl - Essenzen werden bei jeder Ernte mitgeliefert, ein einmal komplett durchgeerntetes Feld füllt dadurch schnell schon ~80% der 8 Slots. Kein Fix nötig, nur als Balancing-Hinweis festgehalten (z. B. relevant, falls `FieldRadius` später vergrößert wird).
+
+## Phase 8 — Rezept/Config-Politur (geprüft, abgeschlossen ohne Umbau)
+
+- [x] **Geprüft (2026-08-14, YAGNI-Check von Sascha angestoßen): bestätigt erledigt, kein Umbau nötig.** `WorkstationSeedUtil.deriveCropBlockType` leitet den Crop-Block-Typ bereits generisch aus dem Seed-Item-Namen ab (`Plant_Seeds_X` → `Plant_Crop_X_Block`, gegen `BlockType.fromString` verifiziert) - keine Sorten-Liste in Java. Der Seed-Allowlist selbst (`allowedSeeds`) sowie `tillableBlocks`/`tilledSoilBlocks` liegen bereits in `work/farming.yml`. Phase-7-Ernteerkennung ist ebenfalls generisch (`BlockGathering.isHarvestable()`, `HarvestingDropType.getItemId()`), keine Hardcodes dort.
+- [x] **Gegengeprüft (VS-Code-Session): `FarmWorkAction.java` und der Rest von `com/bud/feature/work` gezielt nach Sortennamen/Switches auf Crop-Identität durchsucht.** Alle drei `switch`-Stellen in `FarmWorkAction` schalten über `WorkType` (`TILL`/`PLANT`/`WATER`/`FERTILIZE`/`HARVEST`), nicht über eine Sorte. Einzige verbliebene Treffer für die 14 Sortennamen sind zwei Kommentarzeilen in `WorkstationFuelTickSystem` (Carrot als Bytecode-Verifikationsbeispiel für `isHarvestCandidate`, kein Code). Phase 8 damit final geschlossen, kein YAML-Umbau nötig (YAGNI).
 
 ## Phase 9 — LLM-Reaktionen im Arbeitsmodus (Sascha, nachträglich aufgenommen)
 
@@ -571,6 +582,10 @@ In Phase 2 wurden Reaktionen für Buds im `WORKING`-State **vollständig** gespe
 - [ ] **Periodischer Arbeitskommentar**, etwa jede Minute, über **alle** arbeitenden Buds hinweg — nicht pro Bud, sonst reden bei drei Stationen drei gleichzeitig. Der aktuelle `WorkType` (Tillen/Pflanzen/Gießen/Düngen/Ernten) gehört als Kontext in den Prompt, damit der Kommentar zur Tätigkeit passt. Umsetzung über den bestehenden `AMBIENT`-Kanal des Orchestrators (Cooldown-/Dedup-Mechanik ist dort vorhanden), Intervall konfigurierbar.
 
 Zu klären beim Umsetzen: wie der Working-Ausschluss punktuell umgangen wird, ohne die Phase-2-Sperre zu untergraben — vermutlich ein eigener Auswahlpfad für Arbeits-Reaktionen statt einer Ausnahme im gemeinsamen Chokepoint. Und ob der Fallback-Text ohne LLM (`createFallbackPrompt`) für die neuen Anlässe eigene Einträge in den Bud-YAMLs braucht.
+
+## Nach Phase 9 — Work-Pipeline-Abstraktion vormerken (Sascha, noch nicht terminiert)
+
+Bevor Foresting/Mining begonnen werden: prüfen, ob sich Teile von `WorkstationFuelTickSystem`/`FarmWorkAction` (Prioritätsketten-Scan, Sperr-/Entsperr-Muster aus der Ernte-Verfeinerung) sinnvoll in ein wiederverwendbares Pattern ziehen lassen, statt drei separate Implementierungen zu bauen. Bewusst noch keine Entscheidung/kein Code — siehe `docs/bud-worker-mode-plan.md`, Abschnitt "Work-Pipeline-Abstraktion für Foresting/Mining" für Kandidaten und die Begründung, warum das erst bei Foresting-Beginn (zweiter echter Fall) entschieden werden sollte, nicht jetzt aus nur einer Implementierung heraus.
 
 ## Verifikation
 

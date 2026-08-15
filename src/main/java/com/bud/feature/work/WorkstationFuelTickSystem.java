@@ -28,6 +28,7 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.HarvestingDropType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
@@ -195,11 +196,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 && assignment.workType() == workstation.getLastAssignedWorkType()) {
             int repeats = workstation.getConsecutiveRepeatCount() + 1;
             if (repeats >= STARVATION_REPEAT_THRESHOLD) {
-                // TEMPORARY DEBUG LOGGING (Phase 6 partial-field regression, Sascha) - remove
-                // once
-                // ingame-confirmed.
-                LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] Starvation guard fired: " + assignment.workType()
-                        + " at " + assignment.position() + " repeated " + repeats + "x, blacklisting.");
                 workstation.addRecentlyFailedTarget(assignment.position());
                 workstation.setConsecutiveRepeatCount(0);
                 boundBud.setWorkCooldownSecondsRemaining(WorkConfig.getInstance().getIdleRetrySeconds());
@@ -229,29 +225,26 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 WorkConfig.getInstance().getFieldMaxHeight());
 
         Instant now = currentGameTime(world);
+        // Only null on a world whose time resource hasn't ticked yet (WorldTimeResource.gameTime starts
+        // uninitialized) - skip WATER_REFRESH for this scan rather than crash; every other tier is
+        // independent of game time and still runs normally.
 
-        int tillCount = 0;
         Vector3i tillWinner = null;
-        for (Vector3i position : positions) {
+        for (@Nonnull Vector3i position : positions) {
             if (!workstation.isRecentlyFailedTarget(position) && isTillCandidate(world, position)) {
-                tillCount++;
-                if (tillWinner == null) {
-                    tillWinner = position;
-                }
+                tillWinner = position;
+                break;
             }
         }
 
         ItemStack seedStack = processingBenchBlock.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
         String cropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
-        int plantCount = 0;
         Vector3i plantWinner = null;
         if (cropBlockType != null) {
-            for (Vector3i position : positions) {
+            for (@Nonnull Vector3i position : positions) {
                 if (!workstation.isRecentlyFailedTarget(position) && isPlantCandidate(world, position)) {
-                    plantCount++;
-                    if (plantWinner == null) {
-                        plantWinner = position;
-                    }
+                    plantWinner = position;
+                    break;
                 }
             }
         }
@@ -260,69 +253,56 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         // watered, it never returns to "never watered", it can only later need a refresh - so it belongs
         // among the other finite tiers, same reasoning as "Phase 6, Endliche vor wiederkehrender Arbeit".
         // Placed before FERTILIZE: a tile needs its first watering before a fertilizer bonus matters.
-        int waterNewCount = 0;
         Vector3i waterNewWinner = null;
-        for (Vector3i position : positions) {
+        for (@Nonnull Vector3i position : positions) {
             if (!workstation.isRecentlyFailedTarget(position) && isNeverWateredCandidate(world, position)) {
-                waterNewCount++;
-                if (waterNewWinner == null) {
-                    waterNewWinner = position;
-                }
+                waterNewWinner = position;
+                break;
             }
         }
 
-        int fertilizeCount = 0;
         Vector3i fertilizeWinner = null;
-        for (Vector3i position : positions) {
+        for (@Nonnull Vector3i position : positions) {
             if (!workstation.isRecentlyFailedTarget(position) && isFertilizeCandidate(world, position)) {
-                fertilizeCount++;
-                if (fertilizeWinner == null) {
-                    fertilizeWinner = position;
-                }
+                fertilizeWinner = position;
+                break;
             }
         }
 
-        // Checked once per station per scan, not per position - the output container belongs to the
-        // station, not to any single tile. A full output skips the whole HARVEST tier for this scan
-        // (Sascha: never assign it, don't discover "full" mid-execution) rather than leaving the Bud
-        // stuck in front of a ripe tile it can't do anything useful with - same starvation-class lesson
-        // as the earlier WATER-over-FERTILIZE and HARVEST-no-op fixes this phase. TILL/PLANT/FERTILIZE
-        // and (if applicable) WATER_REFRESH still run normally.
-        boolean outputHasRoom = hasHarvestOutputRoom(processingBenchBlock);
-        if (!outputHasRoom) {
-            if (!workstation.isOutputFullLogged()) {
-                workstation.setOutputFullLogged(true);
-                LoggerUtil.getLogger().warning(
-                        () -> "[BUD] Workstation output is full - HARVEST paused until a slot is emptied.");
-            }
-        } else {
-            workstation.setOutputFullLogged(false);
-        }
-
-        int harvestCount = 0;
+        // Per-tile, not per-station: a full output only skips the one ripe tile whose item genuinely
+        // doesn't fit anymore, not every ripe tile behind it (Sascha: two different crops ripe at once,
+        // one maxed out in the output, must not block harvesting the other). A locked tile is skipped
+        // without re-checking room every scan - it only unlocks again once the output container actually
+        // changes (WorkstationFilterSystem's change listener), not on a timer. See
+        // docs/bud-worker-mode-plan.md, "Phase 7 - Ernte-Output-Sperre".
         Vector3i harvestWinner = null;
-        if (outputHasRoom) {
-            for (Vector3i position : positions) {
-                if (!workstation.isRecentlyFailedTarget(position) && isHarvestCandidate(world, position)) {
-                    harvestCount++;
-                    if (harvestWinner == null) {
-                        harvestWinner = position;
-                    }
-                }
+        for (@Nonnull Vector3i position : positions) {
+            if (workstation.isRecentlyFailedTarget(position) || workstation.isHarvestOutputLocked(position)) {
+                continue;
             }
+            if (!isHarvestCandidate(world, position)) {
+                continue;
+            }
+            if (!hasHarvestOutputRoom(world, position, processingBenchBlock)) {
+                workstation.lockHarvestOutputTarget(position);
+                LoggerUtil.getLogger().warning(() -> "[BUD] Workstation output has no room for the ripe tile at "
+                        + position + " - HARVEST paused there until a slot is freed.");
+                continue;
+            }
+            harvestWinner = position;
+            break;
         }
 
         // WATER_REFRESH (already watered at least once, but the duration has expired) is the one
         // genuinely recurring tier - deliberately last, below every finite tier including WATER_NEW, so
         // a field with even one still-unwatered tile finishes that before re-watering anything (Sascha:
         // otherwise the order depends on WaterDurationSeconds instead of actual field progress).
-        int waterRefreshCount = 0;
         Vector3i waterRefreshWinner = null;
-        for (Vector3i position : positions) {
-            if (!workstation.isRecentlyFailedTarget(position) && isWaterRefreshCandidate(world, position, now)) {
-                waterRefreshCount++;
-                if (waterRefreshWinner == null) {
+        if (now != null) {
+            for (@Nonnull Vector3i position : positions) {
+                if (!workstation.isRecentlyFailedTarget(position) && isWaterRefreshCandidate(world, position, now)) {
                     waterRefreshWinner = position;
+                    break;
                 }
             }
         }
@@ -344,105 +324,17 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = null;
         }
 
-        int finalTillCount = tillCount;
-        int finalPlantCount = plantCount;
-        int finalWaterNewCount = waterNewCount;
-        int finalFertilizeCount = fertilizeCount;
-        int finalHarvestCount = harvestCount;
-        int finalWaterRefreshCount = waterRefreshCount;
-        WorkAssignment finalWinner = winner;
-        int positionCount = positions.size();
-        LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] anchor=" + anchor + " radius="
-                + WorkConfig.getInstance().getFieldRadius() + " maxHeight="
-                + WorkConfig.getInstance().getFieldMaxHeight()
-                + " positionsChecked=" + positionCount + " till=" + finalTillCount + " plant=" + finalPlantCount
-                + " waterNew=" + finalWaterNewCount + " fertilize=" + finalFertilizeCount + " harvest="
-                + finalHarvestCount + " waterRefresh=" + finalWaterRefreshCount
-                + " winner=" + (finalWinner != null ? finalWinner.workType() + "@" + finalWinner.position() : "none"));
-        if (finalWinner == null) {
-            logExclusionSamples(world, workstation, positions);
-            logFieldCensus(world, positions);
-        } else if (plantCount == 0 && cropBlockType != null) {
-            logExclusionSamples(world, workstation, positions);
-            logFieldCensus(world, positions);
-        }
-
         return winner;
     }
 
-    private static void logFieldCensus(@Nonnull World world, @Nonnull List<Vector3i> positions) {
-        java.util.Map<String, Integer> groundHistogram = new java.util.TreeMap<>();
-        java.util.Map<String, Integer> aboveTilledHistogram = new java.util.TreeMap<>();
-        int tilledCount = 0;
-        int minX = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int minZ = Integer.MAX_VALUE;
-        int maxZ = Integer.MIN_VALUE;
-        java.util.Set<Integer> tilledYs = new java.util.TreeSet<>();
-
-        for (Vector3i position : positions) {
-            BlockType ground = getBlockType(world, position.x, position.y, position.z);
-            String groundId = ground != null ? ground.getId() : "null";
-            groundHistogram.merge(groundId, 1, Integer::sum);
-            if (!isTilledSoil(ground)) {
-                continue;
-            }
-            tilledCount++;
-            minX = Math.min(minX, position.x);
-            maxX = Math.max(maxX, position.x);
-            minZ = Math.min(minZ, position.z);
-            maxZ = Math.max(maxZ, position.z);
-            tilledYs.add(position.y);
-            BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
-            String aboveId = above != null ? above.getId() : "null";
-            String sentinel = (above != null && above == BlockType.EMPTY) ? "[==EMPTY]" : "[!=EMPTY]";
-            aboveTilledHistogram.merge(aboveId + sentinel, 1, Integer::sum);
-        }
-
-        int finalTilled = tilledCount;
-        String bounds = finalTilled > 0
-                ? "x[" + minX + ".." + maxX + "] z[" + minZ + ".." + maxZ + "] y" + tilledYs
-                : "none";
-        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] tilledInRange=" + finalTilled + " bounds=" + bounds);
-        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] groundBlocks=" + groundHistogram);
-        LoggerUtil.getLogger().info(() -> "[BUD][CENSUS] aboveTilled=" + aboveTilledHistogram);
-    }
-
-    private static void logExclusionSamples(@Nonnull World world, @Nonnull WorkstationBlockEntity workstation,
-            @Nonnull List<Vector3i> positions) {
-        int logged = 0;
-        for (Vector3i position : positions) {
-            if (logged >= 5) {
-                break;
-            }
-            if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
-                continue;
-            }
-            boolean recentlyFailed = workstation.isRecentlyFailedTarget(position);
-            BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
-            boolean isPlantable = above != null && above == BlockType.EMPTY;
-            if (isPlantable && !recentlyFailed) {
-                continue;
-            }
-            String aboveId = above != null ? above.getId() : "null";
-            String aboveMaterial = above != null ? String.valueOf(above.getMaterial()) : "n/a";
-            boolean isEmptySentinel = above != null && above == BlockType.EMPTY;
-            logged++;
-            int loggedIndex = logged;
-            LoggerUtil.getLogger().info(() -> "[BUD][SCAN-DEBUG] tilled-but-excluded sample #" + loggedIndex + " at "
-                    + position + " - recentlyFailed=" + recentlyFailed + " above=" + aboveId + " material="
-                    + aboveMaterial + " isEmptySentinel=" + isEmptySentinel);
-        }
-    }
-
     @Nonnull
-    private static WorkAssignment toAssignment(Vector3i position, @Nonnull WorkType workType,
+    private static WorkAssignment toAssignment(@Nonnull Vector3i position, @Nonnull WorkType workType,
             @Nullable String cropBlockType) {
         return new WorkAssignment(new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5), position,
                 workType, cropBlockType);
     }
 
-    @Nonnull
+    @Nullable
     private static Instant currentGameTime(@Nonnull World world) {
         Store<EntityStore> entityStore = world.getEntityStore().getStore();
         WorldTimeResource timeResource = (WorldTimeResource) entityStore
@@ -465,14 +357,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return above != null && above.getMaterial() == BlockMaterial.Empty;
     }
 
-    private static boolean isTillCandidate(@Nonnull World world, Vector3i position) {
+    private static boolean isTillCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         BlockType blockType = getBlockType(world, position.x, position.y, position.z);
         return blockType != null && blockType.getId() != null
                 && FarmingRecipeConfig.getInstance().isTillableBlock(blockType.getId())
                 && hasFreeTopFace(world, position.x, position.y, position.z);
     }
 
-    private static boolean isPlantCandidate(@Nonnull World world, Vector3i position) {
+    private static boolean isPlantCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -486,7 +378,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
      * sit at a different priority (see the finite-vs-recurring split at the call site in
      * {@link #findNextWorkAssignment}).
      */
-    private static boolean isNeverWateredCandidate(@Nonnull World world, Vector3i position) {
+    private static boolean isNeverWateredCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -506,7 +398,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
      * A tile that was watered at least once but the duration has since expired - the genuinely
      * recurring counterpart to {@link #isNeverWateredCandidate}.
      */
-    private static boolean isWaterRefreshCandidate(@Nonnull World world, Vector3i position, @Nonnull Instant now) {
+    private static boolean isWaterRefreshCandidate(@Nonnull World world, @Nonnull Vector3i position,
+            @Nonnull Instant now) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -532,7 +425,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
      * in {@code FarmWorkAction} goes through the live {@code Ref}/{@code Store} path instead, same
      * reasoning as watering).
      */
-    private static boolean isFertilizeCandidate(@Nonnull World world, Vector3i position) {
+    private static boolean isFertilizeCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -560,7 +453,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
      * {@code Plant_Crop_Carrot_Block} - see docs/bud-worker-mode-plan.md, "Phase 7 - Erntereife
      * generisch erkannt".
      */
-    private static boolean isHarvestCandidate(@Nonnull World world, Vector3i position) {
+    private static boolean isHarvestCandidate(@Nonnull World world, @Nonnull Vector3i position) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
             return false;
         }
@@ -573,23 +466,29 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     }
 
     /**
-     * A conservative capacity check, not an exact simulation of the actual drops: any completely empty
-     * output slot counts as "room", even though a partially-filled but stackable slot might also still
-     * fit more - see docs/bud-worker-mode-plan.md, "Phase 7 - Ernte in Output-Slots" for why this
-     * deliberate simplification was chosen over resolving the drops just to check capacity.
+     * Checks room for the tile's guaranteed drop only ({@code HarvestingDropType.getItemId()}), not the
+     * full (possibly RNG-augmented) drop list {@code FarmWorkAction.executeHarvest} actually resolves via
+     * {@code BlockHarvestUtils.getDrops} - bytecode-verified that {@code getItemId()} is always added
+     * deterministically (no RNG involved) regardless of whether a {@code dropListId} is also present, so
+     * this is exact for crops with no bonus drop list and a safe (if occasionally optimistic) lower bound
+     * otherwise; the real gate is the precise dry-run in {@code executeHarvest} itself. See
+     * docs/bud-worker-mode-plan.md, "Phase 7 - Ernte-Output-Sperre" for why a full drop-list resolution
+     * wasn't used here instead (RNG consumption on every scan of every ripe tile).
      */
-    private static boolean hasHarvestOutputRoom(@Nonnull ProcessingBenchBlock processingBenchBlock) {
+    private static boolean hasHarvestOutputRoom(@Nonnull World world, @Nonnull Vector3i position,
+            @Nonnull ProcessingBenchBlock processingBenchBlock) {
         ItemContainer output = processingBenchBlock.getOutputContainer();
         if (output == null) {
             return false;
         }
-        short capacity = output.getCapacity();
-        for (short slot = 0; slot < capacity; slot++) {
-            if (isEmpty(output.getItemStack(slot))) {
-                return true;
-            }
+        BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+        BlockGathering gathering = above != null ? above.getGathering() : null;
+        HarvestingDropType harvest = gathering != null ? gathering.getHarvest() : null;
+        String itemId = harvest != null ? harvest.getItemId() : null;
+        if (itemId == null) {
+            return true;
         }
-        return false;
+        return output.canAddItemStacks(List.of(new ItemStack(itemId, 1)), false, false);
     }
 
     @Nonnull

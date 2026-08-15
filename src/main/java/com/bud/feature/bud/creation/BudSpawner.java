@@ -52,6 +52,7 @@ public class BudSpawner {
         this.position = position;
     }
 
+    @Nonnull
     public static BudSpawner create(@Nonnull Store<EntityStore> store, @Nonnull String npcType,
             @Nonnull Vector3d position) {
         LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
@@ -61,33 +62,40 @@ public class BudSpawner {
         return new BudSpawner(store, npcType, position);
     }
 
+    @Nonnull
     public BudSpawner withRotation(@Nonnull Vector3f rotation) {
         this.rotation = new Rotation3f(rotation.x, rotation.y, rotation.z);
         return this;
     }
 
+    @Nonnull
     public BudSpawner withInventory() {
         this.withInventory = true;
         return this;
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType) {
         return addWeapon(weaponType, 1);
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType, int quantity) {
         return addWeapon(weaponType, quantity, (short) 0);
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType, int quantity, short slot) {
         this.weapons.add(new WeaponConfig(weaponType, quantity, slot));
         return this;
     }
 
+    @Nonnull
     public BudSpawner addTool(@Nonnull String toolItemId, short slot) {
         return addWeapon(toolItemId, 1, slot);
     }
 
+    @Nonnull
     public BudSpawner addArmor(@Nonnull String armorType) {
         this.armors.add(new ArmorConfig(armorType));
         return this;

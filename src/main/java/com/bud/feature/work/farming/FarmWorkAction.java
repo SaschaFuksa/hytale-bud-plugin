@@ -2,7 +2,6 @@ package com.bud.feature.work.farming;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,7 +36,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.animations.NPCAnimationSlot;
+import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.npc.asset.builder.BuilderSupport;
 import com.hypixel.hytale.server.npc.corecomponents.ActionBase;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
@@ -47,7 +46,6 @@ import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
 
 public class FarmWorkAction extends ActionBase {
-
 
     private static final double INTERACTION_RANGE = 1.75;
 
@@ -179,17 +177,6 @@ public class FarmWorkAction extends ActionBase {
         mutateLiveTilledSoil(world, x, y, z, soil -> soil.setFertilized(true));
     }
 
-    /**
-     * Reuses the native drop-resolution the player's Sickle uses ({@code BlockHarvestUtils.getDrops},
-     * called the exact same way {@code FarmingUtil.giveDrops} does - bytecode-verified) instead of
-     * re-implementing weighted drop-list rolls ourselves. Everything else is our own: drops go straight
-     * into the Workstation's own output container, never the Bud's inventory (it doesn't survive a
-     * restart - {@code BudComponent}'s codec is empty, the Bud is respawned fresh on rebind - the bench
-     * container is natively persisted), and the tile is fully cleared back to empty rather than
-     * following the native "regrow via StageSetAfterHarvest" path, so it re-qualifies for
-     * {@code isPlantCandidate} immediately - see docs/bud-worker-mode-plan.md, "Phase 7 - Ernte in
-     * Output-Slots" for why the native {@code FarmingUtil.harvest} entrypoint itself isn't reused here.
-     */
     private static void executeHarvest(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
         BlockType above = world.getBlockType(x, y + 1, z);
         if (above == null) {
@@ -226,26 +213,12 @@ public class FarmWorkAction extends ActionBase {
         List<ItemStack> drops = BlockHarvestUtils.getDrops(above, 1, harvestType.getItemId(),
                 harvestType.getDropListId());
         if (!output.canAddItemStacks(drops, false, false)) {
-            // The assignment-time check (WorkstationFuelTickSystem.hasHarvestOutputRoom) only looked for
-            // any empty slot, not whether THIS specific harvest's drops actually fit - leave the crop
-            // ripe, no partial add, nothing mutated. Next scan retries; the starvation guard keeps a
-            // stuck case from looping forever once the output genuinely can't take more.
             return;
         }
         output.addItemStacks(drops, false, false, false);
         world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
     }
 
-    /**
-     * {@code World.getBlockComponentHolder} returns a detached copy via {@code Store.copyEntity} -
-     * mutating a component obtained through it never reaches the real block, bytecode-verified against
-     * both that method and the native {@code UseWateringCanInteraction.waterBlockAt} (see
-     * docs/bud-worker-mode-plan.md, "Nachtrag: WATER wiederholte sich trotz obigem Fix"). Follows the
-     * same live path the native code uses instead: resolve the block's own {@code Ref} and mutate the
-     * component through the {@code Store} directly, then flag the block ticking exactly as the native
-     * interaction does. Shared between {@link #executeWater} and {@link #executeFertilize} since both
-     * are a one-field mutation on the same live {@code TilledSoilBlock}.
-     */
     private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
             @Nonnull java.util.function.Consumer<TilledSoilBlock> mutator) {
         WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
@@ -254,6 +227,10 @@ public class FarmWorkAction extends ActionBase {
         }
         Ref<ChunkStore> ref = chunk.getBlockComponentEntity(x, y, z);
         if (ref == null) {
+            // Deprecated (bytecode-verified via javap, no forRemoval marker) but still the only public
+            // entrypoint that creates a block entity from the block's own BlockType.getBlockEntity() spec -
+            // no non-deprecated replacement exists, keep using it rather than reimplementing the native
+            // Holder/AddReason.SPAWN construction ourselves.
             ref = BlockModule.ensureBlockEntity(chunk, x, y, z);
         }
         if (ref == null || !ref.isValid()) {
@@ -278,7 +255,7 @@ public class FarmWorkAction extends ActionBase {
             case PLANT -> config.getPlantIntervalSeconds();
             case WATER -> config.getWaterIntervalSeconds();
             case FERTILIZE -> config.getFertilizeIntervalSeconds();
-            case HARVEST -> config.getTillIntervalSeconds();
+            case HARVEST -> config.getHarvestIntervalSeconds();
         };
     }
 
@@ -291,8 +268,7 @@ public class FarmWorkAction extends ActionBase {
         if (npc == null) {
             return;
         }
-        npc.playAnimation(ref, Objects.requireNonNull(NPCAnimationSlot.Status.getMappedSlot()), WORK_ANIMATION,
-                store);
+        npc.playAnimation(ref, AnimationSlot.Status, WORK_ANIMATION, store);
     }
 
     private static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {

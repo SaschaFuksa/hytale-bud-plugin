@@ -16,6 +16,7 @@ public class WorkConfig {
     private int waterIntervalSeconds = 1;
     private int waterDurationSeconds = 86400;
     private int fertilizeIntervalSeconds = 1;
+    private int harvestIntervalSeconds = 1;
     private int idleRetrySeconds = 5;
     private int treeMinDistance = 3;
     private int oreMinDistance = 2;
@@ -66,6 +67,10 @@ public class WorkConfig {
 
     public int getFertilizeIntervalSeconds() {
         return this.fertilizeIntervalSeconds;
+    }
+
+    public int getHarvestIntervalSeconds() {
+        return this.harvestIntervalSeconds;
     }
 
     public int getIdleRetrySeconds() {
@@ -121,6 +126,10 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("FertilizeIntervalSeconds", Codec.INTEGER),
                         (config, value) -> config.fertilizeIntervalSeconds = value,
                         config -> config.fertilizeIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("HarvestIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.harvestIntervalSeconds = value,
+                        config -> config.harvestIntervalSeconds)
                 .add()
                 .append(new KeyedCodec<>("IdleRetrySeconds", Codec.INTEGER),
                         (config, value) -> config.idleRetrySeconds = value,

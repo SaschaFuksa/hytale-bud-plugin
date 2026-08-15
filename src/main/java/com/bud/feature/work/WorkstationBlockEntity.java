@@ -2,6 +2,8 @@ package com.bud.feature.work;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -66,7 +68,8 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     @Nullable
     private ItemStack lastAttemptedCard;
 
-    private boolean outputFullLogged;
+    @Nonnull
+    private final Set<Vector3i> lockedHarvestOutputTargets = new HashSet<>();
 
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
@@ -214,12 +217,16 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
         this.lastAttemptedCard = lastAttemptedCard;
     }
 
-    public boolean isOutputFullLogged() {
-        return outputFullLogged;
+    public boolean isHarvestOutputLocked(@Nonnull Vector3i position) {
+        return lockedHarvestOutputTargets.contains(position);
     }
 
-    public void setOutputFullLogged(boolean outputFullLogged) {
-        this.outputFullLogged = outputFullLogged;
+    public void lockHarvestOutputTarget(@Nonnull Vector3i position) {
+        lockedHarvestOutputTargets.add(position);
+    }
+
+    public void clearHarvestOutputLocks() {
+        lockedHarvestOutputTargets.clear();
     }
 
     @Override

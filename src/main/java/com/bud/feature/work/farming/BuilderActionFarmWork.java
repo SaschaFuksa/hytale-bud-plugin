@@ -1,6 +1,6 @@
 package com.bud.feature.work.farming;
 
-import org.jspecify.annotations.NonNull;
+import javax.annotation.Nonnull;
 
 import com.hypixel.hytale.server.npc.asset.builder.BuilderDescriptorState;
 import com.hypixel.hytale.server.npc.asset.builder.BuilderSupport;
@@ -29,7 +29,7 @@ public class BuilderActionFarmWork extends BuilderActionBase {
     }
 
     @Override
-    public Action build(@NonNull BuilderSupport support) {
+    public Action build(@Nonnull BuilderSupport support) {
         return new FarmWorkAction(this, support);
     }
 

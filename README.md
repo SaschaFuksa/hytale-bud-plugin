@@ -220,6 +220,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `WaterIntervalSeconds` | Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one | `1` |
 | `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered - matches the native watering can's own duration (`Server/Item/Interactions/Tools/Watering_Can_Use.json`, `"Duration": 86400`), so a Bud waters no more/less often than a player would. Setting this too low makes the field scan see already-watered tiles as needing water again before it can reach the rest of the field, so watering never finishes covering it | `86400` |
 | `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
+| `HarvestIntervalSeconds` | Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one | `1` |
 | `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (Phase 9, not yet implemented) | `3` |
 | `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (Phase 10, not yet implemented) | `2` |
