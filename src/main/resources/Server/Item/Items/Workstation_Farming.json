@@ -67,14 +67,16 @@
           "Icon": "Icons/ItemsGenerated/icon_farming-food-slot.png"
         }
       ],
-      "OutputSlotsCount": 6
+      "OutputSlotsCount": 6,
+      "FailedSoundEventId": "SFX_Furnace_Bench_Processing_Failed"
     },
     "State": {
       "Definitions": {
         "Processing": {
           "Light": {
             "Color": "#B72"
-          }
+          },
+          "AmbientSoundEventId": "SFX_Furnace_Bench_Processing"
         },
         "ProcessCompleted": {
           "Light": {
