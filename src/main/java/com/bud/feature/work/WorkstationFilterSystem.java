@@ -20,6 +20,7 @@ public class WorkstationFilterSystem extends RefSystem<ChunkStore> {
 
         private static final short CARD_SLOT = 0;
         private static final short SECONDARY_INPUT_SLOT = 1;
+        private static final short FEED_SLOT = 0;
 
         @Nonnull
         @Override
@@ -59,6 +60,9 @@ public class WorkstationFilterSystem extends RefSystem<ChunkStore> {
                                                 itemStack) -> WorkstationCardUtil.resolveBudId(itemStack) == null
                                                                 && WorkstationSeedUtil.isAllowedOrNotASeed(itemStack,
                                                                                 workRole));
+                processingBenchBlock.getFuelContainer().setSlotFilter(FilterActionType.ADD, FEED_SLOT,
+                                (actionType, container, slot,
+                                                itemStack) -> WorkstationFuelUtil.isAllowedFuel(itemStack, workRole));
                 processingBenchBlock.getInputContainer().registerChangeEvent(
                                 event -> WorkstationBindingHandler.reevaluate(store, ref, workstation,
                                                 processingBenchBlock, benchBlock));

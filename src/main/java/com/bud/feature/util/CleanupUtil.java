@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudRegistry;
-import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -70,15 +69,6 @@ public class CleanupUtil {
         });
     }
 
-    /**
-     * Searches by NPC type id, not by {@link BudComponent} registration - a Bud whose spawn failed
-     * partway through (before {@code BudComponent} was ever attached, see
-     * docs/bud-worker-mode-plan.md, "Phase 6, Verwaiste Buds nach Spawn-Fehlschlag") is invisible to a
-     * {@code BudComponent}-gated query and was exactly the kind of orphan {@code /bud delete world}
-     * couldn't reach before this. {@link BudSpawner#removeHalfSpawnedEntity} now prevents new orphans of
-     * this specific kind at the source, but this stays the general-purpose net for any future failure
-     * mode that still leaves a Bud-typed NPC without its {@code BudComponent}.
-     */
     public static void cleanupAllBuds(World world, Store<EntityStore> store) {
         ComponentType<EntityStore, NPCEntity> componentType = NPCEntity.getComponentType();
         if (componentType == null) {

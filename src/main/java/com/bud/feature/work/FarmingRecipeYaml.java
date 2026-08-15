@@ -14,6 +14,8 @@ class FarmingRecipeYaml extends AbstractYamlMessage {
 
     private Map<String, List<String>> allowedSeeds;
 
+    private Map<String, List<String>> allowedFuel;
+
     private List<String> tillableBlocks;
 
     private List<String> tilledSoilBlocks;
@@ -23,6 +25,11 @@ class FarmingRecipeYaml extends AbstractYamlMessage {
     @Nonnull
     Map<String, List<String>> getAllowedSeeds() {
         return allowedSeeds != null ? allowedSeeds : Objects.requireNonNull(Map.of());
+    }
+
+    @Nonnull
+    Map<String, List<String>> getAllowedFuel() {
+        return allowedFuel != null ? allowedFuel : Objects.requireNonNull(Map.of());
     }
 
     @Nonnull

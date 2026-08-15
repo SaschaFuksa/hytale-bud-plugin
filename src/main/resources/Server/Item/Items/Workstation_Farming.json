@@ -11,11 +11,15 @@
     "Input": [
       {
         "ResourceTypeId": "Wood_Trunk",
-        "Quantity": 6
+        "Quantity": 10
       },
       {
         "ResourceTypeId": "Rock",
-        "Quantity": 6
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Plant_Fruit_Berries_Red",
+        "Quantity": 10
       }
     ],
     "Output": [
@@ -51,13 +55,19 @@
       "AllowNoInputProcessing": true,
       "Id": "WorkstationFarming",
       "Input": [
-        {},
-        {}
+        {
+          "Icon": "Icons/ItemsGenerated/icon_farming-card-slot.png"
+        },
+        {
+          "Icon": "Icons/ItemsGenerated/icon_farming-seed-slot.png"
+        }
       ],
       "Fuel": [
-        {}
+        {
+          "Icon": "Icons/ItemsGenerated/icon_farming-food-slot.png"
+        }
       ],
-      "OutputSlotsCount": 8
+      "OutputSlotsCount": 6
     },
     "State": {
       "Definitions": {

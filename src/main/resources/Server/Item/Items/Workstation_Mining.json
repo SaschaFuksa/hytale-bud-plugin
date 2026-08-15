@@ -11,11 +11,15 @@
     "Input": [
       {
         "ResourceTypeId": "Wood_Trunk",
-        "Quantity": 6
+        "Quantity": 10
       },
       {
         "ResourceTypeId": "Rock",
-        "Quantity": 6
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Plant_Fruit_Berries_Red",
+        "Quantity": 10
       }
     ],
     "Output": [

@@ -29,6 +29,10 @@ allowedSeeds:
     - Plant_Seeds_Wheat
     - Plant_Seeds_Wheat_Eternal
 
+allowedFuel:
+  FARMING:
+    - Plant_Fruit_Berries_Red
+
 tillableBlocks:
   - Soil_Dirt
   - Soil_Dirt_Burnt

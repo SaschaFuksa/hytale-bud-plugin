@@ -15,15 +15,6 @@ import com.bud.BudPlugin;
 import com.bud.llm.messages.AbstractYamlMessage;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Single shared, operator-editable {@code versions.yml}: tracks the content version of both the
- * prompt YAMLs ({@code promptVersion}) and the Bud definition YAMLs ({@code budVersion}), compared
- * against the version packaged in the jar to detect an outdated runtime copy after a plugin update
- * - see {@code LLMPromptManager}/{@code BudRegistry}, which each own their own comparison + reminder
- * log against their relevant field. Also carries the operator-owned {@code excludedPrompts}/
- * {@code excludedBuds} path lists, skipped when an automatic ({@code AutoUpdateContentOnVersionMismatch})
- * sync would otherwise overwrite them - an explicit {@code --reset} command still ignores these.
- */
 public class ContentVersion extends AbstractYamlMessage {
 
     private int budVersion;
@@ -68,7 +59,8 @@ public class ContentVersion extends AbstractYamlMessage {
             return loadFromStream(ContentVersion.class, in);
         } catch (IOException e) {
             LoggerUtil.getLogger()
-                    .severe(() -> "[BUD] Failed to read packaged content version " + resourcePath + ": " + e.getMessage());
+                    .severe(() -> "[BUD] Failed to read packaged content version " + resourcePath + ": "
+                            + e.getMessage());
             return null;
         }
     }

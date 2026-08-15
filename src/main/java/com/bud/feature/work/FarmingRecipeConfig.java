@@ -40,6 +40,8 @@ public final class FarmingRecipeConfig {
 
     private final Map<WorkRole, Set<String>> allowedSeedsByRole = new EnumMap<>(WorkRole.class);
 
+    private final Map<WorkRole, Set<String>> allowedFuelByRole = new EnumMap<>(WorkRole.class);
+
     private final Set<String> tillableBlocks = new HashSet<>();
 
     private final Set<String> tilledSoilBlocks = new HashSet<>();
@@ -88,6 +90,7 @@ public final class FarmingRecipeConfig {
 
     private void load(@Nonnull Path path) {
         allowedSeedsByRole.clear();
+        allowedFuelByRole.clear();
         tillableBlocks.clear();
         tilledSoilBlocks.clear();
         tilledSoilTargetBlock = DEFAULT_TILLED_SOIL_TARGET_BLOCK;
@@ -124,6 +127,16 @@ public final class FarmingRecipeConfig {
                         .warning(() -> "[BUD] Unknown WorkRole '" + roleName + "' in " + path + ", skipping.");
             }
         }
+        for (Map.Entry<String, List<String>> entry : yaml.getAllowedFuel().entrySet()) {
+            try {
+                WorkRole role = WorkRole.valueOf(entry.getKey());
+                allowedFuelByRole.put(role, new HashSet<>(entry.getValue()));
+            } catch (IllegalArgumentException e) {
+                String roleName = entry.getKey();
+                LoggerUtil.getLogger()
+                        .warning(() -> "[BUD] Unknown WorkRole '" + roleName + "' in " + path + ", skipping.");
+            }
+        }
     }
 
     @Nonnull
@@ -135,22 +148,19 @@ public final class FarmingRecipeConfig {
         return getAllowedSeeds(workRole).contains(seedItemId);
     }
 
+    @Nonnull
+    public Set<String> getAllowedFuel(@Nonnull WorkRole workRole) {
+        return Objects.requireNonNull(allowedFuelByRole.getOrDefault(workRole, Set.of()));
+    }
+
+    public boolean isFuelAllowed(@Nonnull WorkRole workRole, @Nonnull String fuelItemId) {
+        return getAllowedFuel(workRole).contains(fuelItemId);
+    }
+
     public boolean isTillableBlock(@Nonnull String blockTypeId) {
         return tillableBlocks.contains(blockTypeId);
     }
 
-    /**
-     * State changes swap the block's own id (a watered {@code Soil_Dirt_Tilled} reports itself as
-     * {@code *Soil_Dirt_Tilled_State_Definitions_Watered}, bytecode-confirmed via
-     * {@code BlockType.getStateForBlock}), so a plain id comparison against the base id alone silently
-     * drops every watered/fertilized tile from every work type - the bug this replaces (see
-     * docs/bud-worker-mode-plan.md, "Phase 6, Zustandsvarianten-Bug"). {@code tilledSoilTargetBlock}'s
-     * own {@link BlockType#getStateForBlock} is the SDK-native way to recognize any of its state
-     * variants without enumerating them - covers a future Hytale update adding a new state to
-     * {@code Soil_Dirt_Tilled} automatically, no config change needed. {@code tilledSoilBlocks} stays
-     * checked first as an explicit override/extension point (e.g. a custom mod block that should count
-     * as tilled soil without being a native state of it).
-     */
     public boolean isTilledSoilBlock(@Nonnull String blockTypeId) {
         if (tilledSoilBlocks.contains(blockTypeId)) {
             return true;

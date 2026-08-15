@@ -11,11 +11,6 @@ import com.hypixel.hytale.server.core.command.system.ParseResult;
 import com.hypixel.hytale.server.core.command.system.arguments.types.SingleArgumentType;
 import com.hypixel.hytale.server.core.command.system.suggestion.SuggestionResult;
 
-/**
- * String argument that validates against {@link BudRegistry} ids and tab-completes them.
- * Keeps command surfaces (e.g. {@code /bud create <id>}) data-driven along with the rest
- * of the Bud definitions - no hardcoded bud names in command code.
- */
 final class BudIdArgumentType extends SingleArgumentType<String> {
 
     BudIdArgumentType() {

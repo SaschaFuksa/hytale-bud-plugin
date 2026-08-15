@@ -170,12 +170,6 @@ final class WorkstationBindingHandler {
         }
     }
 
-    /**
-     * A repeatedly failing bind must stop retrying on its own instead of hammering
-     * {@code performBind}/{@code spawn()} every {@code RebindRetrySeconds} forever - see
-     * docs/bud-worker-mode-plan.md, "Phase 6, Rebind-Retry darf nicht endlos wiederholen". Only reset by
-     * {@code tryRebind} noticing a different card in the slot.
-     */
     private static void recordBindFailure(@Nonnull WorkstationBlockEntity workstation, @Nonnull String reason) {
         workstation.setBindFailureCount(workstation.getBindFailureCount() + 1);
         if (workstation.hasGivenUpBinding()) {

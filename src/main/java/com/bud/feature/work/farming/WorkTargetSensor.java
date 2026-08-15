@@ -13,12 +13,6 @@ import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 import com.hypixel.hytale.server.npc.sensorinfo.PositionProvider;
 
-/**
- * Exposes the acting Bud's {@link BudComponent#getWorkTarget()} as this Instruction's {@link InfoProvider}
- * position - matches only while a target is assigned, does no scanning or range-checking of its own (the
- * Workstation already only ever assigns a target within {@code WorkConfig.FieldRadius}). See
- * docs/bud-worker-mode-plan.md, "Phase 5 — Farming-Loop Redesign".
- */
 public class WorkTargetSensor extends SensorBase {
 
     @Nonnull

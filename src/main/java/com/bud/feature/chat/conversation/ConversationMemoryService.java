@@ -50,10 +50,6 @@ public class ConversationMemoryService {
     private ConversationMemoryService() {
     }
 
-    /**
-     * Regular and legendary memories share this sequence so no two memories for the
-     * same player can ever collide, regardless of type.
-     */
     private long allocateMemoryId(@Nonnull String normalizedOwnerKey) {
         return this.nextMemoryIdByOwner.computeIfAbsent(normalizedOwnerKey, k -> new AtomicLong(1)).getAndIncrement();
     }

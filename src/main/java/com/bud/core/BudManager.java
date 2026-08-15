@@ -218,17 +218,6 @@ public class BudManager {
         return null;
     }
 
-    /**
-     * Searches for a free position at {@code distance} blocks along {@code forward}
-     * from {@code basePos},
-     * fanning laterally along {@code right} (see
-     * {@link #getSpawnPositionInFrontOfPlayer}) if the preferred
-     * spot is blocked. Generic over any base position/facing, not just a player's -
-     * reused as-is for
-     * Workstation Bud spawn placement (see {@code WorkstationBindingHandler},
-     * docs/bud-worker-mode-plan.md,
-     * "Spawn-Position vor der Station") instead of duplicating this search.
-     */
     @Nullable
     public static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d basePos,
             @Nonnull Vector3d forward, @Nonnull Vector3d right, int distance, double preferredLateral,
