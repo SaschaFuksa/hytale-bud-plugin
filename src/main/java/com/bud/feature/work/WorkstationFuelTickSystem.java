@@ -11,8 +11,16 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
+import com.bud.core.config.ReactionConfig;
 import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
+import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
+import com.bud.feature.work.reaction.LLMWorkMessageCreation;
+import com.bud.feature.work.reaction.WorkEntry;
+import com.bud.feature.work.reaction.WorkReactionKind;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.BenchBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
@@ -278,6 +286,10 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 workstation.lockHarvestOutputTarget(position);
                 LoggerUtil.getLogger().warning(() -> "[BUD] Workstation output has no room for the ripe tile at "
                         + position + " - HARVEST paused there until a slot is freed.");
+                if (!workstation.isOutputFullReactionSent() && ReactionConfig.getInstance().isEnableWorkReactions()) {
+                    workstation.setOutputFullReactionSent(true);
+                    fireOutputFullReaction(workstation, resolveHarvestItemId(world, position));
+                }
                 continue;
             }
             harvestWinner = position;
@@ -457,6 +469,32 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             return true;
         }
         return output.canAddItemStacks(List.of(new ItemStack(itemId, 1)), false, false);
+    }
+
+    @Nullable
+    private static String resolveHarvestItemId(@Nonnull World world, @Nonnull Vector3i position) {
+        BlockType above = getBlockType(world, position.x, position.y + 1, position.z);
+        BlockGathering gathering = above != null ? above.getGathering() : null;
+        HarvestingDropType harvest = gathering != null ? gathering.getHarvest() : null;
+        return harvest != null ? harvest.getItemId() : null;
+    }
+
+    private static void fireOutputFullReaction(@Nonnull WorkstationBlockEntity workstation,
+            @Nullable String blockedItemId) {
+        BudComponent boundBud = workstation.getBoundBud();
+        if (boundBud == null) {
+            return;
+        }
+        WorkEntry workEntry = new WorkEntry(boundBud, WorkReactionKind.OUTPUT_FULL, boundBud.getWorkType(),
+                blockedItemId);
+        LLMInteractionEntry entry = new LLMInteractionEntry(LLMWorkMessageCreation.getInstance(), workEntry);
+        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                OrchestratorChannel.ACTIVITY,
+                workEntry,
+                "workOutputFull",
+                boundBud.getPlayerRef().getUsername(),
+                entry,
+                System.currentTimeMillis()));
     }
 
     @Nonnull

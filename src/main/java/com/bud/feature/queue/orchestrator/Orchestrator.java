@@ -252,7 +252,8 @@ public class Orchestrator {
                     LoggerUtil.getLogger().severe(() -> "[Orchestrator] Missing interaction entry for event: " + event);
                     return;
                 }
-                if (entry.getBudComponent().getCurrentState() == BudState.WORKING) {
+                if (entry.getBudComponent().getCurrentState() == BudState.WORKING
+                        && !event.entry().allowsReactionWhileWorking()) {
                     LoggerUtil.getLogger().finer(() -> "[Orchestrator] Skipping " + event.eventType()
                             + " for player " + event.playerName() + ": Bud is Working.");
                     return;

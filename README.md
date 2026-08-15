@@ -196,6 +196,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
 | `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
+| `EnableWorkReactions` | Enable or disable the Working-state reactions (started/finished working, interacted-with-while-working, output storage full) | `true` |
 <br>
 
 ### Orchestration Configuration (Only change if needed for performance tuning)
@@ -222,8 +223,8 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
 | `HarvestIntervalSeconds` | Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one | `1` |
 | `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
-| `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (Phase 9, not yet implemented) | `3` |
-| `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (Phase 10, not yet implemented) | `2` |
+| `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (not yet implemented) | `3` |
+| `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (not yet implemented) | `2` |
 | `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |
 | `RebindRetrySeconds` | Retry interval (seconds) for re-binding a Bud to its Workstation after the owner wasn't online at load time | `10` |
 <br>

@@ -22,6 +22,7 @@ public class ReactionConfig {
     private boolean enablePlayerChatReactions = true;
     private boolean enablePlayerStateReactions = true;
     private long playerStateReactionPeriod = 2L; // seconds
+    private boolean enableWorkReactions = true;
 
     private static volatile ReactionConfig instance;
 
@@ -93,6 +94,10 @@ public class ReactionConfig {
         return this.playerStateReactionPeriod;
     }
 
+    public boolean isEnableWorkReactions() {
+        return this.enableWorkReactions;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ReactionConfig.class, ReactionConfig::new)
                 .append(new KeyedCodec<>("EnableCombatReactions", Codec.BOOLEAN),
@@ -150,6 +155,10 @@ public class ReactionConfig {
                 .append(new KeyedCodec<>("PlayerStateReactionPeriod", Codec.LONG),
                         (config, value) -> config.playerStateReactionPeriod = value,
                         config -> config.playerStateReactionPeriod)
+                .add()
+                .append(new KeyedCodec<>("EnableWorkReactions", Codec.BOOLEAN),
+                        (config, value) -> config.enableWorkReactions = value,
+                        config -> config.enableWorkReactions)
                 .add()
                 .build();
     }

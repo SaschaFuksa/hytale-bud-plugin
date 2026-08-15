@@ -42,6 +42,7 @@ import com.bud.feature.work.WorkstationFilterSystem;
 import com.bud.feature.work.WorkstationFuelTickSystem;
 import com.bud.feature.work.farming.BuilderActionFarmWork;
 import com.bud.feature.work.farming.BuilderWorkTargetSensor;
+import com.bud.feature.work.reaction.BuilderActionWorkTalk;
 import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -114,6 +115,7 @@ public class BudPlugin extends JavaPlugin {
 
         NPCPlugin.get().registerCoreComponentType("FarmWork", BuilderActionFarmWork::new);
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
+        NPCPlugin.get().registerCoreComponentType("WorkTalk", BuilderActionWorkTalk::new);
 
         // Register commands
         this.getCommandRegistry().registerCommand(new BudCommandCollection());

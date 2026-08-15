@@ -138,6 +138,31 @@ prompts:
     First, you get some details about your personality.
     Second, you get what they said to you.
     Finally, reply directly to them, briefly and in character, as part of the ongoing conversation.
+  workStart: |
+    You just started working at your Workstation!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is already assigned.
+    Finally, say something reactive about starting to work. Consider whether work fits your personality or not.
+  workEnd: |
+    You just finished working and are leaving the Workstation!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get the work task you were last doing, if any.
+    Finally, say a short farewell line about wrapping up work, in character.
+  workInteract: |
+    Your friend just approached and interacted with you while you were working at your Workstation.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is assigned.
+    Finally, react briefly and in character to being interrupted while working, without stopping your work.
+    Address your friend if it feels natural, but do not force it.
+  workOutputFull: |
+    You are working at your Workstation, but your output storage just became full and you cannot harvest more right now.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get the item your storage is full of, if known.
+    Finally, say something short and in character about being unable to harvest more until the storage is emptied.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

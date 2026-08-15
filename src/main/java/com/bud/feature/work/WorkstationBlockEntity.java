@@ -71,6 +71,8 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     @Nonnull
     private final Set<Vector3i> lockedHarvestOutputTargets = new HashSet<>();
 
+    private boolean outputFullReactionSent;
+
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
             .builder(WorkstationBlockEntity.class, WorkstationBlockEntity::new)
@@ -227,6 +229,19 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     public void clearHarvestOutputLocks() {
         lockedHarvestOutputTargets.clear();
+    }
+
+    public boolean isOutputFullReactionSent() {
+        return outputFullReactionSent;
+    }
+
+    public void setOutputFullReactionSent(boolean outputFullReactionSent) {
+        this.outputFullReactionSent = outputFullReactionSent;
+    }
+
+    public void onOutputContainerChanged() {
+        clearHarvestOutputLocks();
+        outputFullReactionSent = false;
     }
 
     @Override

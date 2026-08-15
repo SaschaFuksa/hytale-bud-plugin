@@ -1281,6 +1281,18 @@
                 "State": "PetDefensive"
               }
             ]
+          },
+          {
+            "Sensor": {
+              "Type": "State",
+              "State": "Working"
+            },
+            "ActionsBlocking": false,
+            "Actions": [
+              {
+                "Type": "WorkTalk"
+              }
+            ]
           }
         ]
       }

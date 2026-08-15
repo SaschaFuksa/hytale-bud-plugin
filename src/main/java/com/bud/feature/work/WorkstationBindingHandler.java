@@ -12,14 +12,23 @@ import org.joml.Vector3d;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.config.ReactionConfig;
 import com.bud.core.config.WorkConfig;
 import com.bud.core.registry.BudDefinition;
 import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.BudState;
 import com.bud.core.types.WorkRole;
+import com.bud.core.types.WorkType;
+import com.bud.feature.LLMInteractionManager;
 import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.queue.orchestrator.OrchestratorChannel;
+import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.state.StateChangeEvent;
+import com.bud.feature.work.reaction.LLMWorkMessageCreation;
+import com.bud.feature.work.reaction.WorkEntry;
+import com.bud.feature.work.reaction.WorkReactionKind;
+import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.crafting.component.BenchBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.crafting.window.BenchWindow;
@@ -144,6 +153,11 @@ final class WorkstationBindingHandler {
         StateChangeEvent.dispatch(bound.getBud(), bound.getPlayerRef(), BudState.WORKING);
         bound.setWorkstationAnchor(resolveStationGroundPosition(chunkStore, ref));
 
+        if (ReactionConfig.getInstance().isEnableWorkReactions()) {
+            fireWorkReaction(bound, WorkReactionKind.START, bound.getWorkType(), OrchestratorChannel.ACTIVITY,
+                    "workStart");
+        }
+
         workstation.setBoundBud(bound);
         boolean hasFuel = !isEmptyStack(processingBenchBlock.getFuelContainer().getItemStack(FEED_SLOT));
         workstation.setFuelSecondsRemaining(hasFuel ? WorkConfig.getInstance().getFuelDurationSeconds() : 0f);
@@ -179,11 +193,44 @@ final class WorkstationBindingHandler {
         workstation.setFuelSecondsRemaining(0f);
         workstation.setResting(false);
         workstation.setTargetElapsedSeconds(0f);
+        WorkType lastWorkType = bud.getWorkType();
         bud.setWorkstationAnchor(null);
         bud.setWorkTarget(null);
 
         World world = chunkStore.getExternalData().getWorld();
-        world.execute(() -> performDespawn(world, bud));
+        if (ReactionConfig.getInstance().isEnableWorkReactions()) {
+            fireWorkEndReactionThenDespawn(world, bud, lastWorkType);
+        } else {
+            world.execute(() -> performDespawn(world, bud));
+        }
+    }
+
+    private static void fireWorkEndReactionThenDespawn(@Nonnull World world, @Nonnull BudComponent bud,
+            @Nullable WorkType lastWorkType) {
+        Thread.ofVirtual().start(() -> {
+            try {
+                WorkEntry workEntry = new WorkEntry(bud, WorkReactionKind.END, lastWorkType, null);
+                LLMInteractionEntry entry = new LLMInteractionEntry(LLMWorkMessageCreation.getInstance(), workEntry);
+                LLMInteractionManager.getInstance().processInteraction(entry);
+            } catch (Exception e) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] Failed to fire work-end reaction: " + e.getMessage());
+            } finally {
+                world.execute(() -> performDespawn(world, bud));
+            }
+        });
+    }
+
+    private static void fireWorkReaction(@Nonnull BudComponent bud, @Nonnull WorkReactionKind kind,
+            @Nullable WorkType workType, @Nonnull OrchestratorChannel channel, @Nonnull String eventType) {
+        WorkEntry workEntry = new WorkEntry(bud, kind, workType, null);
+        LLMInteractionEntry entry = new LLMInteractionEntry(LLMWorkMessageCreation.getInstance(), workEntry);
+        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                channel,
+                workEntry,
+                eventType,
+                bud.getPlayerRef().getUsername(),
+                entry,
+                System.currentTimeMillis()));
     }
 
     private static void performDespawn(@Nonnull World world, @Nonnull BudComponent bud) {
