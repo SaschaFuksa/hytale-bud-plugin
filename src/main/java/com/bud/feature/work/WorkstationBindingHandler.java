@@ -272,8 +272,8 @@ final class WorkstationBindingHandler {
 
     @Nonnull
     private static final Map<WorkRole, String> HARVEST_TYPE_TOOL_ITEM = Objects.requireNonNull(Map.of(
-            WorkRole.FARMING, FarmToolItems.HARVEST_TOOL_ITEM,
-            WorkRole.LUMBERING, FarmToolItems.FELL_TOOL_ITEM));
+            WorkRole.FARMING, WorkToolItems.HARVEST_TOOL_ITEM,
+            WorkRole.LUMBERING, WorkToolItems.FELL_TOOL_ITEM));
 
     @Nonnull
     private static BudSpawner withWorkTools(@Nonnull BudSpawner spawner, @Nonnull BudDefinition budProfile) {
@@ -281,10 +281,10 @@ final class WorkstationBindingHandler {
         if (harvestTypeTool == null) {
             return spawner;
         }
-        return spawner.addTool(FarmToolItems.TILL_TOOL_ITEM, (short) 0)
-                .addTool(FarmToolItems.WATER_TOOL_ITEM, (short) 1)
-                .addTool(FarmToolItems.PLANT_TOOL_ITEM, (short) 2)
-                .addTool(FarmToolItems.FERTILIZE_TOOL_ITEM, (short) 3)
+        return spawner.addTool(WorkToolItems.TILL_TOOL_ITEM, (short) 0)
+                .addTool(WorkToolItems.WATER_TOOL_ITEM, (short) 1)
+                .addTool(WorkToolItems.PLANT_TOOL_ITEM, (short) 2)
+                .addTool(WorkToolItems.FERTILIZE_TOOL_ITEM, (short) 3)
                 .addTool(harvestTypeTool, (short) 4);
     }
 

@@ -9,7 +9,7 @@ public class WorkConfig {
     public static final BuilderCodec<WorkConfig> CODEC;
 
     private int fieldRadius = 5;
-    private int fieldMaxHeight = 3;
+    private int fieldMaxHeight = 2;
     private int targetTimeoutSeconds = 8;
     private int tillIntervalSeconds = 1;
     private int plantIntervalSeconds = 1;

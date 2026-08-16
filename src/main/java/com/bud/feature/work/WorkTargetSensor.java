@@ -1,4 +1,4 @@
-package com.bud.feature.work.farming;
+package com.bud.feature.work;
 
 import javax.annotation.Nonnull;
 

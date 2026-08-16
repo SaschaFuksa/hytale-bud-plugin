@@ -1,4 +1,4 @@
-package com.bud.feature.work.farming;
+package com.bud.feature.work;
 
 import com.google.gson.JsonElement;
 import com.hypixel.hytale.server.npc.asset.builder.Builder;
@@ -12,15 +12,15 @@ public class BuilderWorkTargetSensor extends BuilderSensorBase {
 
     @Override
     public String getShortDescription() {
-        return "Matches while the acting Bud has a Workstation-assigned block to till, exposing its position.";
+        return "Matches while the acting Bud has a Workstation-assigned block to work on, exposing its position.";
     }
 
     @Override
     public String getLongDescription() {
-        return "Reads BudComponent.getWorkTarget() (set by WorkstationFuelTickSystem, cleared by TillSoilAction "
-                + "on success) and exposes it as this Instruction's InfoProvider position. Does not search or "
-                + "range-check itself - the Workstation already only ever assigns a target within "
-                + "WorkConfig.FieldRadius.";
+        return "Reads BudComponent.getWorkTarget() (set by WorkstationFuelTickSystem, cleared by the acting "
+                + "*WorkAction on success) and exposes it as this Instruction's InfoProvider position. Role-agnostic "
+                + "- shared by FarmWorkAction and LumberingWorkAction alike. Does not search or range-check itself - "
+                + "the Workstation already only ever assigns a target within WorkConfig.FieldRadius.";
     }
 
     @Override

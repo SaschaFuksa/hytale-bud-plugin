@@ -4,9 +4,9 @@ In den ersten Sekunden nach dem öffnen, werden Items aus meinem Invetar automat
 Problem: Initaler "Turn on"-Bug (FUEL):
 GGF Zusammenhang mit Problem darüber: Wenn man die Station öffnet, und dann das erste Mal Futter drin hat und bei Fuel auf "Turn on" klickt, verschwindet sofort das Futter, und die Station ist aber direkt wieder aus mit akustischem Signal.
 
-Problem: Int Werte für Field Radius:
+Problem: Zahlenwerte für Field Radius:
 Zurzeit erlauben wir Zahlenwerte, das kann aber ungünstig sein. Wir sollten Größen erlauben: SMALL, MEDIUM, LARGE
-Farming Station: SMALL = 3, MEDIUM = 5, LARGE = 7
+Farming Station: SMALL = 4, MEDIUM = 5, LARGE = 6
 Lumbering Station: SMALL = 5, MEDIUM = 7, LARGE = 9 (4 Bäume, 8 Bäume, 12 Bäume)
 
 Problem: Animationen:
@@ -31,5 +31,15 @@ Ohne diese ANimation sieht man nicht, dass es aktiv läuft + es zeigt auch in et
 
 Problem: Feldradius ist nicht ebenerdig und Bud hat Probleme dadurch:
 Ich habe es nun auch mal auf eienm Feld probiert, wo ich Blockhöhen drin habe (also -1, 0, +1) und da hat der Bud Probleme, die Felder richtig zu bearbeiten.
-Ggf. können wir, wenn wir wissen das eine Position weiter unten oder oben ist als die aktuelle vom Bud ihm direkt auf die Position schicken - also statt davor zu stehen zu tilen, bewässern etc. direkt draufsteht.
-Dadurch können wir die Höhenunterschiede ausgleichen und er kann die Felder bearbeiten, auch wenn sie nicht ebenerdig sind.
+Gedanke: Wenn wir merken, dass die Aktion nicht ausgeführt werden konnte, den Bud direkt auf den Block schicken?
+
+Code:
+Wir haben Lumbering State in FarmWorkAction.java, das ist bad Code seperation. Wir sollten das in LumberingWorkAction.java auslagern.
+Generell: Speziale Aktionen wie Lumbering oder Farming sollten in eigenen Klassen sein, die von einer gemeinsamen WorkAction-Klasse erben.
+Gemeinsame Aktionen wie Till, Plant, Water, Fertilize, Harvest sollten in der gemeinsamen WorkAction-Klasse sein
+
+Configs:
+Wir haben in der WorkConfig zu viele spezifische Configs, die nur für Lumbering oder Farming gelten. Wir sollten diese ggf. in eigene Configs auslagern, die von einer gemeinsamen WorkConfig-Klasse erben.
+
+Cards/Items Verschwunden nach Server neustart:
+Problem: Ich habe aus der Station die Karte bzw. Items rausgenommen, und nach einem Serverneustart waren diese aus meinem Inventar verschwunden. Ich habe die Station nicht verlassen, sondern nur den Server neugestartet. Die Items waren weg. Es ist immer wieder passiert.

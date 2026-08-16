@@ -78,6 +78,7 @@
   "MaxHealth": {
     "Compute": "MaxHealth"
   },
+  "HotbarSize": 8,
   "AttitudeGroup": {
     "Compute": "AttitudeGroup"
   },
@@ -1154,7 +1155,7 @@
               ]
             },
             {
-              "$Comment": "--- Farm-Loop: identisch zu Template_Keyleth_Bud.json (siehe dort für die volle Herleitung) - die Workstation (WorkstationFuelTickSystem) schreibt Position+WorkType rollenabhängig (Farming: freie Feldsuche, Lumbering: feste Kantenpositionen) generisch nach BudComponent, dieser Sensor liest nur zurück. Seeks toward it every tick; FarmWorkAction's own canExecute re-checks interaction distance and the field radius, then branches on the assigned work type internally. ---",
+              "$Comment": "--- Lumbering-Loop: analog zum Farm-Loop in Template_Keyleth_Bud.json, aber ueber LumberingWorkAction statt FarmWorkAction - die Workstation (WorkstationFuelTickSystem) schreibt Position (Laufziel zur begehbaren Nachbarzelle) + WorkType generisch nach BudComponent, dieser (rollenunabhaengige) Sensor liest nur zurueck. Seeks toward it every tick; LumberingWorkAction's own canExecute re-checks interaction distance and the field radius (gegen den echten Wood_-Block, siehe BudComponent.pendingFellBlockPosition), dann fuehrt den Fell aus. ---",
               "Sensor": {
                 "Type": "And",
                 "Sensors": [
@@ -1176,7 +1177,7 @@
               "ActionsBlocking": true,
               "Actions": [
                 {
-                  "Type": "FarmWork"
+                  "Type": "LumberingWork"
                 }
               ]
             },

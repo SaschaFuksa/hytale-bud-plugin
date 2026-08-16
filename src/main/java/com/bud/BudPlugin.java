@@ -36,12 +36,13 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
+import com.bud.feature.work.BuilderWorkTargetSensor;
 import com.bud.feature.work.FarmingRecipeConfig;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationFilterSystem;
 import com.bud.feature.work.WorkstationFuelTickSystem;
 import com.bud.feature.work.farming.BuilderActionFarmWork;
-import com.bud.feature.work.farming.BuilderWorkTargetSensor;
+import com.bud.feature.work.lumbering.BuilderActionLumberingWork;
 import com.bud.feature.work.reaction.BuilderActionWorkTalk;
 import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -114,6 +115,7 @@ public class BudPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(new WorkstationFuelTickSystem());
 
         NPCPlugin.get().registerCoreComponentType("FarmWork", BuilderActionFarmWork::new);
+        NPCPlugin.get().registerCoreComponentType("LumberingWork", BuilderActionLumberingWork::new);
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
         NPCPlugin.get().registerCoreComponentType("WorkTalk", BuilderActionWorkTalk::new);
 

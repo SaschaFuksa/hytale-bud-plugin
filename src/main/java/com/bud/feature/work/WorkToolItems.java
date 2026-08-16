@@ -1,6 +1,6 @@
 package com.bud.feature.work;
 
-public final class FarmToolItems {
+public final class WorkToolItems {
 
     public static final String TILL_TOOL_ITEM = "Tool_Hoe_Crude";
 
@@ -14,7 +14,7 @@ public final class FarmToolItems {
 
     public static final String FELL_TOOL_ITEM = "Tool_Hatchet_Cobalt";
 
-    private FarmToolItems() {
+    private WorkToolItems() {
     }
 
 }

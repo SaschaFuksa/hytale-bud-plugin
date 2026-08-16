@@ -1,29 +1,23 @@
 package com.bud.feature.work.farming;
 
 import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
-import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
-import com.bud.feature.work.FarmToolItems;
+import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.FarmingRecipeConfig;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationSeedUtil;
-import com.bud.feature.work.WorkstationWoodUtil;
+import com.bud.feature.work.WorkToolItems;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
-import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
@@ -35,116 +29,70 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.HarvestingDrop
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
-import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.npc.asset.builder.BuilderSupport;
-import com.hypixel.hytale.server.npc.corecomponents.ActionBase;
-import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.hypixel.hytale.server.npc.role.Role;
-import com.hypixel.hytale.server.npc.sensorinfo.IPositionProvider;
-import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
-import com.hypixel.hytale.server.npc.util.InventoryHelper;
 
-public class FarmWorkAction extends ActionBase {
-
-    private static final double INTERACTION_RANGE = 1.75;
+public class FarmWorkAction extends AbstractWorkAction {
 
     private static final String WORK_ANIMATION = "Interact";
-
-    @Nonnull
-    private final Vector3d target = new Vector3d();
 
     public FarmWorkAction(@Nonnull BuilderActionFarmWork builder, @Nonnull BuilderSupport support) {
         super(builder);
     }
 
     @Override
-    public boolean canExecute(@Nonnull Ref<EntityStore> ref, @Nonnull Role role, @Nullable InfoProvider infoProvider,
-            double dt, @Nonnull Store<EntityStore> store) {
-        if (!super.canExecute(ref, role, infoProvider, dt, store) || infoProvider == null) {
-            return false;
+    protected void executeWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store, @Nonnull World world,
+            @Nonnull BudComponent bud, int x, int y, int z) {
+        switch (workType) {
+            case TILL -> executeTill(world, x, y, z);
+            case PLANT -> executePlant(world, bud, x, y, z);
+            case WATER -> executeWater(store, world, x, y, z);
+            case FERTILIZE -> executeFertilize(world, x, y, z);
+            case HARVEST -> executeHarvest(world, bud, x, y, z);
+            default -> throw new IllegalStateException("FarmWorkAction cannot handle work type " + workType);
         }
-        if (!infoProvider.hasPosition()) {
-            return false;
-        }
-        IPositionProvider positionProvider = infoProvider.getPositionProvider();
-        if (positionProvider == null || !positionProvider.providePosition(target)) {
-            return false;
-        }
-        return isWithinInteractionRange(ref, store) && isWithinFieldRadius(ref, store);
+    }
+
+    @Nonnull
+    @Override
+    protected String toolItemFor(@Nonnull WorkType workType) {
+        return switch (workType) {
+            case TILL -> WorkToolItems.TILL_TOOL_ITEM;
+            case WATER -> WorkToolItems.WATER_TOOL_ITEM;
+            case PLANT -> WorkToolItems.PLANT_TOOL_ITEM;
+            case FERTILIZE -> WorkToolItems.FERTILIZE_TOOL_ITEM;
+            case HARVEST -> WorkToolItems.HARVEST_TOOL_ITEM;
+            default -> throw new IllegalStateException("FarmWorkAction cannot handle work type " + workType);
+        };
     }
 
     @Override
-    public boolean execute(@Nonnull Ref<EntityStore> ref, @Nonnull Role role, @Nullable InfoProvider infoProvider,
-            double dt, @Nonnull Store<EntityStore> store) {
-        super.execute(ref, role, infoProvider, dt, store);
-        BudComponent bud = store.getComponent(ref, BudComponent.getComponentType());
-        if (bud == null) {
-            return true;
-        }
-        WorkType workType = bud.getWorkType();
-        if (workType == null) {
-            return true;
-        }
-        World world = store.getExternalData().getWorld();
-        int x = (int) Math.floor(target.x);
-        int y = (int) Math.floor(target.y);
-        int z = (int) Math.floor(target.z);
-
-        tryExecuteWork(workType, ref, store, world, bud, x, y, z);
-        tryEquipToolFor(ref, store, workType);
-        playWorkAnimation(ref, store);
-
-        bud.setWorkTarget(null);
-        bud.setPendingCropBlockType(null);
-        bud.setWorkCooldownSecondsRemaining(cooldownSecondsFor(workType));
-        return true;
-    }
-
-    private static void tryExecuteWork(@Nonnull WorkType workType, @Nonnull Ref<EntityStore> ref,
-            @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
-        try {
-            switch (workType) {
-                case TILL -> executeTill(world, x, y, z);
-                case PLANT -> executePlant(world, bud, x, y, z);
-                case WATER -> executeWater(store, world, x, y, z);
-                case FERTILIZE -> executeFertilize(world, x, y, z);
-                case HARVEST -> executeHarvest(world, bud, x, y, z);
-                case FELL -> executeFell(ref, store, world, x, y, z);
-            }
-        } catch (RuntimeException e) {
-            LoggerUtil.getLogger().severe(() -> "[BUD] Failed to execute " + workType
-                    + " work action - skipping this attempt (NPC tick would otherwise crash): " + e);
-        }
-    }
-
-    private static void tryEquipToolFor(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
-            @Nonnull WorkType workType) {
-        try {
-            equipToolFor(ref, store, workType);
-        } catch (RuntimeException e) {
-            LoggerUtil.getLogger().warning(() -> "[BUD] Failed to equip tool for " + workType
-                    + " - work already happened, continuing without visual tool change: " + e);
-        }
-    }
-
-    private static void equipToolFor(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
-            @Nonnull WorkType workType) {
-        String toolItemId = switch (workType) {
-            case TILL -> FarmToolItems.TILL_TOOL_ITEM;
-            case WATER -> FarmToolItems.WATER_TOOL_ITEM;
-            case PLANT -> FarmToolItems.PLANT_TOOL_ITEM;
-            case FERTILIZE -> FarmToolItems.FERTILIZE_TOOL_ITEM;
-            case HARVEST -> FarmToolItems.HARVEST_TOOL_ITEM;
-            case FELL -> FarmToolItems.FELL_TOOL_ITEM;
+    protected float cooldownSecondsFor(@Nonnull WorkType workType) {
+        WorkConfig config = WorkConfig.getInstance();
+        return switch (workType) {
+            case TILL -> config.getTillIntervalSeconds();
+            case PLANT -> config.getPlantIntervalSeconds();
+            case WATER -> config.getWaterIntervalSeconds();
+            case FERTILIZE -> config.getFertilizeIntervalSeconds();
+            case HARVEST -> config.getHarvestIntervalSeconds();
+            default -> throw new IllegalStateException("FarmWorkAction cannot handle work type " + workType);
         };
-        InventoryHelper.useItem(ref, toolItemId, (byte) -1, store);
+    }
+
+    @Nonnull
+    @Override
+    protected String animationNameFor(@Nonnull WorkType workType) {
+        return WORK_ANIMATION;
+    }
+
+    @Override
+    protected void clearPendingWorkData(@Nonnull BudComponent bud) {
+        bud.setPendingCropBlockType(null);
     }
 
     private static void executeTill(@Nonnull World world, int x, int y, int z) {
@@ -245,52 +193,6 @@ public class FarmWorkAction extends ActionBase {
         world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
     }
 
-    private static final int[][] FELL_NEIGHBOR_OFFSETS = {
-            { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 }
-    };
-
-    private static final int MAX_FELL_BLOCKS_PER_ACTION = 256;
-
-    private static void executeFell(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
-            @Nonnull World world, int x, int y, int z) {
-        Vector3i base = new Vector3i(x, y + 1, z);
-        if (!WorkstationWoodUtil.isWoodBlock(world.getBlockType(base.x, base.y, base.z))) {
-            return;
-        }
-        Store<ChunkStore> chunkAccessor = world.getChunkStore().getStore();
-        Deque<Vector3i> queue = new ArrayDeque<>();
-        Set<Vector3i> visited = new HashSet<>();
-        queue.add(base);
-        visited.add(base);
-        int brokenCount = 0;
-        while (!queue.isEmpty() && brokenCount < MAX_FELL_BLOCKS_PER_ACTION) {
-            Vector3i current = queue.poll();
-            if (!WorkstationWoodUtil.isWoodBlock(world.getBlockType(current.x, current.y, current.z))) {
-                continue;
-            }
-            breakWoodBlock(ref, store, world, chunkAccessor, current);
-            brokenCount++;
-            for (int[] offset : FELL_NEIGHBOR_OFFSETS) {
-                Vector3i neighbor = new Vector3i(current.x + offset[0], current.y + offset[1], current.z + offset[2]);
-                if (visited.add(neighbor)
-                        && WorkstationWoodUtil.isWoodBlock(world.getBlockType(neighbor.x, neighbor.y, neighbor.z))) {
-                    queue.add(neighbor);
-                }
-            }
-        }
-    }
-
-    private static void breakWoodBlock(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> entityAccessor,
-            @Nonnull World world, @Nonnull Store<ChunkStore> chunkAccessor, @Nonnull Vector3i position) {
-        Ref<ChunkStore> chunkRef = world.getChunkStore()
-                .getChunkReference(ChunkUtil.indexChunkFromBlock(position.x, position.z));
-        if (chunkRef == null || !chunkRef.isValid()) {
-            return;
-        }
-        ItemStack tool = new ItemStack(FarmToolItems.FELL_TOOL_ITEM, 1);
-        BlockHarvestUtils.performBlockBreak(ref, tool, position, chunkRef, entityAccessor, chunkAccessor);
-    }
-
     private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
             @Nonnull java.util.function.Consumer<TilledSoilBlock> mutator) {
         WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
@@ -327,64 +229,11 @@ public class FarmWorkAction extends ActionBase {
         }
     }
 
-    private static float cooldownSecondsFor(@Nonnull WorkType workType) {
-        WorkConfig config = WorkConfig.getInstance();
-        return switch (workType) {
-            case TILL -> config.getTillIntervalSeconds();
-            case PLANT -> config.getPlantIntervalSeconds();
-            case WATER -> config.getWaterIntervalSeconds();
-            case FERTILIZE -> config.getFertilizeIntervalSeconds();
-            case HARVEST -> config.getHarvestIntervalSeconds();
-            case FELL -> config.getFellIntervalSeconds();
-        };
-    }
-
-    private static void playWorkAnimation(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        ComponentType<EntityStore, NPCEntity> npcType = NPCEntity.getComponentType();
-        if (npcType == null) {
-            return;
-        }
-        NPCEntity npc = store.getComponent(ref, npcType);
-        if (npc == null) {
-            return;
-        }
-        npc.playAnimation(ref, AnimationSlot.Status, WORK_ANIMATION, store);
-    }
-
     private static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {
         BlockType above = world.getBlockType(x, y + 1, z);
         if (above != null && above != BlockType.EMPTY) {
             world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
         }
-    }
-
-    private boolean isWithinInteractionRange(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        ComponentType<EntityStore, TransformComponent> transformType = TransformComponent.getComponentType();
-        if (transformType == null) {
-            return false;
-        }
-        TransformComponent transform = store.getComponent(ref, transformType);
-        if (transform == null) {
-            return false;
-        }
-        return transform.getPosition().distanceSquared(target) <= INTERACTION_RANGE * INTERACTION_RANGE;
-    }
-
-    private boolean isWithinFieldRadius(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        BudComponent bud = store.getComponent(ref, BudComponent.getComponentType());
-        if (bud == null) {
-            return false;
-        }
-        Vector3d anchor = bud.getWorkstationAnchor();
-        if (anchor == null) {
-            return false;
-        }
-        double dx = anchor.x - target.x;
-        double dz = anchor.z - target.z;
-        double horizontalDistanceSquared = dx * dx + dz * dz;
-        double radius = WorkConfig.getInstance().getFieldRadius();
-        double height = Math.abs(anchor.y - target.y);
-        return horizontalDistanceSquared <= radius * radius && height <= WorkConfig.getInstance().getFieldMaxHeight();
     }
 
 }

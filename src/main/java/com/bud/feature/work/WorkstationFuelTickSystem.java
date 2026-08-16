@@ -2,7 +2,10 @@ package com.bud.feature.work;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -219,11 +222,16 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 workstation.setTargetElapsedSeconds(elapsed);
                 return;
             }
-            workstation.addRecentlyFailedTarget(new Vector3i((int) Math.floor(currentTarget.x),
-                    (int) Math.floor(currentTarget.y), (int) Math.floor(currentTarget.z)));
+            Vector3i pendingFellBlockPosition = boundBud.getPendingFellBlockPosition();
+            Vector3i failedPosition = boundBud.getWorkType() == WorkType.FELL && pendingFellBlockPosition != null
+                    ? pendingFellBlockPosition
+                    : new Vector3i((int) Math.floor(currentTarget.x), (int) Math.floor(currentTarget.y),
+                            (int) Math.floor(currentTarget.z));
+            workstation.addRecentlyFailedTarget(failedPosition);
             boundBud.setWorkTarget(null);
             boundBud.setWorkType(null);
             boundBud.setPendingCropBlockType(null);
+            boundBud.setPendingFellBlockPosition(null);
         }
 
         float cooldown = boundBud.getWorkCooldownSecondsRemaining();
@@ -258,6 +266,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         boundBud.setWorkTarget(assignment.target());
         boundBud.setWorkType(assignment.workType());
         boundBud.setPendingCropBlockType(assignment.cropBlockType());
+        boundBud.setPendingFellBlockPosition(assignment.workType() == WorkType.FELL ? assignment.position() : null);
         workstation.setTargetElapsedSeconds(0f);
     }
 
@@ -275,97 +284,176 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 : serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
                         WorkConfig.getInstance().getFieldMaxHeight());
 
+        boolean isLumbering = workstation.getWorkRole() == WorkRole.LUMBERING;
         Instant now = currentGameTime(world);
 
+        // Farming candidates (TILL/PLANT/WATER/FERTILIZE/HARVEST) only ever apply to non-LUMBERING workstations -
+        // skip the scan entirely for LUMBERING rather than relying solely on the winner-selection gate below, since
+        // e.g. a tillable tile happening to sit on a tree-edge position must never become a TILL assignment there.
         Vector3i tillWinner = null;
-        for (Vector3i position : positions) {
-            if (position != null && !workstation.isRecentlyFailedTarget(position) && isTillCandidate(world, position)) {
-                tillWinner = position;
-                break;
-            }
-        }
-
-        ItemStack seedStack = processingBenchBlock.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
-        String cropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
+        String cropBlockType = null;
         Vector3i plantWinner = null;
-        if (cropBlockType != null) {
+        Vector3i waterNewWinner = null;
+        Vector3i fertilizeWinner = null;
+        Vector3i harvestWinner = null;
+        Vector3i waterRefreshWinner = null;
+        if (!isLumbering) {
             for (Vector3i position : positions) {
                 if (position != null && !workstation.isRecentlyFailedTarget(position)
-                        && isPlantCandidate(world, position)
-                        && !isTooCloseToExistingTree(world, workstation.getWorkRole(), position)) {
-                    plantWinner = position;
+                        && isTillCandidate(world, position)) {
+                    tillWinner = position;
                     break;
                 }
             }
-        }
 
-        // bonus matters.
-        Vector3i waterNewWinner = null;
-        for (Vector3i position : positions) {
-            if (position != null && !workstation.isRecentlyFailedTarget(position)
-                    && isNeverWateredCandidate(world, position)) {
-                waterNewWinner = position;
-                break;
-            }
-        }
-
-        Vector3i fertilizeWinner = null;
-        for (Vector3i position : positions) {
-            if (position != null && !workstation.isRecentlyFailedTarget(position)
-                    && isFertilizeCandidate(world, position)) {
-                fertilizeWinner = position;
-                break;
-            }
-        }
-
-        Vector3i harvestWinner = null;
-        for (Vector3i position : positions) {
-            if (position == null) {
-                continue;
-            }
-            if (workstation.isRecentlyFailedTarget(position) || workstation.isHarvestOutputLocked(position)) {
-                continue;
-            }
-            if (!isHarvestCandidate(world, position)) {
-                continue;
-            }
-            if (!hasHarvestOutputRoom(world, position, processingBenchBlock)) {
-                workstation.lockHarvestOutputTarget(position);
-                LoggerUtil.getLogger().warning(() -> "[BUD] Workstation output has no room for the ripe tile at "
-                        + position + " - HARVEST paused there until a slot is freed.");
-                if (!workstation.isOutputFullReactionSent() && ReactionConfig.getInstance().isEnableWorkReactions()) {
-                    workstation.setOutputFullReactionSent(true);
-                    fireOutputFullReaction(workstation, resolveHarvestItemId(world, position));
+            ItemStack seedStack = processingBenchBlock.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
+            cropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
+            if (cropBlockType != null) {
+                for (Vector3i position : positions) {
+                    if (position != null && !workstation.isRecentlyFailedTarget(position)
+                            && isPlantCandidate(world, position)
+                            && !isTooCloseToExistingTree(world, workstation.getWorkRole(), position)) {
+                        plantWinner = position;
+                        break;
+                    }
                 }
-                continue;
             }
-            harvestWinner = position;
-            break;
-        }
 
-        Vector3i fellWinner = null;
-        for (Vector3i position : positions) {
-            if (position != null && !workstation.isRecentlyFailedTarget(position) && isFellCandidate(world, position)) {
-                fellWinner = position;
-                break;
+            // bonus matters.
+            for (Vector3i position : positions) {
+                if (position != null && !workstation.isRecentlyFailedTarget(position)
+                        && isNeverWateredCandidate(world, position)) {
+                    waterNewWinner = position;
+                    break;
+                }
             }
-        }
 
-        Vector3i waterRefreshWinner = null;
-        if (now != null) {
+            for (Vector3i position : positions) {
+                if (position != null && !workstation.isRecentlyFailedTarget(position)
+                        && isFertilizeCandidate(world, position)) {
+                    fertilizeWinner = position;
+                    break;
+                }
+            }
+
             for (Vector3i position : positions) {
                 if (position == null) {
                     continue;
                 }
-                if (!workstation.isRecentlyFailedTarget(position) && isWaterRefreshCandidate(world, position, now)) {
-                    waterRefreshWinner = position;
-                    break;
+                if (workstation.isRecentlyFailedTarget(position) || workstation.isHarvestOutputLocked(position)) {
+                    continue;
+                }
+                if (!isHarvestCandidate(world, position)) {
+                    continue;
+                }
+                if (!hasHarvestOutputRoom(world, position, processingBenchBlock)) {
+                    workstation.lockHarvestOutputTarget(position);
+                    LoggerUtil.getLogger().warning(() -> "[BUD] Workstation output has no room for the ripe tile at "
+                            + position + " - HARVEST paused there until a slot is freed.");
+                    if (!workstation.isOutputFullReactionSent() && ReactionConfig.getInstance().isEnableWorkReactions()) {
+                        workstation.setOutputFullReactionSent(true);
+                        fireOutputFullReaction(workstation, resolveHarvestItemId(world, position));
+                    }
+                    continue;
+                }
+                harvestWinner = position;
+                break;
+            }
+
+            if (now != null) {
+                for (Vector3i position : positions) {
+                    if (position == null) {
+                        continue;
+                    }
+                    if (!workstation.isRecentlyFailedTarget(position) && isWaterRefreshCandidate(world, position, now)) {
+                        waterRefreshWinner = position;
+                        break;
+                    }
                 }
             }
         }
 
+        // FELL only ever applies to LUMBERING workstations - see comment above for why this is skipped, not just
+        // ignored, for every other role.
+        Vector3i fellWinner = null;
+        Vector3i fellWinnerWalkTarget = null;
+        if (isLumbering) {
+            List<Vector3i> fellPositions = serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
+                    WorkConfig.getInstance().getFieldMaxHeight());
+            List<Vector3i> rawFellCandidates = new ArrayList<>();
+            for (Vector3i position : fellPositions) {
+                if (position == null) {
+                    continue;
+                }
+                if (workstation.isRecentlyFailedTarget(position) || workstation.isHarvestOutputLocked(position)) {
+                    continue;
+                }
+                if (!isFellCandidate(world, position)) {
+                    LoggerUtil.getLogger().fine(
+                            () -> "[BUD] FELL candidate check at " + position + " - rejected: not a Wood_ block.");
+                    continue;
+                }
+                LoggerUtil.getLogger()
+                        .fine(() -> "[BUD] FELL candidate check at " + position + " - accepted (Wood_ block found).");
+                rawFellCandidates.add(position);
+            }
+
+            Map<Vector3i, Vector3i> visibleFellCandidateWalkTargets = new LinkedHashMap<>();
+            for (Vector3i position : rawFellCandidates) {
+                @Nullable
+                Vector3i walkableNeighbor = findWalkableFellNeighbor(world, position);
+                if (walkableNeighbor != null) {
+                    visibleFellCandidateWalkTargets.put(position, Objects.requireNonNull(walkableNeighbor));
+                }
+            }
+            Vector3i fellTarget = null;
+            for (Vector3i position : visibleFellCandidateWalkTargets.keySet()) {
+                if (fellTarget == null || position.y < fellTarget.y) {
+                    fellTarget = position;
+                }
+            }
+            Vector3i fellTargetWalkTarget = fellTarget != null ? visibleFellCandidateWalkTargets.get(fellTarget) : null;
+
+            int rawFellCandidateCount = rawFellCandidates.size();
+            int visibleFellCandidateCount = visibleFellCandidateWalkTargets.size();
+            Vector3i loggedFellTarget = fellTarget;
+            Vector3i loggedFellTargetWalkTarget = fellTargetWalkTarget;
+            LoggerUtil.getLogger().info(() -> "[BUD] FELL scan - raw Wood_ candidates: " + rawFellCandidateCount
+                    + ", visible candidates: " + visibleFellCandidateCount + ", chosen: "
+                    + (loggedFellTarget != null ? loggedFellTarget.toString() : "none") + ", walk target: "
+                    + (loggedFellTargetWalkTarget != null ? loggedFellTargetWalkTarget.toString() : "none"));
+
+            if (fellTarget != null) {
+                List<Vector3i> connectedWoodBlocks = WorkstationWoodUtil.connectedWoodBlocks(world, fellTarget,
+                        WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
+                if (!connectedWoodBlocks.isEmpty()) {
+                    List<ItemStack> drops = WorkstationWoodUtil.collectFellingDrops(world, connectedWoodBlocks);
+                    ItemContainer output = processingBenchBlock.getOutputContainer();
+                    Vector3i lockedFellTarget = fellTarget;
+                    if (output == null || !output.canAddItemStacks(drops, false, false)) {
+                        workstation.lockHarvestOutputTarget(fellTarget);
+                        LoggerUtil.getLogger()
+                                .warning(() -> "[BUD] Workstation output has no room for the felled tree at "
+                                        + lockedFellTarget + " - FELL paused there until a slot is freed.");
+                        if (!workstation.isOutputFullReactionSent()
+                                && ReactionConfig.getInstance().isEnableWorkReactions()) {
+                            workstation.setOutputFullReactionSent(true);
+                            fireOutputFullReaction(workstation, null);
+                        }
+                    } else {
+                        fellWinner = fellTarget;
+                        fellWinnerWalkTarget = fellTargetWalkTarget;
+                    }
+                }
+            }
+        }
+
+        // LUMBERING workstations only ever produce FELL assignments and vice versa - a workstation must never
+        // assign a WorkType its role's action can't handle (each *WorkAction now rejects foreign WorkTypes).
         WorkAssignment winner;
-        if (tillWinner != null) {
+        if (workstation.getWorkRole() == WorkRole.LUMBERING) {
+            winner = fellWinner != null ? toFellAssignment(fellWinner, fellWinnerWalkTarget) : null;
+        } else if (tillWinner != null) {
             winner = toAssignment(tillWinner, WorkType.TILL, null);
         } else if (plantWinner != null) {
             winner = toAssignment(plantWinner, WorkType.PLANT, cropBlockType);
@@ -375,12 +463,25 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = toAssignment(fertilizeWinner, WorkType.FERTILIZE, null);
         } else if (harvestWinner != null) {
             winner = toAssignment(harvestWinner, WorkType.HARVEST, null);
-        } else if (fellWinner != null) {
-            winner = toAssignment(fellWinner, WorkType.FELL, null);
         } else if (waterRefreshWinner != null) {
             winner = toAssignment(waterRefreshWinner, WorkType.WATER, null);
         } else {
             winner = null;
+        }
+
+        if (workstation.getWorkRole() == WorkRole.LUMBERING) {
+            WorkAssignment loggedWinner = winner;
+            Vector3i loggedTillWinner = tillWinner;
+            Vector3i loggedPlantWinner = plantWinner;
+            Vector3i loggedWaterNewWinner = waterNewWinner;
+            Vector3i loggedFertilizeWinner = fertilizeWinner;
+            Vector3i loggedFellWinner = fellWinner;
+            Vector3i loggedWaterRefreshWinner = waterRefreshWinner;
+            LoggerUtil.getLogger().info(() -> "[BUD] Lumbering winner selection - till=" + loggedTillWinner
+                    + ", plant=" + loggedPlantWinner + ", waterNew=" + loggedWaterNewWinner
+                    + ", fertilize=" + loggedFertilizeWinner + ", fell=" + loggedFellWinner
+                    + ", waterRefresh=" + loggedWaterRefreshWinner + " -> chosen: "
+                    + (loggedWinner != null ? loggedWinner.workType() + "@" + loggedWinner.position() : "none"));
         }
 
         return winner;
@@ -391,6 +492,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             @Nullable String cropBlockType) {
         return new WorkAssignment(new Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5), position,
                 workType, cropBlockType);
+    }
+
+    @Nonnull
+    private static WorkAssignment toFellAssignment(@Nonnull Vector3i blockPosition, @Nullable Vector3i walkTarget) {
+        Vector3i movementPosition = walkTarget != null ? walkTarget : blockPosition;
+        return new WorkAssignment(
+                new Vector3d(movementPosition.x + 0.5, movementPosition.y + 0.5, movementPosition.z + 0.5),
+                blockPosition, WorkType.FELL, null);
     }
 
     @Nullable
@@ -542,7 +651,33 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     }
 
     private static boolean isFellCandidate(@Nonnull World world, @Nonnull Vector3i position) {
-        return WorkstationWoodUtil.isWoodBlock(getBlockType(world, position.x, position.y + 1, position.z));
+        return WorkstationWoodUtil.isWoodBlock(getBlockType(world, position.x, position.y, position.z));
+    }
+
+    @Nullable
+    private static Vector3i findWalkableFellNeighbor(@Nonnull World world, @Nonnull Vector3i position) {
+        Vector3i east = new Vector3i(position.x + 1, position.y, position.z);
+        if (isAirBlock(world, east.x, east.y, east.z)) {
+            return east;
+        }
+        Vector3i west = new Vector3i(position.x - 1, position.y, position.z);
+        if (isAirBlock(world, west.x, west.y, west.z)) {
+            return west;
+        }
+        Vector3i south = new Vector3i(position.x, position.y, position.z + 1);
+        if (isAirBlock(world, south.x, south.y, south.z)) {
+            return south;
+        }
+        Vector3i north = new Vector3i(position.x, position.y, position.z - 1);
+        if (isAirBlock(world, north.x, north.y, north.z)) {
+            return north;
+        }
+        return null;
+    }
+
+    private static boolean isAirBlock(@Nonnull World world, int x, int y, int z) {
+        BlockType blockType = getBlockType(world, x, y, z);
+        return blockType != null && blockType == BlockType.EMPTY;
     }
 
     private static boolean hasHarvestOutputRoom(@Nonnull World world, @Nonnull Vector3i position,

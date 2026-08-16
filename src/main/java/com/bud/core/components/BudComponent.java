@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
+import org.joml.Vector3i;
 
 import com.bud.core.types.BudState;
 import com.bud.core.types.Mood;
@@ -43,6 +44,9 @@ public class BudComponent implements Component<EntityStore> {
 
     @Nullable
     private String pendingCropBlockType;
+
+    @Nullable
+    private Vector3i pendingFellBlockPosition;
 
     private float workCooldownSecondsRemaining;
 
@@ -154,6 +158,15 @@ public class BudComponent implements Component<EntityStore> {
 
     public void setPendingCropBlockType(@Nullable String pendingCropBlockType) {
         this.pendingCropBlockType = pendingCropBlockType;
+    }
+
+    @Nullable
+    public Vector3i getPendingFellBlockPosition() {
+        return pendingFellBlockPosition;
+    }
+
+    public void setPendingFellBlockPosition(@Nullable Vector3i pendingFellBlockPosition) {
+        this.pendingFellBlockPosition = pendingFellBlockPosition;
     }
 
     public float getWorkCooldownSecondsRemaining() {
