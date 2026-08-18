@@ -34,7 +34,7 @@ public final class WorkstationSeedUtil {
             return null;
         }
         String seedItemId = Objects.requireNonNull(seedStack.getItem().getId());
-        if (!FarmingRecipeConfig.getInstance().isSeedAllowed(workRole, seedItemId)) {
+        if (!WorkRecipeConfig.getInstance().isSeedAllowed(workRole, seedItemId)) {
             return null;
         }
         String cropBlockType = deriveCropBlockType(seedItemId, workRole);
@@ -51,7 +51,7 @@ public final class WorkstationSeedUtil {
             return true;
         }
         String itemId = Objects.requireNonNull(itemStack.getItem().getId());
-        return FarmingRecipeConfig.getInstance().isSeedAllowed(workRole, itemId);
+        return WorkRecipeConfig.getInstance().isSeedAllowed(workRole, itemId);
     }
 
     @Nullable
@@ -59,11 +59,11 @@ public final class WorkstationSeedUtil {
         if (!seedItemId.startsWith(SEED_PREFIX)) {
             return null;
         }
-        String override = FarmingRecipeConfig.getInstance().getSeedTargetOverride(seedItemId);
+        String override = WorkRecipeConfig.getInstance().getSeedTargetOverride(seedItemId);
         if (override != null) {
             return BlockType.fromString(override) != null ? override : null;
         }
-        FarmingRecipeConfig.SeedTargetPattern pattern = FarmingRecipeConfig.getInstance()
+        WorkRecipeConfig.SeedTargetPattern pattern = WorkRecipeConfig.getInstance()
                 .getSeedTargetPattern(workRole);
         if (pattern == null) {
             if (LOGGED_UNRESOLVED_SEEDS.add(seedItemId)) {

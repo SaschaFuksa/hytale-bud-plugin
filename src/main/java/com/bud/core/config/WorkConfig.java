@@ -24,6 +24,10 @@ public class WorkConfig {
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
+    private int miningGrowthGameSecondsMin = 28800;
+    private int miningGrowthGameSecondsMax = 30600;
+    private int digIntervalSeconds = 1;
+    private int mineIntervalSeconds = 1;
 
     private static volatile WorkConfig instance;
 
@@ -103,6 +107,22 @@ public class WorkConfig {
         return this.rebindRetrySeconds;
     }
 
+    public int getMiningGrowthGameSecondsMin() {
+        return this.miningGrowthGameSecondsMin;
+    }
+
+    public int getMiningGrowthGameSecondsMax() {
+        return this.miningGrowthGameSecondsMax;
+    }
+
+    public int getDigIntervalSeconds() {
+        return this.digIntervalSeconds;
+    }
+
+    public int getMineIntervalSeconds() {
+        return this.mineIntervalSeconds;
+    }
+
     static {
         CODEC = BuilderCodec.builder(WorkConfig.class, WorkConfig::new)
                 .append(new KeyedCodec<>("FieldRadius", Codec.INTEGER),
@@ -168,6 +188,22 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("RebindRetrySeconds", Codec.INTEGER),
                         (config, value) -> config.rebindRetrySeconds = value,
                         config -> config.rebindRetrySeconds)
+                .add()
+                .append(new KeyedCodec<>("MiningGrowthGameSecondsMin", Codec.INTEGER),
+                        (config, value) -> config.miningGrowthGameSecondsMin = value,
+                        config -> config.miningGrowthGameSecondsMin)
+                .add()
+                .append(new KeyedCodec<>("MiningGrowthGameSecondsMax", Codec.INTEGER),
+                        (config, value) -> config.miningGrowthGameSecondsMax = value,
+                        config -> config.miningGrowthGameSecondsMax)
+                .add()
+                .append(new KeyedCodec<>("DigIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.digIntervalSeconds = value,
+                        config -> config.digIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("MineIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.mineIntervalSeconds = value,
+                        config -> config.mineIntervalSeconds)
                 .add()
                 .build();
     }

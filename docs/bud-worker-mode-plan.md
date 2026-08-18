@@ -1369,3 +1369,308 @@ Recherche in `reference/assets`/`reference/server` (keine Code-Änderung): Bench
 **Unverifiziert:** ob `setTicking` tatsächlich der von `BlockPhysicsSystems$Ticking` konsumierte Trigger ist, konnte nur aus Bytecode-Analyse (`javap`, kein Sourcecode verfügbar) plausibilisiert werden, nicht zweifelsfrei bestätigt - bitte ingame testen.
 
 `.\gradlew build` zweimal grün.
+
+## Lumbering Slice C, Dirt-Fix füllte Löcher nur an einer einzelnen Y-Stufe (Sascha, 2026-08-16)
+
+Der vorige Ground-Contact-Fix setzte pro Spalte nur genau einen `Soil_Dirt`-Block an der tiefsten entfernten Position dieser Spalte. Das reicht nicht, wenn diese tiefste Position deutlich unter dem eigentlichen Bodenniveau liegt (z.B. eine Wurzel, die unterirdisch weiterlief, wodurch nach dem Entfernen ein Schacht bis zur Oberfläche offen blieb) oder wenn der Baum auf einer gegenüber der Workstation erhöhten Stelle stand (Rest-Hügel bliebe stehen). Fix: für jede Ground-Contact-Spalte wird jetzt von der gefällten Position bis zum Y-Level der Workstation (`anchorY`, dieselbe Referenzhöhe, die `executeFell` ohnehin schon für die Bench-Block-Suche nutzt) durchgängig mit Dirt aufgefüllt - Richtung ergibt sich automatisch aus `Math.min`/`Math.max`, funktioniert also unabhängig davon, ob die Spalte vorher höher oder tiefer als die Workstation lag.
+
+`.\gradlew build` zweimal grün.
+
+## Lumbering Slice C, Dirt-Fix füllte über Stationshöhe hinaus auf (Sascha, 2026-08-16)
+
+Der vorige Fix füllte mit `Math.max(position.y, anchorY)` als oberer Grenze - für eine Ground-Contact-Position **über** `anchorY` (Baum auf gegenüber der Station erhöhtem Gelände) füllte das durchgängig bis zur (höheren) Baumposition, nicht bis zur Station. Ergebnis laut Sascha: zu hoch aufgefüllt. Fix: obere Grenze ist jetzt fest `anchorY` (nicht mehr `Math.max(...)`) - `anchorY` ist eine harte Obergrenze, kein Ziel, das von oben erreicht werden soll. Für Ground-Contact-Positionen unterhalb der Station wird weiterhin von dort nach oben bis `anchorY` aufgefüllt (unverändert); für Positionen oberhalb wird nichts mehr über Stationshöhe hinaus gebaut.
+
+`.\gradlew build` zweimal grün.
+
+## Lumbering Slice C, Gronkh fällte auch zu junge Bäume (Sascha, 2026-08-16)
+
+**Untersuchung (Prefab-Daten, kein Bytecode nötig):** `Plant_Sapling_Oak.json`s Wachstumsstufen-Prefabs direkt gegriffen (`Trees/<Art>/Stage_00`...`Stage_3`), für Oak/Birch/Beech/Aspen/Willow verglichen. Bestätigt: `Stage_00`/`Stage_0` (die beiden jüngsten Zwischenstufen) bestehen ausschließlich aus `Wood_<Art>_Branch_Long`-Blöcken, **keinem einzigen Trunk-Block** - `isFellCandidate`s reiner `Wood_`-Präfix-Check (aus dem vorigen Fix-Paket) griff auch hier, obwohl das laut Phase-0-Doku eigentlich reine, nicht fällbare Zwischenstufen-Prefabs sein sollten. Root Cause: die Phase-0-Annahme "Stage_00-2 haben keine Wood_-Blöcke" war falsch.
+
+**Wichtige Einschränkung, ehrlich gemeldet statt zu raten:** `Stage_2` und `Stage_3` (voll ausgewachsen) nutzen exakt dieselben fünf Blocktyp-Namen (`Trunk`/`Trunk_Full`/`Branch_Corner`/`Branch_Long`/`Branch_Short`) und überlappende Blockanzahlen (Stage_2: 28-40, Stage_3: 31-57 Blöcke, je nach Variante) - über reine BlockType-Erkennung sind Stage_2 und Stage_3 **nicht** unterscheidbar. Eine "nur voll ausgewachsen"-Garantie bräuchte den `FarmingBlock`-Komponentenzustand (`currentStageSet`/`growthProgress`, per `javap` bestätigt vorhanden) gegen die Stage-Liste der BlockType-Config abgeglichen - das ist in Phase 0 als "folgt bei Implementierung" vertagt worden und noch nicht verifiziert.
+
+**Umgesetzter Fix (verifiziert, deckt die zwei jüngsten Stufen ab):** neue `WorkstationWoodUtil.hasTrunkBlock(world, connectedWoodBlocks)` (generischer `"_Trunk"`-Substring-Check, kein Art-Sonderfall). `WorkstationFuelTickSystem`s Fell-Winner-Auswahl verlangt jetzt zusätzlich zur bestehenden Kapazitätsprüfung, dass die BFS-Struktur mindestens einen Trunk-Block enthält - fehlt der, wird die Position wie eine sonstige gescheiterte Zuweisung behandelt (`addRecentlyFailedTarget`), kein neuer State. Verhindert das Fällen der beiden jüngsten (reinen Zweig-)Stufen zuverlässig; Stage_1/2 (haben bereits einen Trunk, sind aber noch nicht fertig gewachsen) bleiben mit diesem Fix weiterhin fällbar - dafür wäre der `FarmingBlock`-Ansatz nötig, noch nicht umgesetzt.
+
+`.\gradlew build` zweimal grün.
+
+## Lumbering Slice C, Dirt-Fix füllte immer noch zu hoch - eine Y-Stufe zu viel (Sascha, 2026-08-16)
+
+`anchorY` (= `floor(anchor.y) - 1`) ist die Y-Position des Workstation-Blocks selbst, nicht die des Bodens direkt davor - der Bench-Block sitzt eine Stufe über dem natürlichen Bodenniveau (jeder platzierte Block wird auf bestehenden Boden draufgesetzt, nicht in ihn hinein). Die Fülldecke muss deshalb `anchorY - 1` sein, nicht `anchorY`. Fix in `LumberingWorkAction.executeFell`: neue lokale `groundLevelY = anchorY - 1`, als Obergrenze der Auffüllschleife verwendet statt `anchorY` direkt.
+
+## Lumbering Slice C, Rollentrennung hatte Tilen/Pflanzen/Gießen/Düngen für Lumbering komplett abgeklemmt (Sascha, 2026-08-16)
+
+**Root Cause:** Der Scheduler-Fix von zuvor ("LUMBERING workstations only ever produce FELL") war zu weitgehend - laut TODO/Kern-Loop soll Gronkh **auch** Tilen/Pflanzen/Gießen/Düngen können (Setzlinge pflegen, damit neue Bäume nachwachsen), Fällen kommt mit Priorität obendrauf, ersetzt die anderen vier Schritte aber nicht. Nachdem alle sichtbaren Bäume gefällt waren, hatte Gronkh dadurch buchstäblich keine Arbeit mehr übrig - kein Softlock im technischen Sinne (der Scheduler lief weiter, `IdleRetrySeconds` griff), aber funktional nichts zu tun.
+
+**Fix (zugleich die in diesem Zug angefragte Struktur-Aufräumung):**
+- `AbstractWorkAction` besitzt jetzt Tilen/Pflanzen/Gießen/Düngen (Ausführung, Werkzeug, Cooldown, Animation) als echte gemeinsame Implementierung (vorher lag das nur in `FarmWorkAction`, für Lumbering unerreichbar). Je ein `extra*`-Hook (`executeExtraWork`/`extraToolItemFor`/`extraCooldownSecondsFor`/`extraAnimationNameFor`) bleibt abstrakt für den einen rollenexklusiven fünften WorkType - `FarmWorkAction` implementiert ihn für HARVEST, `LumberingWorkAction` für FELL.
+- `LumberingWorkAction.resolveWorkBlockPosition` war der eigentliche zweite Bug-Baustein: das überschrieb IMMER mit `pendingFellBlockPosition`, auch für TILL/PLANT/WATER/FERTILIZE (wo das Feld `null` ist) - dadurch wäre `execute()` für diese vier Typen still verpufft, selbst mit korrekt zugewiesenem Fell-Ausschluss. Jetzt: nur überschreiben, wenn `pendingFellBlockPosition` tatsächlich gesetzt ist, sonst `super`-Verhalten (Zielposition).
+- `WorkstationFuelTickSystem.findNextWorkAssignment`: Till/Plant/WaterNew/Fertilize/WaterRefresh-Kandidatensuche läuft jetzt wieder für **beide** Rollen (nicht mehr `!isLumbering`-gated); nur die Harvest-Suche bleibt Farming-exklusiv (`!isLumbering`), nur die Fell-Suche bleibt Lumbering-exklusiv (`isLumbering`, unverändert). Winner-Auswahl: Fell gewinnt für Lumbering weiterhin zuerst, fällt sonst in dieselbe gemeinsame Kaskade wie Farming (Harvest bleibt für Lumbering immer `null`, Fell für Farming immer `null` - kein rollenspezifischer Sonderfall in der Auswahl nötig).
+- **Paket-Aufräumung:** `WorkstationWoodUtil` nach `com.bud.feature.work.lumbering` verschoben. Neue `com.bud.feature.work.lumbering.LumberingFieldScan` (Fell-Kandidatenscan: `isFellCandidate`, `findWalkableFellNeighbor`, `treeEdgePositions`) und `com.bud.feature.work.farming.FarmingFieldScan` (Harvest-Kandidatenscan: `isHarvestCandidate`, `hasHarvestOutputRoom`, `resolveHarvestItemId`) aus `WorkstationFuelTickSystem` herausgezogen - das war vorher ein einziger God-Method-Block mit beiden Rollen vermischt. Die tatsächlich geteilte Kandidatenlogik (Till/Plant/Water/Fertilize/WaterRefresh-Checks, `serpentinePositions`) liegt jetzt in neuer, neutraler `com.bud.feature.work.FieldCandidates` - kein Duplikat, aber auch nicht länger in der Lumbering- oder Farming-spezifischen Datei versteckt. `WorkstationFuelTickSystem` selbst bleibt neutral: nur noch Tick-/Fuel-/Binding-/Starvation-Orchestrierung plus Delegation an die drei genannten Klassen.
+
+`.\gradlew build` zweimal grün.
+
+## Lumbering Slice C, FarmingRecipeConfig/-Yaml umbenannt (Sascha, 2026-08-16)
+
+`FarmingRecipeConfig`/`FarmingRecipeYaml` klangen nach Farming-only, indizieren aber seit Slice A bereits rollen-generisch (`allowedSeeds`/`allowedFuel`/`seedTargetPattern` sind in `work/farming.yml` je mit `FARMING:`- und `LUMBERING:`-Sektion aufgebaut) - dieselbe Art Namensproblem wie `FarmToolItems` → `WorkToolItems`. Bewusst NICHT nach Farming/Lumbering aufgeteilt: die YAML ist schon rollen-generisch, eine Aufteilung wäre eine Rückkehr zum Duplikat, das Slice A extra beseitigt hat.
+
+Umbenannt: `FarmingRecipeConfig` → `WorkRecipeConfig`, `FarmingRecipeYaml` → `WorkRecipeYaml`, gepackte Resource `src/main/resources/work/farming.yml` → `work/recipes.yml` (inkl. `PACKAGED_FILE`-Konstante). Bestehende Runtime-Kopie (`run/mods/Bud_BudPlugin/work/farming.yml`) war identisch mit dem gepackten Default - direkt gelöscht statt nur den Rename anzukündigen, keine Anpassungen verloren. `README.md`s Config-Abschnitt entsprechend aktualisiert (Dateiname + dass `allowedSeeds` längst nicht mehr nur `FARMING` hat).
+
+`.\gradlew build` zweimal grün.
+
+## Mining Vorabrecherche, Ore-Wachstum via Farming-Stages - grundsätzlich machbar (Sascha, 2026-08-16)
+
+**Auftrag:** vor Beginn von Mining/Veri prüfen, ob Option a) "Ore-Seed-Bags, die über Stages zu einem abbaubaren Erzblock heranwachsen" (analog Lumbering-Bäume) technisch umsetzbar ist, insbesondere die Stage-Definition (z. B. kleine Stein-Krümel → Stein → Stein mit Erz).
+
+**Befund 1 - native Erzblöcke sind vollständig statisch, kein Vorbild vorhanden:** `Ore_Iron_Stone.json` (stellvertretend für alle `Ore_<Metall>_<Gesteinsart>.json`-Varianten unter `reference/assets/Server/Item/Items/Ore/`) hat überhaupt kein `Farming`-Feld - reine Weltgen-Platzierung, `Gathering.Breaking` droppt `Ore_<Metall>` + Gesteins-Nebendrop (`Rock_Stone_Cobble` bei Iron), fertig. Es gibt keinen einzigen Vanilla-Erzblock, der über Stages wächst - anders als bei Bäumen gibt es hier **kein direktes Vorbild zum Kopieren**, Mining bräuchte komplett neu autorierte Assets.
+
+**Befund 2 - der Wachstumsmechanismus selbst ist aber generisch, nicht pflanzenspezifisch, und sogar einfacher als bei Bäumen:** `BlockType.Farming.Stages` kennt (mindestens) drei Stage-Typen, alle bereits in freier Wildbahn im Content gefunden:
+- `Type: "Prefab"` (Bäume, Lumbering) - jede Stage ersetzt den Block durch ein komplettes Multi-Block-Prefab. Overkill für Erz (Erzadern sind im Vanilla-Spiel Einzelblöcke).
+- `Type: "BlockType"` (erste Sapling-Stufe) - jede Stage tauscht den kompletten Block-Typ.
+- `Type: "BlockState"` (reguläre Feldfrüchte, z. B. `Plant_Crop_Carrot_Block.json`) - **ein einziger Block bleibt bestehen**, nur sein `BlockState` wechselt zwischen benannten Zuständen (`Stage1`/`Stage2`/`StageFinal`), jeder mit eigenem `CustomModel`/`Gathering`/Drop-Liste über `BlockType.State.Definitions`. Kein Block-Austausch, keine Prefab-Komplexität - das ist exakt das Muster für "kleiner Krümel → Stein → Stein mit Erz": ein Ore-Seed-BlockType mit drei benannten States.
+
+Damit ist Options a) strukturell machbar - über denselben generischen `Farming`/`FarmingBlock`-Mechanismus, der für Lumbering schon erfolgreich verifiziert wurde, nur mit dem einfacheren `BlockState`-Stage-Typ statt `Prefab`.
+
+**Befund 3 - konkrete Bausteine für die drei Stages:**
+- Stage 0 (Krümel): kein fertiger Vanilla-Block, aber `Rubble_*.json`-Items (`reference/assets/Server/Item/Items/Rubble/`) nutzen ein `Blocks/Stone/Rubble_Small.blockymodel` - passendes Modell als Vorlage/Referenz für eine kleine Krümel-Stufe.
+- Stage 1 (Stein): ein einfacher Stein-Platzhalter (z. B. `Rock_Stone`-Familie) als Zwischenstufe, rein kosmetisch.
+- Stage final (Stein mit Erz): der fertige, bereits existierende Vanilla-Block wiederverwenden (z. B. `Ore_Iron_Stone`) statt etwas Neues zu bauen - Abbau-/Drop-Logik ist dafür schon fertig und getestet, Veris Mining-Kandidatenscan müsste nur nach dem bekannten `Ore_`-Präfix bzw. `Gathering.Breaking.GatherType` suchen, genau wie Lumberings `isWoodBlock`.
+
+**Offene Verifikation (noch NICHT geprüft, vor Implementierung nötig):** wie liest man zur Laufzeit den aktuellen `BlockState` eines platzierten Blocks aus Java (`Holder`/`FarmingBlock`-Komponente oder eine direkte World-API)? Bei Lumbering reichte ein reiner BlockType-Präfix-Check, weil sich der Block-Typ pro Stage änderte - bei `BlockState`-Stages bleibt der Block-Typ IDENTISCH über alle Stufen, nur der State wechselt. Ohne diese API ist "ist der Krümel schon zu Erz gereift" nicht zuverlässig erkennbar. Das ist der erste Punkt für Mining-Phase 0, analog zum Lumbering-Vorgehen: erst per `javap` verifizieren, dann bauen.
+
+**Zweiter offener Punkt:** `WorkstationSeedUtil.deriveCropBlockType` hat `SEED_PREFIX = "Plant_Seeds_"` hart kodiert (nicht rollenabhängig) - neue Ore-Seed-Items bräuchten entweder denselben Präfix (thematisch unpassend für Erz) oder `SEED_PREFIX` müsste rollenabhängig aus `WorkRecipeConfig`/`recipes.yml` kommen, um "keine Duplikate" einzuhalten statt eines Mining-Sonderfalls im Code.
+
+Siehe `TODO-mining-mode.md` für die vollständige Phasenplanung inkl. Ideen b) (permanentes Nachspawnen) und c)/d) (weitere Alternativen) — **inzwischen ersetzt durch das finale Konzept unten.**
+
+## Mining Konzept final — eigener Timer statt Vanilla-Wachstumssystem (Sascha, 2026-08-16)
+
+Nach weiterer Diskussion gewähltes Konzept, ersetzt die Optionen a-e der Vorabrecherche vollständig: kein `BlockType.Farming`/`BlockState`-System, sondern ein bespoke Wachstums-Timer, näher an `TilledSoilBlock`s Gieß-Timer als an Bäumen/Feldfrüchten. Vollständige Design-Details in `TODO-mining-mode.md`, hier nur die technische Herleitung/Begründung.
+
+**Warum das die beiden offenen Risiken von oben eliminiert:** Da kein Block seinen BLOCKTYP über Stages wechselt (Stein bleibt Stein, bis er final zu `Ore_<Typ>_Stone` wird — ein normaler, bereits unterstützter Block-Tausch, kein `BlockState`-Wechsel), entfällt die offene Frage "wie liest man `BlockState` zur Laufzeit aus" komplett — sie stellt sich nie. Und da der Input-Slot die Ore-Auswahl nicht wie ein Seedbag verbraucht, sondern als Dauer-Konfiguration liegen bleibt (näher am `CARD_SLOT`-Muster), entfällt auch das `SEED_PREFIX`-Hardcoding-Problem — es wird gar kein `Plant_Seeds_*`-Item gebraucht.
+
+**Der Kniff und seine Lösung:** Sascha wollte, dass Veri Steine *immer* sofort abbaut, sobald sie sichtbar sind (Konsistenz mit dem übrigen "greedy" Verhalten aller Work-Types). Das widerspricht auf den ersten Blick einer sichtbaren, mehrstufigen Wachstumspyramide - jede Zwischenstufe wäre ja ein "Stein", den Veri sofort wegräumt. Auflösung: derselbe Trick wie Lumberings `hasTrunkBlock`-Fix - die Kandidatenerkennung gated nicht über den rohen BlockType, sondern über eine eigene Wachstums-Komponente (`OreGrowthBlock`, Arbeitsname) mit einem Reifegrad-Feld. Zwischenstufen können dadurch echte, sichtbare `Stone`-Blöcke sein (der gewünschte Aufbau-Effekt bleibt), ohne dass Veri sie vorzeitig erkennt.
+
+**Persistenz über Serverneustarts - verifiziert, nicht nur angenommen:** `TilledSoilBlock` (nativ, Gießen/Düngen) hat bereits `Instant wateredUntil`/`decayTime`-Felder in seinem `BuilderCodec` (per `javap` bestätigt), und `Codec.INSTANT` existiert als eingebauter Codec-Typ im Engine-`Codec`-Katalog (`FunctionCodec<String, Instant>`, neben `Codec.INTEGER`/`STRING`/etc., die `WorkConfig` & Co. schon nutzen). `OreGrowthBlock` im selben Muster gebaut (Chunk-Store-Component, `growthStage` + `nextGrowthAt: Instant`, beide im `BuilderCodec`) wird automatisch über den bestehenden Chunk-Speichermechanismus persistiert — derselbe Weg, der `wateredUntil` schon zuverlässig über Neustarts rettet. Kein neuer Persistenz-Mechanismus nötig, reine Wiederverwendung eines bereits produktiv laufenden Musters.
+
+**Bewusst offen gelassen, Saschas Entscheidung:** ob "Hauptknoten bei Radius-1" korrekt verstanden wurde (Lesart: Pyramide braucht Wachstumsspielraum, würde bei vollem `FieldRadius` über den Feldrand hinausragen), und ob ein Wässern/Düngen-Äquivalent gewünscht ist oder der Loop bewusst kürzer bleibt als bei Farming/Lumbering. Siehe `TODO-mining-mode.md`.
+
+Beide Punkte von Sascha bestätigt (2026-08-16): Radius-1-Lesart korrekt, kein Wässern/Düngen-Äquivalent. Plan für Phase 0 Restverifikation + Phase 1 Slice 1 (Grundgerüst + Zufallslöcher-Loop) erstellt und umgesetzt, siehe unten.
+
+## Mining Phase 1, Slice 1 umgesetzt (Grundgerüst + Zufallslöcher-Loop) (Claude, 2026-08-16)
+
+**Wichtiger Fund während der Umsetzung, der den technischen Ansatz geändert hat:** Chunk-Store-Komponenten können nur an Weltpositionen angehängt werden, deren aktuell platzierter `BlockType` die Komponente in seiner eigenen Asset-JSON unter `BlockEntity.Components` deklariert (verifiziert an `Soil_Dirt_Tilled.json`: `"BlockEntity": {"Components": {"TilledSoil": {}}}`, kein Vanilla-Block deklariert `TilledSoilBlock` sonst irgendwo). `OreGrowthBlock` kann deshalb nicht an einer beliebigen (Luft-)Position nach dem Buddeln hängen, wie ursprünglich im Plan angenommen. **Fix:** zwei neue, selbst autorierte Blocktypen (`Mining_Growth_Hole.json`, `Mining_Growth_Ready.json`, unter `src/main/resources/Server/Item/Items/`), beide deklarieren `OreGrowthBlock` selbst, Visuals aus bereits existierenden Vanilla-Assets wiederverwendet (`Rubble_Small.blockymodel` fürs Loch, `Rock_Stone_Cobble`-Texturen fürs fertige Stadium) - kein Risiko durch neu erfundene Modell-/Texturpfade. Der Block-Tausch selbst läuft über das exakt gleiche `world.setBlock(pos, blockId)`-Primitiv wie überall sonst im Projekt, kein neuer Mechanismus.
+
+**Umgesetzt:**
+- `WorkType.DIG`/`WorkType.MINE`, `WorkToolItems.DIG_TOOL_ITEM`/`MINE_TOOL_ITEM` (`Tool_Shovel_Iron`/`Tool_Pickaxe_Iron`, fix, keine Tier-Progression).
+- `com.bud.feature.work.mining`: `OreGrowthBlock` (Chunk-Store-Component, `growthStage` + `nextGrowthAt: Instant`, `BuilderCodec` inkl. `Codec.INSTANT`), `MiningGrowthUtil` (Wachstums-Mechanik: `startGrowth`/`advanceIfDue`/`clear`), `MiningFieldScan` (Kandidatenscan: `isDigCandidate`/`isOreReadyCandidate`), `MiningWorkAction`/`BuilderActionMiningWork` (Action-Typ `"MiningWork"`), `OreGrowthTickSystem` (neues, eigenes `EntityTickingSystem<ChunkStore>`, Query auf `OreGrowthBlock`, tickt Wachstum unabhängig von der Workstation-Präsenz).
+- `WorkConfig`: `MiningGrowthSeconds` (Default 30), `DigIntervalSeconds`/`MineIntervalSeconds` (Default je 1).
+- `WorkstationFuelTickSystem.findNextWorkAssignment`: neuer `isMining`-Zweig, überspringt die geteilte Till/Plant/Water/Fertilize/WaterRefresh-Kandidatensuche komplett (Mining braucht sie nicht), sucht stattdessen Mine-/Dig-Kandidaten über `MiningFieldScan` - Mine hat Priorität vor Dig (Veri baut immer zuerst ab, was fertig ist).
+- `WorkstationBindingHandler.withWorkTools`: von hartcodierter "4 Farming-Tools + 1 Extra"-Logik auf eine echte `Map<WorkRole, List<String>>`-Werkzeugliste umgebaut - Mining bekommt seine 2 Werkzeuge (vorher: gar keine, da kein `HARVEST_TYPE_TOOL_ITEM`-Eintrag existierte), Farming/Lumbering unverändert ihre 5.
+- **Weitere "Keine Duplikate"-Extraktionen, die beim Hinzufügen der dritten Rolle nötig wurden** (alle mit den bestehenden Call-Sites abgeglichen, nichts verhält sich anders als vorher): `BlockEntityPositions.resolve` (aus `WorkstationBindingHandler.resolveWorkstationBlockPosition`, jetzt auch von `OreGrowthTickSystem` genutzt), `WorldBlockEntities.ensureOrFetch` (aus `AbstractWorkAction`s privater `ensureBlockEntityOrFetchExisting`, jetzt auch von `MiningGrowthUtil` genutzt), `GameClock.now` (aus `WorkstationFuelTickSystem`s privater `currentGameTime`, jetzt auch von `MiningGrowthUtil` genutzt), `BlockDrops.resolveBreakingDrops` (aus `WorkstationWoodUtil.resolveDrops`, `WorkstationWoodUtil` delegiert jetzt dorthin, jetzt auch von `MiningWorkAction` genutzt).
+- `Template_Veri_Bud.json`: proaktiv (vor dem ersten Ingame-Test, nicht erst danach) `HotbarSize: 8` ergänzt und die MODE-4-`.Default`-Sub-State-Verkabelung nachgezogen (Sensor `And[.Default, WorkTarget]` → `BodyMotion: Seek` → `Actions: [MiningWork]` + Idle-Fallback) - exakt die beiden Lücken, die bei Gronkh in Lumbering Slice A erst durch einen Ingame-Test gefunden wurden.
+
+`.\gradlew clean build` grün. **Noch nicht gemacht:** Ingame-Test (inkl. explizitem Serverneustart-Test während eines laufenden Wachstumszyklus, das Kernversprechen dieses Konzepts), siehe `TODO-mining-mode.md`.
+
+**Nachtrag, von Sascha gefunden (2026-08-16): `Workstation_Mining.json` hatte gar keine `BlockEntity.Components`-Sektion.** Dadurch trug der platzierte Mining-Workstation-Block weder `BenchBlock`/`ProcessingBenchBlock` noch `WorkstationBlockEntity` - das komplette Binding-/Tick-System (`WorkstationFuelTickSystem.getQuery()` fordert alle drei) hat den Block schlicht nie gesehen, an der Station war folglich nichts ausführbar. Ursache des Fehlers: in Phase 0 wurde nur geprüft, **dass** `Workstation_Mining.json` existiert, nicht ob ihr Inhalt dem produktiven Farming-/Lumbering-Aufbau entspricht - ein reiner "Datei da, also gut"-Kurzschluss statt eines echten Vergleichs. Fix: `BlockEntity.Components` mit `BenchBlock`/`ProcessingBenchBlock`/`WorkstationBlockEntity` (`WorkRole: Mining`) ergänzt, exakt wie in `Workstation_Farming.json`/`Workstation_Lumbering.json` (beide gegengeprüft).
+
+**Weiterhin offen an `Workstation_Mining.json` (kosmetisch/Design, blockiert nichts):** Input-/Fuel-Slot-Icons fehlen (generische `{}`-Platzhalter, Farming/Lumbering haben je eigene Icons), `OutputSlotsCount` steht auf 4 (Lumbering nutzt 6), kein `FailedSoundEventId`/`AmbientSoundEventId`. Außerdem hat `work/recipes.yml` keine `allowedFuel`-Sektion für `MINING` - laut `WorkstationFuelUtil.isAllowedFuel` bedeutet eine leere Liste "alles erlaubt", die Station funktioniert also, akzeptiert aber jedes beliebige Item als Futter. Welches Futter Veri bekommen soll, ist eine Design-Entscheidung von Sascha (analog `Food_Wildmeat_Cooked` bei Gronkh).
+
+**Zwei weitere Fehler in den neuen Block-Assets, von Sascha gefunden bzw. beim Nachprüfen entdeckt (2026-08-16):**
+1. **Erfundene Icon-Pfade.** `Mining_Growth_Hole.json`/`Mining_Growth_Ready.json` referenzierten `Icons/ItemsGenerated/Mining_Growth_Hole.png` bzw. `..._Ready.png` - Dateien, die es nicht gibt und die auch niemand erzeugt. Fix: die realen Icons der jeweiligen Vorlage nutzen (`Rubble_Stone.png` bzw. `Rock_Stone_Cobble.png`), beide als Datei verifiziert.
+2. **Struktur- und Drop-Fehler (schwerwiegender, wäre erst ingame aufgefallen):** `Mining_Growth_Hole` nutzte `DrawType: "Model"` + `CustomModel`, lieferte die Textur aber über `Textures` statt über `CustomModelTexture` - für Model-Blöcke der falsche Mechanismus. Und `Mining_Growth_Ready` hatte `Gathering.Breaking` nur mit `GatherType`, ohne `ItemId`: laut dem bereits in der Lumbering-Runde dokumentierten `getDrops`-Verhalten (fällt bei `itemId=null`/`dropListId=null` auf `BlockType.getItem()` zurück) hätte Veri damit unseren eigenen internen Block `Mining_Growth_Ready` in den Output bekommen statt echtem Stein. Fix: beide Dateien strikt an den verifizierten Vorlagen `Rubble_Stone.json` (Model-Block inkl. `CustomModelTexture`, `HitboxType`, `Support`, Partikel/Sound) und `Rock_Stone_Cobble.json` (Cube-Block) neu aufgebaut, `Breaking` bekommt jetzt explizit `"ItemId": "Rock_Stone_Cobble"` - dasselbe `GatherType`+`ItemId`-Muster, das `Soil_Dirt_Tilled.json` nativ verwendet. Alle sechs referenzierten Modell-/Textur-/Icon-Pfade einzeln gegen `reference/assets` geprüft.
+
+**Lektion für kommende Slices:** neue Asset-JSONs nicht aus dem Gedächtnis zusammensetzen, sondern immer eine konkrete Vanilla-Vorlage vollständig lesen und jeden referenzierten Pfad einzeln gegen `reference/assets` prüfen - dasselbe gilt für vorhandene Dateien (siehe `Workstation_Mining.json`-Fehler oben: "Datei existiert" ist keine Inhaltsprüfung).
+
+**Zwei Logikfehler im Slice-1-Loop, beim Nachprüfen gefunden und behoben (2026-08-16):**
+1. **`isDigCandidate` akzeptierte jeden nicht-leeren Block.** Veri hätte damit alles im Feldradius weggebuddelt - Workstation, Spielerbauten, Baumstämme. Fix: config-getriebene `diggableBlocks`-Liste in `work/recipes.yml` (Soil-/Grass-Typen, analog zur bestehenden `tillableBlocks`-Liste - Daten, kein rollenspezifischer Codepfad) plus `FieldCandidates.hasFreeTopFace`-Prüfung (kein Buddeln unter einem anderen Block). Gelesen über neue `WorkRecipeConfig.isDiggableBlock(...)`.
+2. **Das Loch wurde nach dem Abbauen nie wieder aufgefüllt.** `MiningGrowthUtil.clear` setzte die Position auf `EMPTY`, dadurch war sie anschließend kein Dig-Kandidat mehr (leer ≠ diggable) - die Stelle wäre dauerhaft tot gewesen und der Kreislauf gestorben. Widersprach Saschas Vorgabe "wir füllen dann automatisiert die Löcher". Fix: neuer `digRefillBlock`-Config-Key (Default `Soil_Dirt`), `clear` setzt die Position darauf zurück, wodurch dieselbe Stelle sofort wieder buddelbar ist und der Loop dauerhaft läuft.
+
+**Operatives Gotcha erneut aufgetreten (bekannt aus Lumbering Slice A):** `run/mods/Bud_BudPlugin/work/recipes.yml` existierte bereits (ohne die neuen `diggableBlocks`/`digRefillBlock`-Keys) und wird von `copyPackagedDefault` nicht überschrieben - der Server hätte die alte Datei geladen, `diggableBlocks` wäre leer geblieben und Veri hätte nie gebuddelt. Runtime-Kopie nach Diff-Prüfung (keine Nutzeranpassungen enthalten) mit dem gepackten Default synchronisiert.
+
+## Mining Slice 1 — erster Ingame-Test: Serverabsturz + Slot-Filter (Claude, 2026-08-18)
+
+**Kritischer Crash beim ersten echten Test (von Sascha gemeldet, Welt gestoppt, Spieler mit "The world you were on has crashed" getrennt).** Stacktrace aus `run/logs/2026-08-18_15-19-55_server.log` statt Spekulation:
+
+```
+java.lang.IllegalStateException: Store is currently processing! Ensure you aren't calling a store method from a system.
+  at com.hypixel.hytale.component.Store.assertWriteProcessing
+  at com.hypixel.hytale.component.Store.removeEntity
+  at com.hypixel.hytale.server.core.modules.block.BlockEntity.setBlockEntity
+  at ...WorldChunk.setBlock
+  at com.bud.feature.work.mining.MiningGrowthUtil.advanceIfDue(MiningGrowthUtil.java:66)
+  at com.bud.feature.work.mining.OreGrowthTickSystem.tick(OreGrowthTickSystem.java:38)
+```
+
+**Ursache:** `advanceIfDue` rief `world.setBlock(...)` direkt aus `OreGrowthTickSystem.tick` auf. Ein Blockwechsel entfernt intern die alte Block-Entity (`BlockEntity.setBlockEntity` → `Store.removeEntity`) — das ist eine schreibende Store-Operation, und der ChunkStore befindet sich während des Ticks genau dieses Systems in Verarbeitung. Die Engine wirft dafür bewusst eine Assertion. Warum das bei Farming/Lumbering nie auftrat: dort läuft jedes `setBlock` aus einer NPC-Action heraus (EntityStore-Kontext), nie aus einem `EntityTickingSystem<ChunkStore>`. Mining ist die erste Rolle mit einem eigenen chunk-getickten System — der Fehler war also strukturell neu, nicht bloß übersehen.
+
+**Fix, per Bytecode verifiziert statt angenommen:** `World implements Executor`, und `World.execute(Runnable)` legt die Runnable *immer* in `taskQueue` ab (kein Inline-Pfad, auch nicht auf dem Weltthread — im Bytecode nachgesehen); gedrained wird sie von `consumeTaskQueue()`, das außerhalb von `Store.tick` läuft. `advanceIfDue` prüft daher nur noch die Fälligkeit und schiebt den eigentlichen Blockwechsel per `world.execute(...)` in die neue Methode `promoteToReady`. Dasselbe Muster nutzt `WorkstationBindingHandler` bereits fürs Spawnen.
+
+**Zweiter, dabei entdeckter Fehler (wäre sonst als "Stein bleibt für immer unabbaubar" aufgefallen):** Der Blockwechsel zerstört die alte Block-Entity samt der daran hängenden `OreGrowthBlock`-Komponente und legt für den neuen Blocktyp eine frische an — der auf dem alten Objekt gesetzte `growthStage` wäre also sofort wieder weg gewesen. `promoteToReady` setzt den Blocktyp deshalb zuerst und holt sich danach die *neue* Komponente (`WorldBlockEntities.ensureOrFetch`), um sie auf `STAGE_READY` zu setzen. Neues, nicht persistiertes Feld `promotionPending` verhindert, dass zwischen dem Fälligwerden und dem Abarbeiten der Task jeder weitere Tick eine zusätzliche Runnable einreiht.
+
+**Dritter Fehler, aus dem Log heraus gefunden (Timing):** Der Log zeigt `DIG` um 13:20:31 und den Wachstumsschritt bereits um 13:20:32 — bei konfigurierten 30 Sekunden. Ursache: `GameClock.now` liefert die **Spielzeit**, nicht die Echtzeit, und `nextGrowthAt` wurde ohne Umrechnung damit gebildet. Der Faktor ist exakt bestimmbar statt geschätzt: `WorldTimeResource.SECONDS_PER_DAY` = 86400, die Tageslänge kommt aus `GameplayConfigs/Default.json` (`DaytimeDurationSeconds` 1728 + `NighttimeDurationSeconds` 1152 = 2880 reale Sekunden) → Spielzeit läuft **30× schneller**, die gewünschten "~30 Sekunden" waren real genau 1 Sekunde. Das deckt sich exakt mit dem Log-Abstand. **Fix:** neuer geteilter Helfer `GameClock.realSecondsToGameSeconds(world, ...)`, der über die tatsächlichen Tag-/Nacht-Dauern des Servers umrechnet — dadurch bedeutet `MiningGrowthSeconds` echte Sekunden, unabhängig davon, wie ein Server seine Tageslänge konfiguriert hat. Die Spielzeit bleibt bewusst die Basis des Timers: sie steht still, während der Server aus ist, wodurch das Neustart-Versprechen ("Restzeit bleibt erhalten") ohne Zusatzlogik erfüllt ist — mit Wanduhr wäre ein Stein nach einer Serverpause sofort fertig gewesen.
+
+**Slot-Filter (von Sascha gefordert):**
+- **Fuel-Slot nahm die Veri-Karte an.** `WorkstationFuelUtil.isAllowedFuel` behandelt eine leere `allowedFuel`-Liste als "alles erlaubt", und `MINING` hatte keine Liste. Fix zweifach: `allowedFuel.MINING: [Food_Fish_Grilled]` in `work/recipes.yml` (Saschas Wahl — anspruchsvolleres Futter, dafür Erz als Ertrag), **und** zusätzlich lehnt `isAllowedFuel` jetzt Bud-Karten grundsätzlich ab (`WorkstationCardUtil.resolveBudId(...) != null`), rollenunabhängig — eine Karte ist nie Futter, und die "leere Liste = alles erlaubt"-Lücke hätte sonst bei jeder künftigen Rolle erneut aufgemacht.
+- **Erz-Slot (Input-Slot 2) nahm gar nichts an.** `WorkstationSeedUtil.isAllowedSeed` hat — anders als die Fuel-Prüfung — keinen "leere Liste = alles erlaubt"-Fallback, `MINING` hatte keine Liste, also war der Slot faktisch gesperrt. Fix: alle zehn Hytale-Erze unter `allowedSeeds.MINING` eingetragen (`Ore_Adamantite`, `Ore_Cobalt`, `Ore_Copper`, `Ore_Gold`, `Ore_Iron`, `Ore_Mithril`, `Ore_Onyxium`, `Ore_Prisma`, `Ore_Silver`, `Ore_Thorium` — alle zehn Item-IDs einzeln gegen `reference/assets` verifiziert, ebenso `Food_Fish_Grilled`).
+- **Input-Slot 1 (Karte) war bereits korrekt:** dessen Filter ist `WorkstationCardUtil.matchesWorkRole(itemStack, MINING)`, lässt also nur Karten von Buds mit `WorkRole.MINING` zu — aktuell genau Veri. Hier war nichts zu ändern.
+
+**Bewusst nicht geändert, Sascha muss entscheiden:** Der YAML-Key heißt weiterhin `allowedSeeds`, obwohl darunter für Mining Erze stehen — ein Farming-Name auf einer rollenneutralen Sache, also genau das Muster, das beim `./work`-Aufräumen beanstandet wurde. Eine Umbenennung (z. B. `allowedSecondaryInput`) berührt `WorkRecipeYaml`, `WorkRecipeConfig`, `WorkstationSeedUtil` und beide `recipes.yml`-Kopien; sie mitten in einem Bugfix-Durchgang mitzunehmen hätte die Runtime-Datei stillschweigend brechen können. Als eigener, sauberer Schritt vorgemerkt.
+
+**Ebenfalls unverändert:** Der Erz-Slot ist in Slice 1 noch reine Dekoration — `WorkstationSeedUtil.resolveCropBlockType` wird für Mining gar nicht aufgerufen, das Erz im Slot bestimmt also noch nicht die Ausbeute. Das ist plangemäß Slice 2 (Hauptknoten-Pyramide mit finaler Ore-Konvertierung), nicht vergessen.
+
+`.\gradlew build` zweimal grün. `run/mods/Bud_BudPlugin/work/recipes.yml` erneut nach Diff-Prüfung (keine Nutzeranpassungen) mit dem gepackten Default synchronisiert — das bekannte `copyPackagedDefault`-Gotcha hätte sonst dafür gesorgt, dass weder das Fischfutter noch die Erzliste am Server ankommen.
+
+## Mining Slice 1 — Feldbegrenzung + Wachstumsdauer aus dem Vanilla-System (Claude, 2026-08-18)
+
+Zweiter Ingame-Test von Sascha: Buddeln, Wachsen und Abbauen laufen. Zwei Befunde.
+
+**1. Veri hat das komplette Feld umgegraben.** Ursache: der Mining-Zweig in `findNextWorkAssignment` nahm schlicht den *ersten* Dig-Kandidaten aus dem deterministischen Serpentinen-Scan, ohne jede Obergrenze. Da jede Bodenkachel im Feldradius ein gültiger Kandidat ist, hörte die Schleife nie auf — funktional korrekt, aber als Verhalten falsch (Farming/Lumbering dürfen das Feld voll bearbeiten, Mining soll es punktuell anbohren).
+
+**Fix (ein einziger Durchlauf über die Feldpositionen statt drei):** derselbe Scan zählt jetzt die aktiven Grabstellen (`MiningFieldScan.isGrowthBlock` — Loch *und* fertiger Stein zählen, beide belegen den Platz), sucht dabei den Mine-Kandidaten und sammelt die freien Dig-Kandidaten. Gebuddelt wird nur, solange die Zahl aktiver Grabstellen unter `MiningFieldScan.maxDigHoles()` liegt. Die Obergrenze ist bewusst **aus der Feldgröße abgeleitet** (`= FieldRadius`, bei aktuell 5 also genau die von Sascha gewünschten 5 Löcher) statt als eigener Config-Wert — so skaliert sie automatisch mit, wenn das Feld verändert wird, und es entsteht kein zweiter Knopf, der zum ersten passen muss.
+
+**Streuung:** Aus den freien Kandidaten wird jetzt zufällig gewählt (`Collections.shuffle` + erster Treffer, der die Abstandsprüfung besteht) statt immer der erste Serpentinen-Treffer. Dabei wird `OreMinDistance` (Default 2) verwendet — **ein Config-Wert, der seit seiner Anlage tot im `WorkConfig` lag und nirgends gelesen wurde**; im README stand entsprechend "not yet implemented". Er erfüllt hier genau seinen ursprünglichen Zweck: Löcher halten horizontalen Mindestabstand zueinander, statt sich zufällig aneinanderzureihen. Saschas Vorgabe "nie auf einem anderen Buddelloch" wäre schon durch `isDigCandidate` erfüllt (ein `Mining_Growth_*`-Block steht nicht in `diggableBlocks`), der Abstand macht daraus echte Verteilung statt bloßer Nichtüberlappung.
+
+**2. Wachstumsdauer aus dem Vanilla-System übernommen (Saschas Vorschlag "können wir die Wachstumsdauer von Farming/Wood nehmen?").** Recherchiert statt geschätzt: Vanilla definiert Wachstum in `BlockType.Farming.Stages[].Duration` mit `Min`/`Max`. Gemessene Werte:
+
+| Quelle | Dauer je Stage (Spielsekunden) | entspricht real (Faktor 30) |
+|:--|:--|:--|
+| Crop (`Template_Crop_Block`) | 28800 – 30600 | 16 – 17 Minuten |
+| Baum (`Plant_Sapling_Oak`) | 40000 – 60000 | 22 – 33 Minuten |
+
+Gewählt: die **Crop-Stage** (28800–30600) als die kürzere der beiden — Mining hat nur eine Wachstumsstufe, während ein Baum fünf davon durchläuft.
+
+**Konsequenz für die Config, und eine bewusste Rücknahme der vorigen Runde:** Vanilla-Dauern sind Spielsekunden. `MiningGrowthSeconds` (Echtzeit, Default 30) wurde daher ersetzt durch `MiningGrowthGameSecondsMin`/`MiningGrowthGameSecondsMax` (28800/30600) — dieselbe Einheit und dieselbe Min/Max-Streuung, die Vanilla selbst nutzt, wodurch nicht alle Grabstellen im Gleichschritt reifen. Damit wird die in der vorigen Runde eingeführte Umrechnung `GameClock.realSecondsToGameSeconds` überflüssig und ist **entfernt** worden, statt als toter Code stehenzubleiben; `GameClock` ist wieder exakt auf `now(world)` reduziert. Die inhaltliche Begründung von damals gilt unverändert weiter — die Spielzeit bleibt die Timer-Basis, weil sie während eines Serverstopps stillsteht und das Neustart-Versprechen dadurch ohne Zusatzlogik hält.
+
+**Mitgezogen:** `run/mods/Bud_BudPlugin/Work.json` auf die neuen Keys umgestellt (der alte `MiningGrowthSeconds`-Eintrag wäre sonst wirkungslos liegengeblieben und die Station hätte still mit den Defaults gearbeitet). README-Work-Tabelle nachgeführt: `OreMinDistance` ist nicht mehr "not yet implemented", die beiden neuen Wachstums-Keys sind dokumentiert (inkl. des Spielzeit-Faktors, damit niemand 28800 für 8 Stunden hält), und die zuvor undokumentierten `FellIntervalSeconds`/`TreeEdgePositionCount`/`DigIntervalSeconds`/`MineIntervalSeconds` sind ergänzt.
+
+**Logging:** Die Mining-Auswahlzeile nennt jetzt zusätzlich `active dig sites=<n>/<max>` — beim nächsten Ingame-Test ist damit ohne Raten ablesbar, ob die Grenze greift.
+
+`.\gradlew build` zweimal grün. **Weiterhin offen:** Hauptknoten für die Erze (Slice 2) — aktuell entstehen nur die zufälligen Buddellöcher, das Erz im Input-Slot bestimmt die Ausbeute noch nicht. Und weiterhin unverifiziert: der Serverneustart mitten im Wachstumszyklus.
+
+## Mining Slice 2 — Hauptknoten / Mini-Pyramide (Claude, 2026-08-18)
+
+Zufallslöcher laufen (5 Stück, verteilt, Abbau funktioniert). Ergänzt: die Hauptknoten.
+
+**Geometrie, wie von Sascha vorgegeben:** Knotenmittelpunkte im Abstand `FieldRadius - 1` von der Station (bei Radius 5 also 4), an beiden Enden der Z-Achse — bei aktueller Feldgröße genau zwei Knoten. Je Knoten buddelt Veri ein Kreuz: Mittelpunkt plus die vier direkten Nachbarn in ±X und ±Z (horizontal, nicht in der Höhe). Nach Stufe 1 kommt der Deckstein mittig obendrauf — fertige Mini-Pyramide aus 6 Blöcken. Alle Kreuzpositionen liegen nachgerechnet innerhalb des Feldradius (Arm bei ±5 auf Z: Distanz exakt 5 ≤ Radius 5; Arme bei ±1/±4: 4,12).
+
+**Die Achse ist eine Annahme:** "vertikales Ende" wurde als Z-Achse gelesen (Draufsicht auf das Feld). Falls X gemeint war, ist das eine Zeile in `MiningFieldScan.nodeCenterColumns`.
+
+**Zustandskette je Knotenblock** (alles über `OreGrowthBlock`, kein Cross-Block-Koordinationscode nötig, weil jeder Block seinen eigenen Timer hat):
+
+`Loch` → *Timer* → `Mining_Node_Stone` (neuer Blocktyp, **nicht** abbaubar) → *Timer* → konfigurierter Erzblock (abbaubar)
+
+Der Deckstein wird ausgelöst, wenn der **Mittelpunkt** seine erste Stufe erreicht — dadurch braucht es keine Prüfung "sind alle fünf Arme fertig?", die Pyramide entsteht als Nebeneffekt der ohnehin vorhandenen Beförderung.
+
+**Warum Veri die Zwischenstufe nicht abbaut:** `isOreReadyCandidate` prüft `stage == STAGE_READY`, und Knotensteine stehen auf `STAGE_NODE_STONE`. Nebenbei wurde `isReady()` von `>= STAGE_READY` auf `== STAGE_READY` geschärft — mit dem alten Vergleich hätte die neue, höhere Stufe die Knotensteine sofort wieder abbaubar gemacht.
+
+**Neuer Blocktyp `Mining_Node_Stone.json`:** nach der vollständig gelesenen Vorlage `Rock_Stone.json` gebaut (Rohstein statt Cobble, damit optisch klar vom abbaubaren Zufallsstein `Mining_Growth_Ready` unterscheidbar), alle vier Textur-/Icon-Pfade einzeln gegen `reference/assets` geprüft, `BlockEntity.Components: { OreGrowthBlock: {} }` deklariert (ohne diese Deklaration kann die Komponente laut dem in Slice 1 verifizierten Engine-Verhalten gar nicht an der Position hängen).
+
+**Erzsorte: Recherche hat Saschas Annahme widerlegt.** Vorgabe war "Blöcke sind dann z.B.: `Ore_Thorium_Stone`". Tatsächlich gilt:
+- `Ore_Iron`, `Ore_Thorium` usw. sind reine **Items** (kein `BlockType`) — das sind die Drops, nicht die Weltblöcke.
+- Nur **5 von 10** Erzen haben überhaupt eine `_Stone`-Variante: Copper, Gold, Iron, Mithril, Silver. `Ore_Thorium_Stone` existiert **nicht**.
+- Adamantite/Cobalt/Thorium gibt es nur in anderem Wirtsgestein (`_Magma`, `_Slate`/`_Shale`, `_Mud`/`_Sandstone`).
+- `Ore_Onyxium` und `Ore_Prisma` haben **gar keinen** Weltblock, in keinem Wirtsgestein.
+
+Eine Namensableitung `Ore_X` → `Ore_X_Stone` (das naheliegende Muster, analog `seedTargetPattern`) wäre also bei der Hälfte der Erze still gescheitert. Stattdessen: **explizite Zuordnung `oreTargetBlocks` in `work/recipes.yml`**, beim Laden gegen `BlockType.fromString` validiert, unbekannte Einträge werden mit Warnung übersprungen. Onyxium/Prisma bleiben bewusst ohne Eintrag — sie sind weiterhin im Slot erlaubt, produzieren aber nichts. **Saschas Entscheidung:** entweder aus `allowedSeeds.MINING` streichen oder auf ein Ersatzgestein mappen.
+
+**Ausbeute:** Der Erzblock wird nicht selbst gedroppt, sondern über sein natives `Gathering.Breaking` aufgelöst — `Ore_Iron_Stone` liefert laut Asset `Ore_Iron` **und** `Rock_Stone_Cobble`, womit Saschas "Stein-Nebenprodukte fallen bei den Hauptknoten an" ohne Zusatzlogik erfüllt ist. **Unverifiziert:** `Ore_Iron_Stone` benutzt eine *inline* `DropList` (Objekt), während `BlockDrops` über `getDropListId()` (String) geht — ob die Engine inline-Listen beim Laden als Asset registriert und die Id dort einträgt, ließ sich statisch nicht klären. Deshalb loggt `executeMine` jetzt eine Warnung, wenn die Auflösung leer bleibt, statt still nichts einzulagern; der Ingame-Test entscheidet das.
+
+**Zielerz wird beim Buddeln persistiert:** `OreGrowthBlock.oreBlockId` (neu, im Codec). Der Tick des Wachstums kennt die Werkbank nicht, deshalb wird die Erzsorte beim Ausheben aus dem Input-Slot gelesen und am Block gespeichert — überlebt damit auch einen Neustart und einen zwischenzeitlichen Slot-Wechsel. Ohne brauchbares Erz im Slot werden Knotenlöcher gar nicht erst ausgehoben (die Zufallslöcher laufen unabhängig weiter).
+
+**Ein Fehler beim Durchdenken gefunden und behoben, bevor er ingame auftrat:** `clear()` füllte jede abgebaute Position pauschal mit `digRefillBlock` (Erde) auf. Beim Deckstein — der als einziger *in der Luft* sitzt — hätte das einen schwebenden Erdblock über dem Knoten hinterlassen. Fix, zwei zusammengehörige Regeln: `oreMineWinner` wählt jetzt die **höchste** Position zuerst (Deckstein vor Mittelpunkt), und `clear()` setzt auf `EMPTY` statt Erde, wenn der Block darunter selbst noch ein Mining-Block (Wachstumsblock oder Erzblock) ist. Zusammen ergibt das: Deckstein → Luft, Kreuz am Boden → Erde, Position sofort wieder buddelbar, Kreislauf schließt sich.
+
+**Priorisierung im Scheduler** (Mining-Zweig): fertiger Zufallsstein → fertiges Erz am Knoten (höchster zuerst) → Knotenloch (Mittelpunkt vor Armen) → Zufallsloch. Knotenpositionen sind aus der Zufallsloch-Zählung und -Auswahl ausgenommen, die 5 Zufallslöcher bleiben also wirklich 5 *zusätzliche*.
+
+`.\gradlew build` zweimal grün, `run/mods/Bud_BudPlugin/work/recipes.yml` nach Diff-Prüfung synchronisiert.
+
+## Mining Slice 2 — Nachtrag: Hauptknoten liefen nie an (Claude, 2026-08-18)
+
+Sascha meldete: keine Hauptknoten, nur drei Zufallslöcher. Statt zu raten, Log gelesen (`run/logs/2026-08-18_16-09-49_server.log`).
+
+**Root Cause, eindeutig im Log:**
+
+```
+14:09:51 WARN [BUD] 'oreTargetBlocks' maps Ore_Iron to unknown block 'Ore_Iron_Stone' ..., skipping.
+   (dieselbe Warnung für alle acht Einträge)
+14:09:51 WARN [BUD] No 'oreTargetBlocks' ... - Mining main nodes cannot produce ore.
+14:09:54 INFO [AssetModule|P] Total Loaded Assets: ... BlockType: 5763 ...
+```
+
+Die Config wird in `BudPlugin.setup()` geladen — **drei Sekunden bevor die Engine die BlockTypes lädt**. Die Validierung `BlockType.fromString(...)` beim Laden traf also immer auf eine noch leere Registry und verwarf *jeden* Eintrag, auch die zweifelsfrei existierenden. Ergebnis: leere Zuordnung → `targetOreBlock == null` → der Knoten-Zweig wurde in `findNextWorkAssignment` komplett übersprungen, es liefen nur die Zufallslöcher. Der Fehler lag also nicht in der Geometrie oder der Priorisierung, sondern in einer Validierung zum falschen Zeitpunkt.
+
+Bezeichnend: alle anderen Block-Ids in `recipes.yml` (`tilledSoilTargetBlock`, `digRefillBlock`, `diggableBlocks`) werden beim Laden **nicht** validiert, sondern erst bei Benutzung aufgelöst — und genau deshalb hat dort nie etwas gefehlt. Die Validierung war eine gut gemeinte Ergänzung, die aus dem etablierten Muster ausgeschert ist.
+
+**Richtigstellung eines Fehlers von Claude:** Die vorige Behauptung "`Ore_Thorium_Stone` existiert nicht, nur 5 von 10 Erzen haben eine `_Stone`-Variante" war **falsch**. Sie beruhte auf einer reinen Dateinamen-Suche unter `Item/Items/Ore/`. Tatsächlich listet `Server/BlockTypeList/Ores.json` neun `Ore_*_Stone`-Blöcke: Adamantite, Cobalt, Copper, Gold, Iron, Mithril, Onyxium, Silver, Thorium — sie haben nur keine eigene JSON-Datei im (am 2026-08-08 gezogenen) Asset-Spiegel, werden also generiert oder liegen woanders. Sascha lag mit seinem Hinweis auf Wiki und Ingame-Beobachtung richtig. Lehre: Bei Block-Ids ist die Dateiliste **kein** vollständiger Nachweis der Abwesenheit — `BlockTypeList`/`Migrations`/Sprachdateien mit durchsuchen, bevor man "existiert nicht" behauptet. Einzige echte Ausnahme bleibt `Ore_Prisma_Stone`, das in `Ores.json` nicht vorkommt.
+
+**Fix, zugleich Saschas Wunsch "kein Config-Mapping nötig":** Die `oreTargetBlocks`-Sektion ist wieder entfernt (aus `recipes.yml`, `WorkRecipeYaml` und `WorkRecipeConfig`). Stattdessen leitet `getOreTargetBlock` den Blocknamen als `<OreItemId>_Stone` ab und prüft ihn **bei Benutzung** (also lange nach dem Asset-Load) über `BlockType.fromString` — dasselbe Lazy-Muster, das `deriveCropBlockType` für Saatgut schon verwendet. Lässt sich ein Erz nicht auflösen (Prisma), gibt es genau eine Warnung pro Erzsorte statt stiller Untätigkeit. `isOreBlock` dreht die Ableitung um (Suffix abschneiden, gegen die erlaubte Erzliste prüfen) — geprüft, dass das nicht auf `Rock_Stone` oder unseren eigenen `Mining_Node_Stone` anschlägt, da deren Präfixe nicht in der Erzliste stehen.
+
+**Zu den "nur drei Zufallslöchern": kein Beleg für einen Fehler.** Das Log zeigt vier `DIG`-Ausführungen (14:10:22, 14:10:57, 14:11:00, 14:11:01) und dann um 14:11:11–14:11:21 das Ende der Sitzung — Veri wurde despawnt, samt work-END-Reaktion. Der Lauf war schlicht rund 50 Sekunden lang; die Obergrenze von 5 wurde nie erreicht, weil vorher Schluss war. Hier wurde bewusst *nichts* geändert.
+
+**Warum wir das nicht selbst sehen konnten:** Die in der vorigen Runde eingebaute Diagnosezeile lief auf `fine`, der Server steht auf `LogLevel: INFO` — sie wurde also nie ausgegeben. Sie hängt jetzt auf `info`, aber hinter dem bestehenden Schalter `DebugConfig.EnableBudDebugInfo` (in `run/mods/Bud_BudPlugin/Debug.json` auf `true` gesetzt), damit sie beim Testen sichtbar ist, ohne den Normalbetrieb zuzumüllen. Sie zeigt: aktive Zufallsgrabstellen `n/max`, aufgelöstes Zielerz, und die vier Kandidaten (Stein / Erz / Knotenloch / Zufallsloch) samt gewähltem Gewinner.
+
+**Wichtig für den nächsten Test:** Hauptknoten werden nur ausgehoben, wenn ein auflösbares Erz im zweiten Input-Slot liegt — ohne Erz laufen weiterhin nur die Zufallslöcher. Das ist Absicht (ein Knoten ohne Zielerz könnte nie reifen), erklärt aber genau das beobachtete Verhalten.
+
+`.\gradlew build` zweimal grün, `recipes.yml` synchronisiert.
+
+## Mining Slice 2 — Hauptknoten: echte Ursache + Skalierung 2/4/8 (Claude, 2026-08-18)
+
+Die sichtbar gemachte Diagnosezeile hat den Fall in einem Durchgang geklärt (`run/logs/2026-08-18_16-17-43_server.log`):
+
+```
+14:18:09 WARN [BUD] Ore Ore_Adamantite has no world block 'Ore_Adamantite_Stone' - Mining main nodes stay idle for it.
+14:19:16 INFO [BUD] Mining winner selection - random dig sites=0/5, targetOre=none (main nodes idle), ... -> chosen: DIG@...
+   ... bis random dig sites=5/5, dig=null -> chosen: none
+```
+
+Zwei Erkenntnisse daraus:
+
+**1. Die Zufallsloch-Grenze funktioniert exakt wie gebaut** — 0/5 bis 5/5, danach `chosen: none`. Der Verdacht "nur drei Löcher" aus der Runde davor war korrekt als Nicht-Fehler eingeordnet.
+
+**2. `BlockType.fromString("Ore_Adamantite_Stone")` liefert zur Laufzeit `null`.** Damit ist die Sache endgültig entschieden, und zwar gegen die *Korrektur* aus der Runde davor: `Server/BlockTypeList/Ores.json` listet zwar neun `Ore_*_Stone`-Ids, aber diese Liste ist **kein Nachweis, dass ein BlockType existiert** — für Adamantite gibt es real nur `Ore_Adamantite_Magma`. Die ursprüngliche Dateisuche unter `Item/Items/Ore/` lag also richtig, die anschließende "Richtigstellung" war eine Überkorrektur auf Basis einer Referenzliste statt echter Assets. **Lehre: Bei Block-Ids ist die Laufzeit die einzige verlässliche Instanz** — Dateiliste und `BlockTypeList` sind beide nur Indizien, und die eine kann die andere nicht widerlegen.
+
+**Fix ohne Rückkehr zum Config-Mapping** (Saschas Wunsch bleibt erfüllt): `getOreTargetBlock` probiert jetzt eine geordnete Liste von Wirtsgesteins-Suffixen durch und nimmt das erste, das die Engine tatsächlich kennt — `_Stone`, `_Magma`, `_Slate`, `_Shale`, `_Sandstone`, `_Basalt`, `_Volcanic`, `_Calcite`, `_Mud`. `_Stone` steht bewusst vorn (passt optisch zur Pyramide und wäre die bevorzugte Variante, falls Hytale sie nachliefert), Adamantite landet auf `_Magma`, Cobalt auf `_Slate`, Thorium auf `_Sandstone`. Aufgelöst wird weiterhin **lazy** bei Benutzung, nie beim Config-Laden — genau der Zeitpunkt-Fehler, der in der Runde davor die Hauptknoten lahmgelegt hatte. Pro Erzsorte gibt es genau eine Log-Zeile: `info` mit dem tatsächlich gewählten Block, oder `warning`, wenn kein Wirtsgestein existiert (betrifft nur Prisma und Onyxium). `isOreBlock` dreht dieselbe Suffixliste um.
+
+**Hauptknoten-Anzahl skaliert jetzt mit der Feldgröße** (Saschas Vorgabe "bei größeren Feldern auch 4/8"): `FieldRadius <= 6` → 2 Knoten, `<= 9` → 4, darüber → 8. Die Mittelpunkte liegen gleichmäßig auf einem Kreis mit Abstand `FieldRadius - 1`, beginnend bei 90° — dadurch ergibt die 2er-Variante genau die beiden ±Z-Knoten, die bereits abgestimmt waren, die 4er ergänzt ±X, die 8er zusätzlich die Diagonalen.
+
+**Dabei einen Geometriefehler vorab abgefangen:** Bei 8 Knoten hätte ein einfaches Runden die Diagonal-Mittelpunkte auf Distanz 11,31 bei Radius 12 gesetzt — zwei der vier Kreuzarme wären damit auf 12,04 gelandet, also außerhalb des Feldradius, und wären von `serpentinePositions` gar nicht erst geliefert worden. Die Kreuze wären dauerhaft unvollständig geblieben. `nodeOffset` schrumpft den Radius deshalb schrittweise, bis der Mittelpunkt garantiert innerhalb von `FieldRadius - 1` liegt. Nachgerechnet für Radius 5/8/12: alle Kreuzarme liegen bei allen drei Knotenzahlen innerhalb des Feldes (weitester Arm exakt auf dem Rand bei den Achsenknoten, 10,63 bei den Diagonalen).
+
+**Priorisierung geschärft:** Hauptknoten-Buddeln steht jetzt an **erster** Stelle der Mining-Kette, vor dem Abbauen fertiger Steine ("Es ist wichtig, dass die zuerst gemacht werden und random blocks so nebenbei danach"). Reihenfolge jetzt: Knotenloch → fertiges Erz am Knoten (höchstes zuerst) → fertiger Zufallsstein → Zufallsloch. Das steht in leichter Spannung zur früheren Vorgabe "Steine soll Veri immer abbauen wenn sie da sind"; praktisch fällt es kaum ins Gewicht, weil Knotenlöcher nur einmal je Zyklus anfallen und `digNode` danach leer bleibt.
+
+`.\gradlew build` zweimal grün.
+
+## Mining Slice 2 — Kreuz wurde nicht gebuddelt + Erzverbrauch (Claude, 2026-08-18)
+
+Test zeigte: genau **ein** Knotenloch, danach `digNode=null` und Stillstand.
+
+```
+14:32:17 digNode=(-1310, 119, 471) -> chosen: DIG@...
+14:32:20 digNode=null, dig=null -> chosen: none   (und so weiter)
+```
+
+**Ursache:** Die Knotenkandidaten wurden aus derselben Positionsliste gefiltert, die auch die Zufallslöcher benutzt — `FieldCandidates.serpentinePositions(anchor, radius, FieldMaxHeight)`. Deren vertikales Band ist aber nur `FieldMaxHeight` (= 2) um den Stationsanker. Liegt ein Knoten am Feldrand auf einer Kante oder Böschung, fallen die Kreuzarme (und der zweite Knotenmittelpunkt) aus diesem schmalen Band heraus und tauchen in der Liste gar nicht erst auf — sie konnten deshalb nie Kandidat werden. Das deckt sich mit Saschas Beobachtung "horizontal an einer Kante ein Loch, aber kein Kreuz" und mit seiner Vorgabe, "ob da auch ein valider block ist (oder Versatz drüber/drunter in der Höhe)" zu berücksichtigen.
+
+**Fix:** Die Knotensuche hängt nicht mehr am Feldscan, sondern läuft **spaltenweise** in `MiningFieldScan.scanNodes`. Für jede der 5 Kreuzspalten je Knoten wird ein eigenes, breiteres Höhenband (`NODE_VERTICAL_SEARCH = 4` über und unter dem Anker) von oben nach unten durchsucht — zuerst nach etwas Abbaubarem, dann nach einem laufenden Wachstum, zuletzt nach einer grabbaren Bodenposition. Damit findet Veri den Boden auch bei Höhenversatz, und die Kreuzgeometrie ist unabhängig davon, was der allgemeine Feldscan liefert. Die Geometrie selbst entspricht exakt Saschas Aufzählung (Kern auf `FieldRadius - 1`, links/rechts ±1 in der einen, davor/dahinter ±1 in der anderen Horizontalachse) — sie war schon vorher richtig, wurde nur nie erreicht.
+
+**Diagnose mitgeliefert:** Die Mining-Logzeile führt jetzt `digNode=... [growing=n, ready=n, noGround=n]`. `noGround` zählt Kreuzspalten, in denen im gesamten Höhenband keine grabbare Position gefunden wurde — falls also weiterhin etwas fehlt, ist sofort sichtbar, ob es an der Geometrie oder am Untergrund liegt.
+
+**Erz wird jetzt verbraucht** (Saschas Vorgabe "Ein Ore für eben eine Pyramide"): Beim Ausheben des **Kernlochs** wird genau ein Erz aus dem zweiten Input-Slot entnommen und der Zielblock am Wachstums-Component hinterlegt. Die vier Arme entnehmen **nichts** mehr, sondern erben den Zielblock über `resolveNodeOreBlock` vom bereits gestarteten Kern — sonst wäre die Pyramide nach dem Verbrauch des einzigen Erzes auf halber Strecke stehengeblieben, weil die Arme ihre Erzsorte bis dahin aus dem (nun leeren) Slot lasen. Ein neuer Kern startet folglich nur, solange noch Erz im Slot liegt; angefangene Pyramiden laufen unabhängig davon zu Ende.
+
+**Ertrag auf Saschas Zielzahl gebracht:** Die Pyramide besteht aus 6 Blöcken (Kern + 4 Arme + Deckstein). Würden alle zu Erz, wären es 6 Erz statt der genannten "5 Ertrag, d.h. 4 Gewinn". Deshalb reift der **Deckstein** jetzt nicht zu Erz, sondern zu `Mining_Growth_Ready` — also gewöhnlichem, abbaubarem Stein. Das trifft beide Vorgaben gleichzeitig: 5 erztragende Blöcke (Kreuz) und die "Stein-Nebenprodukte, die bei den Hauptknoten anfallen". Dafür bekam der Deckstein eine eigene Rolle `KIND_NODE_CAP` in der Komponente, und `scanNodes` sucht je Spalte von oben nach unten nach *irgendetwas Abbaubarem* (Erzblock **oder** fertiger Stein) — dadurch wird der Deckstein automatisch zuerst abgebaut, was die bereits eingebaute Regel "Deckstein vor Kern, sonst bleibt Erde in der Luft stehen" weiterhin trägt.
+
+**Priorität unverändert:** Knotenloch → Abbaubares am Knoten (höchstes zuerst) → fertiger Zufallsstein → Zufallsloch.
+
+`.\gradlew build` zweimal grün.
+
+## Mining Slice 2 — Knoten am Stück abarbeiten + Deckstein wieder als Erz (Claude, 2026-08-18)
+
+**Deckstein zurück auf Erz** (Saschas Entscheidung nach dem Vorschlag der letzten Runde): Die Pyramide besteht damit aus 6 erztragenden Blöcken, Ertrag also 6 Erz bei 1 verbrauchtem — Gewinn +5 statt der zuvor angepeilten +4. Die eigene Rolle `KIND_NODE_CAP` wurde wieder entfernt statt ungenutzt stehenzubleiben; der Deckstein trägt wieder `KIND_NODE_ARM`. Dass er trotzdem zuerst abgebaut wird (nötig, damit `clear()` keinen schwebenden Erdblock hinterlässt), trägt weiterhin die Spaltensuche von oben nach unten kombiniert mit "höchste Position gewinnt" — das hängt an der Geometrie, nicht an der Rolle.
+
+**Veri springt nicht mehr zwischen den Knoten.** Vorher wurden Grab- und Abbaukandidaten über *alle* Knoten hinweg gesammelt und global priorisiert (Kernloch schlug Armloch). Sobald noch Erz im Slot lag, gewann deshalb der Kern des *zweiten* Knotens gegen die Arme des ersten — Veri lief los, bevor die erste Pyramide fertig war. Genau das hat Sascha beobachtet.
+
+`scanNodes` sammelt die Arbeit jetzt **pro Knoten** und liefert nur die des ersten Knotens mit offener Arbeit zurück. Zusätzlich gilt global **Abbauen vor Buddeln**: liegt irgendwo reifes Erz, wird kein neues Loch angefangen. Das ist nicht nur Kosmetik, sondern verhindert ein echtes Verhungern — ohne diese Regel hätte der erste Knoten nach dem Leerräumen sofort wieder eine Grabposition gehabt und dauerhaft Vorrang behalten, während der zweite Knoten nie abgebaut worden wäre.
+
+Ergebnis der Reihenfolge: Knoten 1 komplett ausheben (Kern, dann Arme) → wächst → Knoten 2 ausheben → beide wachsen → Zufallslöcher nebenbei → Knoten 1 komplett abbauen → Knoten 2 komplett abbauen.
+
+**Zur Frage "macht Veri keine Random-Blöcke mehr?":** Doch — das Log der Testrunde zeigt zwischen den Knotenaktionen einen Zufallsgrabvorgang bei `(-1312, 119, 459)` (Manhattan-Abstand 2 vom Knotenkern, also bewusst kein Kreuzfeld). Zufallslöcher laufen weiterhin, aber nur, wenn gerade **kein** Knoten offene Arbeit hat — das war und ist die gewünschte "nebenbei"-Priorität.
+
+**Diagnose erweitert:** Die Logzeile nennt jetzt zusätzlich, welcher Knoten gerade bearbeitet wird: `digNode=... [node=1, growing=n, ready=n, noGround=n]`.
+
+`.\gradlew build` zweimal grün.

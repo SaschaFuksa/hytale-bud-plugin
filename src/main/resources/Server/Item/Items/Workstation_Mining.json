@@ -77,6 +77,15 @@
         }
       }
     },
+    "BlockEntity": {
+      "Components": {
+        "BenchBlock": {},
+        "ProcessingBenchBlock": {},
+        "WorkstationBlockEntity": {
+          "WorkRole": "Mining"
+        }
+      }
+    },
     "Gathering": {
       "Breaking": {
         "GatherType": "Benches"

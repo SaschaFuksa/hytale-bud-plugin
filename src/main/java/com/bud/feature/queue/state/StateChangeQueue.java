@@ -61,11 +61,6 @@ public class StateChangeQueue extends AbstractQueue {
         budComponent.setCurrentState(entry.newState());
         StateChangeEvent.dispatch(budComponent.getBud(), budComponent.getPlayerRef(), entry.newState());
         if (entry.newState() == BudState.WORKING) {
-            // Working transitions must stay side-effect free (no LLM chat, no bud-to-bud reaction) - see
-            // docs/bud-worker-mode-plan.md "Working-State / Kampf-Lock". Callers that want a Working
-            // transition dispatch StateChangeEvent directly instead of routing through this queue (see
-            // StateCommand's debug path); this guard also catches native Role state changes picked up by
-            // StateChangeSystem.
             return;
         }
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();

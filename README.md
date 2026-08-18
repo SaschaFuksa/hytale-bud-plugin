@@ -222,9 +222,15 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered - matches the native watering can's own duration (`Server/Item/Interactions/Tools/Watering_Can_Use.json`, `"Duration": 86400`), so a Bud waters no more/less often than a player would. Setting this too low makes the field scan see already-watered tiles as needing water again before it can reach the rest of the field, so watering never finishes covering it | `86400` |
 | `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
 | `HarvestIntervalSeconds` | Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one | `1` |
+| `FellIntervalSeconds` | Pacing: how long a working Bud waits after felling a tree before the Workstation releases the next one | `1` |
+| `DigIntervalSeconds` | Pacing: how long a Mining Bud waits after digging a hole before the Workstation releases the next one | `1` |
+| `MineIntervalSeconds` | Pacing: how long a Mining Bud waits after mining a grown stone before the Workstation releases the next one | `1` |
 | `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (not yet implemented) | `3` |
-| `OreMinDistance` | Minimum distance (blocks) enforced between ore veins a Mining Bud works (not yet implemented) | `2` |
+| `TreeEdgePositionCount` | How many field-edge positions a Foresting Bud scans for fellable trees | `8` |
+| `OreMinDistance` | Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field instead of clustering | `2` |
+| `MiningGrowthGameSecondsMin` | Lower bound of the **game-time** seconds a dug hole takes to grow its stone. Deliberately expressed in game seconds, matching how Vanilla defines its own growth stages (`Farming.Stages[].Duration`, e.g. `28800`-`30600` per crop stage) - game time stands still while the server is down, so a half-grown hole keeps its remaining time across a restart. Note the game clock runs faster than real time (factor = `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x by default, so `28800` is roughly 16 real minutes) | `28800` |
+| `MiningGrowthGameSecondsMax` | Upper bound of the same span; each hole rolls its own duration in `[Min, Max]` so dig sites don't all mature in lockstep (same trick Vanilla uses) | `30600` |
 | `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |
 | `RebindRetrySeconds` | Retry interval (seconds) for re-binding a Bud to its Workstation after the owner wasn't online at load time | `10` |
 <br>
@@ -277,8 +283,8 @@ Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/
 
 Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
 
-### 🌾 Farming Recipes (`work/farming.yml`)
-Which seeds a working Bud is willing to plant is data-driven too, per `WorkRole` (so a future Foresting/Alchemy station gets its own list without touching Farming's). `work/farming.yml` in the mod's runtime data folder has an `allowedSeeds` map keyed by role name (currently just `FARMING`) listing allowed seed item ids (`Plant_Seeds_*`) — edit the list to add/remove crops without a rebuild. Same copy-on-first-start convention as `buds/`/`prompts/`: the packaged default is only written if the file is missing, custom edits are left untouched.
+### 🌾 Work Recipes (`work/recipes.yml`)
+Which seeds/saplings and fuel a working Bud is willing to use is data-driven, per `WorkRole` (`FARMING` and `LUMBERING` both have their own sections today; a future Mining station gets its own list the same way). `work/recipes.yml` in the mod's runtime data folder has `allowedSeeds`/`allowedFuel` maps keyed by role name listing allowed item ids — edit the lists to add/remove crops, trees, or fuel without a rebuild. Same copy-on-first-start convention as `buds/`/`prompts/`: the packaged default is only written if the file is missing, custom edits are left untouched.
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.

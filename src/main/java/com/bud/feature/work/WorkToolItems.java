@@ -14,6 +14,10 @@ public final class WorkToolItems {
 
     public static final String FELL_TOOL_ITEM = "Tool_Hatchet_Cobalt";
 
+    public static final String DIG_TOOL_ITEM = "Tool_Shovel_Iron";
+
+    public static final String MINE_TOOL_ITEM = "Tool_Pickaxe_Iron";
+
     private WorkToolItems() {
     }
 

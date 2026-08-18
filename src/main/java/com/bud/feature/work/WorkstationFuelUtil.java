@@ -17,11 +17,14 @@ final class WorkstationFuelUtil {
         if (itemStack == null || itemStack.isEmpty()) {
             return true;
         }
-        if (FarmingRecipeConfig.getInstance().getAllowedFuel(workRole).isEmpty()) {
+        if (WorkstationCardUtil.resolveBudId(itemStack) != null) {
+            return false;
+        }
+        if (WorkRecipeConfig.getInstance().getAllowedFuel(workRole).isEmpty()) {
             return true;
         }
         String itemId = Objects.requireNonNull(itemStack.getItem().getId());
-        return FarmingRecipeConfig.getInstance().isFuelAllowed(workRole, itemId);
+        return WorkRecipeConfig.getInstance().isFuelAllowed(workRole, itemId);
     }
 
 }

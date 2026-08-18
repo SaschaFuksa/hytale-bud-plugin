@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 
 import com.bud.llm.messages.AbstractYamlMessage;
 
-class FarmingRecipeYaml extends AbstractYamlMessage {
+class WorkRecipeYaml extends AbstractYamlMessage {
 
     private Map<String, List<String>> allowedSeeds;
 
@@ -25,6 +25,10 @@ class FarmingRecipeYaml extends AbstractYamlMessage {
     private List<String> tilledSoilBlocks;
 
     private String tilledSoilTargetBlock;
+
+    private List<String> diggableBlocks;
+
+    private String digRefillBlock;
 
     @Nonnull
     Map<String, List<String>> getAllowedSeeds() {
@@ -62,9 +66,20 @@ class FarmingRecipeYaml extends AbstractYamlMessage {
     }
 
     @Nonnull
-    static FarmingRecipeYaml load(@Nonnull Path path) {
-        FarmingRecipeYaml loaded = loadFromFile(FarmingRecipeYaml.class, path);
-        return loaded != null ? loaded : new FarmingRecipeYaml();
+    List<String> getDiggableBlocks() {
+        return diggableBlocks != null ? diggableBlocks : Objects.requireNonNull(List.of());
+    }
+
+    @Nullable
+    String getDigRefillBlock() {
+        return digRefillBlock;
+    }
+
+
+    @Nonnull
+    static WorkRecipeYaml load(@Nonnull Path path) {
+        WorkRecipeYaml loaded = loadFromFile(WorkRecipeYaml.class, path);
+        return loaded != null ? loaded : new WorkRecipeYaml();
     }
 
 }

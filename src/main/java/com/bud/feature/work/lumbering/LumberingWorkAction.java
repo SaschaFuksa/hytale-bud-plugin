@@ -16,7 +16,6 @@ import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.WorkToolItems;
-import com.bud.feature.work.WorkstationWoodUtil;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -43,7 +42,8 @@ public class LumberingWorkAction extends AbstractWorkAction {
     @Nullable
     @Override
     protected Vector3i resolveWorkBlockPosition(@Nonnull BudComponent bud) {
-        return bud.getPendingFellBlockPosition();
+        Vector3i fellBlockPosition = bud.getPendingFellBlockPosition();
+        return fellBlockPosition != null ? fellBlockPosition : super.resolveWorkBlockPosition(bud);
     }
 
     @Nonnull
@@ -53,15 +53,12 @@ public class LumberingWorkAction extends AbstractWorkAction {
         if (fellBlockPosition == null) {
             return target;
         }
-        // fellBlockPosition is a raw integer block coordinate; anchor/target elsewhere use the block-center
-        // convention (+0.5 on x/y/z), so match that here too - otherwise this check is off by up to 1 block
-        // and rejects otherwise-valid fell targets.
         return new Vector3d(fellBlockPosition.x + 0.5, fellBlockPosition.y + 0.5, fellBlockPosition.z + 0.5);
     }
 
     @Override
-    protected void executeWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store, @Nonnull World world,
-            @Nonnull BudComponent bud, int x, int y, int z) {
+    protected void executeExtraWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store,
+            @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
         if (workType != WorkType.FELL) {
             throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         }
@@ -70,7 +67,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
 
     @Nonnull
     @Override
-    protected String toolItemFor(@Nonnull WorkType workType) {
+    protected String extraToolItemFor(@Nonnull WorkType workType) {
         if (workType != WorkType.FELL) {
             throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         }
@@ -78,7 +75,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
     }
 
     @Override
-    protected float cooldownSecondsFor(@Nonnull WorkType workType) {
+    protected float extraCooldownSecondsFor(@Nonnull WorkType workType) {
         if (workType != WorkType.FELL) {
             throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         }
@@ -87,12 +84,12 @@ public class LumberingWorkAction extends AbstractWorkAction {
 
     @Nonnull
     @Override
-    protected String animationNameFor(@Nonnull WorkType workType) {
+    protected String extraAnimationNameFor(@Nonnull WorkType workType) {
         return FELL_ANIMATION;
     }
 
     @Override
-    protected void clearPendingWorkData(@Nonnull BudComponent bud) {
+    protected void clearExtraPendingWorkData(@Nonnull BudComponent bud) {
         bud.setPendingFellBlockPosition(null);
     }
 
@@ -128,22 +125,18 @@ public class LumberingWorkAction extends AbstractWorkAction {
                 WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
         int connectedCount = connectedWoodBlocks.size();
         LoggerUtil.getLogger()
-                .info(() -> "[BUD] executeFell at " + base + " - connected Wood_ blocks: " + connectedCount);
+                .fine(() -> "[BUD] executeFell at " + base + " - connected Wood_ blocks: " + connectedCount);
         if (connectedWoodBlocks.isEmpty()) {
             return;
         }
         List<ItemStack> drops = WorkstationWoodUtil.collectFellingDrops(world, connectedWoodBlocks);
         boolean hasRoom = output.canAddItemStacks(drops, false, false);
-        LoggerUtil.getLogger().info(() -> "[BUD] executeFell at " + base + " - output capacity check: "
+        LoggerUtil.getLogger().fine(() -> "[BUD] executeFell at " + base + " - output capacity check: "
                 + (hasRoom ? "OK" : "FAILED, aborting fell"));
         if (!hasRoom) {
             return;
         }
         output.addItemStacks(drops, false, false, false);
-        // A trunk/root can be several blocks wide (or dip into uneven terrain), so more than one column can end
-        // up with a hole after felling. Every position whose downward neighbor isn't itself part of the felled
-        // tree is a genuine ground-contact point - patch each of those with dirt instead of only the one block
-        // that triggered the fell.
         Set<Vector3i> connectedWoodBlockSet = new HashSet<>(connectedWoodBlocks);
         List<Vector3i> groundContactBlocks = new ArrayList<>();
         for (Vector3i position : connectedWoodBlocks) {
@@ -156,8 +149,12 @@ public class LumberingWorkAction extends AbstractWorkAction {
             world.setBlock(position.x, position.y, position.z, BlockType.EMPTY_KEY);
         }
         WorkstationWoodUtil.wakeSurroundingBlocksForPhysicsRecheck(world, connectedWoodBlocks);
+        int groundLevelY = anchorY - 1;
         for (Vector3i position : groundContactBlocks) {
-            world.setBlock(position.x, position.y, position.z, DIRT_BLOCK_ID);
+            int fillFromY = Math.min(position.y, groundLevelY);
+            for (int fillY = fillFromY; fillY <= groundLevelY; fillY++) {
+                world.setBlock(position.x, fillY, position.z, DIRT_BLOCK_ID);
+            }
         }
     }
 

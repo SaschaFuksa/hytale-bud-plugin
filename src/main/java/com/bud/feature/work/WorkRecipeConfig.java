@@ -19,11 +19,11 @@ import com.bud.core.types.WorkRole;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 
-public final class FarmingRecipeConfig {
+public final class WorkRecipeConfig {
 
-    private static final String PACKAGED_FILE = "farming.yml";
+    private static final String PACKAGED_FILE = "recipes.yml";
 
-    private static FarmingRecipeConfig instance;
+    private static WorkRecipeConfig instance;
 
     private final Map<WorkRole, Set<String>> allowedSeedsByRole = new EnumMap<>(WorkRole.class);
 
@@ -43,12 +43,25 @@ public final class FarmingRecipeConfig {
     @Nullable
     private String tilledSoilTargetBlock;
 
-    private FarmingRecipeConfig() {
+    private final Set<String> diggableBlocks = new HashSet<>();
+
+    @Nullable
+    private String digRefillBlock;
+
+    @Nonnull
+    private static final List<String> ORE_BLOCK_SUFFIXES = Objects.requireNonNull(List.of(
+            "_Stone", "_Magma", "_Slate", "_Shale", "_Sandstone", "_Basalt", "_Volcanic", "_Calcite", "_Mud"));
+
+    @Nonnull
+    private static final Set<String> LOGGED_UNRESOLVED_ORES = Objects
+            .requireNonNull(java.util.Collections.synchronizedSet(new HashSet<>()));
+
+    private WorkRecipeConfig() {
     }
 
-    public static FarmingRecipeConfig getInstance() {
+    public static WorkRecipeConfig getInstance() {
         if (instance == null) {
-            instance = new FarmingRecipeConfig();
+            instance = new WorkRecipeConfig();
         }
         return instance;
     }
@@ -91,11 +104,14 @@ public final class FarmingRecipeConfig {
         tillableBlocks.clear();
         tilledSoilBlocks.clear();
         tilledSoilTargetBlock = null;
+        diggableBlocks.clear();
+        digRefillBlock = null;
+        LOGGED_UNRESOLVED_ORES.clear();
         if (!Files.exists(path)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Farming recipe file missing: " + path);
             return;
         }
-        FarmingRecipeYaml yaml = FarmingRecipeYaml.load(path);
+        WorkRecipeYaml yaml = WorkRecipeYaml.load(path);
         tillableBlocks.addAll(yaml.getTillableBlocks());
         if (tillableBlocks.isEmpty()) {
             LoggerUtil.getLogger()
@@ -112,6 +128,18 @@ public final class FarmingRecipeConfig {
         } else {
             LoggerUtil.getLogger()
                     .warning(() -> "[BUD] No 'tilledSoilTargetBlock' in " + path + ".");
+        }
+        diggableBlocks.addAll(yaml.getDiggableBlocks());
+        if (diggableBlocks.isEmpty()) {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] No 'diggableBlocks' in " + path + ".");
+        }
+        String refillBlock = yaml.getDigRefillBlock();
+        if (refillBlock != null && !refillBlock.isBlank()) {
+            digRefillBlock = refillBlock;
+        } else {
+            LoggerUtil.getLogger()
+                    .warning(() -> "[BUD] No 'digRefillBlock' in " + path + ".");
         }
         for (Map.Entry<String, List<String>> entry : yaml.getAllowedSeeds().entrySet()) {
             try {
@@ -195,6 +223,51 @@ public final class FarmingRecipeConfig {
     @Nullable
     public String getTilledSoilTargetBlock() {
         return tilledSoilTargetBlock;
+    }
+
+    public boolean isDiggableBlock(@Nonnull String blockTypeId) {
+        return diggableBlocks.contains(blockTypeId);
+    }
+
+    @Nullable
+    public String getDigRefillBlock() {
+        return digRefillBlock;
+    }
+
+    @Nullable
+    public String getOreTargetBlock(@Nonnull String oreItemId) {
+        if (!isSeedAllowed(WorkRole.MINING, oreItemId)) {
+            return null;
+        }
+        for (String suffix : ORE_BLOCK_SUFFIXES) {
+            String candidate = oreItemId + suffix;
+            if (BlockType.fromString(candidate) != null) {
+                if (LOGGED_UNRESOLVED_ORES.add(oreItemId)) {
+                    LoggerUtil.getLogger()
+                            .info(() -> "[BUD] Ore " + oreItemId + " grows as world block '" + candidate + "'.");
+                }
+                return candidate;
+            }
+        }
+        if (LOGGED_UNRESOLVED_ORES.add(oreItemId)) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] Ore " + oreItemId + " has no world block in any known host "
+                    + "rock " + ORE_BLOCK_SUFFIXES + " - Mining main nodes stay idle for it.");
+        }
+        return null;
+    }
+
+    public boolean isOreBlock(@Nonnull String blockTypeId) {
+        for (String suffix : ORE_BLOCK_SUFFIXES) {
+            if (!blockTypeId.endsWith(suffix)) {
+                continue;
+            }
+            String oreItemId = Objects
+                    .requireNonNull(blockTypeId.substring(0, blockTypeId.length() - suffix.length()));
+            if (isSeedAllowed(WorkRole.MINING, oreItemId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

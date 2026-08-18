@@ -37,12 +37,15 @@ import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
 import com.bud.feature.work.BuilderWorkTargetSensor;
-import com.bud.feature.work.FarmingRecipeConfig;
+import com.bud.feature.work.WorkRecipeConfig;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationFilterSystem;
 import com.bud.feature.work.WorkstationFuelTickSystem;
 import com.bud.feature.work.farming.BuilderActionFarmWork;
 import com.bud.feature.work.lumbering.BuilderActionLumberingWork;
+import com.bud.feature.work.mining.BuilderActionMiningWork;
+import com.bud.feature.work.mining.OreGrowthBlock;
+import com.bud.feature.work.mining.OreGrowthTickSystem;
 import com.bud.feature.work.reaction.BuilderActionWorkTalk;
 import com.bud.interaction.CardBudInteraction;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -88,7 +91,7 @@ public class BudPlugin extends JavaPlugin {
         this.setupLogging();
         LLMPromptManager.getInstance().reloadMissingPrompts();
         BudRegistry.getInstance().reloadMissing();
-        FarmingRecipeConfig.getInstance().reloadMissing();
+        WorkRecipeConfig.getInstance().reloadMissing();
 
         // Register BudComponent for state tracking
         ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(
@@ -114,8 +117,17 @@ public class BudPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(new WorkstationFilterSystem());
         this.getChunkStoreRegistry().registerSystem(new WorkstationFuelTickSystem());
 
+        ComponentType<ChunkStore, OreGrowthBlock> oreGrowthBlockType = this.getChunkStoreRegistry()
+                .registerComponent(
+                        OreGrowthBlock.class,
+                        "OreGrowthBlock",
+                        OreGrowthBlock.CODEC);
+        OreGrowthBlock.setComponentType(oreGrowthBlockType);
+        this.getChunkStoreRegistry().registerSystem(new OreGrowthTickSystem());
+
         NPCPlugin.get().registerCoreComponentType("FarmWork", BuilderActionFarmWork::new);
         NPCPlugin.get().registerCoreComponentType("LumberingWork", BuilderActionLumberingWork::new);
+        NPCPlugin.get().registerCoreComponentType("MiningWork", BuilderActionMiningWork::new);
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
         NPCPlugin.get().registerCoreComponentType("WorkTalk", BuilderActionWorkTalk::new);
 

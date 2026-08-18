@@ -1,5 +1,6 @@
 package com.bud.feature.work;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -37,12 +38,10 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.npc.INonPlayerCharacter;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -271,21 +270,24 @@ final class WorkstationBindingHandler {
     }
 
     @Nonnull
-    private static final Map<WorkRole, String> HARVEST_TYPE_TOOL_ITEM = Objects.requireNonNull(Map.of(
-            WorkRole.FARMING, WorkToolItems.HARVEST_TOOL_ITEM,
-            WorkRole.LUMBERING, WorkToolItems.FELL_TOOL_ITEM));
+    private static final Map<WorkRole, List<String>> WORK_TOOLS_BY_ROLE = Objects.requireNonNull(Map.of(
+            WorkRole.FARMING, List.of(WorkToolItems.TILL_TOOL_ITEM, WorkToolItems.WATER_TOOL_ITEM,
+                    WorkToolItems.PLANT_TOOL_ITEM, WorkToolItems.FERTILIZE_TOOL_ITEM, WorkToolItems.HARVEST_TOOL_ITEM),
+            WorkRole.LUMBERING, List.of(WorkToolItems.TILL_TOOL_ITEM, WorkToolItems.WATER_TOOL_ITEM,
+                    WorkToolItems.PLANT_TOOL_ITEM, WorkToolItems.FERTILIZE_TOOL_ITEM, WorkToolItems.FELL_TOOL_ITEM),
+            WorkRole.MINING, List.of(WorkToolItems.DIG_TOOL_ITEM, WorkToolItems.MINE_TOOL_ITEM)));
 
     @Nonnull
     private static BudSpawner withWorkTools(@Nonnull BudSpawner spawner, @Nonnull BudDefinition budProfile) {
-        String harvestTypeTool = HARVEST_TYPE_TOOL_ITEM.get(budProfile.getWorkRole());
-        if (harvestTypeTool == null) {
+        List<String> tools = WORK_TOOLS_BY_ROLE.get(budProfile.getWorkRole());
+        if (tools == null) {
             return spawner;
         }
-        return spawner.addTool(WorkToolItems.TILL_TOOL_ITEM, (short) 0)
-                .addTool(WorkToolItems.WATER_TOOL_ITEM, (short) 1)
-                .addTool(WorkToolItems.PLANT_TOOL_ITEM, (short) 2)
-                .addTool(WorkToolItems.FERTILIZE_TOOL_ITEM, (short) 3)
-                .addTool(harvestTypeTool, (short) 4);
+        BudSpawner result = spawner;
+        for (int slot = 0; slot < tools.size(); slot++) {
+            result = result.addTool(tools.get(slot), (short) slot);
+        }
+        return result;
     }
 
     @Nullable
@@ -369,27 +371,7 @@ final class WorkstationBindingHandler {
 
     @Nullable
     static Vector3i resolveWorkstationBlockPosition(@Nonnull Store<ChunkStore> chunkStore, @Nonnull Ref<ChunkStore> ref) {
-        BlockModule.BlockStateInfo blockStateInfo = chunkStore.getComponent(ref,
-                Objects.requireNonNull(BlockModule.BlockStateInfo.getComponentType()));
-        if (blockStateInfo == null) {
-            return null;
-        }
-        Ref<ChunkStore> chunkRef = blockStateInfo.getChunkRef();
-        if (!chunkRef.isValid()) {
-            return null;
-        }
-        BlockChunk blockChunk = chunkStore.getComponent(chunkRef,
-                Objects.requireNonNull(BlockChunk.getComponentType()));
-        if (blockChunk == null) {
-            return null;
-        }
-        int index = blockStateInfo.getIndex();
-        int localX = ChunkUtil.xFromBlockInColumn(index);
-        int localY = ChunkUtil.yFromBlockInColumn(index);
-        int localZ = ChunkUtil.zFromBlockInColumn(index);
-        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
-        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
-        return new Vector3i(worldX, localY, worldZ);
+        return BlockEntityPositions.resolve(chunkStore, ref);
     }
 
     @Nullable

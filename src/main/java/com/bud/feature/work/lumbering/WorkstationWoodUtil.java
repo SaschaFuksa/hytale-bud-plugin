@@ -1,4 +1,4 @@
-package com.bud.feature.work;
+package com.bud.feature.work.lumbering;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -10,20 +10,20 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.joml.Vector3i;
+
+import com.bud.feature.work.BlockDrops;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-
-import org.joml.Vector3i;
 
 public final class WorkstationWoodUtil {
 
     private static final String WOOD_BLOCK_PREFIX = "Wood_";
+
+    private static final String TRUNK_BLOCK_MARKER = "_Trunk";
 
     public static final int MAX_CONNECTED_BLOCKS = 256;
 
@@ -44,6 +44,17 @@ public final class WorkstationWoodUtil {
         }
         String blockId = blockType.getId();
         return blockId != null && blockId.startsWith(WOOD_BLOCK_PREFIX);
+    }
+
+    public static boolean hasTrunkBlock(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {
+        for (Vector3i position : connectedWoodBlocks) {
+            BlockType blockType = world.getBlockType(position.x, position.y, position.z);
+            String blockId = blockType != null ? blockType.getId() : null;
+            if (blockId != null && blockId.contains(TRUNK_BLOCK_MARKER)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nonnull
@@ -74,7 +85,8 @@ public final class WorkstationWoodUtil {
     public static final int MAX_LIFE_ESSENCE_QUANTITY = 50;
 
     @Nonnull
-    public static List<ItemStack> collectFellingDrops(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {
+    public static List<ItemStack> collectFellingDrops(@Nonnull World world,
+            @Nonnull List<Vector3i> connectedWoodBlocks) {
         List<ItemStack> drops = new ArrayList<>();
         for (Vector3i position : connectedWoodBlocks) {
             drops.addAll(resolveDrops(world.getBlockType(position.x, position.y, position.z)));
@@ -86,14 +98,6 @@ public final class WorkstationWoodUtil {
         return drops;
     }
 
-    /**
-     * A raw {@code world.setBlock(..., EMPTY_KEY)} (used to clear felled wood) doesn't notify neighboring blocks
-     * the way a real block-break interaction would, so blocks whose support depended on the felled tree (leaves
-     * above all) never get re-evaluated and stay floating until something else happens to touch them. Mark every
-     * block in a margin around the felled tree's bounding box as ticking - same mechanism {@code TilledSoilBlock}
-     * uses elsewhere in this codebase - so the engine's own block-physics support check picks them up on its own,
-     * instead of us reimplementing "is this a leaf and is it still supported" ourselves.
-     */
     public static void wakeSurroundingBlocksForPhysicsRecheck(@Nonnull World world,
             @Nonnull List<Vector3i> connectedWoodBlocks) {
         if (connectedWoodBlocks.isEmpty()) {
@@ -135,16 +139,7 @@ public final class WorkstationWoodUtil {
 
     @Nonnull
     public static List<ItemStack> resolveDrops(@Nullable BlockType blockType) {
-        if (blockType == null) {
-            return List.of();
-        }
-        BlockGathering gathering = blockType.getGathering();
-        BlockBreakingDropType breaking = gathering != null ? gathering.getBreaking() : null;
-        if (breaking == null) {
-            return List.of();
-        }
-        return BlockHarvestUtils.getDrops(blockType, breaking.getQuantity(), breaking.getItemId(),
-                breaking.getDropListId());
+        return BlockDrops.resolveBreakingDrops(blockType);
     }
 
 }

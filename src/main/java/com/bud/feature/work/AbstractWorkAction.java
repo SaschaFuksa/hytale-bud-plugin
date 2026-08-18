@@ -1,6 +1,8 @@
 package com.bud.feature.work;
 
+import java.time.Instant;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -11,13 +13,22 @@ import org.joml.Vector3i;
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
+import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
+import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.AnimationSlot;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.corecomponents.ActionBase;
 import com.hypixel.hytale.server.npc.corecomponents.builders.BuilderActionBase;
@@ -27,15 +38,11 @@ import com.hypixel.hytale.server.npc.sensorinfo.IPositionProvider;
 import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
 
-/**
- * Shared arrival-gate/dispatch skeleton for the two per-WorkRole work actions
- * ({@code com.bud.feature.work.farming.FarmWorkAction}, {@code com.bud.feature.work.lumbering.LumberingWorkAction}).
- * Holds everything that is genuinely role-agnostic (position resolution, interaction/field-radius gating, tool
- * equip/animation/cooldown plumbing); subclasses only supply their own WorkType set and block-position resolution.
- */
 public abstract class AbstractWorkAction extends ActionBase {
 
     protected static final double INTERACTION_RANGE = 1.75;
+
+    protected static final String WORK_ANIMATION = "Interact";
 
     private static final long ARRIVAL_PROGRESS_LOG_THROTTLE_MILLIS = 1500;
 
@@ -54,20 +61,20 @@ public abstract class AbstractWorkAction extends ActionBase {
         boolean superGate = super.canExecute(ref, role, infoProvider, dt, store);
         if (!superGate || infoProvider == null) {
             boolean infoProviderPresent = infoProvider != null;
-            LoggerUtil.getLogger().warning(() -> "[BUD] " + logTag() + " gate 'super.canExecute' = " + superGate
+            LoggerUtil.getLogger().fine(() -> "[BUD] " + logTag() + " gate 'super.canExecute' = " + superGate
                     + ", gate 'infoProvider != null' = " + infoProviderPresent);
             return false;
         }
         boolean hasPositionGate = infoProvider.hasPosition();
         if (!hasPositionGate) {
-            LoggerUtil.getLogger().warning(() -> "[BUD] " + logTag() + " gate 'infoProvider.hasPosition' = false");
+            LoggerUtil.getLogger().fine(() -> "[BUD] " + logTag() + " gate 'infoProvider.hasPosition' = false");
             return false;
         }
         IPositionProvider positionProvider = infoProvider.getPositionProvider();
         boolean positionResolved = positionProvider != null && positionProvider.providePosition(target);
         if (!positionResolved) {
             LoggerUtil.getLogger()
-                    .warning(() -> "[BUD] " + logTag() + " gate 'positionProvider.providePosition' = false");
+                    .fine(() -> "[BUD] " + logTag() + " gate 'positionProvider.providePosition' = false");
             return false;
         }
 
@@ -78,7 +85,7 @@ public abstract class AbstractWorkAction extends ActionBase {
         boolean withinInteractionRange = isWithinInteractionRange(ref, store);
         boolean withinFieldRadius = isWithinFieldRadius(ref, store);
         LoggerUtil.getLogger()
-                .warning(() -> "[BUD] " + logTag() + " (workType=" + workType + ") gate 'isWithinInteractionRange' = "
+                .fine(() -> "[BUD] " + logTag() + " (workType=" + workType + ") gate 'isWithinInteractionRange' = "
                         + withinInteractionRange + ", gate 'isWithinFieldRadius' = " + withinFieldRadius);
 
         boolean arrived = withinInteractionRange && withinFieldRadius;
@@ -116,40 +123,75 @@ public abstract class AbstractWorkAction extends ActionBase {
         return true;
     }
 
-    /**
-     * The real block this action should act on, for both {@link #isWithinFieldRadius} and {@code execute()}'s
-     * dispatch. Defaults to the resolved movement target - correct whenever the target IS the work block. Override
-     * when the movement target is a walkable neighbor of the real block instead (e.g. Lumbering/FELL).
-     */
     @Nullable
     protected Vector3i resolveWorkBlockPosition(@Nonnull BudComponent bud) {
         return new Vector3i((int) Math.floor(target.x), (int) Math.floor(target.y), (int) Math.floor(target.z));
     }
 
-    /**
-     * Field-radius check position, in the same "target vs. real block" sense as {@link #resolveWorkBlockPosition}.
-     * Kept as a separate hook (rather than reusing {@link #resolveWorkBlockPosition}) since it needs a
-     * {@link Vector3d} and must never return null - the movement target is always a safe fallback.
-     */
     @Nonnull
     protected Vector3d resolveFieldRadiusCheckPosition(@Nonnull BudComponent bud) {
         return target;
     }
 
-    /** No-op by default; override to clear a role-specific pending-assignment side channel (e.g. pending*Position). */
     protected void clearPendingWorkData(@Nonnull BudComponent bud) {
+        bud.setPendingCropBlockType(null);
+        clearExtraPendingWorkData(bud);
     }
 
-    protected abstract void executeWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store,
+    protected void clearExtraPendingWorkData(@Nonnull BudComponent bud) {
+    }
+
+    protected final void executeWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store,
+            @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
+        switch (workType) {
+            case TILL -> executeTill(world, x, y, z);
+            case PLANT -> executePlant(world, bud, x, y, z);
+            case WATER -> executeWater(store, world, x, y, z);
+            case FERTILIZE -> executeFertilize(world, x, y, z);
+            default -> executeExtraWork(workType, store, world, bud, x, y, z);
+        }
+    }
+
+    protected abstract void executeExtraWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store,
             @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z);
 
     @Nonnull
-    protected abstract String toolItemFor(@Nonnull WorkType workType);
-
-    protected abstract float cooldownSecondsFor(@Nonnull WorkType workType);
+    protected final String toolItemFor(@Nonnull WorkType workType) {
+        return switch (workType) {
+            case TILL -> WorkToolItems.TILL_TOOL_ITEM;
+            case WATER -> WorkToolItems.WATER_TOOL_ITEM;
+            case PLANT -> WorkToolItems.PLANT_TOOL_ITEM;
+            case FERTILIZE -> WorkToolItems.FERTILIZE_TOOL_ITEM;
+            default -> extraToolItemFor(workType);
+        };
+    }
 
     @Nonnull
-    protected abstract String animationNameFor(@Nonnull WorkType workType);
+    protected abstract String extraToolItemFor(@Nonnull WorkType workType);
+
+    protected final float cooldownSecondsFor(@Nonnull WorkType workType) {
+        WorkConfig config = WorkConfig.getInstance();
+        return switch (workType) {
+            case TILL -> config.getTillIntervalSeconds();
+            case PLANT -> config.getPlantIntervalSeconds();
+            case WATER -> config.getWaterIntervalSeconds();
+            case FERTILIZE -> config.getFertilizeIntervalSeconds();
+            default -> extraCooldownSecondsFor(workType);
+        };
+    }
+
+    protected abstract float extraCooldownSecondsFor(@Nonnull WorkType workType);
+
+    @Nonnull
+    protected final String animationNameFor(@Nonnull WorkType workType) {
+        return switch (workType) {
+            case TILL, PLANT, WATER, FERTILIZE -> WORK_ANIMATION;
+            default -> extraAnimationNameFor(workType);
+        };
+    }
+
+    @Nonnull
+    protected abstract String extraAnimationNameFor(@Nonnull WorkType workType);
 
     @Nonnull
     protected String logTag() {
@@ -173,7 +215,7 @@ public abstract class AbstractWorkAction extends ActionBase {
         Vector3i fellBlockPosition = bud != null ? bud.getPendingFellBlockPosition() : null;
         double horizontalDistance = Math.sqrt(square(budPosition.x - target.x) + square(budPosition.z - target.z));
         double verticalDistance = Math.abs(budPosition.y - target.y);
-        LoggerUtil.getLogger().info(() -> "[BUD] " + logTag() + " arrival progress - workType=" + workType
+        LoggerUtil.getLogger().fine(() -> "[BUD] " + logTag() + " arrival progress - workType=" + workType
                 + ", budPosition=" + budPosition + ", resolvedTarget=" + target + ", workTarget=" + workTarget
                 + ", pendingFellBlockPosition=" + fellBlockPosition
                 + ", horizontalDistance=" + horizontalDistance + ", verticalDistance=" + verticalDistance
@@ -246,6 +288,94 @@ public abstract class AbstractWorkAction extends ActionBase {
         double radius = WorkConfig.getInstance().getFieldRadius();
         double height = Math.abs(anchor.y - checkPosition.y);
         return horizontalDistanceSquared <= radius * radius && height <= WorkConfig.getInstance().getFieldMaxHeight();
+    }
+
+    private static void executeTill(@Nonnull World world, int x, int y, int z) {
+        String tilledSoilTargetBlock = WorkRecipeConfig.getInstance().getTilledSoilTargetBlock();
+        if (tilledSoilTargetBlock == null) {
+            return;
+        }
+        world.setBlock(x, y, z, tilledSoilTargetBlock);
+        clearOvergrowth(world, x, y, z);
+    }
+
+    private static void executePlant(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
+        String cropBlockType = bud.getPendingCropBlockType();
+        if (cropBlockType == null) {
+            return;
+        }
+        Vector3d anchor = bud.getWorkstationAnchor();
+        if (anchor == null) {
+            return;
+        }
+        ComponentType<ChunkStore, ProcessingBenchBlock> benchType = ProcessingBenchBlock.getComponentType();
+        if (benchType == null) {
+            return;
+        }
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorY = (int) Math.floor(anchor.y) - 1;
+        int anchorZ = (int) Math.floor(anchor.z);
+        Holder<ChunkStore> anchorHolder = world.getBlockComponentHolder(anchorX, anchorY, anchorZ);
+        if (anchorHolder == null) {
+            return;
+        }
+        ProcessingBenchBlock bench = anchorHolder.getComponent(benchType);
+        if (bench == null || bench.getInputContainer() == null) {
+            return;
+        }
+        WorkstationBlockEntity workstation = anchorHolder.getComponent(WorkstationBlockEntity.getComponentType());
+        if (workstation == null) {
+            return;
+        }
+        ItemStack seedStack = bench.getInputContainer().getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
+        String liveCropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
+        if (!cropBlockType.equals(liveCropBlockType)) {
+            return;
+        }
+        bench.getInputContainer().removeItemStackFromSlot(WorkstationSeedUtil.SEEDBAG_SLOT, 1);
+        world.setBlock(x, y + 1, z, cropBlockType);
+    }
+
+    private static void executeWater(@Nonnull Store<EntityStore> store, @Nonnull World world, int x, int y, int z) {
+        Instant now = ((WorldTimeResource) store.getResource(WorldTimeResource.getResourceType())).getGameTime();
+        mutateLiveTilledSoil(world, x, y, z,
+                soil -> soil.setWateredUntil(now.plusSeconds(WorkConfig.getInstance().getWaterDurationSeconds())));
+    }
+
+    private static void executeFertilize(@Nonnull World world, int x, int y, int z) {
+        mutateLiveTilledSoil(world, x, y, z, soil -> soil.setFertilized(true));
+    }
+
+    private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
+            @Nonnull Consumer<TilledSoilBlock> mutator) {
+        WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            return;
+        }
+        Ref<ChunkStore> ref = chunk.getBlockComponentEntity(x, y, z);
+        if (ref == null) {
+            ref = WorldBlockEntities.ensureOrFetch(chunk, x, y, z);
+        }
+        if (ref == null || !ref.isValid()) {
+            return;
+        }
+        ComponentType<ChunkStore, TilledSoilBlock> soilType = TilledSoilBlock.getComponentType();
+        if (soilType == null) {
+            return;
+        }
+        TilledSoilBlock soil = world.getChunkStore().getStore().getComponent(ref, soilType);
+        if (soil == null) {
+            return;
+        }
+        mutator.accept(soil);
+        chunk.setTicking(x, y, z, true);
+    }
+
+    private static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {
+        BlockType above = world.getBlockType(x, y + 1, z);
+        if (above != null && above != BlockType.EMPTY) {
+            world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);
+        }
     }
 
 }

@@ -7,12 +7,14 @@ GGF Zusammenhang mit Problem darüber: Wenn man die Station öffnet, und dann da
 Problem: Zahlenwerte für Field Radius:
 Zurzeit erlauben wir Zahlenwerte, das kann aber ungünstig sein. Wir sollten Größen erlauben: SMALL, MEDIUM, LARGE
 Farming Station: SMALL = 4, MEDIUM = 5, LARGE = 6
-Lumbering Station: SMALL = 5, MEDIUM = 7, LARGE = 9 (4 Bäume, 8 Bäume, 12 Bäume)
+Lumbering Station: SMALL = 3, MEDIUM = 5, LARGE = 7: (2 Bäume (Nur Horizontal), 4 Bäume (Horizontal + Vertikal), 8 Bäume (Horizontal + Vertikal + Diagonal))
+Mining: SMALL = 3, MEDIUM = 5, LARGE = 7: (2 "Minen" (Nur Horizontal), 4 Minen (Horizontal + Vertikal), 8 Minen (Horizontal + Vertikal + Diagonal))
 
 Problem: Animationen:
 Keyleth: Das aktuelle REST macht kein sitzen. SIT lässt hingegen Keyleth in den Boden versinken, da sie sogesehen dann auf ezwas sitzt.
 Beides ungünstig.
 Gronkh: Aktuell ohne Arbeit sollte er liegen, aber er steht nur herum.
+Für Keyleth: Notfalls nutzen wir die Sitz Animation und lassen Keyleth davor auf die Station laufen, dann sieht es aus, als würde sie auf der Station sitzen. Für Gronkh: Vor die Station laufen und davor liegen.
 
 Problem: Direkte LLM-Interaktion mit F:
 Aktuell kann man direkt mit F eine LLM Reaktion vom Bud erhalten. Das Problem: Diese kommt nicht sofort sondern versetzt. Für eien direkte Interkation ungünstig, sollte wie ein State Change z.B. sofort die LLM Reaktion erfolgen.
@@ -33,13 +35,12 @@ Problem: Feldradius ist nicht ebenerdig und Bud hat Probleme dadurch:
 Ich habe es nun auch mal auf eienm Feld probiert, wo ich Blockhöhen drin habe (also -1, 0, +1) und da hat der Bud Probleme, die Felder richtig zu bearbeiten.
 Gedanke: Wenn wir merken, dass die Aktion nicht ausgeführt werden konnte, den Bud direkt auf den Block schicken?
 
-Code:
-Wir haben Lumbering State in FarmWorkAction.java, das ist bad Code seperation. Wir sollten das in LumberingWorkAction.java auslagern.
-Generell: Speziale Aktionen wie Lumbering oder Farming sollten in eigenen Klassen sein, die von einer gemeinsamen WorkAction-Klasse erben.
-Gemeinsame Aktionen wie Till, Plant, Water, Fertilize, Harvest sollten in der gemeinsamen WorkAction-Klasse sein
-
 Configs:
 Wir haben in der WorkConfig zu viele spezifische Configs, die nur für Lumbering oder Farming gelten. Wir sollten diese ggf. in eigene Configs auslagern, die von einer gemeinsamen WorkConfig-Klasse erben.
+Bitte auch prüfen, ob welche weg können, die inital mal geplant wurden.
+Auch recipes.yml und andere config Dateien von Work prüfen. Aufräumem z.B. diggableBlocks sind selbe wie tillableBlocks, also nur tillableBlocks verwenden.
 
 Cards/Items Verschwunden nach Server neustart:
 Problem: Ich habe aus der Station die Karte bzw. Items rausgenommen, und nach einem Serverneustart waren diese aus meinem Inventar verschwunden. Ich habe die Station nicht verlassen, sondern nur den Server neugestartet. Die Items waren weg. Es ist immer wieder passiert.
+
+Lumbering: Gib Gronkh die selbe Axt, die er auch beim Kämpfen verwendet
