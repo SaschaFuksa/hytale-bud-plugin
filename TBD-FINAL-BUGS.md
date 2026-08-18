@@ -164,3 +164,14 @@ Nächste Todos:
 3. Keyleth: "auf der Station sitzen" — die Pose allein reicht nicht, der Bud müsste dazu auf/vor die Station positioniert werden (siehe Runde 3). Tut bisher gar nichts weiter? Bleibt nur stehen während Rest
 - Gronhk_ Passt, er schläft nun dauerhaft solange er nichts zu tun hat.
 - Veri: Keine Schlafanimation bitte, soll irgendwo vor der Station liegen.
+Gedanke: Regelmäßig prüfen ob Bud im Resting state ist, und wenn ja, die Animation eifnach triggern.
+4. Wenn Veri bei der Pyramide den oberen Stein entefrnt, nicht den Stein darunter mit Erde ersetzen: Es muss auch ein Ore Block sein.
+5. Generell Working Loop checken: Manchmal hören Buds mit der Arbeit auf, obwohl essen noch da + z.B. bei Veri Ores auch vorhanden (ggf. bei ihm wegen Pyramiden Bug 4)
+6. recipes.yml ggf umbennennen, hat nicht nur rezept infos
+
+Liste für Zukunft:
+- Max 3 Buds dürfen Working State haben
+- 3 Neue Buds?
+-- Skeleton Mage (Feuer Magie): Alchemist, hat Feld wie Keyleth für Blumen und Pilze; Fancy Look; Character: Fancy, cool
+-- Fen Stalker (Speer): Fischer, baut kleine Teiche, simuliert fischen, Nerdy Look; Character: Schlaumeier
+-- Gobil Scrapper (Wirft bomben): Stein Experte, kann ggf alles an Stein ähnlich wie Veri abbauen, auch seltene Steine + Pyramiden geben Emeralds; Funny look; Charakter: Nervesäge

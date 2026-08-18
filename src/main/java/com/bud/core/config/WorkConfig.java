@@ -32,8 +32,8 @@ public class WorkConfig {
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
-    private int miningGrowthGameSecondsMin = 14000;
-    private int miningGrowthGameSecondsMax = 15000;
+    private int miningGrowthGameSecondsMin = 10000;
+    private int miningGrowthGameSecondsMax = 12000;
     private int digIntervalSeconds = 1;
     private int mineIntervalSeconds = 1;
 
