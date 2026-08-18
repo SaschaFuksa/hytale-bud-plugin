@@ -213,7 +213,9 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 ### Work Configuration
 | Setting | Description | Default |
 |:--- |:--- |:--- |
-| `FieldRadius` | Horizontal radius (blocks) around a bound Workstation within which a working Bud may till soil | `5` |
+| `FarmingFieldSize` | Field size of a Farming Workstation: `SMALL` (radius 4), `MEDIUM` (5), `LARGE` (6) | `MEDIUM` |
+| `LumberingFieldSize` | Field size of a Lumbering Workstation: `SMALL` (radius 3, 2 tree spots), `MEDIUM` (5, 4 spots), `LARGE` (7, 8 spots) | `MEDIUM` |
+| `MiningFieldSize` | Field size of a Mining Workstation: `SMALL` (radius 3, 2 main nodes), `MEDIUM` (5, 4 nodes), `LARGE` (7, 8 nodes) | `MEDIUM` |
 | `FieldMaxHeight` | Maximum vertical distance (blocks) from the Workstation a tillable block may be at | `3` |
 | `TargetTimeoutSeconds` | How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another | `8` |
 | `TillIntervalSeconds` | Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one | `1` |
@@ -227,7 +229,6 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `MineIntervalSeconds` | Pacing: how long a Mining Bud waits after mining a grown stone before the Workstation releases the next one | `1` |
 | `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
 | `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Foresting Bud plants (not yet implemented) | `3` |
-| `TreeEdgePositionCount` | How many field-edge positions a Foresting Bud scans for fellable trees | `8` |
 | `OreMinDistance` | Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field instead of clustering | `2` |
 | `MiningGrowthGameSecondsMin` | Lower bound of the **game-time** seconds a dug hole takes to grow its stone. Deliberately expressed in game seconds, matching how Vanilla defines its own growth stages (`Farming.Stages[].Duration`, e.g. `28800`-`30600` per crop stage) - game time stands still while the server is down, so a half-grown hole keeps its remaining time across a restart. Note the game clock runs faster than real time (factor = `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x by default, so `28800` is roughly 16 real minutes) | `28800` |
 | `MiningGrowthGameSecondsMax` | Upper bound of the same span; each hole rolls its own duration in `[Min, Max]` so dig sites don't all mature in lockstep (same trick Vanilla uses) | `30600` |

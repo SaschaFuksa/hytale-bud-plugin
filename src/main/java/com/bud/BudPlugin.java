@@ -93,14 +93,12 @@ public class BudPlugin extends JavaPlugin {
         BudRegistry.getInstance().reloadMissing();
         WorkRecipeConfig.getInstance().reloadMissing();
 
-        // Register BudComponent for state tracking
         ComponentType<EntityStore, BudComponent> budComponentType = this.getEntityStoreRegistry().registerComponent(
                 BudComponent.class,
                 "BudComponent",
                 BudComponent.CODEC);
         BudComponent.setComponentType(budComponentType);
 
-        // Register PlayerBudComponent for tracking player's Buds
         ComponentType<EntityStore, PlayerBudComponent> playerBudComponentType = this.getEntityStoreRegistry()
                 .registerComponent(
                         PlayerBudComponent.class,
@@ -131,7 +129,6 @@ public class BudPlugin extends JavaPlugin {
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
         NPCPlugin.get().registerCoreComponentType("WorkTalk", BuilderActionWorkTalk::new);
 
-        // Register commands
         this.getCommandRegistry().registerCommand(new BudCommandCollection());
         this.registerEvents();
     }
@@ -167,16 +164,13 @@ public class BudPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new PlayerJoinSystem());
 
         if (this.reactionConfig.get().isEnableCombatReactions()) {
-            // Register Damage Filter System
             this.getEntityStoreRegistry().registerSystem(new DamageFilterSystem());
         }
         if (this.reactionConfig.get().isEnableBlockReactions()) {
-            // Register Block Break Filter System
             this.getEntityStoreRegistry().registerSystem(new BlockBreakFilterSystem());
             this.getEntityStoreRegistry().registerSystem(new BlockPlaceFilterSystem());
         }
         if (this.reactionConfig.get().isEnableItemReactions()) {
-            // Register inventory change listener for auto-pickup detection (e.g. ore)
             this.getEntityStoreRegistry().registerSystem(new InventoryChangeListener());
             this.getEntityStoreRegistry().registerSystem(new ItemPickupFilterSystem());
         }
@@ -191,10 +185,8 @@ public class BudPlugin extends JavaPlugin {
             this.getEventRegistry().registerGlobal(PlayerChatEvent.class, new PlayerChatReactionHandler());
         }
 
-        // Register Teleport Filter System (always enabled for debugging)
         this.getEntityStoreRegistry().registerSystem(new TeleportFilterSystem());
 
-        // Register Bud State Change System for detecting NPC state changes
         this.getEntityStoreRegistry().registerSystem(new StateChangeSystem());
 
         this.getEventRegistry().register(ChatEvent.class, new ChatHandler());

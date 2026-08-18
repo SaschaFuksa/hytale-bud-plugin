@@ -51,7 +51,7 @@ public class DamageFilterSystem extends DamageEventSystem {
 
             Damage.Source source = damage.getSource();
             if (!(source instanceof Damage.EntitySource entitySource)) {
-                return; // Not entity-to-entity damage
+                return;
             }
 
             Ref<EntityStore> attackerRef = entitySource.getRef();

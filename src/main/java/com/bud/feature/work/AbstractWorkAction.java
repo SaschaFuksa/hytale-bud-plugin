@@ -11,7 +11,10 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
+import com.bud.core.registry.BudRegistry;
+import com.bud.core.config.DebugConfig;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
@@ -89,7 +92,7 @@ public abstract class AbstractWorkAction extends ActionBase {
                         + withinInteractionRange + ", gate 'isWithinFieldRadius' = " + withinFieldRadius);
 
         boolean arrived = withinInteractionRange && withinFieldRadius;
-        if (arrived) {
+        if (arrived && DebugConfig.getInstance().isEnableBudDebugInfo()) {
             LoggerUtil.getLogger().info(
                     () -> "[BUD] " + logTag() + " arrived, invoking tryExecuteWork for " + workType + " at " + target);
         }
@@ -285,7 +288,8 @@ public abstract class AbstractWorkAction extends ActionBase {
         double dx = anchor.x - checkPosition.x;
         double dz = anchor.z - checkPosition.z;
         double horizontalDistanceSquared = dx * dx + dz * dz;
-        double radius = WorkConfig.getInstance().getFieldRadius();
+        WorkRole workRole = BudRegistry.getInstance().get(bud.getBudId()).getWorkRole();
+        double radius = WorkConfig.getInstance().getFieldRadius(workRole);
         double height = Math.abs(anchor.y - checkPosition.y);
         return horizontalDistanceSquared <= radius * radius && height <= WorkConfig.getInstance().getFieldMaxHeight();
     }

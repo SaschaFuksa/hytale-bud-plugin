@@ -48,6 +48,8 @@ public final class WorkRecipeConfig {
     @Nullable
     private String digRefillBlock;
 
+    private final Map<Integer, Integer> treeGrowthStageSeconds = new java.util.HashMap<>();
+
     @Nonnull
     private static final List<String> ORE_BLOCK_SUFFIXES = Objects.requireNonNull(List.of(
             "_Stone", "_Magma", "_Slate", "_Shale", "_Sandstone", "_Basalt", "_Volcanic", "_Calcite", "_Mud"));
@@ -106,6 +108,7 @@ public final class WorkRecipeConfig {
         tilledSoilTargetBlock = null;
         diggableBlocks.clear();
         digRefillBlock = null;
+        treeGrowthStageSeconds.clear();
         LOGGED_UNRESOLVED_ORES.clear();
         if (!Files.exists(path)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Farming recipe file missing: " + path);
@@ -175,6 +178,32 @@ public final class WorkRecipeConfig {
             }
         }
         seedTargetOverrides.putAll(yaml.getSeedTargetOverrides());
+        for (Map.Entry<String, Integer> entry : yaml.getTreeGrowthStageSeconds().entrySet()) {
+            Integer seconds = entry.getValue();
+            if (seconds == null || seconds <= 0) {
+                continue;
+            }
+            try {
+                treeGrowthStageSeconds.put(Integer.valueOf(entry.getKey().trim()), seconds);
+            } catch (NumberFormatException e) {
+                LoggerUtil.getLogger().warning(() -> "[BUD] 'treeGrowthStageSeconds' key '" + entry.getKey()
+                        + "' in " + path + " is not a stage number, skipping.");
+            }
+        }
+    }
+
+    @Nullable
+    public Integer getTreeGrowthStageSeconds(int stage) {
+        return treeGrowthStageSeconds.get(Integer.valueOf(stage));
+    }
+
+    public boolean isSaplingBlock(@Nonnull String blockTypeId) {
+        SeedTargetPattern pattern = seedTargetPatternByRole.get(WorkRole.LUMBERING);
+        return pattern != null && !pattern.prefix().isEmpty() && blockTypeId.startsWith(pattern.prefix());
+    }
+
+    public boolean hasTreeGrowthOverrides() {
+        return !treeGrowthStageSeconds.isEmpty();
     }
 
     @Nonnull

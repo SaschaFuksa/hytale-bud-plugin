@@ -30,6 +30,8 @@ class WorkRecipeYaml extends AbstractYamlMessage {
 
     private String digRefillBlock;
 
+    private Map<String, Integer> treeGrowthStageSeconds;
+
     @Nonnull
     Map<String, List<String>> getAllowedSeeds() {
         return allowedSeeds != null ? allowedSeeds : Objects.requireNonNull(Map.of());
@@ -73,6 +75,11 @@ class WorkRecipeYaml extends AbstractYamlMessage {
     @Nullable
     String getDigRefillBlock() {
         return digRefillBlock;
+    }
+
+    @Nonnull
+    Map<String, Integer> getTreeGrowthStageSeconds() {
+        return treeGrowthStageSeconds != null ? treeGrowthStageSeconds : Objects.requireNonNull(Map.of());
     }
 
 

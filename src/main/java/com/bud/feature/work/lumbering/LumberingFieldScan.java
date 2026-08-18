@@ -15,6 +15,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 
 public final class LumberingFieldScan {
 
+    private static final double[] EDGE_ANGLES_DEGREES_HORIZONTAL = { 90, 270 };
+
     private static final double[] EDGE_ANGLES_DEGREES_CROSS = { 0, 90, 180, 270 };
 
     private static final double[] EDGE_ANGLES_DEGREES_DIAG = { 45, 135, 225, 315 };
@@ -56,6 +58,10 @@ public final class LumberingFieldScan {
     public static List<Vector3i> treeEdgePositions(@Nonnull Vector3d anchor, int radius, int maxHeight,
             int edgeCount) {
         List<Vector3i> positions = new ArrayList<>();
+        if (edgeCount <= 2) {
+            positions.addAll(edgePositions(anchor, radius, maxHeight, EDGE_ANGLES_DEGREES_HORIZONTAL));
+            return positions;
+        }
         positions.addAll(edgePositions(anchor, radius, maxHeight, EDGE_ANGLES_DEGREES_CROSS));
         if (edgeCount > 4) {
             positions.addAll(edgePositions(anchor, radius - 1, maxHeight, EDGE_ANGLES_DEGREES_DIAG));

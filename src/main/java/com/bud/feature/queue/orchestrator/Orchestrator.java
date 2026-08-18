@@ -2,9 +2,12 @@ package com.bud.feature.queue.orchestrator;
 
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import com.bud.core.config.OrchestratorConfig;
 import com.bud.core.types.BudState;
@@ -27,6 +30,8 @@ public class Orchestrator {
 
     private final Map<String, OrchestratorChannel> lastServedChannel = new ConcurrentHashMap<>();
 
+    private final Set<String> directDispatchInFlight = ConcurrentHashMap.newKeySet();
+
     private ScheduledFuture<?> tickTask;
 
     private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
@@ -40,6 +45,10 @@ public class Orchestrator {
 
     public void enqueue(OrchestratorQueue event) {
         String playerName = event.interactionEntry().getBudComponent().getPlayerRef().getUsername();
+        if (event.channel() == OrchestratorChannel.PLAYER) {
+            dispatchDirect(playerName, event);
+            return;
+        }
         PriorityQueue<OrchestratorQueue> queue = getOrCreateQueue(playerName, event.channel());
         int maxDepth = OrchestratorConfig.getInstance().getOrchestratorMaxQueueDepth();
 
@@ -127,7 +136,6 @@ public class Orchestrator {
 
             for (String playerName : queues.keySet()) {
                 purgeStale(queues.get(playerName), now, entryTtl);
-                servePlayerChannel(playerName);
 
                 long lastGlobal = lastGlobalMessage.getOrDefault(playerName, 0L);
                 if (now - lastGlobal < globalCooldown) {
@@ -136,7 +144,7 @@ public class Orchestrator {
 
                 OrchestratorChannel channel = pickChannel(playerName, now, channelCooldown);
                 if (channel == null) {
-                    continue; // all channels on cooldown or empty
+                    continue;
                 }
 
                 PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, channel);
@@ -183,18 +191,14 @@ public class Orchestrator {
         }
     }
 
-    private void servePlayerChannel(String playerName) {
-        PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, OrchestratorChannel.PLAYER);
-        if (queue == null || queue.isEmpty()) {
+    private void dispatchDirect(String playerName, OrchestratorQueue event) {
+        String inFlightKey = playerName + "|" + event.eventType();
+        if (!directDispatchInFlight.add(inFlightKey)) {
+            LoggerUtil.getLogger().finer(() -> "[Orchestrator] Direct " + event.eventType() + " for player "
+                    + playerName + " is already running, ignoring the repeat.");
             return;
         }
-        OrchestratorQueue event;
-        synchronized (queue) {
-            event = queue.poll();
-        }
-        if (event != null) {
-            dispatch(event);
-        }
+        dispatch(event, () -> directDispatchInFlight.remove(inFlightKey));
     }
 
     private OrchestratorChannel pickChannel(String playerName, long now, long channelCooldown) {
@@ -209,7 +213,7 @@ public class Orchestrator {
 
         OrchestratorChannel bestChannel = null;
         int bestPriority = Integer.MAX_VALUE;
-        boolean bestIsAlternate = false; // true if this channel != lastServed
+        boolean bestIsAlternate = false;
 
         for (OrchestratorChannel channel : OrchestratorChannel.values()) {
             PriorityQueue<OrchestratorQueue> queue = playerQueues.get(channel);
@@ -245,6 +249,10 @@ public class Orchestrator {
     }
 
     private void dispatch(OrchestratorQueue event) {
+        dispatch(event, null);
+    }
+
+    private void dispatch(OrchestratorQueue event, @Nullable Runnable onFinished) {
         Thread.ofVirtual().start(() -> {
             try {
                 LLMInteractionEntry entry = event.interactionEntry();
@@ -268,6 +276,10 @@ public class Orchestrator {
                         + " for player "
                         + event.interactionEntry().getBudComponent().getPlayerRef().getUsername() + ": "
                         + e.getMessage());
+            } finally {
+                if (onFinished != null) {
+                    onFinished.run();
+                }
             }
         });
     }

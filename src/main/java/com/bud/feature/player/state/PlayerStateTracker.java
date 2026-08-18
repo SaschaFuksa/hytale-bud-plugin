@@ -43,7 +43,7 @@ public class PlayerStateTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getPlayerStateReactionPeriod();
+        long interval = ReactionConfig.getInstance().getPlayerStateReactionPeriodSeconds();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::triggerPlayerStateMessage, interval, interval,
                 TimeUnit.SECONDS));

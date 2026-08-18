@@ -14,14 +14,14 @@ public class ReactionConfig {
     private boolean enableDiscoverReactions = true;
     private boolean enableCraftingReactions = true;
     private boolean enableWorldReactions = true;
-    private long worldReactionPeriod = 61L; // seconds
+    private long worldReactionPeriodSeconds = 61L;
     private boolean enableWeatherReactions = true;
-    private long weatherReactionPeriod = 6L; // seconds
+    private long weatherReactionPeriodSeconds = 6L;
     private boolean enableMoodReactions = true;
-    private long moodReactionPeriod = 181L; // seconds
+    private long moodReactionPeriodSeconds = 181L;
     private boolean enablePlayerChatReactions = true;
     private boolean enablePlayerStateReactions = true;
-    private long playerStateReactionPeriod = 2L; // seconds
+    private long playerStateReactionPeriodSeconds = 2L;
     private boolean enableWorkReactions = true;
 
     private static volatile ReactionConfig instance;
@@ -54,24 +54,24 @@ public class ReactionConfig {
         return this.enableWorldReactions;
     }
 
-    public long getWorldReactionPeriod() {
-        return this.worldReactionPeriod;
+    public long getWorldReactionPeriodSeconds() {
+        return this.worldReactionPeriodSeconds;
     }
 
     public boolean isEnableWeatherReactions() {
         return this.enableWeatherReactions;
     }
 
-    public long getWeatherReactionPeriod() {
-        return this.weatherReactionPeriod;
+    public long getWeatherReactionPeriodSeconds() {
+        return this.weatherReactionPeriodSeconds;
     }
 
     public boolean isEnableMoodReactions() {
         return this.enableMoodReactions;
     }
 
-    public long getMoodReactionPeriod() {
-        return this.moodReactionPeriod;
+    public long getMoodReactionPeriodSeconds() {
+        return this.moodReactionPeriodSeconds;
     }
 
     public boolean isEnableItemReactions() {
@@ -90,8 +90,8 @@ public class ReactionConfig {
         return this.enablePlayerStateReactions;
     }
 
-    public long getPlayerStateReactionPeriod() {
-        return this.playerStateReactionPeriod;
+    public long getPlayerStateReactionPeriodSeconds() {
+        return this.playerStateReactionPeriodSeconds;
     }
 
     public boolean isEnableWorkReactions() {
@@ -125,24 +125,24 @@ public class ReactionConfig {
                         config -> config.enableWorldReactions)
                 .add()
                 .append(new KeyedCodec<>("WorldReactionPeriod", Codec.LONG),
-                        (config, value) -> config.worldReactionPeriod = value,
-                        config -> config.worldReactionPeriod)
+                        (config, value) -> config.worldReactionPeriodSeconds = value,
+                        config -> config.worldReactionPeriodSeconds)
                 .add()
                 .append(new KeyedCodec<>("EnableWeatherReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWeatherReactions = value,
                         config -> config.enableWeatherReactions)
                 .add()
                 .append(new KeyedCodec<>("WeatherReactionPeriod", Codec.LONG),
-                        (config, value) -> config.weatherReactionPeriod = value,
-                        config -> config.weatherReactionPeriod)
+                        (config, value) -> config.weatherReactionPeriodSeconds = value,
+                        config -> config.weatherReactionPeriodSeconds)
                 .add()
                 .append(new KeyedCodec<>("EnableMoodReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableMoodReactions = value,
                         config -> config.enableMoodReactions)
                 .add()
                 .append(new KeyedCodec<>("MoodReactionPeriod", Codec.LONG),
-                        (config, value) -> config.moodReactionPeriod = value,
-                        config -> config.moodReactionPeriod)
+                        (config, value) -> config.moodReactionPeriodSeconds = value,
+                        config -> config.moodReactionPeriodSeconds)
                 .add()
                 .append(new KeyedCodec<>("EnablePlayerChatReactions", Codec.BOOLEAN),
                         (config, value) -> config.enablePlayerChatReactions = value,
@@ -153,8 +153,8 @@ public class ReactionConfig {
                         config -> config.enablePlayerStateReactions)
                 .add()
                 .append(new KeyedCodec<>("PlayerStateReactionPeriod", Codec.LONG),
-                        (config, value) -> config.playerStateReactionPeriod = value,
-                        config -> config.playerStateReactionPeriod)
+                        (config, value) -> config.playerStateReactionPeriodSeconds = value,
+                        config -> config.playerStateReactionPeriodSeconds)
                 .add()
                 .append(new KeyedCodec<>("EnableWorkReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWorkReactions = value,

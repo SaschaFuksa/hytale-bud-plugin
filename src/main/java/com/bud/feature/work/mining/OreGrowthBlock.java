@@ -98,10 +98,6 @@ public class OreGrowthBlock implements Component<ChunkStore> {
         this.nodeKind = nodeKind;
     }
 
-    public boolean isNode() {
-        return nodeKind != KIND_RANDOM;
-    }
-
     @Nullable
     public String getOreBlockId() {
         return oreBlockId;

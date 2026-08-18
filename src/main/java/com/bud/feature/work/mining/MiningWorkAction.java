@@ -9,7 +9,9 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
+import com.bud.core.config.DebugConfig;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.BlockDrops;
@@ -79,7 +81,7 @@ public class MiningWorkAction extends AbstractWorkAction {
         if (anchor == null) {
             return;
         }
-        int radius = WorkConfig.getInstance().getFieldRadius();
+        int radius = WorkConfig.getInstance().getFieldRadius(WorkRole.MINING);
         int nodeKind = MiningFieldScan.nodeKindFor(anchor, radius, x, z);
         if (nodeKind == OreGrowthBlock.KIND_RANDOM) {
             MiningGrowthUtil.startGrowth(world, position, nodeKind, null);
@@ -103,8 +105,10 @@ public class MiningWorkAction extends AbstractWorkAction {
         }
         bench.getInputContainer().removeItemStackFromSlot(WorkstationSeedUtil.SEEDBAG_SLOT, 1);
         MiningGrowthUtil.startGrowth(world, position, nodeKind, targetOreBlock);
-        LoggerUtil.getLogger().info(() -> "[BUD] Mining node started at " + position + " - consumed one ore, "
-                + "pyramid will grow into " + targetOreBlock + ".");
+        if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] Mining node started at " + position + " - consumed one ore, "
+                    + "pyramid will grow into " + targetOreBlock + ".");
+        }
     }
 
     private static void executeMine(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {

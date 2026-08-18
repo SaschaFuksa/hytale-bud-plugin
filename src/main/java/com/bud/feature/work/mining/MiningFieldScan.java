@@ -12,6 +12,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3i;
 
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkRole;
 import com.bud.feature.work.FieldCandidates;
 import com.bud.feature.work.WorkRecipeConfig;
 import com.bud.feature.work.WorkstationSeedUtil;
@@ -70,14 +71,7 @@ public final class MiningFieldScan {
     }
 
     public static int maxDigHoles() {
-        return Math.max(0, WorkConfig.getInstance().getFieldRadius());
-    }
-
-    public static int mainNodeCount(int radius) {
-        if (radius <= 6) {
-            return 2;
-        }
-        return radius <= 9 ? 4 : 8;
+        return Math.max(0, WorkConfig.getInstance().getFieldRadius(WorkRole.MINING));
     }
 
     @Nonnull
@@ -85,7 +79,7 @@ public final class MiningFieldScan {
         int anchorX = (int) Math.floor(anchor.x);
         int anchorZ = (int) Math.floor(anchor.z);
         int distance = Math.max(1, radius - 1);
-        int count = mainNodeCount(radius);
+        int count = WorkConfig.getInstance().getFieldStructureCount(WorkRole.MINING);
         List<Vector3i> centers = new ArrayList<>();
         for (int index = 0; index < count; index++) {
             double angle = Math.PI / 2 + (2 * Math.PI * index) / count;
@@ -115,17 +109,16 @@ public final class MiningFieldScan {
 
     @Nullable
     public static Vector3i nodeCenterColumnFor(@Nonnull Vector3d anchor, int radius, int x, int z) {
+        Vector3i armCenter = null;
         for (Vector3i center : nodeCenterColumns(anchor, radius)) {
             if (center.x == x && center.z == z) {
                 return center;
             }
-        }
-        for (Vector3i center : nodeCenterColumns(anchor, radius)) {
-            if (Math.abs(center.x - x) + Math.abs(center.z - z) == 1) {
-                return center;
+            if (armCenter == null && Math.abs(center.x - x) + Math.abs(center.z - z) == 1) {
+                armCenter = center;
             }
         }
-        return null;
+        return armCenter;
     }
 
     @Nonnull
@@ -217,66 +210,50 @@ public final class MiningFieldScan {
         return growth != null ? growth.getOreBlockId() : null;
     }
 
+    @FunctionalInterface
+    private interface ColumnMatch {
+        boolean test(@Nonnull Vector3i position);
+    }
+
     @Nullable
-    private static Vector3i findGrowthInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
+    private static Vector3i findInColumn(@Nonnull Vector3d anchor, int x, int z, @Nonnull ColumnMatch match) {
         int anchorY = (int) Math.floor(anchor.y);
         for (int y = anchorY + NODE_VERTICAL_SEARCH; y >= anchorY - NODE_VERTICAL_SEARCH; y--) {
             Vector3i position = new Vector3i(x, y, z);
-            if (MiningGrowthUtil.getGrowth(world, position) != null) {
+            if (match.test(position)) {
                 return position;
             }
         }
         return null;
+    }
+
+    @Nullable
+    private static Vector3i findGrowthInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
+        return findInColumn(anchor, x, z, position -> MiningGrowthUtil.getGrowth(world, position) != null);
     }
 
     @Nullable
     private static Vector3i findOreInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
-        int anchorY = (int) Math.floor(anchor.y);
-        for (int y = anchorY + NODE_VERTICAL_SEARCH; y >= anchorY - NODE_VERTICAL_SEARCH; y--) {
-            Vector3i position = new Vector3i(x, y, z);
-            if (isOreBlock(world, position)) {
-                return position;
-            }
-        }
-        return null;
+        return findInColumn(anchor, x, z, position -> isOreBlock(world, position));
     }
 
     @Nullable
     private static Vector3i findMineableInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
-        int anchorY = (int) Math.floor(anchor.y);
-        for (int y = anchorY + NODE_VERTICAL_SEARCH; y >= anchorY - NODE_VERTICAL_SEARCH; y--) {
-            Vector3i position = new Vector3i(x, y, z);
-            if (isOreBlock(world, position) || isOreReadyCandidate(world, position)) {
-                return position;
-            }
-        }
-        return null;
+        return findInColumn(anchor, x, z,
+                position -> isOreBlock(world, position) || isOreReadyCandidate(world, position));
     }
 
     @Nullable
     private static Vector3i findDigPositionInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
-        int anchorY = (int) Math.floor(anchor.y);
-        for (int y = anchorY + NODE_VERTICAL_SEARCH; y >= anchorY - NODE_VERTICAL_SEARCH; y--) {
-            Vector3i position = new Vector3i(x, y, z);
-            if (isDigCandidate(world, position)) {
-                return position;
-            }
-        }
-        return null;
+        return findInColumn(anchor, x, z, position -> isDigCandidate(world, position));
     }
 
     public static int nodeKindFor(@Nonnull Vector3d anchor, int radius, int x, int z) {
-        for (Vector3i center : nodeCenterColumns(anchor, radius)) {
-            if (center.x == x && center.z == z) {
-                return OreGrowthBlock.KIND_NODE_CENTER;
-            }
+        Vector3i center = nodeCenterColumnFor(anchor, radius, x, z);
+        if (center == null) {
+            return OreGrowthBlock.KIND_RANDOM;
         }
-        for (Vector3i center : nodeCenterColumns(anchor, radius)) {
-            if (Math.abs(center.x - x) + Math.abs(center.z - z) == 1) {
-                return OreGrowthBlock.KIND_NODE_ARM;
-            }
-        }
-        return OreGrowthBlock.KIND_RANDOM;
+        return center.x == x && center.z == z ? OreGrowthBlock.KIND_NODE_CENTER : OreGrowthBlock.KIND_NODE_ARM;
     }
 
     public static boolean isOreBlock(@Nonnull World world, @Nonnull Vector3i position) {

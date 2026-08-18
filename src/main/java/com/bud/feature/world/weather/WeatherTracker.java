@@ -42,7 +42,7 @@ public class WeatherTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getWeatherReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWeatherReactionPeriodSeconds();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::triggerWeatherMessage, interval, interval,
                 TimeUnit.SECONDS));

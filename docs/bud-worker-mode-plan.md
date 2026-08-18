@@ -1674,3 +1674,22 @@ Ergebnis der Reihenfolge: Knoten 1 komplett ausheben (Kern, dann Arme) → wäch
 **Diagnose erweitert:** Die Logzeile nennt jetzt zusätzlich, welcher Knoten gerade bearbeitet wird: `digNode=... [node=1, growing=n, ready=n, noGround=n]`.
 
 `.\gradlew build` zweimal grün.
+
+## Code-Qualitätsdurchgang + Neustart-Verifikation (Claude, 2026-08-18)
+
+**Neustart-Frage beantwortet, Mechanismus per Bytecode belegt statt behauptet.** Drei Dinge müssen zusammenspielen, damit ein halb gewachsener Knoten einen Serverneustart übersteht — alle drei sind erfüllt:
+1. **Komponentendaten:** `OreGrowthBlock` persistiert `GrowthStage`, `NextGrowthAt`, `NodeKind` und `OreBlockId` über seinen `BuilderCodec` mit dem Chunk.
+2. **Tick-Flag:** `chunk.setTicking(...)` landet in `BlockSection.tickingBlocks` (`java.util.BitSet`), und dieses Feld wird sowohl in `BlockSection.serialize` als auch in `deserialize` angefasst — der Tick-Zustand wird also mitgespeichert. Das war das eigentliche Risiko: ohne persistiertes Flag hätte `OreGrowthTickSystem` die Blöcke nach einem Neustart nie wieder angefasst und das Wachstum wäre stillschweigend für immer eingefroren.
+3. **Zeitbasis:** Der Timer läuft auf Spielzeit, die während eines Serverstopps stillsteht. Die Restzeit bleibt also erhalten, statt in der Ausfallzeit zu verstreichen.
+
+Bekannte Einschränkung derselben Mechanik: Wird der Chunk entladen (Spieler weit weg), pausiert das Wachstum ebenfalls und läuft beim Nachladen weiter.
+
+**Qualitätsdurchgang, umgesetzte Änderungen:**
+- **Alle 44 Code-Kommentare aus `src/main/java` entfernt.** Keiner lag im Work-Paket; sie steckten in älteren Dateien (`BudPlugin` 8 Registrierungs-Erzählungen, `BudDebugInfo` 6 Abschnittsmarker, 4 Config-Klassen, `AbstractLLMClient`, `TimeOfDay`, u. a.). Zwei Fälle trugen echte Information und wurden nicht ersatzlos gestrichen: die vier `// seconds` in `ReactionConfig` wurden in die Feld-/Getternamen gezogen (`worldReactionPeriod` → `worldReactionPeriodSeconds` usw., 4 Felder + 4 Getter + 4 Aufrufer) — die **Codec-Keys blieben unverändert**, bestehende `Reaction.json` und die README-Tabelle gelten weiter. Die Zeitbereiche an `TimeOfDay` (`// 22:00 - 05:00`) waren ein Duplikat der echten Logik in `TimeInformationUtil.getTimeOfDay`, das Modellbeispiel in `LLMConfig` steht bereits in der README-Tabelle — beides konnte verlustfrei weg.
+- **Duplikate in `MiningFieldScan` zusammengefasst:** vier praktisch identische Spalten-Suchschleifen (`findGrowthInColumn`, `findOreInColumn`, `findMineableInColumn`, `findDigPositionInColumn`) laufen jetzt über ein gemeinsames `findInColumn` mit Prädikat; `nodeKindFor` delegiert an `nodeCenterColumnFor`, statt dieselbe Zentrumssuche ein zweites Mal auszuprogrammieren; `nodeCenterColumnFor` iteriert die Zentrenliste einmal statt zweimal. Netto 63 Zeilen weniger in der Datei.
+- **Toter Code entfernt:** `OreGrowthBlock.isNode()` (null Aufrufer), `mainNodeCount` von `public` auf `private` (nur intern genutzt).
+- **Null-Safety sauber gelöst statt unterdrückt:** Das gemeinsame `findInColumn` bekam ein eigenes `@FunctionalInterface ColumnMatch` mit `@Nonnull`-Parameter, statt `Predicate<Vector3i>` zu nehmen und an fünf Stellen "unchecked conversion"-Warnungen zu erzeugen.
+
+**Geprüft und für in Ordnung befunden:** Kein einziger der 20 `WorkConfig`-Getter ist ungenutzt.
+
+`.\gradlew clean build` grün, danach nochmal grün.

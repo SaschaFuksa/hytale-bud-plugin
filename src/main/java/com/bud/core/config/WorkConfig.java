@@ -1,5 +1,12 @@
 package com.bud.core.config;
 
+import java.util.Locale;
+
+import javax.annotation.Nonnull;
+
+import com.bud.core.types.FieldSize;
+import com.bud.core.types.WorkRole;
+import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -8,7 +15,9 @@ public class WorkConfig {
 
     public static final BuilderCodec<WorkConfig> CODEC;
 
-    private int fieldRadius = 5;
+    private String farmingFieldSize = "MEDIUM";
+    private String lumberingFieldSize = "MEDIUM";
+    private String miningFieldSize = "MEDIUM";
     private int fieldMaxHeight = 2;
     private int targetTimeoutSeconds = 8;
     private int tillIntervalSeconds = 1;
@@ -20,12 +29,11 @@ public class WorkConfig {
     private int fellIntervalSeconds = 1;
     private int idleRetrySeconds = 5;
     private int treeMinDistance = 3;
-    private int treeEdgePositionCount = 8;
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
-    private int miningGrowthGameSecondsMin = 28800;
-    private int miningGrowthGameSecondsMax = 30600;
+    private int miningGrowthGameSecondsMin = 14000;
+    private int miningGrowthGameSecondsMax = 15000;
     private int digIntervalSeconds = 1;
     private int mineIntervalSeconds = 1;
 
@@ -43,8 +51,48 @@ public class WorkConfig {
         return instance;
     }
 
-    public int getFieldRadius() {
-        return this.fieldRadius;
+    @Nonnull
+    public FieldSize getFieldSize(@Nonnull WorkRole workRole) {
+        String raw = switch (workRole) {
+            case FARMING -> farmingFieldSize;
+            case LUMBERING -> lumberingFieldSize;
+            case MINING -> miningFieldSize;
+            default -> null;
+        };
+        if (raw == null || raw.isBlank()) {
+            return FieldSize.MEDIUM;
+        }
+        try {
+            return FieldSize.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] Unknown field size '" + raw + "' for " + workRole
+                    + " - falling back to MEDIUM.");
+            return FieldSize.MEDIUM;
+        }
+    }
+
+    public int getFieldRadius(@Nonnull WorkRole workRole) {
+        FieldSize size = getFieldSize(workRole);
+        if (workRole == WorkRole.FARMING) {
+            return switch (size) {
+                case SMALL -> 4;
+                case MEDIUM -> 5;
+                case LARGE -> 6;
+            };
+        }
+        return switch (size) {
+            case SMALL -> 3;
+            case MEDIUM -> 5;
+            case LARGE -> 7;
+        };
+    }
+
+    public int getFieldStructureCount(@Nonnull WorkRole workRole) {
+        return switch (getFieldSize(workRole)) {
+            case SMALL -> 2;
+            case MEDIUM -> 4;
+            case LARGE -> 8;
+        };
     }
 
     public int getFieldMaxHeight() {
@@ -91,10 +139,6 @@ public class WorkConfig {
         return this.treeMinDistance;
     }
 
-    public int getTreeEdgePositionCount() {
-        return this.treeEdgePositionCount;
-    }
-
     public int getOreMinDistance() {
         return this.oreMinDistance;
     }
@@ -125,9 +169,17 @@ public class WorkConfig {
 
     static {
         CODEC = BuilderCodec.builder(WorkConfig.class, WorkConfig::new)
-                .append(new KeyedCodec<>("FieldRadius", Codec.INTEGER),
-                        (config, value) -> config.fieldRadius = value,
-                        config -> config.fieldRadius)
+                .append(new KeyedCodec<>("FarmingFieldSize", Codec.STRING),
+                        (config, value) -> config.farmingFieldSize = value,
+                        config -> config.farmingFieldSize)
+                .add()
+                .append(new KeyedCodec<>("LumberingFieldSize", Codec.STRING),
+                        (config, value) -> config.lumberingFieldSize = value,
+                        config -> config.lumberingFieldSize)
+                .add()
+                .append(new KeyedCodec<>("MiningFieldSize", Codec.STRING),
+                        (config, value) -> config.miningFieldSize = value,
+                        config -> config.miningFieldSize)
                 .add()
                 .append(new KeyedCodec<>("FieldMaxHeight", Codec.INTEGER),
                         (config, value) -> config.fieldMaxHeight = value,
@@ -172,10 +224,6 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,
                         config -> config.treeMinDistance)
-                .add()
-                .append(new KeyedCodec<>("TreeEdgePositionCount", Codec.INTEGER),
-                        (config, value) -> config.treeEdgePositionCount = value,
-                        config -> config.treeEdgePositionCount)
                 .add()
                 .append(new KeyedCodec<>("OreMinDistance", Codec.INTEGER),
                         (config, value) -> config.oreMinDistance = value,

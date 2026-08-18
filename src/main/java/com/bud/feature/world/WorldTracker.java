@@ -42,7 +42,7 @@ public class WorldTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getWorldReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWorldReactionPeriodSeconds();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
                 interval,
                 TimeUnit.SECONDS));

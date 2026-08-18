@@ -1125,8 +1125,14 @@
               },
               "Actions": [
                 {
-                  "Type": "Crouch",
-                  "Crouch": true
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sleep"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
                 },
                 {
                   "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into .Resting from outside - the Sensor above already requires State == .Resting.",
@@ -1144,8 +1150,8 @@
               },
               "Actions": [
                 {
-                  "Type": "Crouch",
-                  "Crouch": false
+                  "Type": "PlayAnimation",
+                  "Slot": "Status"
                 },
                 {
                   "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",

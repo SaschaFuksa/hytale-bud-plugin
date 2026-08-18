@@ -120,7 +120,9 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         workstation.setResting(true);
         updateBlockInteractionState(store, ref, processingBenchBlock, false);
         String restingBudId = boundBud.getBudId();
-        LoggerUtil.getLogger().info(() -> "[BUD] Workstation out of fuel, Bud " + restingBudId + " is resting.");
+        if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] Workstation out of fuel, Bud " + restingBudId + " is resting.");
+        }
         if (!workstation.isOutOfFuelReactionSent() && ReactionConfig.getInstance().isEnableWorkReactions()) {
             workstation.setOutOfFuelReactionSent(true);
             fireOutOfFuelReaction(workstation);
@@ -195,7 +197,9 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         workstation.setResting(false);
         workstation.setFuelSecondsRemaining(WorkConfig.getInstance().getFuelDurationSeconds());
         String resumingBudId = boundBud.getBudId();
-        LoggerUtil.getLogger().info(() -> "[BUD] Workstation refed, Bud " + resumingBudId + " resumes work.");
+        if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] Workstation refed, Bud " + resumingBudId + " resumes work.");
+        }
     }
 
     private static boolean consumeOneFuel(@Nonnull ProcessingBenchBlock processingBenchBlock) {
@@ -279,12 +283,13 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             @Nonnull WorkstationBlockEntity workstation, @Nonnull ProcessingBenchBlock processingBenchBlock) {
         boolean isLumbering = workstation.getWorkRole() == WorkRole.LUMBERING;
         boolean isMining = workstation.getWorkRole() == WorkRole.MINING;
+        WorkRole workRole = workstation.getWorkRole();
+        int fieldRadius = WorkConfig.getInstance().getFieldRadius(workRole);
+        int fieldMaxHeight = WorkConfig.getInstance().getFieldMaxHeight();
         List<Vector3i> positions = isLumbering
-                ? LumberingFieldScan.treeEdgePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
-                        WorkConfig.getInstance().getFieldMaxHeight(),
-                        WorkConfig.getInstance().getTreeEdgePositionCount())
-                : FieldCandidates.serpentinePositions(anchor, WorkConfig.getInstance().getFieldRadius(),
-                        WorkConfig.getInstance().getFieldMaxHeight());
+                ? LumberingFieldScan.treeEdgePositions(anchor, fieldRadius, fieldMaxHeight,
+                        WorkConfig.getInstance().getFieldStructureCount(workRole))
+                : FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight);
 
         Instant now = GameClock.now(world);
 
@@ -385,7 +390,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         int randomGrowthCount = 0;
         String nodeDiagnostics = "";
         if (isMining) {
-            int radius = WorkConfig.getInstance().getFieldRadius();
+            int radius = fieldRadius;
             String targetOreBlock = MiningFieldScan.resolveTargetOreBlock(processingBenchBlock);
             MiningFieldScan.NodeScan nodeScan = MiningFieldScan.scanNodes(world, anchor, radius,
                     targetOreBlock != null, workstation::isRecentlyFailedTarget);
@@ -423,7 +428,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         Vector3i fellWinnerWalkTarget = null;
         if (isLumbering) {
             List<Vector3i> fellPositions = FieldCandidates.serpentinePositions(anchor,
-                    WorkConfig.getInstance().getFieldRadius(), WorkConfig.getInstance().getFieldMaxHeight());
+                    fieldRadius, fieldMaxHeight);
             List<Vector3i> rawFellCandidates = new ArrayList<>();
             for (Vector3i position : fellPositions) {
                 if (position == null) {
