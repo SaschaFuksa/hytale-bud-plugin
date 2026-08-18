@@ -145,3 +145,22 @@ In Runde 3 wurde nur geprüft, ob der Name **registriert** ist — nicht, ob er 
 - In `FarmingUtil` wird `growthProgress` gegen `FarmingStageData.getDuration()` geprüft (ein `Rangef`, dieselbe Spielzeit-Einheit wie die 40000–60000 pro Baum-Stage), und `generation` wird beim Stufenwechsel gelesen und hochgezählt — `generation` ist damit der **Stufenindex**.
 
 Damit ließe sich "Stufe 2 doppelt so schnell" sauber umsetzen: beim Erreichen der Zielstufe einmalig die Hälfte der Stufendauer auf `growthProgress` addieren (statt pro Tick nachzurechnen). Offen und Saschas Entscheidung: welche Stufe genau gemeint ist (`generation` 1 oder 2) und ob der Faktor fest oder als Config kommen soll.
+
+## Runde 5 (Claude, 2026-08-18) — Baumwachstum per Config, stufenweise
+
+**Stufenaufbau bestätigt** (`Plant_Sapling_Oak.json`, `Farming.Stages.Default`): fünf Einträge, Index **0 bis 4**. Die Indizes 0–3 haben je `Duration {Min: 40000, Max: 60000}` (22–33 reale Minuten pro Stufe), **Index 4 hat gar keine Duration** — das ist der fertige Baum, der nicht weiterwächst. Saschas Beobachtung passt damit exakt: was er als "verharrt bei Stufe 4" sieht, ist Index 3, die letzte Stufe mit Wartezeit.
+
+**Umsetzung:** Neuer Config-Key `treeGrowthStageSeconds` in `work/recipes.yml` — eine Map von Stufenindex auf Spielsekunden. Ein Eintrag überschreibt die Dauer dieser Stufe, eine Stufe ohne Eintrag behält die Dauer des Spiels. Leer (Default) heißt: überall Vanilla-Verhalten, das System tut nichts.
+
+**Wie es wirkt, ohne gegen die Engine zu arbeiten:** `FarmingUtil` vergleicht `FarmingBlock.growthProgress` gegen die Stufendauer aus dem Asset und schaltet weiter, sobald der Wert erreicht ist. Das neue `TreeGrowthTickSystem` setzt deshalb nur den Fortschritt hoch: Sobald der konfigurierte (kürzere) Wert erreicht ist, wird `growthProgress` auf die Engine-Dauer der aktuellen Stufe gezogen, woraufhin die Engine beim nächsten eigenen Tick regulär weiterschaltet. Kein Blockwechsel, kein Eingriff in den Stufenwechsel selbst — und damit auch keine Gefahr, erneut in den "Store is currently processing"-Fehler zu laufen, der beim Mining durch `setBlock` im Tick entstanden war.
+
+**Eingegrenzt auf Setzlinge:** Das System läuft über alle `FarmingBlock`-Komponenten, greift aber nur, wenn der Blocktyp mit dem Lumbering-`seedTargetPattern`-Präfix beginnt (`Plant_Sapling_`). Feldfrüchte bleiben unberührt. Es greift allerdings bei **allen** Setzlingen in geladenen Chunks, nicht nur denen im Feld einer Workstation — bewusst so gewählt, weil der Wert per Default leer ist und damit nichts passiert, bis Sascha ihn setzt.
+
+Beispiel für "letzte Wartestufe halbieren": `treeGrowthStageSeconds: {3: 20000}` (statt 40000–60000). Für alle Stufen: `{0: 20000, 1: 20000, 2: 20000, 3: 20000}`.
+
+Nächste Todos:
+1. Fuel "Turn on"-Bug (Futter verschwindet sofort, Station geht direkt wieder aus) — vermutlich Eigenlogik des Vanilla-`ProcessingBenchBlock`, das ohne gültiges Rezept selbst abschaltet. Braucht Instrumentierung am Bench-Zustand.
+2. Fuel-Slot-Animation wie bei Vanilla-Stationen.
+3. Keyleth: "auf der Station sitzen" — die Pose allein reicht nicht, der Bud müsste dazu auf/vor die Station positioniert werden (siehe Runde 3). Tut bisher gar nichts weiter? Bleibt nur stehen während Rest
+- Gronhk_ Passt, er schläft nun dauerhaft solange er nichts zu tun hat.
+- Veri: Keine Schlafanimation bitte, soll irgendwo vor der Station liegen.

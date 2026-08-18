@@ -134,3 +134,8 @@ diggableBlocks:
   - Rock_Stone_Cobble_Mossy
 
 digRefillBlock: Soil_Dirt
+
+# Optional per-stage growth override for Lumbering saplings, in game seconds.
+# Key = stage index (0 = freshly planted sapling, 4 = finished tree), value = how long that stage should take.
+# A stage without an entry keeps the game's own duration. Empty = vanilla behaviour everywhere.
+treeGrowthStageSeconds: {0: 10000, 1: 10000, 2: 10000, 3: 20000} # {}

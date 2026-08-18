@@ -44,6 +44,7 @@ import com.bud.feature.work.WorkstationFuelTickSystem;
 import com.bud.feature.work.farming.BuilderActionFarmWork;
 import com.bud.feature.work.lumbering.BuilderActionLumberingWork;
 import com.bud.feature.work.mining.BuilderActionMiningWork;
+import com.bud.feature.work.lumbering.TreeGrowthTickSystem;
 import com.bud.feature.work.mining.OreGrowthBlock;
 import com.bud.feature.work.mining.OreGrowthTickSystem;
 import com.bud.feature.work.reaction.BuilderActionWorkTalk;
@@ -122,6 +123,7 @@ public class BudPlugin extends JavaPlugin {
                         OreGrowthBlock.CODEC);
         OreGrowthBlock.setComponentType(oreGrowthBlockType);
         this.getChunkStoreRegistry().registerSystem(new OreGrowthTickSystem());
+        this.getChunkStoreRegistry().registerSystem(new TreeGrowthTickSystem());
 
         NPCPlugin.get().registerCoreComponentType("FarmWork", BuilderActionFarmWork::new);
         NPCPlugin.get().registerCoreComponentType("LumberingWork", BuilderActionLumberingWork::new);
