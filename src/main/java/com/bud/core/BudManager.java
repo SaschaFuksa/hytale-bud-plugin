@@ -92,13 +92,13 @@ public class BudManager {
                 continue;
             }
             BudComponent budComponent = findBudComponent(bud);
-            if (budComponent != null) {
+            if (isEligibleForReaction(budComponent)) {
                 return budComponent;
             }
         }
         for (NPCEntity bud : buds) {
             BudComponent budComponent = findBudComponent(bud);
-            if (budComponent != null) {
+            if (isEligibleForReaction(budComponent)) {
                 return budComponent;
             }
         }
@@ -120,6 +120,10 @@ public class BudManager {
         return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
     }
 
+    private static boolean isEligibleForReaction(@Nullable BudComponent candidate) {
+        return candidate != null && candidate.getCurrentState() != BudState.WORKING;
+    }
+
     @Nullable
     public BudComponent findBudByNameMention(@Nonnull PlayerBudComponent playerBudComponent, @Nonnull String message,
             @Nonnull BudComponent excludeSpeaker) {
@@ -138,7 +142,7 @@ public class BudManager {
     }
 
     private static boolean isOtherBud(BudComponent candidate, BudComponent excluded) {
-        return candidate != null && candidate != excluded;
+        return isEligibleForReaction(candidate) && candidate != excluded;
     }
 
     @Nullable
@@ -215,21 +219,21 @@ public class BudManager {
     }
 
     @Nullable
-    private static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d playerPos,
+    public static Vector3d findFreeLateralPosition(@Nonnull World world, @Nonnull Vector3d basePos,
             @Nonnull Vector3d forward, @Nonnull Vector3d right, int distance, double preferredLateral,
             @Nonnull Set<Vector3d> reservedPositions) {
-        Vector3d center = candidateAt(world, playerPos, forward, right, distance, preferredLateral,
+        Vector3d center = candidateAt(world, basePos, forward, right, distance, preferredLateral,
                 reservedPositions);
         if (center != null) {
             return center;
         }
         for (int step = 1; step <= LATERAL_SEARCH_RADIUS; step++) {
-            Vector3d rightCandidate = candidateAt(world, playerPos, forward, right, distance,
+            Vector3d rightCandidate = candidateAt(world, basePos, forward, right, distance,
                     preferredLateral + step * LATERAL_SEARCH_STEP, reservedPositions);
             if (rightCandidate != null) {
                 return rightCandidate;
             }
-            Vector3d leftCandidate = candidateAt(world, playerPos, forward, right, distance,
+            Vector3d leftCandidate = candidateAt(world, basePos, forward, right, distance,
                     preferredLateral - step * LATERAL_SEARCH_STEP, reservedPositions);
             if (leftCandidate != null) {
                 return leftCandidate;
@@ -291,7 +295,8 @@ public class BudManager {
     }
 
     @Nonnull
-    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef, @Nonnull Set<Vector3d> reservedPositions) {
+    public Vector3d getPlayerPositionWithOffset(@Nonnull PlayerRef playerRef,
+            @Nonnull Set<Vector3d> reservedPositions) {
         Vector3d targetPos = getPlayerPosition(playerRef);
         World world = WorldResolver.resolveWithDefaultFallback(playerRef).orElse(null);
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -311,7 +316,7 @@ public class BudManager {
         return new Vector3d(targetPos.x, targetPos.y + 0.5, targetPos.z);
     }
 
-    private static boolean isSpawnPositionFree(@Nonnull World world, double x, double y, double z) {
+    public static boolean isSpawnPositionFree(@Nonnull World world, double x, double y, double z) {
         int blockX = (int) Math.floor(x);
         int blockY = (int) Math.floor(y);
         int blockZ = (int) Math.floor(z);

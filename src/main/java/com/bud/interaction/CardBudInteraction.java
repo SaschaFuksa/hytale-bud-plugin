@@ -1,11 +1,16 @@
 package com.bud.interaction;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudManager;
+import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudRegistry;
+import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.bud.creation.BudCreationEvent;
 import com.bud.feature.sound.SoundEvent;
 import com.bud.feature.util.CleanupUtil;
@@ -21,6 +26,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.SimpleInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class CardBudInteraction extends SimpleInteraction {
 
@@ -41,6 +47,11 @@ public class CardBudInteraction extends SimpleInteraction {
 
     public CardBudInteraction() {
         super("card_bud");
+    }
+
+    @Nonnull
+    public String getBudId() {
+        return budId;
     }
 
     @Override
@@ -64,19 +75,58 @@ public class CardBudInteraction extends SimpleInteraction {
                 LoggerUtil.getLogger().warning(() -> "[BUD] No Buds resolved for card '" + budId + "'.");
                 return;
             }
+            Set<String> blocked = new HashSet<>(budIds);
+            blocked.retainAll(resolveWorkstationBoundBudIds(store, owningEntityRef));
+            if (!blocked.isEmpty()) {
+                ChatEvent.dispatch(playerRef, describeBlocked(blocked));
+            }
+            Set<String> allowedBudIds = new HashSet<>(budIds);
+            allowedBudIds.removeAll(blocked);
+            if (allowedBudIds.isEmpty()) {
+                return;
+            }
             if (type == InteractionType.Primary) {
                 LoggerUtil.getLogger()
-                        .info(() -> "[BUD] Spawning " + budIds + " for " + playerRef.getUsername());
+                        .info(() -> "[BUD] Spawning " + allowedBudIds + " for " + playerRef.getUsername());
                 SoundEvent.dispatch(owningEntityRef, "SFX_Deployable_Totem_Heal_Spawn");
-                BudCreationEvent.dispatch(owningEntityRef, budIds);
+                BudCreationEvent.dispatch(owningEntityRef, allowedBudIds);
             } else if (type == InteractionType.Secondary) {
                 LoggerUtil.getLogger()
-                        .info(() -> "[BUD] Despawning " + budIds + " for " + playerRef.getUsername());
+                        .info(() -> "[BUD] Despawning " + allowedBudIds + " for " + playerRef.getUsername());
                 SoundEvent.dispatch(owningEntityRef, "SFX_Deployable_Totem_Heal_Despawn");
-                CleanupUtil.cleanupBuds(playerRef, store, budIds);
+                CleanupUtil.cleanupBuds(playerRef, store, allowedBudIds);
             }
         }
         super.tick0(firstRun, time, type, context, cooldownHandler);
+    }
+
+    @Nonnull
+    private static Set<String> resolveWorkstationBoundBudIds(@Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> playerEntityRef) {
+        PlayerBudComponent playerBuds = store.getComponent(playerEntityRef, PlayerBudComponent.getComponentType());
+        if (playerBuds == null) {
+            return Objects.requireNonNull(Set.of());
+        }
+        Set<String> bound = new HashSet<>();
+        for (NPCEntity bud : playerBuds.getCurrentBuds()) {
+            BudComponent component = BudManager.getInstance().findBudComponent(bud);
+            if (component != null && component.getWorkstationAnchor() != null) {
+                bound.add(component.getBudId());
+            }
+        }
+        return bound;
+    }
+
+    @Nonnull
+    private static String describeBlocked(@Nonnull Set<String> blockedBudIds) {
+        StringBuilder names = new StringBuilder();
+        for (String blockedBudId : blockedBudIds) {
+            if (names.length() > 0) {
+                names.append(", ");
+            }
+            names.append(BudRegistry.getInstance().get(Objects.requireNonNull(blockedBudId)).getDisplayName());
+        }
+        return names + " is bound to a Workstation - remove the card from the Workstation first.";
     }
 
     @Nonnull

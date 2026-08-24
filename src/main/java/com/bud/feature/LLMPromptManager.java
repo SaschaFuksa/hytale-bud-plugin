@@ -151,7 +151,6 @@ public class LLMPromptManager {
         return true;
     }
 
-    /** Whether the last load detected the runtime prompt content as older than the packaged version. */
     public boolean isContentVersionMismatch() {
         return this.contentVersionMismatch;
     }

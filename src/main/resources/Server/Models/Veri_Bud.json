@@ -15,5 +15,15 @@
       "Model": "NPC/Intelligent/Feran/Models/Attachments/Burrower/Assassin_Poncho.blockymodel",
       "Texture": "NPC/Intelligent/Feran/Models/Attachments/Burrower/Assassin_Poncho_Beige.png"
     }
-  ]
+  ],
+  "AnimationSets": {
+    "Interact": {
+      "Animations": [
+        {
+          "Animation": "NPC/Intelligent/Feran/Animations/Flavor/Scratch.blockyanim",
+          "Looping": false
+        }
+      ]
+    }
+  }
 }

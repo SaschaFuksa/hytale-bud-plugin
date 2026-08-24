@@ -78,6 +78,7 @@
   "MaxHealth": {
     "Compute": "MaxHealth"
   },
+  "HotbarSize": 8,
   "AttitudeGroup": {
     "Compute": "AttitudeGroup"
   },
@@ -98,7 +99,10 @@
       "RunThresholdRange": 0.1,
       "Gravity": 10,
       "MaxFallSpeed": 20,
-      "Acceleration": 10
+      "Acceleration": 10,
+      "MaxClimbHeight": 1,
+      "DescendFlatness": 0.7,
+      "DescendSpeedCompensation": 0.5
     }
   ],
   "Instructions": [
@@ -1102,6 +1106,162 @@
               }
             }
           ]
+        },
+        {
+          "Sensor": {
+            "Type": "State",
+            "State": "Working"
+          },
+          "Instructions": [
+            {
+              "Continue": true,
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 1.0,
+                "StopDistance": 0.2,
+                "RelativeSpeed": 0.5
+              },
+              "Actions": [
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTargetReached"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sleep"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "Not",
+                    "Sensor": {
+                      "Type": "RestTarget"
+                    }
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sleep"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "Continue": true,
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status"
+                },
+                {
+                  "Type": "State",
+                  "State": "Working"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Default"
+                  },
+                  {
+                    "Type": "WorkTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 2.0,
+                "StopDistance": 1.0,
+                "RelativeSpeed": 0.5
+              },
+              "ActionsBlocking": true,
+              "Actions": [
+                {
+                  "Type": "MiningWork"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              }
+            }
+          ]
         }
       ]
     }
@@ -1126,7 +1286,6 @@
         },
         "Instructions": [
           {
-            "$Comment": "Cycle: Wild -> Defensive (Taming Start)",
             "Sensor": {
               "Type": "State",
               "State": "Idle"
@@ -1154,7 +1313,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Defensive -> Passive",
             "Sensor": {
               "Type": "State",
               "State": "PetDefensive"
@@ -1179,7 +1337,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Passive -> Sitting",
             "Sensor": {
               "Type": "State",
               "State": "PetPassive"
@@ -1204,7 +1361,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Sitting -> Defensive",
             "Sensor": {
               "Type": "State",
               "State": "PetSitting"
@@ -1225,6 +1381,18 @@
               {
                 "Type": "State",
                 "State": "PetDefensive"
+              }
+            ]
+          },
+          {
+            "Sensor": {
+              "Type": "State",
+              "State": "Working"
+            },
+            "ActionsBlocking": false,
+            "Actions": [
+              {
+                "Type": "WorkTalk"
               }
             ]
           }

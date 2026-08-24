@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.types.BudState;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -81,7 +82,7 @@ public class TeleportFilterSystem extends RefChangeSystem<EntityStore, Teleport>
                 List<BudComponent> budComponents = new ArrayList<>();
                 for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
                     BudComponent budComponent = BudManager.getInstance().findBudComponent(bud);
-                    if (budComponent != null) {
+                    if (budComponent != null && budComponent.getCurrentState() != BudState.WORKING) {
                         budComponents.add(budComponent);
                     }
                 }

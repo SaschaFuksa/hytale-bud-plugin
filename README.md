@@ -3,6 +3,7 @@
   <img src="https://fuksa.de/hytale/buddies.avif" width="600px">
   <p><i>Used template by <a href="https://github.com/UpcraftLP">Up</a>, slightly modified by <a href="https://github.com/Kaupenjoe">Kaupenjoe</a>.</i><br>
   <i>Inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends">MyFriends</a> by LukeysMods.</i></p>
+  Bud Work Feature inspired by <a href="https://www.curseforge.com/hytale/mods/ancient-constructs">Ancient Constructs</a> by <a href="https://www.curseforge.com/members/danbagh/projects">DanBagh</a>.
 </div>
 
 <br>
@@ -195,6 +196,7 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
 | `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
 | `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
+| `EnableWorkReactions` | Enable or disable the Working-state reactions (started/finished working, interacted-with-while-working, output storage full, out of fuel) | `true` |
 <br>
 
 ### Orchestration Configuration (Only change if needed for performance tuning)
@@ -206,6 +208,35 @@ To enable the AI features, edit the `LLM.json` in your server's mod folder:
 | `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
 | `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
 | `OrchestratorEntryTtlMs` | Time-to-live for orchestrator entries (in milliseconds) | `60000L` |
+<br>
+
+### Work Configuration
+| Setting | Description | Default |
+|:--- |:--- |:--- |
+| `FarmingFieldSize` | Field size of a Farming Workstation: `SMALL` (radius 4), `MEDIUM` (5), `LARGE` (6) | `MEDIUM` |
+| `LumberingFieldSize` | Field size of a Lumbering Workstation: `SMALL` (radius 3, 2 tree spots), `MEDIUM` (5, 4 spots), `LARGE` (7, 8 spots) | `MEDIUM` |
+| `MiningFieldSize` | Field size of a Mining Workstation: `SMALL` (radius 3, 2 main nodes), `MEDIUM` (5, 4 nodes), `LARGE` (7, 8 nodes) | `MEDIUM` |
+| `FieldMaxHeight` | Maximum vertical distance (blocks) from the Workstation a tillable block may be at | `3` |
+| `TargetTimeoutSeconds` | How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another | `8` |
+| `PrepareSoilIntervalSeconds` | Pacing: how long a Lumbering Bud waits after loosening one tree spot before the Workstation releases the next one | `1` |
+| `TillIntervalSeconds` | Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one | `1` |
+| `PlantIntervalSeconds` | Pacing: how long a working Bud waits after planting a seed before the Workstation releases the next one | `1` |
+| `WaterIntervalSeconds` | Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one | `1` |
+| `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered - matches the native watering can's own duration (`Server/Item/Interactions/Tools/Watering_Can_Use.json`, `"Duration": 86400`), so a Bud waters no more/less often than a player would. Setting this too low makes the field scan see already-watered tiles as needing water again before it can reach the rest of the field, so watering never finishes covering it | `86400` |
+| `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
+| `HarvestIntervalSeconds` | Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one | `1` |
+| `FellIntervalSeconds` | Pacing: how long a working Bud waits after felling a tree before the Workstation releases the next one | `1` |
+| `DigIntervalSeconds` | Pacing: how long a Mining Bud waits after digging a hole before the Workstation releases the next one | `1` |
+| `MineIntervalSeconds` | Pacing: how long a Mining Bud waits after mining a grown stone before the Workstation releases the next one | `1` |
+| `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
+| `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Lumbering Bud plants | `3` |
+| `TreeRootDepth` | How many blocks **below** a tree spot a Lumbering Bud clears for the tree's roots, counting from the soil block the sapling stands on. See "Tree roots" below - too small a value makes trees silently stop growing partway | `4` |
+| `TreeRootRadius` | Horizontal radius (blocks) around the tree spot the same root clearing covers. `1` = a 3x3 column | `1` |
+| `OreMinDistance` | Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field instead of clustering | `2` |
+| `MiningGrowthGameSecondsMin` | Lower bound of the **game-time** seconds a dug hole takes to grow its stone. Deliberately expressed in game seconds, matching how Vanilla defines its own growth stages (`Farming.Stages[].Duration`, e.g. `28800`-`30600` per crop stage) - game time stands still while the server is down, so a half-grown hole keeps its remaining time across a restart. Note the game clock runs faster than real time (factor = `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x by default, so `28800` is roughly 16 real minutes) | `28800` |
+| `MiningGrowthGameSecondsMax` | Upper bound of the same span; each hole rolls its own duration in `[Min, Max]` so dig sites don't all mature in lockstep (same trick Vanilla uses) | `30600` |
+| `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |
+| `RebindRetrySeconds` | Retry interval (seconds) for re-binding a Bud to its Workstation after the owner wasn't online at load time | `10` |
 <br>
 
 ### Debug Configuration
@@ -255,6 +286,31 @@ Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/
 `buds/roster.yml` lists `defaultBuds` (at most 3) — the Buds `/bud create` spawns when called without an id. Buds that exist but aren't in the roster are still summonable individually via `/bud create <id>`.
 
 Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
+
+### 🌾 Work Recipes (`work/recipes.yml`)
+Which seeds/saplings and fuel a working Bud is willing to use is data-driven, per `WorkRole` (`FARMING` and `LUMBERING` both have their own sections today; a future Mining station gets its own list the same way). `work/recipes.yml` in the mod's runtime data folder has `allowedSeeds`/`allowedFuel` maps keyed by role name listing allowed item ids — edit the lists to add/remove crops, trees, or fuel without a rebuild. Same copy-on-first-start convention as `buds/`/`prompts/`: the packaged default is only written if the file is missing, custom edits are left untouched.
+
+`treeGrowthStageSeconds` in the same file speeds up (or slows down) how long a planted sapling needs to become a full tree. `default` sets the duration of every growth stage in game seconds; a numeric key (`0` = freshly planted sapling) overrides a single stage. Vanilla saplings have five timed stages that each take 40000-60000 game seconds. Note that these are **game** seconds: the clock runs at `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x real time by default, and an actively tended sapling is sped up a further 10x by the fertilizer, water and light growth modifiers combined. The shipped `10000` therefore lands at roughly half a real minute per stage on a Bud-tended field. Leave the map empty (`{}`) for vanilla growth speed. Because this file is never overwritten once it exists, an older server copy keeps its old value — delete `work/recipes.yml` (or edit it by hand) to pick up a changed packaged default.
+
+### 🌳 Tree roots (`TreeRootDepth` / `TreeRootRadius`)
+
+Hytale's tree prefabs do not only grow upwards. From the third growth stage on they also place **root blocks below the sapling**, and the engine only writes a growth stage into the world if every block it needs is either air or tagged `Type=Soil`. Hit stone (or any other non-soil block) below a sapling and the placement is rejected silently: the growth timer keeps running, the tree never changes shape, and once the timer finishes the block entity is deleted. The tree is then frozen forever - waiting does not help, and nothing is logged.
+
+That is why a Lumbering Bud now performs a **soil-preparation step with a shovel before tilling**: at each tree spot it turns every block that is neither air nor `Soil_*` into `Soil_Dirt`, both at the surface and `TreeRootDepth` blocks down, across a `TreeRootRadius` column. Blocks that are already soil are left alone, and a spot that already has something planted on it is skipped - so a growing tree's own root blocks are never dug up.
+
+The defaults (depth `4`, radius `1`) cover the common trees. Species with deeper roots need larger values, otherwise they will stall exactly as described above:
+
+| Tree | Required `TreeRootDepth` | Required `TreeRootRadius` |
+|:--- |:--- |:--- |
+| Oak, Poisoned | 3 | 1 |
+| Redwood | 1 | 2 |
+| Cedar (burnt variant) | 4 | 3 |
+| Fir | 6 | 4 |
+| Fir (snow variant) | 8 | 4 |
+| Wisteria | 9 | 10 |
+| all other species | no roots at all | - |
+
+Mind the cost before raising these: the cleared volume is `(2 * radius + 1)^2 * depth` blocks **per tree spot**. The defaults clear 36 blocks, Fir's 6/4 clears 486, and Wisteria's 9/10 clears 3969. If you only ever plant Oak, leave the defaults alone. The simplest alternative to a large radius is to restrict `allowedSeeds: LUMBERING` in `work/recipes.yml` to species your setting actually covers.
 
 ### 🧠 Prompt Management
 The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.

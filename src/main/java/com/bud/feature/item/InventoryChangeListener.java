@@ -37,7 +37,7 @@ public class InventoryChangeListener extends EntityEventSystem<EntityStore, Inve
 
     public void setup() {
         if (RELEVANT_ITEMS_PATTERN != null) {
-            return; // Already initialized
+            return;
         }
         Map<String, String> inventory = itemPromptMessage.getInventory();
         String joined = String.join("|", inventory.keySet());
@@ -56,7 +56,7 @@ public class InventoryChangeListener extends EntityEventSystem<EntityStore, Inve
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk,
             @Nonnull Store<EntityStore> entityStore,
             @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull InventoryChangeEvent inventoryChangeEvent) {
-        setup(); // Ensure the pattern is initialized
+        setup();
         try {
             PlayerRef entityRef = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
             if (entityRef == null) {

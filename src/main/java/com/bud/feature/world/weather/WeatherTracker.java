@@ -42,7 +42,7 @@ public class WeatherTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getWeatherReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWeatherReactionPeriodSeconds();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::triggerWeatherMessage, interval, interval,
                 TimeUnit.SECONDS));
@@ -81,8 +81,8 @@ public class WeatherTracker extends AbstractTracker {
 
                     BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
                     if (budComponent == null) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
-                                + playerRef.getUsername());
+                        LoggerUtil.getLogger().fine(() -> "[BUD] No eligible (non-Working) BudComponent found "
+                                + "for player: " + playerRef.getUsername());
                         return;
                     }
 

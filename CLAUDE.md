@@ -111,6 +111,8 @@ Don't comment private methods/classes. Public interface methods only get a comme
 
 Narrow exception: a one-line comment is fine where its absence would predictably cause someone (including a future Claude session) to "fix" a deliberate workaround back into a bug — e.g. a non-obvious SDK constraint forcing an unusual shape, like the `manifest.json` note above about never hand-editing the generated file. This is for "would break if removed," not "would be nice to explain" — don't use it as a loophole to explain what code already says.
 
+**No research trails in code.** The recurring failure mode is writing the *why* — bytecode findings, rejected alternatives, root-cause analyses, references to plan/TODO docs, "verified via javap that…" — into class/method comments. That belongs in `docs/*.md` and the TODO files, which is where it already gets written anyway; duplicating it next to the code just creates a second copy that rots. If a comment explains a decision, an investigation, or engine behaviour rather than preventing a specific future breakage, delete it. The narrow exception above is one line, not a paragraph, and never a Javadoc block summarising a phase of work.
+
 ## Configuration reference
 
 The user-facing config keys (LLM, Reaction, Orchestrator, Debug, Conversation sections) are documented in [README.md](README.md)'s "⚙️ Configuration (LLM)" section — treat that table as the source of truth when adding/renaming a config field, and keep it in sync with the corresponding `com.bud.core.config.*` class.

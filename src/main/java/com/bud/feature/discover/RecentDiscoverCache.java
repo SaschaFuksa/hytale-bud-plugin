@@ -33,7 +33,6 @@ public class RecentDiscoverCache extends AbstractCache {
                 list = new LinkedList<>();
             }
 
-            // Deduplicate: don't add if last entry has the same zone name
             if (!list.isEmpty() && list.getLast() instanceof DiscoverEntry lastEntry
                     && lastEntry.zoneName().equals(discoverEntry.zoneName())
                     && lastEntry.regionName().equals(discoverEntry.regionName())) {

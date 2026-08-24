@@ -23,14 +23,6 @@ import com.bud.core.config.DebugConfig;
 import com.bud.core.content.ContentVersion;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
-/**
- * Loads {@link BudDefinition}s from YAML instead of a hardcoded {@code BudType} enum.
- * Packaged defaults (veri/keyleth/gronkh) are copied into the runtime data directory on
- * first start, same pattern as {@code LLMPromptManager}. Any additional {@code *.yml}
- * file placed into the runtime {@code buds/} folder by a server operator is picked up
- * automatically - no rebuild required for new Buds (new game assets are still required
- * separately).
- */
 public class BudRegistry {
 
     private static final String[] PACKAGED_DEFINITIONS = { "veri.yml", "keyleth.yml", "gronkh.yml" };
@@ -52,12 +44,10 @@ public class BudRegistry {
         return instance;
     }
 
-    /** Loads packaged defaults only if missing, keeps custom/edited files untouched. */
     public void reloadMissing() {
         this.loadAll(false);
     }
 
-    /** Overwrites the packaged defaults (veri/keyleth/gronkh + roster) back to shipped state. */
     public void reset() {
         this.loadAll(true);
     }
@@ -99,7 +89,6 @@ public class BudRegistry {
         return true;
     }
 
-    /** Whether the last load detected the runtime bud content as older than the packaged version. */
     public boolean isContentVersionMismatch() {
         return this.contentVersionMismatch;
     }
@@ -169,7 +158,8 @@ public class BudRegistry {
             String id = definition.getId();
             if (definitions.containsKey(id)) {
                 LoggerUtil.getLogger()
-                        .warning(() -> "[BUD] Duplicate bud id '" + id + "' in " + path + ", overriding previous definition.");
+                        .warning(() -> "[BUD] Duplicate bud id '" + id + "' in " + path
+                                + ", overriding previous definition.");
             }
             definitions.put(id, definition);
         } catch (Exception e) {
@@ -184,7 +174,8 @@ public class BudRegistry {
             try {
                 roster = BudRoster.load(rosterFile);
             } catch (Exception e) {
-                LoggerUtil.getLogger().severe(() -> "[BUD] Failed to load bud roster " + rosterFile + ": " + e.getMessage());
+                LoggerUtil.getLogger()
+                        .severe(() -> "[BUD] Failed to load bud roster " + rosterFile + ": " + e.getMessage());
             }
         }
         List<String> configuredIds = roster != null ? roster.getDefaultBuds() : List.of();
@@ -231,7 +222,6 @@ public class BudRegistry {
         return Objects.requireNonNull(Collections.unmodifiableSet(definitions.keySet()));
     }
 
-    /** IDs used by the "create all" shorthand (`/bud create` without a flag). At most 3. */
     @Nonnull
     public List<String> getDefaultBudIds() {
         return Objects.requireNonNull(Collections.unmodifiableList(defaultBudIds));

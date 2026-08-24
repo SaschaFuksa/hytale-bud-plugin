@@ -24,4 +24,8 @@ public interface IQueueEntry extends IPromptContext {
         return BudRegistry.getInstance().get(getBudComponent().getBudId());
     }
 
+    default boolean allowsReactionWhileWorking() {
+        return false;
+    }
+
 }

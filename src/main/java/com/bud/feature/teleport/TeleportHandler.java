@@ -14,6 +14,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudDefinition;
 import com.bud.core.registry.BudRegistry;
+import com.bud.core.types.BudState;
 import com.bud.feature.bud.creation.BudSpawner;
 import com.bud.feature.queue.teleport.TeleportEntry;
 import com.bud.feature.queue.teleport.TeleportQueue;
@@ -56,6 +57,12 @@ public class TeleportHandler implements Consumer<TeleportEvent> {
         BudComponent budComponent = event.budComponent();
         PlayerRef playerRef = budComponent.getPlayerRef();
         Store<EntityStore> store = event.store();
+
+        if (budComponent.getCurrentState() == BudState.WORKING) {
+            LoggerUtil.getLogger()
+                    .fine(() -> "[BUD] Skipping teleport for working Bud " + budComponent.getBudId());
+            return;
+        }
 
         NPCEntity oldBud = budComponent.getBud();
         Ref<EntityStore> oldRef = oldBud.getReference();

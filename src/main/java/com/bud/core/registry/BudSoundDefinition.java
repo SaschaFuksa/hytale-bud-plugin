@@ -31,6 +31,7 @@ public class BudSoundDefinition {
             case PET_DEFENSIVE -> getDefensive();
             case PET_PASSIVE -> getPassive();
             case PET_SITTING -> getSitting();
+            case WORKING -> "";
         };
     }
 

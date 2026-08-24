@@ -12,7 +12,7 @@ public class ConversationConfig {
     private int conversationMemoryDepth = 8;
     private double conversationMemoryDecayFactor = 0.9;
     private int conversationMemoryMinImportance = 4;
-    private int conversationMemoryMinMessageLength = 75; // skip memory summarization for trivial one-liners
+    private int conversationMemoryMinMessageLength = 75;
     private boolean enableLegendaryMemory = true;
     private int legendaryMemorySlotsPerBud = 3;
     private boolean enableDialogMode = true;

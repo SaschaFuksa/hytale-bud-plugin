@@ -82,6 +82,9 @@ public class BudCreationHandler implements Consumer<BudCreationEvent> {
             if (!event.budIds().contains(budComponent.getBudId())) {
                 continue;
             }
+            if (budComponent.getCurrentState() == BudState.WORKING) {
+                continue;
+            }
             existingBudTeleports.add(budComponent);
         }
 

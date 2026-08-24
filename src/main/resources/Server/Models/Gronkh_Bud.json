@@ -23,5 +23,23 @@
       "Model": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Loin_Cloth.blockymodel",
       "Texture": "NPC/Intelligent/Trork/Models/Attachments/Cosmetics/Loin_Cloth_Texture.png"
     }
-  ]
+  ],
+  "AnimationSets": {
+    "Interact": {
+      "Animations": [
+        {
+          "Animation": "NPC/Intelligent/Trork/Animations/Items/Battleaxe/Interact.blockyanim",
+          "Looping": false
+        }
+      ]
+    },
+    "Fell": {
+      "Animations": [
+        {
+          "Animation": "NPC/Intelligent/Trork/Animations/Items/Axe/Attacks/Swing_Down/Swing_Down.blockyanim",
+          "Looping": false
+        }
+      ]
+    }
+  }
 }

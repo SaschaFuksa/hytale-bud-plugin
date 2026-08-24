@@ -8,7 +8,7 @@ public enum Mood {
     INSANE("Insane"),
     GRUMPY("Grumpy"),
     DAZED("Dazed"),
-    OVERMOTIVATED("Overmotivated"); // Special mood for favorite day
+    OVERMOTIVATED("Overmotivated");
 
     private final String displayName;
 

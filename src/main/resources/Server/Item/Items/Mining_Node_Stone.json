@@ -1,0 +1,53 @@
+{
+  "TranslationProperties": {
+    "Name": "Mining Node Stone",
+    "Description": "A growing ore node. Not ready to be mined yet."
+  },
+  "Icon": "Icons/ItemsGenerated/Rock_Stone.png",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Cube",
+    "Group": "Stone",
+    "Flags": {},
+    "BlockEntity": {
+      "Components": {
+        "OreGrowthBlock": {}
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "ItemId": "Rock_Stone_Cobble"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "Textures": [
+      {
+        "All": "BlockTextures/Rock_Stone.png",
+        "Weight": 2
+      },
+      {
+        "All": "BlockTextures/Rock_Stone_2.png",
+        "Weight": 1
+      },
+      {
+        "All": "BlockTextures/Rock_Stone_3.png",
+        "Weight": 1
+      }
+    ],
+    "ParticleColor": "#737055",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "BlockBreakingDecalId": "Breaking_Decals_Rock",
+    "TextureComputedColor": "#79785A"
+  },
+  "PlayerAnimationsId": "Block",
+  "Tags": {
+    "Type": [
+      "Rock"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 1,
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

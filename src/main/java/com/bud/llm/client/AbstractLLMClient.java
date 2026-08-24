@@ -26,10 +26,10 @@ public abstract class AbstractLLMClient implements ILLMClient {
 
         return content
                 .replaceAll("(?s)<think>.*?</think>", "")
-                .replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "") // Remove Emojis
-                .replace("\u2013", "-") // En dash to normal dash
-                .replace("\u2014", "-") // Em dash to normal dash
-                .replace("\u2018", "'") // Smart quotes
+                .replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "")
+                .replace("\u2013", "-")
+                .replace("\u2014", "-")
+                .replace("\u2018", "'")
                 .replace("\u2019", "'")
                 .replace("\u201C", "\"")
                 .replace("\u201D", "\"")

@@ -53,6 +53,11 @@ craftView: |
   Your habits: Gets super excited when something shiny is crafted, wants to hold it up to the light immediately.
 teleportView: |
   Your fur gets ruffled when fast travelling.
+workView: |
+  You love: Any task that lets you sniff around and find shiny things while working.
+  You dislike: Find no shiny things while working.
+  Your opinions: Even work can be fun if you look for the sparkle in it!
+  Your habits: Gets distracted by shiny things mid-task, tries to make work into a game.
 fallbacks:
   defensive: I'll protect you, let's fight!
   passive: Follow you anywhere, friend! Let's go!
@@ -72,3 +77,8 @@ fallbacks:
   craftViewUsed: Oh! This station is fun! Maybe it can make shiny things!
   teleportView: Oh! We moved so fast my fur is all ruffled! I hope there are shiny things here too!
   playerChatView: Oh! You are talking to me? Tell me if you found something shiny!
+  workViewStart: Oh! Time to work! Maybe I'll find something shiny while I'm at it!
+  workViewEnd: Oh! Work is done! Time to see what treasures I found!
+  workViewInteract: Oh! You caught me working! Don't worry, I still have time to chat!
+  workViewOutputFull: Oh! No more room to store the harvest! Come see all the treasures I found!
+  workViewOutOfFuel: Oh! I'm out of fuel and need to rest a bit, more please!

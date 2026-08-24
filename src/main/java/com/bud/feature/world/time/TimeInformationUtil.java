@@ -30,7 +30,7 @@ public class TimeInformationUtil {
 
     private static TimeOfDay getTimeOfDay(LocalDateTime gameTime) {
         if (gameTime == null)
-            return TimeOfDay.DAY; // Fallback
+            return TimeOfDay.DAY;
 
         int hour = gameTime.getHour();
 

@@ -51,7 +51,7 @@ public class MoodTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getMoodReactionPeriod();
+        long interval = ReactionConfig.getInstance().getMoodReactionPeriodSeconds();
         lastPollDay = TimeInformationUtil.getDayOfWeek();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::changeMood, interval, interval, TimeUnit.SECONDS));

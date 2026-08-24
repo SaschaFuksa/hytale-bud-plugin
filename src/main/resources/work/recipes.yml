@@ -1,0 +1,138 @@
+allowedSeeds:
+  FARMING:
+    - Plant_Seeds_Aubergine
+    - Plant_Seeds_Aubergine_Eternal
+    - Plant_Seeds_Carrot
+    - Plant_Seeds_Carrot_Eternal
+    - Plant_Seeds_Cauliflower
+    - Plant_Seeds_Cauliflower_Eternal
+    - Plant_Seeds_Chilli
+    - Plant_Seeds_Chilli_Eternal
+    - Plant_Seeds_Corn
+    - Plant_Seeds_Corn_Eternal
+    - Plant_Seeds_Cotton
+    - Plant_Seeds_Cotton_Eternal
+    - Plant_Seeds_Lettuce
+    - Plant_Seeds_Lettuce_Eternal
+    - Plant_Seeds_Onion
+    - Plant_Seeds_Onion_Eternal
+    - Plant_Seeds_Potato
+    - Plant_Seeds_Potato_Eternal
+    - Plant_Seeds_Pumpkin
+    - Plant_Seeds_Pumpkin_Eternal
+    - Plant_Seeds_Rice
+    - Plant_Seeds_Rice_Eternal
+    - Plant_Seeds_Tomato
+    - Plant_Seeds_Tomato_Eternal
+    - Plant_Seeds_Turnip
+    - Plant_Seeds_Turnip_Eternal
+    - Plant_Seeds_Wheat
+    - Plant_Seeds_Wheat_Eternal
+  LUMBERING:
+    - Plant_Seeds_Ash
+    - Plant_Seeds_Aspen
+    - Plant_Seeds_Azure
+    - Plant_Seeds_Bamboo
+    - Plant_Seeds_Beech
+    - Plant_Seeds_Birch
+    - Plant_Seeds_Bottletree
+    - Plant_Seeds_Cedar
+    - Plant_Seeds_Crystal
+    - Plant_Seeds_Dry
+    - Plant_Seeds_Fir
+    - Plant_Seeds_Fire
+    - Plant_Seeds_Frostwood
+    - Plant_Seeds_Gumboab
+    - Plant_Seeds_Jungle
+    - Plant_Seeds_Maple
+    - Plant_Seeds_Oak
+    - Plant_Seeds_Palm
+    - Plant_Seeds_Palo
+    - Plant_Seeds_Redwood
+    - Plant_Seeds_Sallow
+    - Plant_Seeds_Spiral
+    - Plant_Seeds_Willow
+  MINING:
+    - Ore_Adamantite
+    - Ore_Cobalt
+    - Ore_Copper
+    - Ore_Gold
+    - Ore_Iron
+    - Ore_Mithril
+    - Ore_Onyxium
+    - Ore_Prisma
+    - Ore_Silver
+    - Ore_Thorium
+
+allowedFuel:
+  FARMING:
+    - Plant_Fruit_Berries_Red
+  LUMBERING:
+    - Food_Wildmeat_Cooked
+  MINING:
+    - Food_Fish_Grilled
+
+seedTargetPattern:
+  FARMING:
+    prefix: Plant_Crop_
+    suffix: _Block
+  LUMBERING:
+    prefix: Plant_Sapling_
+    suffix: ""
+
+seedTargetOverrides:
+  Plant_Seeds_Fir: Plant_Sapling_Spruce
+  Plant_Seeds_Frostwood: Plant_Sapling_Ice
+  Plant_Seeds_Willow: Plant_Sapling_Windwillow
+
+tillableBlocks:
+  - Soil_Dirt
+  - Soil_Dirt_Burnt
+  - Soil_Dirt_Cold
+  - Soil_Dirt_Dry
+  - Soil_Grass
+  - Soil_Grass_Burnt
+  - Soil_Grass_Cold
+  - Soil_Grass_Deep
+  - Soil_Grass_Dry
+  - Soil_Grass_Full
+  - Soil_Grass_Sunny
+  - Soil_Leaves
+  - Soil_Mud
+  - Soil_Mud_Dry
+  - Soil_Needles
+  - Soil_Pathway
+
+tilledSoilBlocks:
+  - Soil_Dirt_Tilled
+  - "*Soil_Dirt_Tilled_State_Definitions_Watered"
+  - "*Soil_Dirt_Tilled_State_Definitions_Fertilized"
+  - "*Soil_Dirt_Tilled_State_Definitions_Fertilized_Watered"
+
+tilledSoilTargetBlock: Soil_Dirt_Tilled
+
+diggableBlocks:
+  - Soil_Dirt
+  - Soil_Dirt_Burnt
+  - Soil_Dirt_Cold
+  - Soil_Dirt_Dry
+  - Soil_Grass
+  - Soil_Grass_Burnt
+  - Soil_Grass_Cold
+  - Soil_Grass_Deep
+  - Soil_Grass_Dry
+  - Soil_Grass_Full
+  - Soil_Grass_Sunny
+  - Soil_Mud
+  - Soil_Mud_Dry
+  - Soil_Pathway
+  - Rock_Sandstone_Red_Cobble
+  - Rock_Sandstone_White_Cobble
+  - Rock_Stone
+  - Rock_Stone_Mossy
+  - Rock_Stone_Cobble
+  - Rock_Stone_Cobble_Mossy
+
+digRefillBlock: Soil_Dirt
+
+treeGrowthStageSeconds: {default: 10000} # {}
