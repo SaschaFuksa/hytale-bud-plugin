@@ -24,11 +24,20 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 ### Meet the Buddies
 
-| | Bud | Role | Worker role |
-|:--- |:--- |:--- |:--- |
-| 🦊 | **Veri** — Feran, agile and curious, fights with daggers | Combat companion | Mining |
-| 👹 | **Gronkh** — Trork, grumpy but loyal, fights with a mace | Combat companion | Lumbering |
-| 🍃 | **Keyleth** — Kweebec, shy and intelligent, supports with a bow | Combat companion | Farming |
+<table>
+  <tr>
+    <td width="110"><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></td>
+    <td><b>🦊 Veri</b> — Feran, agile and curious, fights with daggers. <i>Worker role: Mining.</i></td>
+  </tr>
+  <tr>
+    <td width="110"><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></td>
+    <td><b>👹 Gronkh</b> — Trork, grumpy but loyal, fights with a mace. <i>Worker role: Lumbering.</i></td>
+  </tr>
+  <tr>
+    <td width="110"><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></td>
+    <td><b>🍃 Keyleth</b> — Kweebec, shy and intelligent, supports with a bow. <i>Worker role: Farming.</i></td>
+  </tr>
+</table>
 
 Every Bud is fully data-driven — new companions are added via a YAML definition, no plugin rebuild required. → [Meet the Buddies in full](https://saschafuksa.github.io/hytale-bud-plugin/#buddies)
 

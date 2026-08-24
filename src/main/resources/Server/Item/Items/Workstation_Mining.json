@@ -18,8 +18,16 @@
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Plant_Fruit_Berries_Red",
-        "Quantity": 10
+        "ResourceTypeId": "Rock_Gem_Ruby",
+        "Quantity": 1
+      },
+      {
+        "ResourceTypeId": "Rock_Gem_Diamond",
+        "Quantity": 1
+      },
+      {
+        "ResourceTypeId": "Rock_Gem_Emerald",
+        "Quantity": 1
       }
     ],
     "Output": [

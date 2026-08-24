@@ -18,7 +18,15 @@
         "Quantity": 10
       },
       {
-        "ItemId": "Ingredient_Fibre",
+        "ResourceTypeId": "Wood_Fire_Trunk",
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Wood_Crystal_Trunk",
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Wood_Azure_Trunk",
         "Quantity": 10
       }
     ],
