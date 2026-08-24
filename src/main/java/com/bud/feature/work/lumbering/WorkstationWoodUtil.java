@@ -100,7 +100,7 @@ public final class WorkstationWoodUtil {
 
     public static final String LIFE_ESSENCE_ITEM_ID = "Ingredient_Life_Essence";
 
-    public static final int MAX_LIFE_ESSENCE_QUANTITY = 50;
+    public static final int MAX_LIFE_ESSENCE_QUANTITY = 30;
 
     @Nonnull
     public static List<ItemStack> collectFellingDrops(@Nonnull World world,
