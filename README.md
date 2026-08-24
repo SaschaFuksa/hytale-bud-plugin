@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Hytale Bud Plugin</h1>
-  <img src="https://fuksa.de/hytale/buddies.avif" width="600px">
+  <img src="docs/images/buddies.avif" width="600px">
   <p><i>Used template by <a href="https://github.com/UpcraftLP">Up</a>, slightly modified by <a href="https://github.com/Kaupenjoe">Kaupenjoe</a>.</i><br>
   <i>Inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends">MyFriends</a> by LukeysMods.</i></p>
   Bud Work Feature inspired by <a href="https://www.curseforge.com/hytale/mods/ancient-constructs">Ancient Constructs</a> by <a href="https://www.curseforge.com/members/danbagh/projects">DanBagh</a>.
@@ -26,15 +26,15 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 <table>
   <tr>
-    <td width="110"><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></td>
+    <td width="110"><img src="docs/images/veri.avif" alt="Veri"></td>
     <td><b>🦊 Veri</b> — Feran, agile and curious, fights with daggers. <i>Worker role: Mining.</i></td>
   </tr>
   <tr>
-    <td width="110"><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></td>
+    <td width="110"><img src="docs/images/gronkh.avif" alt="Gronkh"></td>
     <td><b>👹 Gronkh</b> — Trork, grumpy but loyal, fights with a mace. <i>Worker role: Lumbering.</i></td>
   </tr>
   <tr>
-    <td width="110"><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></td>
+    <td width="110"><img src="docs/images/keyleth.avif" alt="Keyleth"></td>
     <td><b>🍃 Keyleth</b> — Kweebec, shy and intelligent, supports with a bow. <i>Worker role: Farming.</i></td>
   </tr>
 </table>
