@@ -102,7 +102,10 @@ public final class LumberingFieldScan {
             return true;
         }
         String blockId = blockType.getId();
-        return blockId != null && blockId.startsWith(SOIL_BLOCK_PREFIX);
+        if (blockId == null) {
+            return false;
+        }
+        return blockId.startsWith(SOIL_BLOCK_PREFIX) || WorkRecipeConfig.getInstance().isTilledSoilBlock(blockId);
     }
 
     public static boolean isFellCandidate(@Nonnull World world, @Nonnull Vector3i position) {

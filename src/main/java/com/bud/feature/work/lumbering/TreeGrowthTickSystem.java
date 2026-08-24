@@ -153,7 +153,7 @@ public class TreeGrowthTickSystem extends EntityTickingSystem<ChunkStore> {
         }
         String blockId = blockType.getId();
         return blockId != null && blockType.getFarming() != null
-                && WorkRecipeConfig.getInstance().isSaplingBlock(blockId);
+                && WorkRecipeConfig.getInstance().isBudSaplingBlock(blockId);
     }
 
 }

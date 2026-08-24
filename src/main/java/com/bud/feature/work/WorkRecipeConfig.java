@@ -216,6 +216,12 @@ public final class WorkRecipeConfig {
         return pattern != null && !pattern.prefix().isEmpty() && blockTypeId.startsWith(pattern.prefix());
     }
 
+    public boolean isBudSaplingBlock(@Nonnull String blockTypeId) {
+        SeedTargetPattern pattern = seedTargetPatternByRole.get(WorkRole.LUMBERING);
+        return pattern != null && !pattern.prefix().isEmpty() && blockTypeId.startsWith(pattern.prefix())
+                && blockTypeId.endsWith(pattern.suffix());
+    }
+
     public boolean hasTreeGrowthOverrides() {
         return treeGrowthDefaultSeconds != null || !treeGrowthStageSeconds.isEmpty();
     }

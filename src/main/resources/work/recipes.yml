@@ -78,7 +78,7 @@ seedTargetPattern:
     suffix: _Block
   LUMBERING:
     prefix: Plant_Sapling_
-    suffix: ""
+    suffix: "_Bud"
 
 seedTargetOverrides:
   Plant_Seeds_Fir: Plant_Sapling_Spruce
@@ -135,4 +135,4 @@ diggableBlocks:
 
 digRefillBlock: Soil_Dirt
 
-treeGrowthStageSeconds: {} # {default: 10000}
+treeGrowthStageSeconds: {default: 10000}
