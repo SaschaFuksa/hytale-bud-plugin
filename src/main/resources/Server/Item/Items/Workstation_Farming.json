@@ -67,7 +67,7 @@
           "Icon": "Icons/ItemsGenerated/icon_farming-food-slot.png"
         }
       ],
-      "OutputSlotsCount": 6,
+      "OutputSlotsCount": 8,
       "FailedSoundEventId": "SFX_Furnace_Bench_Processing_Failed"
     },
     "State": {
@@ -99,7 +99,7 @@
         "GatherType": "Benches"
       }
     },
-    "HitboxType": "Bench_Furnace",
+    "HitboxType": "Workstation_Bench",
     "BlockParticleSetId": "Stone",
     "ParticleColor": "#5C583E",
     "Support": {

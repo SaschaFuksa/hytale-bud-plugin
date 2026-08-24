@@ -59,33 +59,36 @@ public class LumberingWorkAction extends AbstractWorkAction {
     @Override
     protected void executeExtraWork(@Nonnull WorkType workType, @Nonnull Store<EntityStore> store,
             @Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
-        if (workType != WorkType.FELL) {
-            throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
+        switch (workType) {
+            case FELL -> executeFell(world, bud, x, y, z);
+            case PREPARE_SOIL -> LumberingFieldScan.prepareRootSpace(world, new Vector3i(x, y, z));
+            default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         }
-        executeFell(world, bud, x, y, z);
     }
 
     @Nonnull
     @Override
     protected String extraToolItemFor(@Nonnull WorkType workType) {
-        if (workType != WorkType.FELL) {
-            throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
-        }
-        return WorkToolItems.FELL_TOOL_ITEM;
+        return switch (workType) {
+            case FELL -> WorkToolItems.FELL_TOOL_ITEM;
+            case PREPARE_SOIL -> WorkToolItems.PREPARE_SOIL_TOOL_ITEM;
+            default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
+        };
     }
 
     @Override
     protected float extraCooldownSecondsFor(@Nonnull WorkType workType) {
-        if (workType != WorkType.FELL) {
-            throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
-        }
-        return WorkConfig.getInstance().getFellIntervalSeconds();
+        return switch (workType) {
+            case FELL -> WorkConfig.getInstance().getFellIntervalSeconds();
+            case PREPARE_SOIL -> WorkConfig.getInstance().getPrepareSoilIntervalSeconds();
+            default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
+        };
     }
 
     @Nonnull
     @Override
     protected String extraAnimationNameFor(@Nonnull WorkType workType) {
-        return FELL_ANIMATION;
+        return workType == WorkType.PREPARE_SOIL ? WORK_ANIMATION : FELL_ANIMATION;
     }
 
     @Override

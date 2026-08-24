@@ -19,6 +19,8 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.registry.BudRegistry;
+import com.bud.core.types.RestPosition;
 import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.queue.orchestrator.Orchestrator;
@@ -38,15 +40,18 @@ import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.role.Role;
 
 public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
@@ -86,9 +91,20 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         Ref<ChunkStore> ref = archetypeChunk.getReferenceTo(index);
 
         boolean pausedByBench = !processingBenchBlock.isActive();
-        setRestingSubState(boundBud, pausedByBench || workstation.isResting());
+        boolean restingNow = pausedByBench || workstation.isResting() || workstation.isIdleNoWork();
+        setRestingSubState(boundBud, restingNow);
+        refreshRestTarget(store, ref, boundBud, restingNow);
 
         if (pausedByBench) {
+            if (!workstation.isResting() && workstation.getFuelSecondsRemaining() > 0
+                    && DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                String pausedBudId = boundBud.getBudId();
+                LoggerUtil.getLogger().info(() -> "[BUD] Workstation bench reports inactive while Bud " + pausedBudId
+                        + " has fuel and is not resting - work is paused purely by ProcessingBenchBlock.isActive()"
+                        + "=false. This is either the player's own 'Turn Off' (respected, no override) or the "
+                        + "native Bench self-deactivating (see TBD-FINAL-BUGS.md, 'Fuel Turn on Bug') - both look "
+                        + "identical from here, so we never force this back on.");
+            }
             return;
         }
 
@@ -232,6 +248,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     : new Vector3i((int) Math.floor(currentTarget.x), (int) Math.floor(currentTarget.y),
                             (int) Math.floor(currentTarget.z));
             workstation.addRecentlyFailedTarget(failedPosition);
+            if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                WorkType timedOutWorkType = boundBud.getWorkType();
+                String timedOutBudId = boundBud.getBudId();
+                LoggerUtil.getLogger().info(() -> "[BUD] Bud " + timedOutBudId + " timed out reaching "
+                        + failedPosition + " for " + timedOutWorkType + " after "
+                        + WorkConfig.getInstance().getTargetTimeoutSeconds()
+                        + "s - marked recently-failed, retrying with a different target.");
+            }
             boundBud.setWorkTarget(null);
             boundBud.setWorkType(null);
             boundBud.setPendingCropBlockType(null);
@@ -247,6 +271,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         World world = chunkStore.getExternalData().getWorld();
         WorkAssignment assignment = findNextWorkAssignment(world, anchor, workstation, processingBenchBlock);
         if (assignment == null) {
+            workstation.setIdleNoWork(true);
             boundBud.setWorkCooldownSecondsRemaining(WorkConfig.getInstance().getIdleRetrySeconds());
             return;
         }
@@ -257,6 +282,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             if (repeats >= STARVATION_REPEAT_THRESHOLD) {
                 workstation.addRecentlyFailedTarget(assignment.position());
                 workstation.setConsecutiveRepeatCount(0);
+                workstation.setIdleNoWork(true);
                 boundBud.setWorkCooldownSecondsRemaining(WorkConfig.getInstance().getIdleRetrySeconds());
                 return;
             }
@@ -267,6 +293,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         workstation.setLastAssignedPosition(assignment.position());
         workstation.setLastAssignedWorkType(assignment.workType());
 
+        workstation.setIdleNoWork(false);
         boundBud.setWorkTarget(assignment.target());
         boundBud.setWorkType(assignment.workType());
         boundBud.setPendingCropBlockType(assignment.cropBlockType());
@@ -293,6 +320,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
         Instant now = GameClock.now(world);
 
+        Vector3i prepareSoilWinner = null;
         Vector3i tillWinner = null;
         String cropBlockType = null;
         Vector3i plantWinner = null;
@@ -301,6 +329,16 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         Vector3i harvestWinner = null;
         Vector3i waterRefreshWinner = null;
         if (!isMining) {
+            if (isLumbering) {
+                for (Vector3i position : positions) {
+                    if (position != null && !workstation.isRecentlyFailedTarget(position)
+                            && LumberingFieldScan.isRootCandidate(world, position)) {
+                        prepareSoilWinner = position;
+                        break;
+                    }
+                }
+            }
+
             for (Vector3i position : positions) {
                 if (position != null && !workstation.isRecentlyFailedTarget(position)
                         && FieldCandidates.isTillCandidate(world, position)) {
@@ -393,7 +431,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             int radius = fieldRadius;
             String targetOreBlock = MiningFieldScan.resolveTargetOreBlock(processingBenchBlock);
             MiningFieldScan.NodeScan nodeScan = MiningFieldScan.scanNodes(world, anchor, radius,
-                    targetOreBlock != null, workstation::isRecentlyFailedTarget);
+                    targetOreBlock != null);
             nodeDigWinner = nodeScan.dig();
             oreMineWinner = nodeScan.mine();
             nodeDiagnostics = nodeScan.diagnostics();
@@ -510,6 +548,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = toAssignment(mineWinner, WorkType.MINE, null);
         } else if (isMining && digWinner != null) {
             winner = toAssignment(digWinner, WorkType.DIG, null);
+        } else if (prepareSoilWinner != null) {
+            winner = toAssignment(prepareSoilWinner, WorkType.PREPARE_SOIL, null);
         } else if (tillWinner != null) {
             winner = toAssignment(tillWinner, WorkType.TILL, null);
         } else if (plantWinner != null) {
@@ -546,13 +586,15 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
         if (isLumbering) {
             WorkAssignment loggedWinner = winner;
+            Vector3i loggedPrepareSoilWinner = prepareSoilWinner;
             Vector3i loggedTillWinner = tillWinner;
             Vector3i loggedPlantWinner = plantWinner;
             Vector3i loggedWaterNewWinner = waterNewWinner;
             Vector3i loggedFertilizeWinner = fertilizeWinner;
             Vector3i loggedFellWinner = fellWinner;
             Vector3i loggedWaterRefreshWinner = waterRefreshWinner;
-            LoggerUtil.getLogger().fine(() -> "[BUD] Lumbering winner selection - till=" + loggedTillWinner
+            LoggerUtil.getLogger().fine(() -> "[BUD] Lumbering winner selection - prepareSoil=" + loggedPrepareSoilWinner
+                    + ", till=" + loggedTillWinner
                     + ", plant=" + loggedPlantWinner + ", waterNew=" + loggedWaterNewWinner
                     + ", fertilize=" + loggedFertilizeWinner + ", fell=" + loggedFellWinner
                     + ", waterRefresh=" + loggedWaterRefreshWinner + " -> chosen: "
@@ -620,6 +662,65 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             return;
         }
         role.getStateSupport().setSubState(resting ? "Resting" : "Default");
+    }
+
+    private static final double SEAT_HORIZONTAL_RANGE = 1.4;
+
+    private static final double SEAT_HEIGHT_TOLERANCE = 0.4;
+
+    private static void refreshRestTarget(@Nonnull Store<ChunkStore> store, @Nonnull Ref<ChunkStore> ref,
+            @Nonnull BudComponent boundBud, boolean restingNow) {
+        if (!restingNow) {
+            if (boundBud.getRestTarget() != null) {
+                boundBud.setRestTarget(null);
+            }
+            boundBud.setRestSeated(false);
+            return;
+        }
+        World world = store.getExternalData().getWorld();
+        RestPosition restPosition = BudRegistry.getInstance().get(boundBud.getBudId()).getRestPosition();
+        if (boundBud.getRestTarget() == null) {
+            Vector3d target = switch (restPosition) {
+                case ON_STATION -> WorkstationBindingHandler.resolveStationGroundPosition(store, ref);
+                case NEAR_STATION -> WorkstationBindingHandler.resolveSpawnPositionNextToStation(store, world, ref);
+                case NONE -> null;
+            };
+            boundBud.setRestTarget(target);
+        }
+        Vector3d restTarget = boundBud.getRestTarget();
+        if (restPosition != RestPosition.ON_STATION || restTarget == null || boundBud.isRestSeated()) {
+            return;
+        }
+        seatOnStation(world, boundBud, new Vector3d(restTarget));
+    }
+
+    private static void seatOnStation(@Nonnull World world, @Nonnull BudComponent boundBud,
+            @Nonnull Vector3d target) {
+        world.execute(() -> {
+            Store<EntityStore> entityStore = world.getEntityStore().getStore();
+            ComponentType<EntityStore, TransformComponent> transformType = TransformComponent.getComponentType();
+            if (entityStore == null || transformType == null) {
+                return;
+            }
+            Ref<EntityStore> budRef = boundBud.getBud().getReference();
+            if (budRef == null || !budRef.isValid()) {
+                return;
+            }
+            TransformComponent transform = entityStore.getComponent(budRef, transformType);
+            if (transform == null) {
+                return;
+            }
+            Vector3d position = transform.getPosition();
+            double dx = position.x - target.x;
+            double dz = position.z - target.z;
+            if (dx * dx + dz * dz > SEAT_HORIZONTAL_RANGE * SEAT_HORIZONTAL_RANGE) {
+                return;
+            }
+            if (Math.abs(position.y - target.y) > SEAT_HEIGHT_TOLERANCE) {
+                transform.teleportPosition(target);
+            }
+            boundBud.setRestSeated(true);
+        });
     }
 
 }

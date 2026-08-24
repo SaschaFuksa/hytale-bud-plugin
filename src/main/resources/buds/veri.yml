@@ -8,6 +8,7 @@ pronoun: HE
 favoriteDay: MONDAY
 promptKey: Veri
 workRole: MINING
+restPosition: NEAR_STATION
 sounds:
   defensive: SFX_Fox_Alerted
   passive: SFX_Fox_Alerted

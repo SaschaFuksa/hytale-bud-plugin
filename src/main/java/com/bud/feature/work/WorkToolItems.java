@@ -2,6 +2,8 @@ package com.bud.feature.work;
 
 public final class WorkToolItems {
 
+    public static final String PREPARE_SOIL_TOOL_ITEM = "Tool_Shovel_Iron";
+
     public static final String TILL_TOOL_ITEM = "Tool_Hoe_Crude";
 
     public static final String WATER_TOOL_ITEM = "Tool_Watering_Can";

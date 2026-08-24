@@ -273,8 +273,9 @@ final class WorkstationBindingHandler {
     private static final Map<WorkRole, List<String>> WORK_TOOLS_BY_ROLE = Objects.requireNonNull(Map.of(
             WorkRole.FARMING, List.of(WorkToolItems.TILL_TOOL_ITEM, WorkToolItems.WATER_TOOL_ITEM,
                     WorkToolItems.PLANT_TOOL_ITEM, WorkToolItems.FERTILIZE_TOOL_ITEM, WorkToolItems.HARVEST_TOOL_ITEM),
-            WorkRole.LUMBERING, List.of(WorkToolItems.TILL_TOOL_ITEM, WorkToolItems.WATER_TOOL_ITEM,
-                    WorkToolItems.PLANT_TOOL_ITEM, WorkToolItems.FERTILIZE_TOOL_ITEM, WorkToolItems.FELL_TOOL_ITEM),
+            WorkRole.LUMBERING, List.of(WorkToolItems.PREPARE_SOIL_TOOL_ITEM, WorkToolItems.TILL_TOOL_ITEM,
+                    WorkToolItems.WATER_TOOL_ITEM, WorkToolItems.PLANT_TOOL_ITEM,
+                    WorkToolItems.FERTILIZE_TOOL_ITEM, WorkToolItems.FELL_TOOL_ITEM),
             WorkRole.MINING, List.of(WorkToolItems.DIG_TOOL_ITEM, WorkToolItems.MINE_TOOL_ITEM)));
 
     @Nonnull
@@ -353,7 +354,7 @@ final class WorkstationBindingHandler {
     }
 
     @Nullable
-    private static Vector3d resolveSpawnPositionNextToStation(@Nonnull Store<ChunkStore> chunkStore,
+    static Vector3d resolveSpawnPositionNextToStation(@Nonnull Store<ChunkStore> chunkStore,
             @Nonnull World world, @Nonnull Ref<ChunkStore> ref) {
         Vector3d stationGroundPos = resolveStationGroundPosition(chunkStore, ref);
         if (stationGroundPos == null) {

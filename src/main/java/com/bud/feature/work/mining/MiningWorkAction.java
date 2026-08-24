@@ -75,6 +75,12 @@ public class MiningWorkAction extends AbstractWorkAction {
     private static void executeDig(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
         Vector3i position = new Vector3i(x, y, z);
         if (!MiningFieldScan.isDigCandidate(world, position)) {
+            if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                LoggerUtil.getLogger().info(() -> "[BUD] Veri arrived at " + position + " to DIG, but "
+                        + "isDigCandidate() now rejects it (terrain/free-top-face changed since it was picked) - "
+                        + "no-op this attempt, will be reconsidered next scan since node positions are never "
+                        + "permanently excluded.");
+            }
             return;
         }
         Vector3d anchor = bud.getWorkstationAnchor();
@@ -90,6 +96,11 @@ public class MiningWorkAction extends AbstractWorkAction {
         if (nodeKind == OreGrowthBlock.KIND_NODE_ARM) {
             String inherited = MiningFieldScan.resolveNodeOreBlock(world, anchor, radius, x, z);
             if (inherited == null) {
+                if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                    LoggerUtil.getLogger().info(() -> "[BUD] Veri arrived at node arm " + position
+                            + " but could not inherit an ore block from its center - center likely not started "
+                            + "yet, no-op this attempt.");
+                }
                 return;
             }
             MiningGrowthUtil.startGrowth(world, position, nodeKind, inherited);

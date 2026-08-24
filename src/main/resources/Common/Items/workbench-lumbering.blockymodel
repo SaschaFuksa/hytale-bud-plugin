@@ -4672,6 +4672,6 @@
       ]
     }
   ],
-  "format": "character",
+  "format": "prop",
   "lod": "auto"
 }

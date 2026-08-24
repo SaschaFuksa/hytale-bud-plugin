@@ -20,6 +20,7 @@ public class WorkConfig {
     private String miningFieldSize = "MEDIUM";
     private int fieldMaxHeight = 2;
     private int targetTimeoutSeconds = 8;
+    private int prepareSoilIntervalSeconds = 1;
     private int tillIntervalSeconds = 1;
     private int plantIntervalSeconds = 1;
     private int waterIntervalSeconds = 1;
@@ -29,11 +30,13 @@ public class WorkConfig {
     private int fellIntervalSeconds = 1;
     private int idleRetrySeconds = 5;
     private int treeMinDistance = 3;
+    private int treeRootDepth = 4;
+    private int treeRootRadius = 1;
     private int oreMinDistance = 2;
     private int fuelDurationSeconds = 120;
     private int rebindRetrySeconds = 10;
-    private int miningGrowthGameSecondsMin = 10000;
-    private int miningGrowthGameSecondsMax = 12000;
+    private int miningGrowthGameSecondsMin = 600;
+    private int miningGrowthGameSecondsMax = 660;
     private int digIntervalSeconds = 1;
     private int mineIntervalSeconds = 1;
 
@@ -139,6 +142,18 @@ public class WorkConfig {
         return this.treeMinDistance;
     }
 
+    public int getTreeRootDepth() {
+        return this.treeRootDepth;
+    }
+
+    public int getTreeRootRadius() {
+        return this.treeRootRadius;
+    }
+
+    public int getPrepareSoilIntervalSeconds() {
+        return this.prepareSoilIntervalSeconds;
+    }
+
     public int getOreMinDistance() {
         return this.oreMinDistance;
     }
@@ -224,6 +239,18 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("TreeMinDistance", Codec.INTEGER),
                         (config, value) -> config.treeMinDistance = value,
                         config -> config.treeMinDistance)
+                .add()
+                .append(new KeyedCodec<>("TreeRootDepth", Codec.INTEGER),
+                        (config, value) -> config.treeRootDepth = value,
+                        config -> config.treeRootDepth)
+                .add()
+                .append(new KeyedCodec<>("TreeRootRadius", Codec.INTEGER),
+                        (config, value) -> config.treeRootRadius = value,
+                        config -> config.treeRootRadius)
+                .add()
+                .append(new KeyedCodec<>("PrepareSoilIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.prepareSoilIntervalSeconds = value,
+                        config -> config.prepareSoilIntervalSeconds)
                 .add()
                 .append(new KeyedCodec<>("OreMinDistance", Codec.INTEGER),
                         (config, value) -> config.oreMinDistance = value,

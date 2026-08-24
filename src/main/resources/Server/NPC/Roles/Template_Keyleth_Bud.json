@@ -107,7 +107,7 @@
       "Gravity": 10,
       "MaxFallSpeed": 20,
       "Acceleration": 10,
-      "MaxClimbHeight": 1,
+      "MaxClimbHeight": 2,
       "DescendFlatness": 0.7,
       "DescendSpeedCompensation": 0.5
     }
@@ -1114,17 +1114,50 @@
           ]
         },
         {
-          "$Comment": "=== MODE 4: WORKING (.Default = actively working, .Resting = out of fuel/paused. Both sub-states are set only from Java, never from a JSON Action.) ===",
           "Sensor": {
             "Type": "State",
             "State": "Working"
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: resting pose (native Kweebec_Sapling 'Rest' flavor animation, Status slot - same PlayAnimation mechanism as Trork's campfire-sit, bytecode-verified via ActionPlayAnimation.execute -> NPCEntity.playAnimation). 'Rest' used instead of 'Sit' - 'Sit' assumes a seat height (furniture), which put Keyleth visually into the ground with no seat present; 'Rest' is the ground-level pose. Hoe put away. Single instruction only - add 'Continue': true here if a second .Resting instruction is ever added below it, same reasoning as the Farm-Loop reorder below. ---",
+              "Continue": true,
               "Sensor": {
-                "Type": "State",
-                "State": ".Resting"
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 1.0,
+                "StopDistance": 0.2,
+                "RelativeSpeed": 0.5
+              },
+              "Actions": [
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTargetReached"
+                  }
+                ]
               },
               "BodyMotion": {
                 "Type": "Nothing"
@@ -1133,7 +1166,7 @@
                 {
                   "Type": "PlayAnimation",
                   "Slot": "Status",
-                  "Animation": "Rest"
+                  "Animation": "Sit"
                 },
                 {
                   "Type": "Inventory",
@@ -1141,14 +1174,48 @@
                   "Operation": "ClearHeldItem"
                 },
                 {
-                  "$Comment": "Self-referential no-op setter, required by engine validation. Never opens a transition into .Resting from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": ".Resting"
                 }
               ]
             },
             {
-              "$Comment": "--- .Default bookkeeping: clear the Status-slot Sit animation (empty PlayAnimation, no 'Animation' key - same clear pattern as Trork's Alerted->Status-slot-reset, bytecode-verified: empty animationId is a valid no-op state for ActionPlayAnimation) + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Farm-Loop below sets. Tool-in-hand is NOT set here - FarmWorkAction.equipToolFor switches it per work type (till/water/plant-or-harvest empty hand) each time it executes, see docs/bud-worker-mode-plan.md, 'Phase 6, Werkzeug pro Arbeitsart'. ---",
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "Not",
+                    "Sensor": {
+                      "Type": "RestTarget"
+                    }
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sit"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
               "Continue": true,
               "Sensor": {
                 "Type": "State",
@@ -1160,14 +1227,12 @@
                   "Slot": "Status"
                 },
                 {
-                  "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": "Working"
                 }
               ]
             },
             {
-              "$Comment": "--- Farm-Loop: the Workstation (WorkstationFuelTickSystem) picks the next block and work type (till/plant/water/harvest-detect) within WorkConfig.FieldRadius/FieldMaxHeight in serpentine order and writes both to BudComponent - this WorkTarget Sensor only reads the position back, no scanning/range here. Seeks toward it every tick; FarmWorkAction's own canExecute re-checks interaction distance and the field radius, then branches on the assigned work type internally, so approaching and working share one Instruction. No Timeout wrapper, no second Action - see docs/bud-worker-mode-plan.md, 'Phase 5 — Drei tragende Regeln für Phase 6-10'. ---",
               "Sensor": {
                 "Type": "And",
                 "Sensors": [
@@ -1194,7 +1259,6 @@
               ]
             },
             {
-              "$Comment": "--- .Default idle fallback: no work target assigned - stand still. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Default"
@@ -1228,7 +1292,6 @@
         },
         "Instructions": [
           {
-            "$Comment": "Cycle: Wild -> Defensive (Taming Start)",
             "Sensor": {
               "Type": "State",
               "State": "Idle"
@@ -1256,7 +1319,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Defensive -> Passive",
             "Sensor": {
               "Type": "State",
               "State": "PetDefensive"
@@ -1281,7 +1343,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Passive -> Sitting",
             "Sensor": {
               "Type": "State",
               "State": "PetPassive"
@@ -1306,7 +1367,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Sitting -> Defensive",
             "Sensor": {
               "Type": "State",
               "State": "PetSitting"

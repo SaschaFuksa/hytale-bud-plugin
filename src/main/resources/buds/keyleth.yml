@@ -8,6 +8,7 @@ pronoun: SHE
 favoriteDay: WEDNESDAY
 promptKey: Keyleth
 workRole: FARMING
+restPosition: ON_STATION
 sounds:
   defensive: SFX_Kweebec_Plushie_Impact
   passive: SFX_Kweebec_Plushie_Impact

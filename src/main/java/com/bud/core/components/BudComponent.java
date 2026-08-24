@@ -40,6 +40,11 @@ public class BudComponent implements Component<EntityStore> {
     private Vector3d workTarget;
 
     @Nullable
+    private Vector3d restTarget;
+
+    private boolean restSeated;
+
+    @Nullable
     private WorkType workType;
 
     @Nullable
@@ -140,6 +145,23 @@ public class BudComponent implements Component<EntityStore> {
 
     public void setWorkTarget(@Nullable Vector3d workTarget) {
         this.workTarget = workTarget;
+    }
+
+    @Nullable
+    public Vector3d getRestTarget() {
+        return restTarget;
+    }
+
+    public void setRestTarget(@Nullable Vector3d restTarget) {
+        this.restTarget = restTarget;
+    }
+
+    public boolean isRestSeated() {
+        return restSeated;
+    }
+
+    public void setRestSeated(boolean restSeated) {
+        this.restSeated = restSeated;
     }
 
     @Nullable

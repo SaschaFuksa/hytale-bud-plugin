@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Pronoun;
+import com.bud.core.types.RestPosition;
 import com.bud.core.types.WorkRole;
 import com.bud.feature.LLMPromptManager;
 import com.bud.llm.messages.AbstractYamlMessage;
@@ -26,6 +27,7 @@ public class BudDefinition extends AbstractYamlMessage {
     private String promptKey;
     private WorkRole workRole;
     private BudSoundDefinition sounds;
+    private RestPosition restPosition;
 
     @Nonnull
     public String getId() {
@@ -48,6 +50,11 @@ public class BudDefinition extends AbstractYamlMessage {
             throw new IllegalStateException("BudDefinition '" + id + "' is missing npcTypeId");
         }
         return npcTypeId;
+    }
+
+    @Nonnull
+    public RestPosition getRestPosition() {
+        return restPosition != null ? restPosition : RestPosition.NONE;
     }
 
     @Nonnull

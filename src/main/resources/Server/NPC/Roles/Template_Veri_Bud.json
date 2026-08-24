@@ -1108,17 +1108,50 @@
           ]
         },
         {
-          "$Comment": "=== MODE 4: WORKING (Sub-states: .Default while actively working, .Resting when the Workstation is out of fuel or manually paused - see docs/bud-worker-mode-plan.md, 'Working/Resting Sub-States'. Both sub-states are set programmatically only (WorkstationFuelTickSystem via StateSupport.setSubState(...)), never reachable via a JSON Action/player interaction.) ===",
           "Sensor": {
             "Type": "State",
             "State": "Working"
           },
           "Instructions": [
             {
-              "$Comment": "--- .Resting: fuel exhausted or the native Processing Bench 'TURN OFF' toggle is active - Crouch/sitting pose (swapped from the initial placement, see docs/bud-worker-mode-plan.md, 'Working/Resting-Animation vertauscht') ---",
+              "Continue": true,
               "Sensor": {
-                "Type": "State",
-                "State": ".Resting"
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 1.0,
+                "StopDistance": 0.2,
+                "RelativeSpeed": 0.5
+              },
+              "Actions": [
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "RestTargetReached"
+                  }
+                ]
               },
               "BodyMotion": {
                 "Type": "Nothing"
@@ -1135,14 +1168,48 @@
                   "Operation": "ClearHeldItem"
                 },
                 {
-                  "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into .Resting from outside - the Sensor above already requires State == .Resting.",
                   "Type": "State",
                   "State": ".Resting"
                 }
               ]
             },
             {
-              "$Comment": "--- .Default bookkeeping: Crouch false (active work pose) + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Mining-Loop below sets. War vorher der einzige .Default-Block (reiner Platzhalter, 'real movement follows in Phase 5') - jetzt proaktiv (vor dem ersten Ingame-Test, siehe Lumbering Slice A: dort fehlte exakt diese Verkabelung und Gronkh stand trotz korrekt zugewiesenem WorkTarget nur still) um den echten Mining-Loop + Idle-Fallback ergänzt. ---",
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Resting"
+                  },
+                  {
+                    "Type": "Not",
+                    "Sensor": {
+                      "Type": "RestTarget"
+                    }
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sleep"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
               "Continue": true,
               "Sensor": {
                 "Type": "State",
@@ -1154,14 +1221,12 @@
                   "Slot": "Status"
                 },
                 {
-                  "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
                   "Type": "State",
                   "State": "Working"
                 }
               ]
             },
             {
-              "$Comment": "--- Mining-Loop: analog zum Farm-/Lumbering-Loop, aber ueber MiningWorkAction - die Workstation (WorkstationFuelTickSystem) schreibt Position + WorkType (DIG/MINE) generisch nach BudComponent, dieser (rollenunabhaengige) Sensor liest nur zurueck. Seeks toward it every tick; MiningWorkAction's own canExecute re-checkt Interaktionsdistanz und Feldradius, dann fuehrt Buddeln/Abbauen aus. ---",
               "Sensor": {
                 "Type": "And",
                 "Sensors": [
@@ -1188,7 +1253,6 @@
               ]
             },
             {
-              "$Comment": "--- .Default idle fallback: kein WorkTarget zugewiesen - stehen bleiben. ---",
               "Sensor": {
                 "Type": "State",
                 "State": ".Default"
@@ -1222,7 +1286,6 @@
         },
         "Instructions": [
           {
-            "$Comment": "Cycle: Wild -> Defensive (Taming Start)",
             "Sensor": {
               "Type": "State",
               "State": "Idle"
@@ -1250,7 +1313,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Defensive -> Passive",
             "Sensor": {
               "Type": "State",
               "State": "PetDefensive"
@@ -1275,7 +1337,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Passive -> Sitting",
             "Sensor": {
               "Type": "State",
               "State": "PetPassive"
@@ -1300,7 +1361,6 @@
             ]
           },
           {
-            "$Comment": "Cycle: Sitting -> Defensive",
             "Sensor": {
               "Type": "State",
               "State": "PetSitting"

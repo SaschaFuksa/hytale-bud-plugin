@@ -50,6 +50,12 @@ public final class WorkRecipeConfig {
 
     private final Map<Integer, Integer> treeGrowthStageSeconds = new java.util.HashMap<>();
 
+    @Nullable
+    private Integer treeGrowthDefaultSeconds;
+
+    @Nonnull
+    private static final String TREE_GROWTH_DEFAULT_KEY = "default";
+
     @Nonnull
     private static final List<String> ORE_BLOCK_SUFFIXES = Objects.requireNonNull(List.of(
             "_Stone", "_Magma", "_Slate", "_Shale", "_Sandstone", "_Basalt", "_Volcanic", "_Calcite", "_Mud"));
@@ -109,6 +115,7 @@ public final class WorkRecipeConfig {
         diggableBlocks.clear();
         digRefillBlock = null;
         treeGrowthStageSeconds.clear();
+        treeGrowthDefaultSeconds = null;
         LOGGED_UNRESOLVED_ORES.clear();
         if (!Files.exists(path)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Farming recipe file missing: " + path);
@@ -183,18 +190,25 @@ public final class WorkRecipeConfig {
             if (seconds == null || seconds <= 0) {
                 continue;
             }
+            String key = entry.getKey().trim();
+            if (TREE_GROWTH_DEFAULT_KEY.equalsIgnoreCase(key)) {
+                treeGrowthDefaultSeconds = seconds;
+                continue;
+            }
             try {
-                treeGrowthStageSeconds.put(Integer.valueOf(entry.getKey().trim()), seconds);
+                treeGrowthStageSeconds.put(Integer.valueOf(key), seconds);
             } catch (NumberFormatException e) {
                 LoggerUtil.getLogger().warning(() -> "[BUD] 'treeGrowthStageSeconds' key '" + entry.getKey()
-                        + "' in " + path + " is not a stage number, skipping.");
+                        + "' in " + path + " is neither '" + TREE_GROWTH_DEFAULT_KEY
+                        + "' nor a stage number, skipping.");
             }
         }
     }
 
     @Nullable
     public Integer getTreeGrowthStageSeconds(int stage) {
-        return treeGrowthStageSeconds.get(Integer.valueOf(stage));
+        Integer perStage = treeGrowthStageSeconds.get(Integer.valueOf(stage));
+        return perStage != null ? perStage : treeGrowthDefaultSeconds;
     }
 
     public boolean isSaplingBlock(@Nonnull String blockTypeId) {
@@ -203,7 +217,7 @@ public final class WorkRecipeConfig {
     }
 
     public boolean hasTreeGrowthOverrides() {
-        return !treeGrowthStageSeconds.isEmpty();
+        return treeGrowthDefaultSeconds != null || !treeGrowthStageSeconds.isEmpty();
     }
 
     @Nonnull

@@ -8,6 +8,7 @@ pronoun: HE
 favoriteDay: FRIDAY
 promptKey: Gronkh
 workRole: LUMBERING
+restPosition: NEAR_STATION
 sounds:
   defensive: SFX_Trork_Exertion
   passive: SFX_Trork_Alerted

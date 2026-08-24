@@ -44,6 +44,8 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     private boolean resting;
 
+    private transient boolean idleNoWork;
+
     private float rebindRetrySecondsRemaining;
 
     private float targetElapsedSeconds;
@@ -145,6 +147,14 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     public void setResting(boolean resting) {
         this.resting = resting;
+    }
+
+    public boolean isIdleNoWork() {
+        return idleNoWork;
+    }
+
+    public void setIdleNoWork(boolean idleNoWork) {
+        this.idleNoWork = idleNoWork;
     }
 
     public float getRebindRetrySecondsRemaining() {

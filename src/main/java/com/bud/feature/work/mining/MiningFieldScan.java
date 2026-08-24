@@ -3,7 +3,6 @@ package com.bud.feature.work.mining;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -133,7 +132,7 @@ public final class MiningFieldScan {
 
     @Nonnull
     public static NodeScan scanNodes(@Nonnull World world, @Nonnull Vector3d anchor, int radius,
-            boolean hasSlotOre, @Nonnull Predicate<Vector3i> failedTarget) {
+            boolean hasSlotOre) {
         Vector3i mine = null;
         Vector3i dig = null;
         int growing = 0;
@@ -152,8 +151,7 @@ public final class MiningFieldScan {
                 Vector3i mineablePosition = findMineableInColumn(world, anchor, column.x, column.z);
                 if (mineablePosition != null) {
                     ready++;
-                    if (!failedTarget.test(mineablePosition) && (nodeMine == null
-                            || mineablePosition.y > nodeMine.y)) {
+                    if (nodeMine == null || mineablePosition.y > nodeMine.y) {
                         nodeMine = mineablePosition;
                     }
                     continue;
@@ -163,7 +161,7 @@ public final class MiningFieldScan {
                     continue;
                 }
                 Vector3i digPosition = findDigPositionInColumn(world, anchor, column.x, column.z);
-                if (digPosition == null || failedTarget.test(digPosition)) {
+                if (digPosition == null) {
                     blocked++;
                     continue;
                 }
@@ -239,8 +237,17 @@ public final class MiningFieldScan {
 
     @Nullable
     private static Vector3i findMineableInColumn(@Nonnull World world, @Nonnull Vector3d anchor, int x, int z) {
-        return findInColumn(anchor, x, z,
-                position -> isOreBlock(world, position) || isOreReadyCandidate(world, position));
+        int anchorY = (int) Math.floor(anchor.y);
+        for (int y = anchorY + NODE_VERTICAL_SEARCH; y >= anchorY - NODE_VERTICAL_SEARCH; y--) {
+            Vector3i position = new Vector3i(x, y, z);
+            if (isOreBlock(world, position) || isOreReadyCandidate(world, position)) {
+                return position;
+            }
+            if (isGrowthBlock(world, position)) {
+                return null;
+            }
+        }
+        return null;
     }
 
     @Nullable

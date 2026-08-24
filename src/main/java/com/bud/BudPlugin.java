@@ -36,6 +36,8 @@ import com.bud.feature.state.StateChangeSystem;
 import com.bud.feature.teleport.TeleportEvent;
 import com.bud.feature.teleport.TeleportFilterSystem;
 import com.bud.feature.teleport.TeleportHandler;
+import com.bud.feature.work.BuilderRestTargetReachedSensor;
+import com.bud.feature.work.BuilderRestTargetSensor;
 import com.bud.feature.work.BuilderWorkTargetSensor;
 import com.bud.feature.work.WorkRecipeConfig;
 import com.bud.feature.work.WorkstationBlockEntity;
@@ -129,6 +131,8 @@ public class BudPlugin extends JavaPlugin {
         NPCPlugin.get().registerCoreComponentType("LumberingWork", BuilderActionLumberingWork::new);
         NPCPlugin.get().registerCoreComponentType("MiningWork", BuilderActionMiningWork::new);
         NPCPlugin.get().registerCoreComponentType("WorkTarget", BuilderWorkTargetSensor::new);
+        NPCPlugin.get().registerCoreComponentType("RestTarget", BuilderRestTargetSensor::new);
+        NPCPlugin.get().registerCoreComponentType("RestTargetReached", BuilderRestTargetReachedSensor::new);
         NPCPlugin.get().registerCoreComponentType("WorkTalk", BuilderActionWorkTalk::new);
 
         this.getCommandRegistry().registerCommand(new BudCommandCollection());

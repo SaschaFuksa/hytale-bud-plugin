@@ -1,5 +1,5 @@
 package com.bud.core.types;
 
 public enum WorkType {
-    TILL, PLANT, WATER, FERTILIZE, HARVEST, FELL, DIG, MINE;
+    PREPARE_SOIL, TILL, PLANT, WATER, FERTILIZE, HARVEST, FELL, DIG, MINE;
 }

@@ -61,7 +61,7 @@ public class LLMWorkMessageCreation extends AbstractLLMMessageCreation {
         if (workType == null) {
             return "You do not have a specific work task assigned right now.";
         }
-        return "Your current work task is: " + workType.name().toLowerCase() + ".";
+        return "Your current work task is: " + workType.name().toLowerCase().replace('_', ' ') + ".";
     }
 
     @Nonnull
