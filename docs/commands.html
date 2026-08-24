@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commands — Bud Plugin</title>
+<meta name="description" content="Every /bud chat command: creation, deletion, state, memory, prompt, reload and debug — including which ones require admin permission.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Bud Plugin
+    </a>
+    <div class="nav-links">
+      <a href="index.html#buddies">Buddies</a>
+      <a href="index.html#features">Features</a>
+      <a href="cards.html">Cards</a>
+      <a href="work-stations.html">Work Stations</a>
+      <a href="configuration.html">Configuration</a>
+      <a href="commands.html">Commands</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">🌙</button>
+      <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subpage-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="index.html">← Overview</a></p>
+    <span class="eyebrow">Commands</span>
+    <h1>Every /bud command</h1>
+    <p>Everything runs through <code>/bud &lt;subcommand&gt;</code>. Type <code>/bud</code> alone in-game for the built-in command list with live tab-completion.</p>
+  </div>
+</header>
+
+<main class="container docs-layout">
+  <nav class="toc" aria-label="On this page">
+    <span class="toc-label">On this page</span>
+    <a href="#creation">Creation</a>
+    <a href="#deletion">Deletion</a>
+    <a href="#state">State</a>
+    <a href="#memory">Memory</a>
+    <a href="#prompt">Prompt</a>
+    <a href="#reload">Reload</a>
+    <a href="#debug">Debug</a>
+  </nav>
+
+  <div class="docs-content">
+
+    <section id="creation">
+      <h2>Creation</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud create</code>
+          <p>Spawns the default roster (configured in <code>buds/roster.yml</code>; ships as Veri, Gronkh, Keyleth).</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud create &lt;bud&gt;</code>
+          <p>Spawns or teleports a specific Bud by id. Tab-completes against every Bud defined in <code>buds/*.yml</code>, not just the default roster.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud reset</code>
+          <p>Recreates all your buddies.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="deletion">
+      <h2>Deletion</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud delete</code>
+          <p>Dismisses all your active Buds at once.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud delete --veri | --keyleth | --gronkh</code>
+          <p>Dismisses one specific companion.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud delete --world<span class="badge-admin">Admin</span></code>
+          <p>Deletes every Bud belonging to every player on the server.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud delete --playername &lt;name&gt;<span class="badge-admin">Admin for others</span></code>
+          <p>Deletes another player's Buds by username. No admin permission needed to target your own name.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="state">
+      <h2>State</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud state</code>
+          <p>Cycles the behavior mode for all active Buds to the next state.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud state --defensive</code>
+          <p>Sets all active Buds to Defensive (fight alongside you).</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud state --passive</code>
+          <p>Sets all active Buds to Passive (follow you).</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud state --sitting</code>
+          <p>Sets all active Buds to Sitting (stay put).</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="memory">
+      <h2>Memory</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud memory [--veri|--keyleth|--gronkh]</code>
+          <p>Lists stored conversation memories, optionally filtered to one Bud. Each entry is printed with its ID for use below.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud memory --legendary</code>
+          <p>Same, but lists legendary memories instead of regular ones.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud memory set &lt;bud&gt; "&lt;text&gt;" [--legendary]</code>
+          <p>Manually adds a memory (or, with <code>--legendary</code>, a permanent legendary memory) for a Bud. Quote the text.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud memory delete &lt;bud&gt; &lt;id&gt; [--legendary]</code>
+          <p>Removes a memory by the ID shown in the list above. IDs are stable and never reused.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="prompt">
+      <h2>Prompt</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud prompt</code>
+          <p>Reloads missing LLM prompt files without restarting the server.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud prompt --reset</code>
+          <p>Resets <strong>all</strong> LLM prompt files to their packaged defaults. Back up custom prompts first — see <a href="configuration.html#prompts">Prompt management</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="reload">
+      <h2>Reload</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud reload buds</code>
+          <p>Reloads missing Bud definitions (<code>buds/*.yml</code>, <code>roster.yml</code>) without restarting the server.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud reload buds --reset</code>
+          <p>Resets <strong>all</strong> Bud definitions to their packaged defaults. Back up custom Bud definitions first.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="debug">
+      <h2>Debug</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud debug</code>
+          <p>Shows the available debug flags.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --componentData</code>
+          <p>Shows the current and persisted Bud data for you in chat.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --mood</code>
+          <p>Shows each active Bud's current mood and favorite day.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --weather</code>
+          <p>Shows the current weather.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --time</code>
+          <p>Shows the current time of day and day of week.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --world</code>
+          <p>Shows the current zone and biome.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --memory</code>
+          <p>Shows the current conversation memories.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud debug --dialog</code>
+          <p>Triggers dialog mode immediately for your current Buds.</p>
+        </div>
+        <div class="command-entry">
+          <code class="cmd">/bud state --working<span class="badge-admin">Debug only</span></code>
+          <p>Forces a Bud into its Working state without a Workstation. Disabled unless <code>EnableWorkingStateDebugCommand</code> is set in <a href="configuration.html#debug">Debug.json</a>.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Bud Plugin
+      </a>
+      <p class="footer-note">A proof-of-concept Hytale server plugin. Template by <a href="https://github.com/UpcraftLP" target="_blank" rel="noopener">Up</a>, modified by <a href="https://github.com/Kaupenjoe" target="_blank" rel="noopener">Kaupenjoe</a>, inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends" target="_blank" rel="noopener">MyFriends</a> by LukeysMods.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/LICENSE.md" target="_blank" rel="noopener">License (CC0)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

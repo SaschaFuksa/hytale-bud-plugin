@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bud Cards — Bud Plugin</title>
+<meta name="description" content="How to craft and use Bud Cards: exact recipes for Veri, Gronkh, Keyleth and the Roster card, and how summon/dismiss works.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Bud Plugin
+    </a>
+    <div class="nav-links">
+      <a href="index.html#buddies">Buddies</a>
+      <a href="index.html#features">Features</a>
+      <a href="cards.html">Cards</a>
+      <a href="work-stations.html">Work Stations</a>
+      <a href="configuration.html">Configuration</a>
+      <a href="commands.html">Commands</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">🌙</button>
+      <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subpage-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="index.html">← Overview</a></p>
+    <span class="eyebrow">No commands needed</span>
+    <h1>Bud Cards</h1>
+    <p>Every companion has its own craftable card. Hold it, click, and the Bud appears — no <code>/bud create</code> required. This page covers the exact recipes and every interaction.</p>
+  </div>
+</header>
+
+<main class="container docs-layout">
+  <nav class="toc" aria-label="On this page">
+    <span class="toc-label">On this page</span>
+    <a href="#how-it-works">How it works</a>
+    <a href="#recipes">Card recipes</a>
+    <a href="#roster-card">Roster card</a>
+    <a href="#tips">Tips</a>
+  </nav>
+
+  <div class="docs-content">
+
+    <section id="how-it-works">
+      <h2>How it works</h2>
+      <p>A Bud Card is a regular item — it lives in your inventory or hotbar like any tool.</p>
+      <ul>
+        <li><strong>Left-click (Primary)</strong> — summons the matching Bud next to you. If it's already present, this respawns it at your location.</li>
+        <li><strong>Right-click (Secondary)</strong> — dismisses that Bud again.</li>
+        <li>Each card only ever affects its own Bud, so carrying all three lets you freely mix and match your active companions without any of them interfering with each other.</li>
+      </ul>
+      <p>All four cards (Veri, Gronkh, Keyleth, and the Roster card below) are crafted at the <strong>Arcane Workbench</strong>, under the <em>Arcane Misc</em> category.</p>
+    </section>
+
+    <section id="recipes">
+      <h2>Card recipes</h2>
+      <p>Exact ingredient lists, read straight from the item definitions — not summarized.</p>
+      <div class="recipe-grid">
+        <div class="recipe-card">
+          <h3>🦊 Veri Card</h3>
+          <p class="recipe-bench">Arcane Workbench · Arcane Misc</p>
+          <ul>
+            <li><code>Iron Daggers</code><span class="qty">×1</span></li>
+            <li><code>Stamina Crop (Tier 3)</code><span class="qty">×3</span></li>
+            <li><code>Antidote Potion</code><span class="qty">×10</span></li>
+            <li><code>Silver Bar</code><span class="qty">×30</span></li>
+            <li><code>Gold Bar</code><span class="qty">×30</span></li>
+            <li><code>Fire Essence</code><span class="qty">×10</span></li>
+            <li><code>Concentrated Life Essence</code><span class="qty">×1</span></li>
+          </ul>
+        </div>
+        <div class="recipe-card">
+          <h3>👹 Gronkh Card</h3>
+          <p class="recipe-bench">Arcane Workbench · Arcane Misc</p>
+          <ul>
+            <li><code>Iron Mace</code><span class="qty">×1</span></li>
+            <li><code>Mana Crop (Tier 3)</code><span class="qty">×3</span></li>
+            <li><code>Ice Rock</code><span class="qty">×30</span></li>
+            <li><code>Mossy Cobblestone</code><span class="qty">×90</span></li>
+            <li><code>Silver Bar</code><span class="qty">×20</span></li>
+            <li><code>Ice Essence</code><span class="qty">×10</span></li>
+            <li><code>Concentrated Life Essence</code><span class="qty">×1</span></li>
+          </ul>
+        </div>
+        <div class="recipe-card">
+          <h3>🍃 Keyleth Card</h3>
+          <p class="recipe-bench">Arcane Workbench · Arcane Misc</p>
+          <ul>
+            <li><code>Iron Shortbow</code><span class="qty">×1</span></li>
+            <li><code>Health Crop (Tier 3)</code><span class="qty">×3</span></li>
+            <li><code>Fibre</code><span class="qty">×50</span></li>
+            <li><code>Azure Trunk Wood</code><span class="qty">×20</span></li>
+            <li><code>Gold Bar</code><span class="qty">×20</span></li>
+            <li><code>Pumpkin</code><span class="qty">×10</span></li>
+            <li><code>Concentrated Life Essence</code><span class="qty">×1</span></li>
+          </ul>
+        </div>
+        <div class="recipe-card">
+          <h3>🎴 Roster Card</h3>
+          <p class="recipe-bench">Arcane Workbench · Arcane Misc</p>
+          <ul>
+            <li><code>Iron Mace</code><span class="qty">×1</span></li>
+            <li><code>Iron Shortbow</code><span class="qty">×1</span></li>
+            <li><code>Iron Daggers</code><span class="qty">×1</span></li>
+            <li><code>Stamina / Mana / Health Crop (Tier 3)</code><span class="qty">×3 each</span></li>
+            <li><code>Silver Bar</code><span class="qty">×60</span></li>
+            <li><code>Gold Bar</code><span class="qty">×60</span></li>
+            <li><code>Fire Essence</code><span class="qty">×10</span></li>
+            <li><code>Ice Essence</code><span class="qty">×10</span></li>
+            <li><code>Concentrated Life Essence</code><span class="qty">×3</span></li>
+          </ul>
+        </div>
+      </div>
+      <p>Every recipe costs one <code>Concentrated Life Essence</code> — the Roster card needs three since it stands in for all three individual cards at once.</p>
+    </section>
+
+    <section id="roster-card">
+      <h2>Roster card</h2>
+      <p>The Roster card spawns or despawns every Bud in your <code>buds/roster.yml</code> default roster at once (ships as Veri, Gronkh, Keyleth) — the same set <code>/bud create</code> spawns when called without an id. It's the fastest way to bring your whole team out or send them all home in one click, without replacing the individual cards: keep those too if you want to summon or dismiss companions one at a time.</p>
+    </section>
+
+    <section id="tips">
+      <h2>Tips</h2>
+      <ul>
+        <li>Cards work anywhere commands do — no server admin permissions needed, they're plain crafted items.</li>
+        <li>If a Bud looks "stuck" or invisible after a teleport, a left-click with its card respawns it cleanly (same effect as <code>/bud reset</code>).</li>
+        <li>Cards and chat commands are fully interchangeable — use whichever is faster in the moment. A Bud summoned by card can be sent to work a Workstation exactly like one summoned by command.</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Bud Plugin
+      </a>
+      <p class="footer-note">A proof-of-concept Hytale server plugin. Template by <a href="https://github.com/UpcraftLP" target="_blank" rel="noopener">Up</a>, modified by <a href="https://github.com/Kaupenjoe" target="_blank" rel="noopener">Kaupenjoe</a>, inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends" target="_blank" rel="noopener">MyFriends</a> by LukeysMods.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/LICENSE.md" target="_blank" rel="noopener">License (CC0)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

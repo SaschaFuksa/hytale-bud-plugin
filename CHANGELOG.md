@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - **Central Version Management**: Global version file and prompt/bud-config reloading
 - **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
 - **Bud Cards**: Optical rework and texture now matches the card.
+- **Bud Work Stations**: Now you can send your bud to work an harvest/lumber/mine items
 
 
 ### Fixed

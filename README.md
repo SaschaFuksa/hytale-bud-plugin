@@ -8,342 +8,79 @@
 
 <br>
 
+<div align="center">
+
+📖 **[Full documentation, guides and configuration reference →](https://saschafuksa.github.io/hytale-bud-plugin/)**
+
+</div>
+
+<br>
+
 ## 🌟 Overview
 
-This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles.
+This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles. The mod works fully without an LLM configured too — the AI layer is what makes it come alive, not what it depends on.
 
-<br>
+> Upgrading from an older version? Remove the `/prompts` folder, or update it with `/bud prompt reset`.
 
-## Update information:
+### Meet the Buddies
 
-If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt reset**.
-For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
+| | Bud | Role | Worker role |
+|:--- |:--- |:--- |:--- |
+| 🦊 | **Veri** — Feran, agile and curious, fights with daggers | Combat companion | Mining |
+| 👹 | **Gronkh** — Trork, grumpy but loyal, fights with a mace | Combat companion | Lumbering |
+| 🍃 | **Keyleth** — Kweebec, shy and intelligent, supports with a bow | Combat companion | Farming |
 
-## New in 1.9.0
-### Added
-- **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.
-
-### Fixed
-- Now disable friendly fire for Buds
-- Also Buds will now attack hostile mobs that attack the player, and will assist the player in combat for a short duration after being attacked.
-- Commands for memories: See all current memories/legendary memories
-
-(See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
-
-### Quote of the release:
-
-After hitting grass...
-Gronkh: 
->Grass? Og Og-what's wrong with that fool, smashing tender things like flowers? Too weak for even my stone mace's respect.
-
-<br>
-
-### Meet your Buddies
-
-<table>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></td>
-    <td>
-      <h3>🦊 Veri</h3>
-      <p>A Feran buddy who is a little childish, but extremely curious and friendly. Veri is agile and supports you in combat using <b>daggers</b>.</p>
-      <p>Veri travels with you to find the rare antidote for his sick Feran clan infected by strange disease from the toxic Skaraks.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></td>
-    <td>
-      <h3>👹 Gronkh</h3>
-      <p>A Trork buddy who might seem grumpy at first, but is fiercely loyal and strong. He's a powerhouse who supports you with a heavy <b>mace</b>.</p>
-      <p>Gronkh is on a mission to protect the northern tribe from the icy 'white wanderers' and is training to crush the undead forces threatening their lands.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></td>
-    <td>
-      <h3>🍃 Keyleth</h3>
-      <p>A Kweebec buddy who is highly intelligent but a bit shy. She prefers to keep her distance and supports you from afar with a <b>bow</b>.</p>
-      <p>Keyleth is on a quest to uncover ancient knowledge in lost temples. She wants to balance by connecting old temples to defeat Shadow Knight and the dark army.</p>
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🎴 Bud Cards
-
-Summon and dismiss your Buds with an item instead of chat commands. Each companion has its own **Card**, craftable at the Arcane Workbench under the *Arcane Misc* category.
-
-Image shows the arcane workbench misc menu with all the recipes:
-<img src="https://fuksa.de/hytale/card-crafting.png" alt="Card Crafting">
-
-| Card | Recipe |
-|:--- |:--- |
-| **Keyleth** | Iron Shortbow, Health Crop x3, Fibre x50, Azure Trunk Wood x20, Gold Bar x20, Pumpkin x10, Concentrated Life Essence |
-| **Veri** | Iron Daggers, Stamina Crop x3, Antidote Potion x10, Silver Bar x30, Gold Bar x30, Fire Essence x10, Concentrated Life Essence |
-| **Gronkh** | Iron Mace, Mana Crop x3, Ice Rock x30, Mossy Cobblestone x90, Silver Bar x20, Ice Essence x10, Concentrated Life Essence |
-
-Once crafted, just hold the card in your hand:
-
-<img src="https://fuksa.de/hytale/card-slot.png" alt="Card Slot">
-
-*   **Left-Click (Primary)**: Summons the matching Bud next to you. If bud is already present, respawn them.
-*   **Right-Click (Secondary)**: Despawn that Bud again.
-
-Each card only ever spawns/despawns its own Bud, so you can carry all three and freely mix and match your active companions.
+Every Bud is fully data-driven — new companions are added via a YAML definition, no plugin rebuild required. → [Meet the Buddies in full](https://saschafuksa.github.io/hytale-bud-plugin/#buddies)
 
 <br>
 
 ## 🚀 Features
 
+- **LLM Reactions** — your Buds react in character to combat, block placement, crafting, item pickups, weather, new zones, your chat, even your status effects — generated live by an LLM, or a hand-written fallback line when none is configured.
+- **Bud Cards + Crafting** — summon and dismiss companions with a craftable card instead of chat commands. → [How to craft & use them](https://saschafuksa.github.io/hytale-bud-plugin/cards.html)
+- **Bud Work Stations** — assign a Bud to a Workstation and it farms, logs, or mines a field on its own. → [How Work Stations work](https://saschafuksa.github.io/hytale-bud-plugin/work-stations.html)
 
-### 🤖 Intelligent Interaction
-*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
-*   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
-*   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
-*   **Block Interaction**: Your companions react to your recent block placements or block breaks.
-*   **Item Interaction**: Your companions react to your recent item collections.
-*   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
-*   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
-*   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
-*   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
-*   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
-*   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
-
-### Memory System
-*   **Memory Storage**: Buds remember past interactions with the player, allowing for context-aware responses and interactions based on previous events. 
-*   **Memory Prioritization**: Memories are prioritized based on their importance, with more significant events being retained longer and influencing Bud behavior more strongly.
-*   **Memory Eviction**: Memories priority is decayed over time, and less important memories are evicted when the memory capacity is reached.
-*   **Legendary Memories**: Certain significant events can be marked as "legendary," ensuring they are retained in memory for longer periods.
+→ [See every feature](https://saschafuksa.github.io/hytale-bud-plugin/#features)
 
 <br>
 
-### 🎮 Commands
-The plugin is primarily controlled via simple chat commands:
+## 🆕 New Features
 
-*   **`/bud`** - Shows all commands.
+Highlights of the latest release:
 
-#### Creation Commands
+- **Bud-to-Bud Reactions & Memories** — Buds react to each other and build shared memories.
+- **Bud Work Stations** — send a Bud to farm, log, or mine autonomously.
+- **Data-driven Bud Registry** — new companions via YAML, no rebuild.
+- **Central content versioning** — prompts and Bud definitions auto-update safely.
 
-*   **`/bud create`** - Creates the default roster of Buds (configured in `buds/roster.yml`; ships as Veri, Gronkh, Keyleth).
-*   **`/bud create <bud>`** - Target a specific Bud id for spawning or teleportation. Tab-completes against every Bud defined in `buds/*.yml`, not just the default roster.
-*   **`/bud reset`** - Recreate all your buddies.
-
-#### Deletion Commands
-
-*   **`/bud delete`** - Deletes all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud delete [--veri|--gronkh|--keyleth]`** - Deletes a specific buddy.
-*   **`/bud delete --world`** - Deletes all buddies of all worlds.
-
-#### State Commands
-
-*   **`/bud state`** - Change the behavior mode for all active Buds to the next state.
-*   **`/bud state --defensive`** - Change the behavior mode for all active Buds to Defensive.
-*   **`/bud state --passive`** - Change the behavior mode for all active Buds to Passive.
-*   **`/bud state --sitting`** - Change the behavior mode for all active Buds to Sitting.
-
-#### Prompt Commands
-
-*   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
-*   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
-
-#### Reload Commands
-
-*   **`/bud reload buds`** - Reload missing Bud definitions (`buds/*.yml`, `roster.yml`) without restarting the server.
-*   **`/bud reload buds --reset`** - Reset all Bud definitions to default (use with caution, backup your custom Bud definitions first!).
-
-#### Debug Commands
-
-*   **`/bud debug`** - Shows the available debug flags.
-*   **`/bud debug --componentData`** - Shows the current and persisted Bud data for the player in chat.
-*   **`/bud debug --mood`** - Shows the current mood of each active Bud and their favorite day in chat.
-*   **`/bud debug --weather`** - Shows the current weather in chat.
-*   **`/bud debug --time`** - Shows the current time of day and day of week in chat.
-*   **`/bud debug --world`** - Shows the current zone and biome in chat.
+→ [Full changelog](https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md)
 
 <br>
 
-## ⚙️ Configuration (LLM)
+## 🎮 Commands
 
-To enable the AI features, edit the `LLM.json` in your server's mod folder:
+Everything runs through `/bud <subcommand>` — creation, deletion, state, memory, prompts, reload, debug.
 
+→ [Full command reference](https://saschafuksa.github.io/hytale-bud-plugin/commands.html)
 
-### LLM Configuration
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableLLM` | Toggle LLM features | `true` |`
-| `UsePlayer2API` | Toggle to use Player2 API for LLM <br>(EnableLLM must be true) | `false` |
-| `Url` | Your LLM API Endpoint | `v1/chat/completions` |
-| `Model` | The AI model identifier | `mistralai/ministral-3-3b` |
-| `ApiKey` | The API key for your LLM service | `not_needed` |
-| `MaxTokens` | Limit the length of AI responses | `100` |
-| `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
 <br>
 
-### Reaction Configuration
+## ⚙️ Configuration
 
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
-| `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
-| `EnableItemReactions` | Enable or disable item reaction messages | `true` |
-| `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
-| `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
-| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
-| `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
-| `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
-| `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
-| `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
-| `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
-| `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
-| `EnableWorkReactions` | Enable or disable the Working-state reactions (started/finished working, interacted-with-while-working, output storage full, out of fuel) | `true` |
-<br>
+Six JSON files, one per concern (LLM, Reaction, Orchestrator, Work, Debug, Conversation), plus the Bud Registry and prompt YAMLs.
 
-### Orchestration Configuration (Only change if needed for performance tuning)
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `OrchestratorGlobalCooldownMs` | Global cooldown for orchestrator actions (in milliseconds) | `3000L` |
-| `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
-| `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
-| `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
-| `OrchestratorEntryTtlMs` | Time-to-live for orchestrator entries (in milliseconds) | `60000L` |
-<br>
-
-### Work Configuration
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `FarmingFieldSize` | Field size of a Farming Workstation: `SMALL` (radius 4), `MEDIUM` (5), `LARGE` (6) | `MEDIUM` |
-| `LumberingFieldSize` | Field size of a Lumbering Workstation: `SMALL` (radius 3, 2 tree spots), `MEDIUM` (5, 4 spots), `LARGE` (7, 8 spots) | `MEDIUM` |
-| `MiningFieldSize` | Field size of a Mining Workstation: `SMALL` (radius 3, 2 main nodes), `MEDIUM` (5, 4 nodes), `LARGE` (7, 8 nodes) | `MEDIUM` |
-| `FieldMaxHeight` | Maximum vertical distance (blocks) from the Workstation a tillable block may be at | `3` |
-| `TargetTimeoutSeconds` | How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another | `8` |
-| `PrepareSoilIntervalSeconds` | Pacing: how long a Lumbering Bud waits after loosening one tree spot before the Workstation releases the next one | `1` |
-| `TillIntervalSeconds` | Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one | `1` |
-| `PlantIntervalSeconds` | Pacing: how long a working Bud waits after planting a seed before the Workstation releases the next one | `1` |
-| `WaterIntervalSeconds` | Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one | `1` |
-| `WaterDurationSeconds` | How long (seconds) one watering keeps tilled soil watered - matches the native watering can's own duration (`Server/Item/Interactions/Tools/Watering_Can_Use.json`, `"Duration": 86400`), so a Bud waters no more/less often than a player would. Setting this too low makes the field scan see already-watered tiles as needing water again before it can reach the rest of the field, so watering never finishes covering it | `86400` |
-| `FertilizeIntervalSeconds` | Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one | `1` |
-| `HarvestIntervalSeconds` | Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one | `1` |
-| `FellIntervalSeconds` | Pacing: how long a working Bud waits after felling a tree before the Workstation releases the next one | `1` |
-| `DigIntervalSeconds` | Pacing: how long a Mining Bud waits after digging a hole before the Workstation releases the next one | `1` |
-| `MineIntervalSeconds` | Pacing: how long a Mining Bud waits after mining a grown stone before the Workstation releases the next one | `1` |
-| `IdleRetrySeconds` | Pacing: how long a working Bud waits before re-scanning the field when no work was found (e.g. everything already tilled/planted/watered, nothing ripe yet) | `5` |
-| `TreeMinDistance` | Minimum distance (blocks) enforced between trees a Lumbering Bud plants | `3` |
-| `TreeRootDepth` | How many blocks **below** a tree spot a Lumbering Bud clears for the tree's roots, counting from the soil block the sapling stands on. See "Tree roots" below - too small a value makes trees silently stop growing partway | `4` |
-| `TreeRootRadius` | Horizontal radius (blocks) around the tree spot the same root clearing covers. `1` = a 3x3 column | `1` |
-| `OreMinDistance` | Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field instead of clustering | `2` |
-| `MiningGrowthGameSecondsMin` | Lower bound of the **game-time** seconds a dug hole takes to grow its stone. Deliberately expressed in game seconds, matching how Vanilla defines its own growth stages (`Farming.Stages[].Duration`, e.g. `28800`-`30600` per crop stage) - game time stands still while the server is down, so a half-grown hole keeps its remaining time across a restart. Note the game clock runs faster than real time (factor = `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x by default, so `28800` is roughly 16 real minutes) | `28800` |
-| `MiningGrowthGameSecondsMax` | Upper bound of the same span; each hole rolls its own duration in `[Min, Max]` so dig sites don't all mature in lockstep (same trick Vanilla uses) | `30600` |
-| `FuelDurationSeconds` | How long (seconds) one unit of fuel keeps a bound Bud working | `120` |
-| `RebindRetrySeconds` | Retry interval (seconds) for re-binding a Bud to its Workstation after the owner wasn't online at load time | `10` |
-<br>
-
-### Debug Configuration
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
-| `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
-| `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
-| `AutoUpdateContentOnVersionMismatch` | Local-dev convenience: automatically reset prompts/Bud content to the packaged version on a `versions.yml` mismatch at startup, instead of just logging a warning. Overwrites your customizations - leave `false` on a live server. Files listed under `excludedPrompts`/`excludedBuds` in `versions.yml` are skipped during this automatic reset (an explicit `--reset` command still overwrites everything). | `true` |
-
-`versions.yml` in the mod's data directory is the single place to manage content versioning: `budVersion`/`promptVersion` track the currently-synced content, and the optional `excludedPrompts`/`excludedBuds` lists (file paths relative to `prompts/`/`buds/`) mark files to keep untouched during an automatic update - for content you've customized yourself, at your own risk:
-```yaml
-budVersion: 2
-promptVersion: 2
-excludedPrompts:
-  - "buds/gronkh.yml"
-excludedBuds:
-  - "gronkh.yml"
-```
-The plugin only ever updates the version numbers here (never the exclusion lists) when syncing content, so your exclusions survive every automatic update.
-
-### Conversation Configuration
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableConversationMemory` | Enable conversation memory | `true` |
-| `ConversationMemoryDepth` | Depth of conversation memory | `8` |
-| `ConversationMemoryDecayFactor` | Decay factor for conversation memory | `0.9` |
-| `ConversationMemoryMinImportance` | Minimum importance for conversation memory | `4` |
-| `EnableLegendaryMemory` | Enable legendary memory | `true` |
-| `LegendaryMemorySlotsPerBud` | Number of legendary memory slots per bud | `3` |
-| `EnableDialogMode` | Enable dialog mode | `true` |
-| `DialogModeIdleSeconds` | Idle time for dialog mode (in seconds) | `180L` |
-| `DialogModeActiveSeconds` | Active time for dialog mode (in seconds) | `30L` |
-| `DialogModeTurnIntervalSeconds` | Turn interval for dialog mode (in seconds) | `8L` |
-
-**LLM Usage:**
-- You can use your own local LLM Client (like LM Studio)
-- Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
-- Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
-
-
-
-### 🧬 Bud Registry (`buds/*.yml`)
-Buds are fully data-driven. Each companion is defined by a `YAML` file at `buds/<id>.yml` in the mod's runtime data folder (`id`, `displayName`, `color`, `npcTypeId`, `weaponId`, `armorId`, `pronoun`, `favoriteDay`, `promptKey`, `sounds`). Adding a new Bud only needs a new YAML file plus matching game assets (NPC type, weapon/armor, a prompt file under `prompts/buds/`, and optionally its own card item) — no plugin rebuild required.
-
-`buds/roster.yml` lists `defaultBuds` (at most 3) — the Buds `/bud create` spawns when called without an id. Buds that exist but aren't in the roster are still summonable individually via `/bud create <id>`.
-
-Like the prompts below, the packaged Veri/Keyleth/Gronkh definitions and roster are copied into the mod's runtime folder on first server start. Missing files are recreated automatically on every start; existing files (including custom ones you add) are left untouched.
-
-### 🌾 Work Recipes (`work/recipes.yml`)
-Which seeds/saplings and fuel a working Bud is willing to use is data-driven, per `WorkRole` (`FARMING` and `LUMBERING` both have their own sections today; a future Mining station gets its own list the same way). `work/recipes.yml` in the mod's runtime data folder has `allowedSeeds`/`allowedFuel` maps keyed by role name listing allowed item ids — edit the lists to add/remove crops, trees, or fuel without a rebuild. Same copy-on-first-start convention as `buds/`/`prompts/`: the packaged default is only written if the file is missing, custom edits are left untouched.
-
-`treeGrowthStageSeconds` in the same file speeds up (or slows down) how long a planted sapling needs to become a full tree. `default` sets the duration of every growth stage in game seconds; a numeric key (`0` = freshly planted sapling) overrides a single stage. Vanilla saplings have five timed stages that each take 40000-60000 game seconds. Note that these are **game** seconds: the clock runs at `86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)`, i.e. 30x real time by default, and an actively tended sapling is sped up a further 10x by the fertilizer, water and light growth modifiers combined. The shipped `10000` therefore lands at roughly half a real minute per stage on a Bud-tended field. Leave the map empty (`{}`) for vanilla growth speed. Because this file is never overwritten once it exists, an older server copy keeps its old value — delete `work/recipes.yml` (or edit it by hand) to pick up a changed packaged default.
-
-### 🌳 Tree roots (`TreeRootDepth` / `TreeRootRadius`)
-
-Hytale's tree prefabs do not only grow upwards. From the third growth stage on they also place **root blocks below the sapling**, and the engine only writes a growth stage into the world if every block it needs is either air or tagged `Type=Soil`. Hit stone (or any other non-soil block) below a sapling and the placement is rejected silently: the growth timer keeps running, the tree never changes shape, and once the timer finishes the block entity is deleted. The tree is then frozen forever - waiting does not help, and nothing is logged.
-
-That is why a Lumbering Bud now performs a **soil-preparation step with a shovel before tilling**: at each tree spot it turns every block that is neither air nor `Soil_*` into `Soil_Dirt`, both at the surface and `TreeRootDepth` blocks down, across a `TreeRootRadius` column. Blocks that are already soil are left alone, and a spot that already has something planted on it is skipped - so a growing tree's own root blocks are never dug up.
-
-The defaults (depth `4`, radius `1`) cover the common trees. Species with deeper roots need larger values, otherwise they will stall exactly as described above:
-
-| Tree | Required `TreeRootDepth` | Required `TreeRootRadius` |
-|:--- |:--- |:--- |
-| Oak, Poisoned | 3 | 1 |
-| Redwood | 1 | 2 |
-| Cedar (burnt variant) | 4 | 3 |
-| Fir | 6 | 4 |
-| Fir (snow variant) | 8 | 4 |
-| Wisteria | 9 | 10 |
-| all other species | no roots at all | - |
-
-Mind the cost before raising these: the cleared volume is `(2 * radius + 1)^2 * depth` blocks **per tree spot**. The defaults clear 36 blocks, Fir's 6/4 clears 486, and Wisteria's 9/10 clears 3969. If you only ever plant Oak, leave the defaults alone. The simplest alternative to a large radius is to restrict `allowedSeeds: LUMBERING` in `work/recipes.yml` to species your setting actually covers.
-
-### 🧠 Prompt Management
-The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
-
-First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
-
-**Attention**: The command `/bud prompt reset` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
-
-
-### ⚠️ LLM Performance Note (Reasoning Models)
-
-If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
-*   **Disable "Thinking":** These models generate many `<think>` tokens which can cause delays or cut-off messages. It is recommended to use models without a "thinking" phase or to disable it in your API provider's settings.
-*   **Token Limit:** If messages are cut off, increase `MaxTokens` in your config to at least `200`.
-*   **Filter:** The plugin automatically tries to filter `<think>` tags, but native "No-Thinking" models provide the best experience.
+→ [Full configuration reference](https://saschafuksa.github.io/hytale-bud-plugin/configuration.html)
 
 <br>
 
 ## 🛠️ Development
 
-### Dev Workflow
 1.  **Initial Setup**: `.\gradlew decompileServer`
 2.  **Build**: `.\gradlew build`
 3.  **Run Server**: `.\gradlew runServer`
 4.  **Auth Login**: `/auth login device`
 5.  **Persist Login**: `/auth persistence Encrypted`
 
-<br>
-
-## 🗺️ Roadmap
-
-- [x] **1.9.0**: Item-based spawning instead of commands
-- [ ] **2.0.0**: Bud-2-Bud Interactions - and if possible: Bud to world interactions like mine some stones if player asks for. Also Bud-Working Stations: Your Bud can be assigned to work and craft items like wood, stone or farm
 <br>
 
 ## Known Issues
@@ -355,6 +92,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 ## 📜 History
 
 For a detailed list of all changes and version history, please see the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>.
+
 ---
 <div align="center">
   <p><i>"This mod will also work without LLM, but the main goal is to have interactive buddies."</i></p>
