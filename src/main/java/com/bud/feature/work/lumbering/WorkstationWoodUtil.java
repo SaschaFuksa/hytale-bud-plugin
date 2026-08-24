@@ -13,11 +13,15 @@ import javax.annotation.Nullable;
 import org.joml.Vector3i;
 
 import com.bud.feature.work.BlockDrops;
+import com.hypixel.hytale.builtin.adventure.farming.states.FarmingBlock;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
 public final class WorkstationWoodUtil {
 
@@ -44,6 +48,20 @@ public final class WorkstationWoodUtil {
         }
         String blockId = blockType.getId();
         return blockId != null && blockId.startsWith(WOOD_BLOCK_PREFIX);
+    }
+
+    public static boolean isTreeMature(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {
+        ComponentType<ChunkStore, FarmingBlock> farmingType = FarmingBlock.getComponentType();
+        if (farmingType == null) {
+            return true;
+        }
+        for (Vector3i position : connectedWoodBlocks) {
+            Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
+            if (holder != null && holder.getComponent(farmingType) != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static boolean hasTrunkBlock(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {

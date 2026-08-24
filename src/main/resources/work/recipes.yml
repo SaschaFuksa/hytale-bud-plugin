@@ -81,9 +81,9 @@ seedTargetPattern:
     suffix: "_Bud"
 
 seedTargetOverrides:
-  Plant_Seeds_Fir: Plant_Sapling_Spruce
-  Plant_Seeds_Frostwood: Plant_Sapling_Ice
-  Plant_Seeds_Willow: Plant_Sapling_Windwillow
+  Plant_Seeds_Fir: Plant_Sapling_Spruce_Bud
+  Plant_Seeds_Frostwood: Plant_Sapling_Ice_Bud
+  Plant_Seeds_Willow: Plant_Sapling_Windwillow_Bud
 
 tillableBlocks:
   - Soil_Dirt

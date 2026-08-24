@@ -515,6 +515,9 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                         WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
                 if (!connectedWoodBlocks.isEmpty() && !WorkstationWoodUtil.hasTrunkBlock(world, connectedWoodBlocks)) {
                     workstation.addRecentlyFailedTarget(fellTarget);
+                } else if (!connectedWoodBlocks.isEmpty()
+                        && !WorkstationWoodUtil.isTreeMature(world, connectedWoodBlocks)) {
+                    workstation.addRecentlyFailedTarget(fellTarget);
                 } else if (!connectedWoodBlocks.isEmpty()) {
                     List<ItemStack> drops = WorkstationWoodUtil.collectFellingDrops(world, connectedWoodBlocks);
                     ItemContainer output = processingBenchBlock.getOutputContainer();

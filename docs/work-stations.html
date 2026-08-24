@@ -145,6 +145,7 @@
         <span class="loop-step">Fell</span>
       </div>
       <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow.</p>
+      <p>Gronkh only fells a tree once it has reached its <strong>final</strong> growth stage. A tree stuck mid-growth (see <a href="#tree-roots">Tree roots</a> — usually a root-depth problem) is left alone entirely: it won't be felled early, and it won't be endlessly retried. Once it either finishes growing or you fix what's blocking it, felling picks it up on the next field scan.</p>
     </section>
 
     <section id="mining">
@@ -196,6 +197,8 @@
         <span class="callout-icon">⚠️</span>
         <span class="callout-body"><strong>Mind the cost</strong> before raising these: the cleared volume is <code>(2 × radius + 1)² × depth</code> blocks <em>per tree spot</em>. The defaults clear 36 blocks; Fir's 6/4 clears 486; Wisteria's 9/10 clears 3969. If you only plant Oak, leave the defaults alone — the cheaper alternative to a large radius is restricting <code>allowedSeeds: LUMBERING</code> in <code>work/recipes.yml</code> to species your setting actually covers.</span>
       </div>
+      <h3>Why only Gronkh's trees grow faster</h3>
+      <p><code>treeGrowthStageSeconds</code> (below) only speeds up saplings Gronkh himself planted — never a tree you plant by hand, and never one that grew from world generation. That's not a filter on top of the timer; it's a separate, plugin-only sapling block for each of the 23 species Gronkh can plant (e.g. <code>Plant_Sapling_Oak_Bud</code> alongside vanilla's <code>Plant_Sapling_Oak</code>), visually and structurally identical to the vanilla one — same model, same growth prefabs, same final tree. Only the plugin's own duplicate carries the sped-up timer; Gronkh plants that one, everyone and everything else still plants and grows the untouched vanilla sapling. You can't obtain or plant the <code>_Bud</code> variant yourself — it has no crafting recipe, it only ever gets placed by a Workstation's own PLANT step.</p>
     </section>
 
     <section id="work-config">
