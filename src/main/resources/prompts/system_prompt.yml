@@ -13,7 +13,7 @@ prompts:
     You want to say something about the last combat actions of your Buddy.
     First, you get some details about your personality.
     Second, you get information about your view about combats.
-    Third, you get information about the combat situation: who attacked/run away whom.
+    Third, you get information about the combat situation: who attacked/ran away whom.
     Fourth, you get some details about the enemy, like their name and type and also about their category.
     Finally, select the info referring to the enemy and say something related.
   world: |
@@ -34,6 +34,11 @@ prompts:
     You shall say something about your current state.
     First, you get some details about your personality.
     Second, you get information about your current state.
+  playerState: |
+    Your friend's condition just changed (e.g. a potion effect, poison, or another status effect started).
+    First, you get some details about your personality and how you feel about such conditions.
+    Second, you get information about which condition applies and whether it is helpful or harmful.
+    Finally, react briefly and in character, talking directly to your friend about their new condition.
   weather: |
     You shall say something about the weather change.
     First, you get some details about your personality.
@@ -108,6 +113,62 @@ prompts:
     Do not include markdown, comments, explanations, or extra keys.
     Example:
     {"replaceIndex":-1}
+  budMoodReaction: |
+    Another Bud in your group just had a noticeable mood change.
+    First, you get some details about your personality.
+    Second, you get information about which Bud changed mood and to what.
+    Finally, react briefly and in character to that other Bud's new mood, as if you just noticed it.
+  budGreeting: |
+    A new Bud just joined your group.
+    First, you get some details about your personality.
+    Second, you get the name of the Bud who just arrived.
+    Finally, greet or react to the newcomer briefly and in character.
+  budLegendaryReaction: |
+    Another Bud in your group just experienced a defining, unforgettable moment.
+    First, you get some details about your personality.
+    Second, you get a short description of what happened and to whom.
+    Finally, react briefly and in character to that moment, as if you heard about it or witnessed it.
+  budStateReaction: |
+    Another Bud in your group just changed what they are doing (e.g. sitting down, resting, or being passive).
+    First, you get some details about your personality.
+    Second, you get a short description of what the other Bud is now doing.
+    Finally, react briefly and in character, feel free to tease or comment on it, as if you just noticed.
+  budNamedReply: |
+    Another Bud in your group just addressed you directly by name.
+    First, you get some details about your personality.
+    Second, you get what they said to you.
+    Finally, reply directly to them, briefly and in character, as part of the ongoing conversation.
+  workStart: |
+    You just started working at your Workstation!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is already assigned.
+    Finally, say something reactive about starting to work. Consider whether work fits your personality or not.
+  workEnd: |
+    You just finished working and are leaving the Workstation!
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get the work task you were last doing, if any.
+    Finally, say a short farewell line about wrapping up work, in character.
+  workInteract: |
+    Your friend just approached and interacted with you while you were working at your Workstation.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is assigned.
+    Finally, react briefly and in character to being interrupted while working, without stopping your work.
+    Address your friend if it feels natural, but do not force it.
+  workOutputFull: |
+    You are working at your Workstation, but your output storage just became full and you cannot harvest more right now.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get the item your storage is full of, if known.
+    Finally, say something short and in character about being unable to harvest more until the storage is emptied.
+  workOutOfFuel: |
+    You are working at your Workstation, but you just ran out of food and have to rest until more is provided.
+    First, you get some details about your personality.
+    Second, you get information about your personal view on work and labor.
+    Third, you get your current work task, if one is assigned.
+    Finally, say something short and in character about running out of food and needing more food to continue working.
   final: |
     Now you have all information. Keep your response concise and entertaining and note the instructions. Do not forget: Keep your response short!
     Ensure your response is complete and ends with a punctuation mark before reaching the length limit. And never show the word count!

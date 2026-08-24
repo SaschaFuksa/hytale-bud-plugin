@@ -12,12 +12,14 @@ public class ConversationConfig {
     private int conversationMemoryDepth = 8;
     private double conversationMemoryDecayFactor = 0.9;
     private int conversationMemoryMinImportance = 4;
+    private int conversationMemoryMinMessageLength = 75;
     private boolean enableLegendaryMemory = true;
     private int legendaryMemorySlotsPerBud = 3;
     private boolean enableDialogMode = true;
     private long dialogModeIdleSeconds = 180L;
     private long dialogModeActiveSeconds = 30L;
-    private long dialogModeTurnIntervalSeconds = 8L;
+    private long dialogModeTurnIntervalSeconds = 9L;
+    private int budReactionChainMaxReplies = 3;
 
     private static volatile ConversationConfig instance;
 
@@ -49,6 +51,10 @@ public class ConversationConfig {
         return this.conversationMemoryMinImportance;
     }
 
+    public int getConversationMemoryMinMessageLength() {
+        return this.conversationMemoryMinMessageLength;
+    }
+
     public boolean isEnableLegendaryMemory() {
         return this.enableLegendaryMemory;
     }
@@ -73,6 +79,10 @@ public class ConversationConfig {
         return this.dialogModeTurnIntervalSeconds;
     }
 
+    public int getBudReactionChainMaxReplies() {
+        return this.budReactionChainMaxReplies;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ConversationConfig.class, ConversationConfig::new)
                 .append(new KeyedCodec<>("EnableConversationMemory", Codec.BOOLEAN),
@@ -90,6 +100,10 @@ public class ConversationConfig {
                 .append(new KeyedCodec<>("ConversationMemoryMinImportance", Codec.INTEGER),
                         (config, value) -> config.conversationMemoryMinImportance = value,
                         config -> config.conversationMemoryMinImportance)
+                .add()
+                .append(new KeyedCodec<>("ConversationMemoryMinMessageLength", Codec.INTEGER),
+                        (config, value) -> config.conversationMemoryMinMessageLength = value,
+                        config -> config.conversationMemoryMinMessageLength)
                 .add()
                 .append(new KeyedCodec<>("EnableLegendaryMemory", Codec.BOOLEAN),
                         (config, value) -> config.enableLegendaryMemory = value,
@@ -114,6 +128,10 @@ public class ConversationConfig {
                 .append(new KeyedCodec<>("DialogModeTurnIntervalSeconds", Codec.LONG),
                         (config, value) -> config.dialogModeTurnIntervalSeconds = value,
                         config -> config.dialogModeTurnIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("BudReactionChainMaxReplies", Codec.INTEGER),
+                        (config, value) -> config.budReactionChainMaxReplies = value,
+                        config -> config.budReactionChainMaxReplies)
                 .add()
                 .build();
     }

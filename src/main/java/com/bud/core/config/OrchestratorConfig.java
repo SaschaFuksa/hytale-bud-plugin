@@ -8,11 +8,11 @@ public class OrchestratorConfig {
 
     public static final BuilderCodec<OrchestratorConfig> CODEC;
 
-    private long orchestratorGlobalCooldownMs = 3000L; // ms between ANY bud message per player
-    private long orchestratorChannelCooldownMs = 5000L; // ms between messages on the same channel
-    private int orchestratorMaxQueueDepth = 3; // max pending events per channel per player
-    private long orchestratorTickIntervalMs = 1000L; // how often the orchestrator checks queues
-    private long orchestratorEntryTtlMs = 60000L; // max age of a queued entry before it is discarded
+    private long orchestratorGlobalCooldownMs = 6000L;
+    private long orchestratorChannelCooldownMs = 8000L;
+    private int orchestratorMaxQueueDepth = 3;
+    private long orchestratorTickIntervalMs = 2500L;
+    private long orchestratorEntryTtlMs = 30000L;
 
     private static volatile OrchestratorConfig instance;
 

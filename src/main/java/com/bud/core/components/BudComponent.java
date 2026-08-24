@@ -1,10 +1,14 @@
 package com.bud.core.components;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 
 import com.bud.core.types.BudState;
-import com.bud.core.types.BudType;
 import com.bud.core.types.Mood;
+import com.bud.core.types.WorkType;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -17,26 +21,49 @@ public class BudComponent implements Component<EntityStore> {
 
     private static ComponentType<EntityStore, BudComponent> TYPE;
 
+    @Nonnull
     private BudState currentState = BudState.PET_DEFENSIVE;
 
     private Mood currentMood = Mood.DEFAULT;
 
     @Nonnull
-    private BudType budType = BudType.VERI;
+    private String budId = "veri";
 
     private NPCEntity bud;
 
     private PlayerRef playerRef;
 
+    @Nullable
+    private Vector3d workstationAnchor;
+
+    @Nullable
+    private Vector3d workTarget;
+
+    @Nullable
+    private Vector3d restTarget;
+
+    private boolean restSeated;
+
+    @Nullable
+    private WorkType workType;
+
+    @Nullable
+    private String pendingCropBlockType;
+
+    @Nullable
+    private Vector3i pendingFellBlockPosition;
+
+    private float workCooldownSecondsRemaining;
+
     public BudComponent() {
     }
 
     @Nonnull
-    public static BudComponent create(@Nonnull NPCEntity bud, @Nonnull BudType budType, @Nonnull PlayerRef playerRef) {
+    public static BudComponent create(@Nonnull NPCEntity bud, @Nonnull String budId, @Nonnull PlayerRef playerRef) {
         BudComponent component = new BudComponent();
         component.bud = bud;
         component.playerRef = playerRef;
-        component.budType = budType;
+        component.budId = budId;
         return component;
     }
 
@@ -60,17 +87,18 @@ public class BudComponent implements Component<EntityStore> {
         return TYPE;
     }
 
-    public void setCurrentState(BudState state) {
+    public void setCurrentState(@Nonnull BudState state) {
         this.currentState = state;
     }
 
+    @Nonnull
     public BudState getCurrentState() {
         return currentState;
     }
 
     @Nonnull
-    public BudType getBudType() {
-        return budType;
+    public String getBudId() {
+        return budId;
     }
 
     @Nonnull
@@ -79,6 +107,10 @@ public class BudComponent implements Component<EntityStore> {
             throw new IllegalStateException("NPCEntity cannot be null in BudComponent");
         }
         return bud;
+    }
+
+    public void setBud(@Nonnull NPCEntity bud) {
+        this.bud = bud;
     }
 
     @Nonnull
@@ -95,6 +127,76 @@ public class BudComponent implements Component<EntityStore> {
 
     public Mood getCurrentMood() {
         return currentMood;
+    }
+
+    @Nullable
+    public Vector3d getWorkstationAnchor() {
+        return workstationAnchor;
+    }
+
+    public void setWorkstationAnchor(@Nullable Vector3d workstationAnchor) {
+        this.workstationAnchor = workstationAnchor;
+    }
+
+    @Nullable
+    public Vector3d getWorkTarget() {
+        return workTarget;
+    }
+
+    public void setWorkTarget(@Nullable Vector3d workTarget) {
+        this.workTarget = workTarget;
+    }
+
+    @Nullable
+    public Vector3d getRestTarget() {
+        return restTarget;
+    }
+
+    public void setRestTarget(@Nullable Vector3d restTarget) {
+        this.restTarget = restTarget;
+    }
+
+    public boolean isRestSeated() {
+        return restSeated;
+    }
+
+    public void setRestSeated(boolean restSeated) {
+        this.restSeated = restSeated;
+    }
+
+    @Nullable
+    public WorkType getWorkType() {
+        return workType;
+    }
+
+    public void setWorkType(@Nullable WorkType workType) {
+        this.workType = workType;
+    }
+
+    @Nullable
+    public String getPendingCropBlockType() {
+        return pendingCropBlockType;
+    }
+
+    public void setPendingCropBlockType(@Nullable String pendingCropBlockType) {
+        this.pendingCropBlockType = pendingCropBlockType;
+    }
+
+    @Nullable
+    public Vector3i getPendingFellBlockPosition() {
+        return pendingFellBlockPosition;
+    }
+
+    public void setPendingFellBlockPosition(@Nullable Vector3i pendingFellBlockPosition) {
+        this.pendingFellBlockPosition = pendingFellBlockPosition;
+    }
+
+    public float getWorkCooldownSecondsRemaining() {
+        return workCooldownSecondsRemaining;
+    }
+
+    public void setWorkCooldownSecondsRemaining(float workCooldownSecondsRemaining) {
+        this.workCooldownSecondsRemaining = workCooldownSecondsRemaining;
     }
 
     @Override

@@ -8,7 +8,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
@@ -16,13 +18,13 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.AbstractTracker;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -60,7 +62,7 @@ public class DialogModeTracker extends AbstractTracker {
         this.sessions.remove(playerName.toLowerCase());
     }
 
-    public void onDialogInteractionCompleted(@Nonnull ConversationContext context, @Nonnull IBudProfile budProfile,
+    public void onDialogInteractionCompleted(@Nonnull ConversationContext context, @Nonnull BudDefinition budProfile,
             String message) {
         if (context.getConversationMode() != ConversationMode.DIALOG_MODE) {
             return;
@@ -77,7 +79,7 @@ public class DialogModeTracker extends AbstractTracker {
             state.nextTurnAt = System.currentTimeMillis()
                     + TimeUnit.SECONDS.toMillis(ConversationConfig.getInstance().getDialogModeTurnIntervalSeconds());
             if (message != null && !message.isBlank()) {
-                state.lastSpeakerName = budProfile.getNPCDisplayName();
+                state.lastSpeakerName = budProfile.getDisplayName();
                 state.lastMessage = message.trim();
             }
         }
@@ -91,7 +93,7 @@ public class DialogModeTracker extends AbstractTracker {
             try {
                 String playerName = playerRef.getUsername().toLowerCase();
                 DialogSessionState state = this.sessions.computeIfAbsent(playerName,
-                        ignored -> DialogSessionState.createScheduled(System.currentTimeMillis()));
+                        ignored -> new DialogSessionState());
                 synchronized (state) {
                     state.start(System.currentTimeMillis());
                 }
@@ -101,8 +103,8 @@ public class DialogModeTracker extends AbstractTracker {
             }
         });
         try {
-            return future.join();
-        } catch (Exception exception) {
+            return future.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException exception) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Could not trigger dialog mode for player "
                     + playerRef.getUsername() + ": " + exception.getMessage());
             return false;
@@ -153,12 +155,19 @@ public class DialogModeTracker extends AbstractTracker {
         long now = System.currentTimeMillis();
         String playerName = playerRef.getUsername().toLowerCase();
         DialogSessionState state = this.sessions.computeIfAbsent(playerName,
-                ignored -> DialogSessionState.createScheduled(now));
+                ignored -> new DialogSessionState());
 
         synchronized (state) {
-            if (!state.active && now >= state.nextWindowAt) {
-                state.start(now);
-                LoggerUtil.getLogger().fine(() -> "[BUD] Dialog mode activated for player " + playerRef.getUsername());
+            if (!state.active) {
+                long lastMessageAt = Orchestrator.getInstance().getLastGlobalMessageTime(playerRef.getUsername());
+                long idleMillis = TimeUnit.SECONDS
+                        .toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());
+                if (now - lastMessageAt >= idleMillis) {
+                    state.start(now);
+                    LoggerUtil.getLogger()
+                            .fine(() -> "[BUD] Dialog mode activated for player " + playerRef.getUsername()
+                                    + " after " + (now - lastMessageAt) + "ms of silence.");
+                }
             }
 
             if (!state.active) {
@@ -166,7 +175,7 @@ public class DialogModeTracker extends AbstractTracker {
             }
 
             if (now >= state.activeUntil) {
-                state.finish(now);
+                state.finish();
                 LoggerUtil.getLogger().fine(() -> "[BUD] Dialog mode ended for player " + playerRef.getUsername());
                 return false;
             }
@@ -200,8 +209,7 @@ public class DialogModeTracker extends AbstractTracker {
             return null;
         }
         for (BudComponent budComponent : budComponents) {
-            String budName = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType())
-                    .getNPCDisplayName();
+            String budName = BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName();
             if (lastSpeakerName == null || !lastSpeakerName.equalsIgnoreCase(budName)) {
                 return budComponent;
             }
@@ -214,8 +222,7 @@ public class DialogModeTracker extends AbstractTracker {
         Set<String> participants = new LinkedHashSet<>();
         participants.add(playerName);
         for (BudComponent budComponent : budComponents) {
-            participants.add(BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType())
-                    .getNPCDisplayName());
+            participants.add(BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName());
         }
         return participants;
     }
@@ -224,19 +231,10 @@ public class DialogModeTracker extends AbstractTracker {
 
         private boolean active;
         private boolean awaitingResponse;
-        private long nextWindowAt;
         private long activeUntil;
         private long nextTurnAt;
         private String lastSpeakerName;
         private String lastMessage;
-
-        @Nonnull
-        private static DialogSessionState createScheduled(long now) {
-            DialogSessionState state = new DialogSessionState();
-            state.nextWindowAt = now
-                    + TimeUnit.SECONDS.toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());
-            return state;
-        }
 
         private void start(long now) {
             this.active = true;
@@ -248,15 +246,13 @@ public class DialogModeTracker extends AbstractTracker {
             this.lastMessage = null;
         }
 
-        private void finish(long now) {
+        private void finish() {
             this.active = false;
             this.awaitingResponse = false;
             this.activeUntil = 0L;
             this.nextTurnAt = 0L;
             this.lastSpeakerName = null;
             this.lastMessage = null;
-            this.nextWindowAt = now
-                    + TimeUnit.SECONDS.toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());
         }
     }
 }

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bud Plugin — LLM Companions for Hytale</title>
+<meta name="description" content="Bud Plugin adds LLM-powered companion NPCs to Hytale servers — they follow you, fight beside you, work your fields and mines, and react to the world with real dialogue.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Bud Plugin
+    </a>
+    <div class="nav-links">
+      <a href="#buddies">Buddies</a>
+      <a href="#features">Features</a>
+      <a href="cards.html">Cards</a>
+      <a href="work-stations.html">Work Stations</a>
+      <a href="configuration.html">Configuration</a>
+      <a href="commands.html">Commands</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">🌙</button>
+      <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="container hero-inner">
+    <div>
+      <span class="eyebrow">Hytale Server Plugin</span>
+      <h1>Companions that actually talk back.</h1>
+      <p class="hero-tagline">Bud Plugin adds LLM-powered NPC companions to your Hytale server. They follow you, fight beside you, remember what happened, and — new as of 2.0 — can be sent off to farm, log, or mine on their own.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">View on GitHub</a>
+        <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin#readme" target="_blank" rel="noopener">Read the full README</a>
+      </div>
+      <p class="hero-note">Java 25 · Built on the <code>hytale-mod</code> Gradle plugin · Works fully without an LLM configured</p>
+    </div>
+    <div class="hero-image">
+      <img src="https://fuksa.de/hytale/buddies.avif" alt="Veri, Gronkh and Keyleth, the three Bud companions">
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">What this is</span>
+      <h2>A companion system, not a chatbot bolted onto an NPC</h2>
+      <p>Each Bud is a real Hytale NPC with its own role, weapon, mood, and memory. When an LLM is configured, their reactions are generated live; when it isn't, they fall back to hand-written dialogue for the same events — the mod is fully playable either way, the LLM is what makes it come alive.</p>
+    </div>
+    <div class="overview-grid">
+      <div class="stat-card">
+        <h3>Three companions</h3>
+        <p>Veri, Gronkh and Keyleth — each with a distinct personality, weapon and now a dedicated worker role.</p>
+      </div>
+      <div class="stat-card">
+        <h3>Reacts to almost everything</h3>
+        <p>Combat, block breaks, crafting, item pickups, weather, new zones, your chat, even your status effects.</p>
+      </div>
+      <div class="stat-card">
+        <h3>Remembers you</h3>
+        <p>A decaying, priority-ranked memory store per Bud, plus a small set of permanent "legendary" memories.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="buddies">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Meet the Buddies</span>
+      <h2>Three companions, three roles</h2>
+      <p>Every Bud is fully data-driven — new companions are added via a YAML definition and matching game assets, no plugin rebuild required. These three ship by default.</p>
+    </div>
+    <div class="buddy-grid">
+      <article class="buddy-card veri">
+        <figure><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></figure>
+        <div class="buddy-body">
+          <div class="buddy-name"><h3>Veri</h3><span class="buddy-role">Feran</span></div>
+          <p class="buddy-tagline">Agile, curious, a little childish</p>
+          <p class="desc">Fights with daggers and travels with you in search of a rare antidote for his sick Feran clan, infected by a disease from the toxic Skaraks.</p>
+          <div class="buddy-tags">
+            <span class="tag">Daggers</span>
+            <span class="tag">Mining Workstation</span>
+          </div>
+        </div>
+      </article>
+      <article class="buddy-card gronkh">
+        <figure><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></figure>
+        <div class="buddy-body">
+          <div class="buddy-name"><h3>Gronkh</h3><span class="buddy-role">Trork</span></div>
+          <p class="buddy-tagline">Grumpy on the outside, fiercely loyal underneath</p>
+          <p class="desc">A powerhouse who fights with a heavy mace, training to protect the northern tribe from the icy "white wanderers" and the undead forces threatening their lands.</p>
+          <div class="buddy-tags">
+            <span class="tag">Mace</span>
+            <span class="tag">Lumbering Workstation</span>
+          </div>
+        </div>
+      </article>
+      <article class="buddy-card keyleth">
+        <figure><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></figure>
+        <div class="buddy-body">
+          <div class="buddy-name"><h3>Keyleth</h3><span class="buddy-role">Kweebec</span></div>
+          <p class="buddy-tagline">Highly intelligent, a bit shy</p>
+          <p class="desc">Supports from afar with a bow while uncovering ancient knowledge in lost temples, seeking to connect them and defeat the Shadow Knight's dark army.</p>
+          <div class="buddy-tags">
+            <span class="tag">Bow</span>
+            <span class="tag">Farming Workstation</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Features</span>
+      <h2>What your Buds actually do</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🗡️</span>
+        <h3>Dynamic modes</h3>
+        <p>Toggle each Bud between Defensive (fights alongside you), Passive (follows), and Sitting (stays put).</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💬</span>
+        <h3>Context-aware reactions</h3>
+        <p>Combat, block placement/breaking, item pickups, crafting, new-zone discovery, weather changes and direct chat mentions all trigger in-character dialogue.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎭</span>
+        <h3>Mood &amp; favorite day</h3>
+        <p>Moods shift over time and color dialogue; each Bud also has a favorite day of the week they get overmotivated on.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+        <h3>Memory system</h3>
+        <p>Decaying, priority-ranked memories per player and per Bud, plus a small set of permanently retained "legendary" memories.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🤝</span>
+        <h3>Bud-to-Bud interaction</h3>
+        <p>Buds react to each other's mood changes, spawns and state changes, and can build shared "legendary" memories with one another.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">❤️‍🩹</span>
+        <h3>Player state reactions</h3>
+        <p>Buds notice and comment on your status effects — poisoned, regenerating health, and more.</p>
+      </div>
+      <div class="feature-card highlight">
+        <span class="feature-icon">🌾</span>
+        <h3>Worker Mode</h3>
+        <p>New in 2.0: assign a Bud to a Workstation and it farms, logs, or mines the surrounding field on its own. See the dedicated section below.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎴</span>
+        <h3>Bud Cards</h3>
+        <p>Summon and dismiss companions with a craftable item instead of chat commands — left-click to summon, right-click to dismiss.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔌</span>
+        <h3>Works without an LLM</h3>
+        <p>Every reaction has a hand-written fallback line. The mod is fully playable with zero LLM configured — the AI layer is what elevates it, not what it depends on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="worker-mode">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">New in 2.0</span>
+      <h2>Send your Bud to work</h2>
+      <p>Craft a Workstation, bind a Bud to it with a card, and keep it fed with fuel — from there it scans the surrounding field itself and works it autonomously, resting when there's nothing left to do or the fuel runs out.</p>
+    </div>
+    <div class="worker-grid">
+      <div class="worker-card farming">
+        <div class="worker-head"><span class="worker-dot"></span><h3>Farming</h3></div>
+        <div class="worker-bud">Keyleth</div>
+        <p>Tills soil, plants and waters seeds, fertilizes, and harvests ripe crops across the field.</p>
+        <div class="worker-loop">till → plant → water → fertilize → harvest</div>
+      </div>
+      <div class="worker-card lumbering">
+        <div class="worker-head"><span class="worker-dot"></span><h3>Lumbering</h3></div>
+        <div class="worker-bud">Gronkh</div>
+        <p>Prepares root space with a shovel, plants and tends saplings, and fells full-grown trees for wood and Life Essence.</p>
+        <div class="worker-loop">prepare soil → till → plant → fell</div>
+      </div>
+      <div class="worker-card mining">
+        <div class="worker-head"><span class="worker-dot"></span><h3>Mining</h3></div>
+        <div class="worker-bud">Veri</div>
+        <p>Digs holes that grow into minable stone over time, and works ore-bearing main nodes for a steady yield.</p>
+        <div class="worker-loop">dig → wait → mine</div>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Did you know?</strong> Trees have real root systems — some species need several blocks of clear soil beneath a sapling to finish growing. Gronkh now digs and refills that space with dirt before tilling. See the <a href="work-stations.html#tree-roots">tree roots guide</a> for the full explanation and per-species tuning table.
+    </div>
+    <p style="margin-top:1.5rem;"><a class="btn btn-secondary" href="work-stations.html">Full Work Stations guide →</a></p>
+  </div>
+</section>
+
+<section id="cards">
+  <div class="container cards-layout">
+    <div class="cards-copy">
+      <span class="eyebrow">No commands needed</span>
+      <h2>Summon with a card, not a slash command</h2>
+      <p>Each companion has its own craftable Bud Card from the Arcane Workbench, plus a roster card that spawns or despawns every default Bud at once.</p>
+      <ul>
+        <li><strong>Left-click (Primary)</strong> — summon the matching Bud next to you; respawns it if already present.</li>
+        <li><strong>Right-click (Secondary)</strong> — dismiss that Bud again.</li>
+        <li>Carry all three cards to freely mix and match your active companions.</li>
+      </ul>
+      <a class="btn btn-secondary" href="cards.html">Full card recipes →</a>
+    </div>
+    <div class="cards-images">
+      <img src="https://fuksa.de/hytale/card-crafting.png" alt="Arcane Workbench crafting menu showing the Bud Cards">
+      <img src="https://fuksa.de/hytale/card-slot.png" alt="A Bud Card held in the player's hand">
+    </div>
+  </div>
+</section>
+
+<section id="commands">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Commands</span>
+      <h2>Every /bud command</h2>
+      <p>Creation, deletion, state, memory, prompt, reload and debug — everything runs through <code>/bud &lt;subcommand&gt;</code>, with tab-completion in-game.</p>
+      <p style="margin-top:1.2rem;"><a class="btn btn-secondary" href="commands.html">Full command reference →</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="configuration">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Configuration</span>
+      <h2>Six JSON files, one per concern</h2>
+      <p>LLM, Reaction, Orchestrator, Work, Debug and Conversation config, plus the Bud Registry, prompt management and content versioning — every setting and default, explained.</p>
+      <p style="margin-top:1.2rem;"><a class="btn btn-secondary" href="configuration.html">Full configuration reference →</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="getting-started">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Getting started</span>
+      <h2>Running it locally</h2>
+    </div>
+    <ol class="steps">
+      <li>Clone the repo, then run <code>.\gradlew decompileServer</code> once to prepare IDE sources.</li>
+      <li>Build with <code>.\gradlew build</code> — this also runs the JUnit suite.</li>
+      <li>Launch a local server with <code>.\gradlew runServer</code>.</li>
+      <li>In-game, log in with <code>/auth login device</code>.</li>
+      <li>Persist the login with <code>/auth persistence Encrypted</code> so you don't have to repeat step 4 every run.</li>
+    </ol>
+    <p style="margin-top:1.5rem;">The plugin works out of the box without any LLM configured — add an <code>LLM.json</code> endpoint later to switch fallback dialogue on for real generated responses.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Bud Plugin
+      </a>
+      <p class="footer-note">A proof-of-concept Hytale server plugin. Template by <a href="https://github.com/UpcraftLP" target="_blank" rel="noopener">Up</a>, modified by <a href="https://github.com/Kaupenjoe" target="_blank" rel="noopener">Kaupenjoe</a>, inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends" target="_blank" rel="noopener">MyFriends</a> by LukeysMods.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/README.md#known-issues" target="_blank" rel="noopener">Known Issues</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/LICENSE.md" target="_blank" rel="noopener">License (CC0)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

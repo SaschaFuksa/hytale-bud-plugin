@@ -7,12 +7,14 @@ import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ReactionConfig;
+import com.bud.core.types.TimeOfDay;
 import com.bud.feature.AbstractTracker;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.env.LLMWorldMessageCreation;
 import com.bud.feature.world.env.WorldEntry;
+import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.feature.world.weather.WeatherEntry;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -40,7 +42,7 @@ public class WorldTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getWorldReactionPeriod();
+        long interval = ReactionConfig.getInstance().getWorldReactionPeriodSeconds();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(this::triggerWorldMessage, interval,
                 interval,
                 TimeUnit.SECONDS));
@@ -78,13 +80,15 @@ public class WorldTracker extends AbstractTracker {
                     }
                     BudComponent budComponent = BudManager.getInstance().getRandomBudComponent(playerComponent);
                     if (budComponent == null) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] No BudComponent found for player: "
-                                + playerRef.getUsername());
+                        LoggerUtil.getLogger().fine(() -> "[BUD] No eligible (non-Working) BudComponent found "
+                                + "for player: " + playerRef.getUsername());
                         return;
                     }
                     Weather weather = WorldInformationUtil.getCurrentWeather(playerRef);
-                    String weatherId = weather != null ? weather.getId() : "unknown";
-                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, budComponent);
+                    String rawWeatherId = weather != null ? weather.getId() : null;
+                    String weatherId = rawWeatherId != null ? rawWeatherId : "unknown";
+                    TimeOfDay timeOfDay = TimeInformationUtil.getTimeOfDay(entityStore);
+                    WeatherEntry weatherEntry = new WeatherEntry(weatherId, timeOfDay, budComponent);
 
                     WorldEntry worldEntry = WorldEntry.from(playerRef, world,
                             entityStore,

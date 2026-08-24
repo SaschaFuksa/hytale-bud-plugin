@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration — Bud Plugin</title>
+<meta name="description" content="Every configuration file and setting the Bud Plugin ships: LLM, Reaction, Orchestrator, Debug and Conversation configuration, the Bud Registry, prompt management, and content versioning.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Bud Plugin
+    </a>
+    <div class="nav-links">
+      <a href="index.html#buddies">Buddies</a>
+      <a href="index.html#features">Features</a>
+      <a href="cards.html">Cards</a>
+      <a href="work-stations.html">Work Stations</a>
+      <a href="configuration.html">Configuration</a>
+      <a href="commands.html">Commands</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">🌙</button>
+      <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subpage-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="index.html">← Overview</a></p>
+    <span class="eyebrow">Configuration</span>
+    <h1>Everything you can configure</h1>
+    <p>Six JSON files in the mod's server folder, one per concern, plus a handful of YAML content files. All of them use the same convention: the packaged default is written once on first start, then never touched again — your edits always survive an update.</p>
+  </div>
+</header>
+
+<main class="container docs-layout">
+  <nav class="toc" aria-label="On this page">
+    <span class="toc-label">On this page</span>
+    <a href="#llm">LLM.json</a>
+    <a href="#reaction">Reaction.json</a>
+    <a href="#orchestrator">Orchestrator.json</a>
+    <a href="#debug">Debug.json</a>
+    <a href="#conversation">Conversation.json</a>
+    <a href="#work">Work.json</a>
+    <a href="#bud-registry">Bud Registry</a>
+    <a href="#prompts">Prompt management</a>
+    <a href="#versions">Content versioning</a>
+    <a href="#reasoning-models">Reasoning models</a>
+  </nav>
+
+  <div class="docs-content">
+
+    <section id="llm">
+      <h2>LLM.json</h2>
+      <p>Turns the AI layer on and points it at your model. Every reaction has a hand-written fallback line, so the plugin runs without this file being touched at all — fill it in when you're ready for live-generated dialogue.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>EnableLLM</code></td><td>Toggle LLM features.</td><td class="num">true</td></tr>
+            <tr><td><code>UsePlayer2API</code></td><td>Use the Player2 API instead of a generic OpenAI-compatible endpoint (requires <code>EnableLLM</code>).</td><td class="num">false</td></tr>
+            <tr><td><code>Url</code></td><td>Your LLM API endpoint (e.g. a local LM Studio instance, or a hosted provider's chat-completions URL).</td><td class="num">—</td></tr>
+            <tr><td><code>Model</code></td><td>The model identifier your endpoint expects.</td><td class="num">—</td></tr>
+            <tr><td><code>ApiKey</code></td><td>API key for your LLM service, if it requires one.</td><td class="num">—</td></tr>
+            <tr><td><code>MaxTokens</code></td><td>Limit the length of AI responses.</td><td class="num">100</td></tr>
+            <tr><td><code>Temperature</code></td><td>Controls randomness of responses (0.0–1.0).</td><td class="num">0.9</td></tr>
+            <tr><td><code>StructuredResponseMaxTokens</code></td><td>Separate, smaller token budget for background structured calls (memory summaries, legendary-memory replacement) that only return compact JSON — keeps those calls fast without shrinking your conversational <code>MaxTokens</code>.</td><td class="num">80</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Every field here has a placeholder value out of the box (pointing at nothing reachable) — set your own <code>Url</code>/<code>Model</code>/<code>ApiKey</code> before enabling. Options: a local client like LM Studio, a hosted provider (DeepSeek, Qwen, etc. — set <code>Url</code>, <code>Model</code> and <code>ApiKey</code>), or the Player2 API via <code>UsePlayer2API</code>.</p>
+    </section>
+
+    <section id="reaction">
+      <h2>Reaction.json</h2>
+      <p>One on/off switch per reaction category, plus cooldowns for the ones that fire on a timer rather than an event.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>EnableCombatReactions</code></td><td>React to your recent fights.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableBlockReactions</code></td><td>React to your recent block placements/breaks.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableItemReactions</code></td><td>React to your recent item pickups.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableDiscoverReactions</code></td><td>React when you enter a new zone for the first time.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableCraftingReactions</code></td><td>React when you craft an item.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableWorldReactions</code></td><td>Periodic world-info messages (zone, biome, time, weather).</td><td class="num">true</td></tr>
+            <tr><td><code>WorldReactionPeriod</code></td><td>Interval (seconds) for world reaction messages.</td><td class="num">60</td></tr>
+            <tr><td><code>EnableWeatherReactions</code></td><td>React when the weather changes.</td><td class="num">true</td></tr>
+            <tr><td><code>WeatherReactionPeriod</code></td><td>Check interval (seconds) for weather changes.</td><td class="num">5</td></tr>
+            <tr><td><code>EnableMoodReactions</code></td><td>Let Bud moods shift over time and color dialogue.</td><td class="num">true</td></tr>
+            <tr><td><code>MoodReactionPeriod</code></td><td>Interval (seconds) between mood re-rolls.</td><td class="num">180</td></tr>
+            <tr><td><code>EnablePlayerChatReactions</code></td><td>Let Buds respond to your chat messages.</td><td class="num">true</td></tr>
+            <tr><td><code>EnablePlayerStateReactions</code></td><td>React to your status effects (poisoned, regenerating, etc.).</td><td class="num">true</td></tr>
+            <tr><td><code>PlayerStateReactionPeriod</code></td><td>Check interval (seconds) for status-effect changes.</td><td class="num">2</td></tr>
+            <tr><td><code>EnableWorkReactions</code></td><td>Working-state reactions (started/finished working, interacted-with-while-working, output storage full, out of fuel).</td><td class="num">true</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="orchestrator">
+      <h2>Orchestrator.json</h2>
+      <p>Governs the queue that stops Buds from spamming chat — only change these for performance tuning.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>OrchestratorGlobalCooldownMs</code></td><td>Global cooldown between any two Bud reactions.</td><td class="num">3000</td></tr>
+            <tr><td><code>OrchestratorChannelCooldownMs</code></td><td>Cooldown per reaction channel (combat, ambient, activity, social...).</td><td class="num">5000</td></tr>
+            <tr><td><code>OrchestratorMaxQueueDepth</code></td><td>Maximum queued reactions per channel before low-priority ones get dropped.</td><td class="num">3</td></tr>
+            <tr><td><code>OrchestratorTickIntervalMs</code></td><td>How often the orchestrator evaluates its queues.</td><td class="num">1000</td></tr>
+            <tr><td><code>OrchestratorEntryTtlMs</code></td><td>How long a queued reaction stays eligible before it's discarded as stale.</td><td class="num">60000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="debug">
+      <h2>Debug.json</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>EnablePlayerInfo</code></td><td>Log player information for debugging.</td><td class="num">false</td></tr>
+            <tr><td><code>EnableBudDebugInfo</code></td><td>Log Bud information for debugging.</td><td class="num">false</td></tr>
+            <tr><td><code>EnableMoodChangeDebugInfo</code></td><td>Chat-message mood-change debugging.</td><td class="num">false</td></tr>
+            <tr><td><code>LogLevel</code></td><td>Server log verbosity.</td><td class="num">INFO</td></tr>
+            <tr><td><code>AutoUpdateContentOnVersionMismatch</code></td><td>Local-dev convenience — automatically reset prompts/Bud content to the packaged version on a <code>versions.yml</code> mismatch at startup, instead of just logging a warning. Overwrites your customizations. Leave <code>false</code> on a live server.</td><td class="num">true</td></tr>
+            <tr><td><code>EnableWorkingStateDebugCommand</code></td><td>Enables the debug-only <code>/bud state --working</code> flag (forces a Bud into Working state without a Workstation).</td><td class="num">false</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="conversation">
+      <h2>Conversation.json</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>EnableConversationMemory</code></td><td>Enable the memory system.</td><td class="num">true</td></tr>
+            <tr><td><code>ConversationMemoryDepth</code></td><td>How many memories a Bud keeps per player before evicting.</td><td class="num">8</td></tr>
+            <tr><td><code>ConversationMemoryDecayFactor</code></td><td>How quickly a memory's importance decays over time.</td><td class="num">0.9</td></tr>
+            <tr><td><code>ConversationMemoryMinImportance</code></td><td>Minimum importance a memory needs to be kept at all.</td><td class="num">4</td></tr>
+            <tr><td><code>ConversationMemoryMinMessageLength</code></td><td>Skip the memory-summary LLM call entirely for one-line responses shorter than this — saves a call for trivial exchanges.</td><td class="num">75</td></tr>
+            <tr><td><code>EnableLegendaryMemory</code></td><td>Enable permanently-retained "legendary" memories.</td><td class="num">true</td></tr>
+            <tr><td><code>LegendaryMemorySlotsPerBud</code></td><td>Number of legendary memory slots per Bud.</td><td class="num">3</td></tr>
+            <tr><td><code>EnableDialogMode</code></td><td>Enable turn-based back-and-forth chat sessions.</td><td class="num">true</td></tr>
+            <tr><td><code>DialogModeIdleSeconds</code></td><td>Idle timeout (seconds) before dialog mode ends.</td><td class="num">180</td></tr>
+            <tr><td><code>DialogModeActiveSeconds</code></td><td>How long an active dialog session stays open.</td><td class="num">30</td></tr>
+            <tr><td><code>DialogModeTurnIntervalSeconds</code></td><td>Minimum gap between turns in an active dialog.</td><td class="num">8</td></tr>
+            <tr><td><code>BudReactionChainMaxReplies</code></td><td>Maximum back-and-forth replies in a Bud-to-Bud reaction chain before it goes quiet again.</td><td class="num">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="work">
+      <h2>Work.json</h2>
+      <p>Field sizes, work pacing, tree root tuning and mining growth timing — this one is documented in full on the <a href="work-stations.html#work-config">Work Stations page</a>, right next to the mechanics it controls.</p>
+      <a class="btn btn-secondary" href="work-stations.html#work-config">Jump to the Work Configuration reference →</a>
+    </section>
+
+    <section id="bud-registry">
+      <h2>Bud Registry (<code>buds/*.yml</code>)</h2>
+      <p>Buds are fully data-driven. Each companion is defined by a YAML file at <code>buds/&lt;id&gt;.yml</code> (<code>id</code>, <code>displayName</code>, <code>color</code>, <code>npcTypeId</code>, <code>weaponId</code>, <code>armorId</code>, <code>pronoun</code>, <code>favoriteDay</code>, <code>promptKey</code>, <code>sounds</code>, plus a <code>workRole</code> and <code>restPosition</code> for Workstation binding). Adding a new Bud only needs a new YAML file plus matching game assets — no plugin rebuild.</p>
+      <p><code>buds/roster.yml</code> lists <code>defaultBuds</code> (at most 3) — the set <code>/bud create</code> spawns without an id, and what the Roster card summons. Buds outside the roster are still summonable individually.</p>
+    </section>
+
+    <section id="prompts">
+      <h2>Prompt management</h2>
+      <p>LLM system prompts and each Bud's personality/fallback text live as external YAML under the mod's <code>prompts/</code> folder — edit them to change what a Bud says without touching any code. They're copied from the packaged defaults on first server start.</p>
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <span class="callout-body"><strong><code>/bud prompt --reset</code> overwrites your custom prompts</strong> with the packaged defaults. Back up any customizations first.</span>
+      </div>
+    </section>
+
+    <section id="versions">
+      <h2>Content versioning (<code>versions.yml</code>)</h2>
+      <p><code>versions.yml</code> in the mod's data directory is the single place that tracks whether your server's prompt/Bud content is up to date with the packaged version:</p>
+      <pre><code>budVersion: 2
+promptVersion: 2
+excludedPrompts:
+  - "buds/gronkh.yml"
+excludedBuds:
+  - "gronkh.yml"</code></pre>
+      <p><code>excludedPrompts</code>/<code>excludedBuds</code> (paths relative to <code>prompts/</code>/<code>buds/</code>) mark files to keep untouched during an automatic update — for content you've customized yourself, at your own risk. The plugin only ever updates the version numbers here when syncing content, never the exclusion lists, so your exclusions survive every automatic update. An explicit <code>--reset</code> command still ignores exclusions and overwrites everything.</p>
+    </section>
+
+    <section id="reasoning-models">
+      <h2>⚠️ Using reasoning models</h2>
+      <p>If you're pointing <code>LLM.json</code> at a reasoning model (e.g. DeepSeek-R1, Qwen-Reasoning):</p>
+      <ul>
+        <li><strong>Disable "thinking"</strong> — these models generate many <code>&lt;think&gt;</code> tokens that can cause delays or cut-off messages. Prefer a non-thinking model, or disable the thinking phase in your provider's settings.</li>
+        <li><strong>Raise the token limit</strong> — if messages get cut off, increase <code>MaxTokens</code> to at least 200.</li>
+        <li>The plugin does try to filter <code>&lt;think&gt;</code> tags automatically, but a native no-thinking model gives the best experience.</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Bud Plugin
+      </a>
+      <p class="footer-note">A proof-of-concept Hytale server plugin. Template by <a href="https://github.com/UpcraftLP" target="_blank" rel="noopener">Up</a>, modified by <a href="https://github.com/Kaupenjoe" target="_blank" rel="noopener">Kaupenjoe</a>, inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends" target="_blank" rel="noopener">MyFriends</a> by LukeysMods.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/LICENSE.md" target="_blank" rel="noopener">License (CC0)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

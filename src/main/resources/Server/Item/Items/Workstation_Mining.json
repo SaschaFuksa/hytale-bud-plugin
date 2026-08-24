@@ -1,0 +1,138 @@
+{
+  "TranslationProperties": {
+    "Name": "Mining Workstation",
+    "Description": "A workstation where a Bud with the Mining role can be put to work."
+  },
+  "Icon": "Icons/ItemsGenerated/icon_mining.png",
+  "Categories": [
+    "Furniture.Benches"
+  ],
+  "Recipe": {
+    "Input": [
+      {
+        "ResourceTypeId": "Wood_Trunk",
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Rock",
+        "Quantity": 10
+      },
+      {
+        "ResourceTypeId": "Plant_Fruit_Berries_Red",
+        "Quantity": 10
+      }
+    ],
+    "Output": [
+      {
+        "ItemId": "Workstation_Mining"
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Crafting"
+        ],
+        "Id": "Workbench"
+      }
+    ],
+    "TimeSeconds": 3
+  },
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Items/workbench-mining.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Items/workbench-mining.png",
+        "Weight": 1
+      }
+    ],
+    "VariantRotation": "NESW",
+    "Bench": {
+      "Type": "Processing",
+      "AllowNoInputProcessing": true,
+      "Id": "WorkstationMining",
+      "Input": [
+        {
+          "Icon": "Icons/ItemsGenerated/icon_mining-card-slot.png"
+        },
+        {
+          "Icon": "Icons/ItemsGenerated/icon_mining-seed-slot.png"
+        }
+      ],
+      "Fuel": [
+        {
+          "Icon": "Icons/ItemsGenerated/icon_mining-food-slot.png"
+        }
+      ],
+      "OutputSlotsCount": 8
+    },
+    "State": {
+      "Definitions": {
+        "Processing": {
+          "Light": {
+            "Color": "#B72"
+          }
+        },
+        "ProcessCompleted": {
+          "Light": {
+            "Color": "#B72"
+          }
+        }
+      }
+    },
+    "BlockEntity": {
+      "Components": {
+        "BenchBlock": {},
+        "ProcessingBenchBlock": {},
+        "WorkstationBlockEntity": {
+          "WorkRole": "Mining"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Benches"
+      }
+    },
+    "HitboxType": "Workstation_Bench",
+    "BlockParticleSetId": "Stone",
+    "ParticleColor": "#5C583E",
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "Interactions": {
+      "Use": "Open_Processing_Bench"
+    },
+    "TextureComputedColor": "#29281F"
+  },
+  "PlayerAnimationsId": "Block",
+  "IconProperties": {
+    "Scale": 0.4,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      14,
+      -18
+    ]
+  },
+  "Tags": {
+    "Type": [
+      "Bench"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 1,
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

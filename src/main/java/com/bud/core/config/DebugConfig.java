@@ -8,9 +8,12 @@ public class DebugConfig {
 
     public static final BuilderCodec<DebugConfig> CODEC;
 
+    private boolean autoUpdateContentOnVersionMismatch = true;
     private boolean enablePlayerInfo = false;
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
+    private boolean enableWorkingStateDebugCommand = false;
+    private String logLevel = "INFO";
 
     private static volatile DebugConfig instance;
 
@@ -38,6 +41,18 @@ public class DebugConfig {
         return this.enableMoodChangeDebugInfo;
     }
 
+    public String getLogLevel() {
+        return this.logLevel;
+    }
+
+    public boolean isAutoUpdateContentOnVersionMismatch() {
+        return this.autoUpdateContentOnVersionMismatch;
+    }
+
+    public boolean isEnableWorkingStateDebugCommand() {
+        return this.enableWorkingStateDebugCommand;
+    }
+
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -51,6 +66,18 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("EnableMoodChangeDebugInfo", Codec.BOOLEAN),
                         (config, value) -> config.enableMoodChangeDebugInfo = value,
                         config -> config.enableMoodChangeDebugInfo)
+                .add()
+                .append(new KeyedCodec<>("LogLevel", Codec.STRING),
+                        (config, value) -> config.logLevel = value,
+                        config -> config.logLevel)
+                .add()
+                .append(new KeyedCodec<>("AutoUpdateContentOnVersionMismatch", Codec.BOOLEAN),
+                        (config, value) -> config.autoUpdateContentOnVersionMismatch = value,
+                        config -> config.autoUpdateContentOnVersionMismatch)
+                .add()
+                .append(new KeyedCodec<>("EnableWorkingStateDebugCommand", Codec.BOOLEAN),
+                        (config, value) -> config.enableWorkingStateDebugCommand = value,
+                        config -> config.enableWorkingStateDebugCommand)
                 .add()
                 .build();
     }

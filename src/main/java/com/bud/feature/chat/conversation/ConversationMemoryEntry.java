@@ -5,6 +5,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 public record ConversationMemoryEntry(
+        long id,
         @Nonnull String summary,
         int importance,
         double effectiveScore,
@@ -16,7 +17,7 @@ public record ConversationMemoryEntry(
 
     @Nonnull
     public ConversationMemoryEntry decay(double factor) {
-        return new ConversationMemoryEntry(this.summary, this.importance, this.effectiveScore * factor,
+        return new ConversationMemoryEntry(this.id, this.summary, this.importance, this.effectiveScore * factor,
                 this.speakerName, this.mode, this.participants, this.createdAt, this.legendary);
     }
 

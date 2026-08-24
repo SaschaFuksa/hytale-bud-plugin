@@ -11,11 +11,11 @@ public class LLMConfig {
     private boolean enableLLM = true;
     private boolean usePlayer2API = false;
     private String url = "http://192.168.178.25:1234/v1/chat/completions";
-    private String model = "mistralai/ministral-3-3b"; // like "mistralai/ministral-3-3b", "qwen3.5-0.8b" (needs prompt
-                                                       // improvements)
+    private String model = "mistralai/ministral-3-3b";
     private String apiKey = "sk-lm-KbCP0975:4MGo9MUOSThOoMCmP9CG";
     private int maxTokens = 100;
     private double temperature = 0.9;
+    private int structuredResponseMaxTokens = 80;
 
     private static volatile LLMConfig instance;
 
@@ -59,6 +59,10 @@ public class LLMConfig {
         return this.temperature;
     }
 
+    public int getStructuredResponseMaxTokens() {
+        return this.structuredResponseMaxTokens;
+    }
+
     static {
         CODEC = BuilderCodec.builder(LLMConfig.class, LLMConfig::new)
                 .append(new KeyedCodec<>("EnableLLM", Codec.BOOLEAN),
@@ -88,6 +92,10 @@ public class LLMConfig {
                 .append(new KeyedCodec<>("Temperature", Codec.DOUBLE),
                         (config, value) -> config.temperature = value,
                         config -> config.temperature)
+                .add()
+                .append(new KeyedCodec<>("StructuredResponseMaxTokens", Codec.INTEGER),
+                        (config, value) -> config.structuredResponseMaxTokens = value,
+                        config -> config.structuredResponseMaxTokens)
                 .add()
                 .build();
     }

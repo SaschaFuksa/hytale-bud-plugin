@@ -2,12 +2,18 @@ package com.bud.feature.queue.orchestrator;
 
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import com.bud.core.config.OrchestratorConfig;
+import com.bud.core.types.BudState;
 import com.bud.feature.LLMInteractionManager;
+import com.bud.feature.bud.reaction.BudReactionChainTracker;
+import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.llm.interaction.LLMInteractionEntry;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -24,6 +30,8 @@ public class Orchestrator {
 
     private final Map<String, OrchestratorChannel> lastServedChannel = new ConcurrentHashMap<>();
 
+    private final Set<String> directDispatchInFlight = ConcurrentHashMap.newKeySet();
+
     private ScheduledFuture<?> tickTask;
 
     private final LLMInteractionManager interactionManager = LLMInteractionManager.getInstance();
@@ -37,6 +45,10 @@ public class Orchestrator {
 
     public void enqueue(OrchestratorQueue event) {
         String playerName = event.interactionEntry().getBudComponent().getPlayerRef().getUsername();
+        if (event.channel() == OrchestratorChannel.PLAYER) {
+            dispatchDirect(playerName, event);
+            return;
+        }
         PriorityQueue<OrchestratorQueue> queue = getOrCreateQueue(playerName, event.channel());
         int maxDepth = OrchestratorConfig.getInstance().getOrchestratorMaxQueueDepth();
 
@@ -88,12 +100,31 @@ public class Orchestrator {
         }
     }
 
+    public long getLastGlobalMessageTime(String playerName) {
+        return lastGlobalMessage.getOrDefault(playerName, 0L);
+    }
+
     public void clearPlayer(String playerName) {
         queues.remove(playerName);
         lastGlobalMessage.remove(playerName);
         lastChannelMessage.remove(playerName);
         lastServedChannel.remove(playerName);
         LoggerUtil.getLogger().fine(() -> "[Orchestrator] Cleared state for player " + playerName);
+    }
+
+    public void purgeBud(String playerName, String budId) {
+        Map<OrchestratorChannel, PriorityQueue<OrchestratorQueue>> playerQueues = queues.get(playerName);
+        if (playerQueues == null) {
+            return;
+        }
+        for (PriorityQueue<OrchestratorQueue> queue : playerQueues.values()) {
+            synchronized (queue) {
+                queue.removeIf(event -> event.interactionEntry() != null
+                        && budId.equals(event.interactionEntry().getBudComponent().getBudId()));
+            }
+        }
+        LoggerUtil.getLogger().info(() -> "[Orchestrator] Purged queued events for despawned bud '" + budId
+                + "', player " + playerName);
     }
 
     private void tick() {
@@ -105,7 +136,6 @@ public class Orchestrator {
 
             for (String playerName : queues.keySet()) {
                 purgeStale(queues.get(playerName), now, entryTtl);
-                drainPlayerChannel(playerName);
 
                 long lastGlobal = lastGlobalMessage.getOrDefault(playerName, 0L);
                 if (now - lastGlobal < globalCooldown) {
@@ -114,7 +144,7 @@ public class Orchestrator {
 
                 OrchestratorChannel channel = pickChannel(playerName, now, channelCooldown);
                 if (channel == null) {
-                    continue; // all channels on cooldown or empty
+                    continue;
                 }
 
                 PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, channel);
@@ -161,17 +191,14 @@ public class Orchestrator {
         }
     }
 
-    private void drainPlayerChannel(String playerName) {
-        PriorityQueue<OrchestratorQueue> queue = getQueue(playerName, OrchestratorChannel.PLAYER);
-        if (queue == null || queue.isEmpty()) {
+    private void dispatchDirect(String playerName, OrchestratorQueue event) {
+        String inFlightKey = playerName + "|" + event.eventType();
+        if (!directDispatchInFlight.add(inFlightKey)) {
+            LoggerUtil.getLogger().finer(() -> "[Orchestrator] Direct " + event.eventType() + " for player "
+                    + playerName + " is already running, ignoring the repeat.");
             return;
         }
-        OrchestratorQueue event;
-        synchronized (queue) {
-            while ((event = queue.poll()) != null) {
-                dispatch(event);
-            }
-        }
+        dispatch(event, () -> directDispatchInFlight.remove(inFlightKey));
     }
 
     private OrchestratorChannel pickChannel(String playerName, long now, long channelCooldown) {
@@ -186,7 +213,7 @@ public class Orchestrator {
 
         OrchestratorChannel bestChannel = null;
         int bestPriority = Integer.MAX_VALUE;
-        boolean bestIsAlternate = false; // true if this channel != lastServed
+        boolean bestIsAlternate = false;
 
         for (OrchestratorChannel channel : OrchestratorChannel.values()) {
             PriorityQueue<OrchestratorQueue> queue = playerQueues.get(channel);
@@ -222,6 +249,10 @@ public class Orchestrator {
     }
 
     private void dispatch(OrchestratorQueue event) {
+        dispatch(event, null);
+    }
+
+    private void dispatch(OrchestratorQueue event, @Nullable Runnable onFinished) {
         Thread.ofVirtual().start(() -> {
             try {
                 LLMInteractionEntry entry = event.interactionEntry();
@@ -229,12 +260,26 @@ public class Orchestrator {
                     LoggerUtil.getLogger().severe(() -> "[Orchestrator] Missing interaction entry for event: " + event);
                     return;
                 }
-                interactionManager.processInteraction(entry);
+                if (entry.getBudComponent().getCurrentState() == BudState.WORKING
+                        && !event.entry().allowsReactionWhileWorking()) {
+                    LoggerUtil.getLogger().finer(() -> "[Orchestrator] Skipping " + event.eventType()
+                            + " for player " + event.playerName() + ": Bud is Working.");
+                    return;
+                }
+                String message = interactionManager.processInteraction(entry);
+                if (message != null && !message.isBlank()
+                        && entry.promptContext() instanceof BudReactionEntry reactionEntry) {
+                    BudReactionChainTracker.getInstance().onReactionDispatched(reactionEntry, message);
+                }
             } catch (Exception e) {
                 LoggerUtil.getLogger().severe(() -> "[Orchestrator] Error dispatching " + event.eventType()
                         + " for player "
                         + event.interactionEntry().getBudComponent().getPlayerRef().getUsername() + ": "
                         + e.getMessage());
+            } finally {
+                if (onFinished != null) {
+                    onFinished.run();
+                }
             }
         });
     }

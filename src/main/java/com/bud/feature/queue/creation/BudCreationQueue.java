@@ -60,6 +60,6 @@ public class BudCreationQueue extends AbstractTracker {
 
     private void handleBudCreation(@Nonnull BudCreationEntry entry) {
         LoggerUtil.getLogger().fine(() -> "[BUD] Handling bud creation: " + entry);
-        BudCreationEvent.dispatch(entry.playerRef(), entry.budTypes());
+        BudCreationEvent.dispatch(entry.playerRef(), entry.budIds(), false);
     }
 }

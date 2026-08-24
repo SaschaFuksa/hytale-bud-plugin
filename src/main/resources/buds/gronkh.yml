@@ -1,0 +1,15 @@
+id: gronkh
+displayName: Gronkh
+color: "#5555FF"
+npcTypeId: Gronkh_Bud
+weaponId: Weapon_Mace_Stone_Trork
+armorId: Armor_Trork_Chest
+pronoun: HE
+favoriteDay: FRIDAY
+promptKey: Gronkh
+workRole: LUMBERING
+restPosition: NEAR_STATION
+sounds:
+  defensive: SFX_Trork_Exertion
+  passive: SFX_Trork_Alerted
+  sitting: SFX_Trork_Alerted

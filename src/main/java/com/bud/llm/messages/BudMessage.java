@@ -7,6 +7,7 @@ public class BudMessage extends AbstractYamlMessage {
 
     private String characteristics;
     private Map<String, String> states;
+    private Map<String, String> playerStates;
     private Map<String, String> fallbacks;
     private String worldView;
     private String combatView;
@@ -17,6 +18,7 @@ public class BudMessage extends AbstractYamlMessage {
     private String discoverView;
     private String craftView;
     private String teleportView;
+    private String workView;
 
     public String getCharacteristics() {
         return characteristics;
@@ -36,6 +38,13 @@ public class BudMessage extends AbstractYamlMessage {
             return value;
 
         return getFallback("default");
+    }
+
+    public String getPlayerStateView(boolean debuff) {
+        if (playerStates == null)
+            return "";
+        String value = playerStates.get(debuff ? "negative" : "positive");
+        return value != null ? value : "";
     }
 
     public String getFallback(String key) {
@@ -92,6 +101,10 @@ public class BudMessage extends AbstractYamlMessage {
 
     public String getPersonalTeleportView() {
         return teleportView;
+    }
+
+    public String getPersonalWorkView() {
+        return workView;
     }
 
     public static BudMessage load(Path path) {

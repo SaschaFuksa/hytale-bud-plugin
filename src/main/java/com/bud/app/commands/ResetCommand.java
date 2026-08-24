@@ -4,7 +4,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.bud.core.types.BudType;
 import com.bud.feature.bud.creation.BudCreationEvent;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.util.CleanupUtil;
@@ -33,19 +32,19 @@ public class ResetCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] Resetting Bud system for player: " + playerRef.getUsername());
-        this.cleanupBuds(playerRef, store, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
-        this.dispatchCreation(ref, Set.of(BudType.VERI, BudType.KEYLETH, BudType.GRONKH));
+        this.cleanupBuds(playerRef, store, Set.of("veri", "keyleth", "gronkh"));
+        this.dispatchCreation(ref, Set.of("veri", "keyleth", "gronkh"));
         ChatEvent.dispatch(playerRef, "Reset Buds for " + playerRef.getUsername() + ".");
     }
 
-    private void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store, Set<BudType> buds) {
+    private void cleanupBuds(@Nonnull PlayerRef playerRef, @Nonnull Store<EntityStore> store, Set<String> buds) {
         if (buds.isEmpty()) {
             return;
         }
         CleanupUtil.cleanupBuds(playerRef, store, buds);
     }
 
-    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<BudType> buds) {
+    private void dispatchCreation(@Nonnull Ref<EntityStore> ref, Set<String> buds) {
         if (buds.isEmpty()) {
             return;
         }

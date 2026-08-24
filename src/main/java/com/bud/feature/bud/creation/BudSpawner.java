@@ -14,6 +14,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
@@ -51,6 +52,7 @@ public class BudSpawner {
         this.position = position;
     }
 
+    @Nonnull
     public static BudSpawner create(@Nonnull Store<EntityStore> store, @Nonnull String npcType,
             @Nonnull Vector3d position) {
         LoggerUtil.getLogger().fine(() -> "[BUD] ========================================");
@@ -60,29 +62,40 @@ public class BudSpawner {
         return new BudSpawner(store, npcType, position);
     }
 
+    @Nonnull
     public BudSpawner withRotation(@Nonnull Vector3f rotation) {
         this.rotation = new Rotation3f(rotation.x, rotation.y, rotation.z);
         return this;
     }
 
+    @Nonnull
     public BudSpawner withInventory() {
         this.withInventory = true;
         return this;
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType) {
         return addWeapon(weaponType, 1);
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType, int quantity) {
         return addWeapon(weaponType, quantity, (short) 0);
     }
 
+    @Nonnull
     public BudSpawner addWeapon(@Nonnull String weaponType, int quantity, short slot) {
         this.weapons.add(new WeaponConfig(weaponType, quantity, slot));
         return this;
     }
 
+    @Nonnull
+    public BudSpawner addTool(@Nonnull String toolItemId, short slot) {
+        return addWeapon(toolItemId, 1, slot);
+    }
+
+    @Nonnull
     public BudSpawner addArmor(@Nonnull String armorType) {
         this.armors.add(new ArmorConfig(armorType));
         return this;
@@ -109,8 +122,19 @@ public class BudSpawner {
 
         } catch (Exception e) {
             LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Error spawning NPC: " + e.getMessage());
+            removeHalfSpawnedEntity();
             return null;
         }
+    }
+
+    private void removeHalfSpawnedEntity() {
+        Ref<EntityStore> ref = spawnedNpcRef;
+        if (ref == null || !ref.isValid()) {
+            return;
+        }
+        store.removeEntity(ref, RemoveReason.REMOVE);
+        LoggerUtil.getLogger().warning(
+                () -> "[NPCSpawner] Removed half-spawned NPC " + npcType + " after a setup failure.");
     }
 
     private void configureInventory() {
@@ -132,12 +156,19 @@ public class BudSpawner {
         }
         ItemContainer inventory = hotbar.getInventory();
 
+        short hotbarCapacity = inventory.getCapacity();
         for (WeaponConfig weapon : weapons) {
+            if (weapon.slot >= hotbarCapacity) {
+                LoggerUtil.getLogger().severe(() -> "[NPCSpawner] Skipping " + weapon.itemId + " for " + npcType
+                        + " - hotbar slot " + weapon.slot + " is outside capacity (" + hotbarCapacity
+                        + "); raise the NPC role's HotbarSize.");
+                continue;
+            }
             ItemStack itemStack = new ItemStack(weapon.itemId, weapon.quantity);
             inventory.addItemStackToSlot(weapon.slot, itemStack);
         }
 
-        if (!weapons.isEmpty()) {
+        if (!weapons.isEmpty() && weapons.get(0).slot < hotbarCapacity) {
             hotbar.setActiveSlot((byte) weapons.get(0).slot, npcRef, accessor);
         }
 

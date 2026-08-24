@@ -27,5 +27,15 @@
       "Model": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Haircuts/Leaves_RockPlant.blockymodel",
       "Texture": "NPC/Intelligent/Kweebec_Sapling/Models/Attachments/Cosmetics/Head/Haircuts/Leaves_RockPlant_Texture.png"
     }
-  ]
+  ],
+  "AnimationSets": {
+    "Interact": {
+      "Animations": [
+        {
+          "Animation": "NPC/Intelligent/Kweebec_Sapling/Animations/Flavor/Interact.blockyanim",
+          "Looping": false
+        }
+      ]
+    }
+  }
 }

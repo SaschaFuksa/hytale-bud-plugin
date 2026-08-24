@@ -21,15 +21,20 @@ public class BudLLMClient extends AbstractLLMClient {
         @Override
         public String callLLM(Prompt prompt) throws IOException, InterruptedException {
                 LLMConfig config = LLMConfig.getInstance();
+                Integer maxTokensOverride = prompt.maxTokens();
+                int maxTokens = config.getMaxTokens();
+                if (maxTokensOverride != null) {
+                        maxTokens = maxTokensOverride;
+                }
                 String escapedSystemPrompt = JsonUtils.escapeJson(prompt.systemPrompt());
                 LoggerUtil.getLogger().info(() -> "[LLM] Systemprompt: " + escapedSystemPrompt);
                 String escapedMessage = JsonUtils.escapeJson(prompt.userPrompt());
                 LoggerUtil.getLogger().info(() -> "[LLM] Message: " + escapedMessage);
-                String jsonPayload = "{\"model\":\"" + config.getModel()
+                String jsonPayload = "{\"model\":\"" + JsonUtils.escapeJson(config.getModel())
                                 + "\",\"messages\":[{\"role\":\"system\",\"content\":\"" + escapedSystemPrompt
                                 + "\"},{\"role\":\"user\",\"content\":\"" + escapedMessage
                                 + "\"}],\"temperature\":" + config.getTemperature() + ",\"max_tokens\":"
-                                + config.getMaxTokens()
+                                + maxTokens
                                 + "}";
 
                 LoggerUtil.getLogger().info(() -> "[LLM] Sending request to " + config.getUrl());

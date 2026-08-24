@@ -3,25 +3,35 @@ package com.bud.feature.bud;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
+import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.Mood;
 import com.bud.feature.AbstractTracker;
+import com.bud.feature.bud.reaction.BudReactionEntry;
+import com.bud.feature.bud.reaction.BudReactionKind;
+import com.bud.feature.bud.reaction.LLMBudReactionMessageCreation;
+import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.chat.ChatEvent;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.queue.orchestrator.Orchestrator;
 import com.bud.feature.queue.orchestrator.OrchestratorChannel;
 import com.bud.feature.queue.orchestrator.OrchestratorQueue;
 import com.bud.feature.world.WorldResolver;
 import com.bud.feature.world.time.TimeInformationUtil;
 import com.bud.llm.interaction.LLMInteractionEntry;
-import com.bud.llm.profiles.IBudProfile;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class MoodTracker extends AbstractTracker {
 
@@ -41,7 +51,7 @@ public class MoodTracker extends AbstractTracker {
         if (isPolling()) {
             return;
         }
-        long interval = ReactionConfig.getInstance().getMoodReactionPeriod();
+        long interval = ReactionConfig.getInstance().getMoodReactionPeriodSeconds();
         lastPollDay = TimeInformationUtil.getDayOfWeek();
         setPollingTask(HytaleServer.SCHEDULED_EXECUTOR.scheduleWithFixedDelay(
                 this::changeMood, interval, interval, TimeUnit.SECONDS));
@@ -77,16 +87,16 @@ public class MoodTracker extends AbstractTracker {
 
     private void changeBudMood(BudComponent budComponent, DayOfWeek currentPollDay,
             boolean isDayTransition) {
-        IBudProfile budProfile = BudProfileMapper.getInstance().getProfileForBudType(budComponent.getBudType());
+        BudDefinition budProfile = BudRegistry.getInstance().get(budComponent.getBudId());
         DayOfWeek favDay = budProfile.getFavoriteDay();
-        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budProfile.getNPCDisplayName()
+        LoggerUtil.getLogger().info(() -> "[BUD] Checking mood for " + budProfile.getDisplayName()
                 + ". Current day: " + currentPollDay + ", Favorite day: " + favDay);
 
         if (currentPollDay.equals(favDay)) {
             if (isDayTransition) {
                 budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day transition detected for "
-                        + budProfile.getNPCDisplayName() + ". Ready for interaction.");
+                        + budProfile.getDisplayName() + ". Ready for interaction.");
                 FavoriteDayEntry favoriteDayEntry = new FavoriteDayEntry(budComponent);
                 LLMInteractionEntry interactionEntry = new LLMInteractionEntry(new LLMFavoriteDayMessageCreation(),
                         favoriteDayEntry);
@@ -100,30 +110,70 @@ public class MoodTracker extends AbstractTracker {
             } else if (!budComponent.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
                 budComponent.setCurrentMood(Mood.OVERMOTIVATED);
                 LoggerUtil.getLogger().info(() -> "[BUD] Favorite day detected for "
-                        + budProfile.getNPCDisplayName() + ". Mood set to OVERMOTIVATED.");
+                        + budProfile.getDisplayName() + ". Mood set to OVERMOTIVATED.");
             }
         } else {
             if (budComponent.getCurrentMood().equals(Mood.DEFAULT)) {
                 if (Math.random() < 0.5) {
                     budComponent.setCurrentMood(Mood.getRandomMood());
                     LoggerUtil.getLogger().info(() -> "[BUD] Random mood change for "
-                            + budProfile.getNPCDisplayName() + ": " + budComponent.getCurrentMood());
+                            + budProfile.getDisplayName() + ": " + budComponent.getCurrentMood());
                     if (DebugConfig.getInstance().isEnableMoodChangeDebugInfo()) {
                         ChatEvent.dispatch(budComponent.getPlayerRef(),
-                                "Mood of " + budProfile.getNPCDisplayName() + " has changed to "
+                                "Mood of " + budProfile.getDisplayName() + " has changed to "
                                         + budComponent.getCurrentMood() + "!");
+                    }
+                    if (!budComponent.getCurrentMood().equals(Mood.OVERMOTIVATED)) {
+                        triggerMoodChangeReaction(budComponent, budProfile);
                     }
                 }
             } else {
                 budComponent.setCurrentMood(Mood.DEFAULT);
                 LoggerUtil.getLogger().info(() -> "[BUD] Mood reset to DEFAULT for "
-                        + budProfile.getNPCDisplayName());
+                        + budProfile.getDisplayName());
                 if (DebugConfig.getInstance().isEnableMoodChangeDebugInfo()) {
                     ChatEvent.dispatch(budComponent.getPlayerRef(),
-                            "Mood of " + budProfile.getNPCDisplayName() + " has changed to "
+                            "Mood of " + budProfile.getDisplayName() + " has changed to "
                                     + budComponent.getCurrentMood() + "!");
                 }
             }
         }
+    }
+
+    private void triggerMoodChangeReaction(@Nonnull BudComponent budComponent, @Nonnull BudDefinition budProfile) {
+        Ref<EntityStore> budRef = budComponent.getBud().getReference();
+        if (budRef == null) {
+            return;
+        }
+        Store<EntityStore> store = budRef.getStore();
+        World world = store.getExternalData().getWorld();
+        world.execute(() -> {
+            PlayerRef playerRef = budComponent.getPlayerRef();
+            Ref<EntityStore> playerEntityRef = playerRef.getReference();
+            if (playerEntityRef == null) {
+                return;
+            }
+            PlayerBudComponent playerBudComponent = store.getComponent(playerEntityRef,
+                    PlayerBudComponent.getComponentType());
+            if (playerBudComponent == null) {
+                return;
+            }
+            BudComponent otherBud = BudManager.getInstance().getRandomOtherBud(playerBudComponent, budComponent);
+            if (otherBud == null) {
+                return;
+            }
+            String situationInfo = budProfile.getDisplayName() + " is now "
+                    + budComponent.getCurrentMood().getDisplayName()
+                    + ". React to this mood change in character. " + budProfile.getPronounHint();
+            BudReactionEntry entry = new BudReactionEntry(otherBud, BudReactionKind.MOOD_CHANGE, situationInfo);
+            long now = System.currentTimeMillis();
+            Orchestrator.getInstance().enqueue(new OrchestratorQueue(
+                    OrchestratorChannel.SOCIAL,
+                    entry,
+                    entry.getEntryName() + ":" + now,
+                    playerRef.getUsername(),
+                    new LLMInteractionEntry(LLMBudReactionMessageCreation.getInstance(), entry),
+                    now));
+        });
     }
 }

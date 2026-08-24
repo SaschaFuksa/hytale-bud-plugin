@@ -1,0 +1,15 @@
+id: keyleth
+displayName: Keyleth
+color: "#00AA00"
+npcTypeId: Keyleth_Bud
+weaponId: Template_Weapon_Shortbow
+armorId: Armor_Kweebec_Chest
+pronoun: SHE
+favoriteDay: WEDNESDAY
+promptKey: Keyleth
+workRole: FARMING
+restPosition: ON_STATION
+sounds:
+  defensive: SFX_Kweebec_Plushie_Impact
+  passive: SFX_Kweebec_Plushie_Impact
+  sitting: SFX_Kweebec_Plushie_Impact

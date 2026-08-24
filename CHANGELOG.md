@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0]
+### Added
+- **Bud 2 Bud Reactions**: Buds now react to each other's mood changes, spawns, state changes (e.g. sitting down), and legendary memories, and can chain into a couple of named back-and-forth replies before going quiet again.
+- **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds, including a shared "legendary" memory between a pair of buds.
+- **Bud Player State Reactions**: Your buds will now react if you have status effects like poisoned, health regeneration e.g.
+- **Data-driven Bud registry**: Buds are no longer a hardcoded `BudType` enum. Each companion is now defined by a `buds/<id>.yml` file (`BudRegistry`/`BudDefinition`), with `buds/roster.yml` controlling the default roster `/bud create` spawns without an argument. New Buds only need a new YAML file plus matching game assets — no plugin rebuild.
+- **New Commands**:
+  - `/bud memory set <bud> "<text>" [--legendary]` — manually add a memory (or legendary memory) for a Bud.
+  - `/bud memory delete <bud> <index> [--legendary]` — remove a memory by index. `/bud memory` and `/bud memory --legendary` now print the index of each entry so you know what to pass here.
+  - `/bud delete --playername <name>` — delete another player's Buds (admin only).
+  - `/bud create <bud>` now takes a generic, tab-completed Bud id instead of fixed `--veri`/`--gronkh`/`--keyleth` flags.
+- **Central Version Management**: Global version file and prompt/bud-config reloading
+- **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
+- **Bud Cards**: Optical rework and texture now matches the card.
+- **Bud Work Stations**: Now you can send your bud to work an harvest/lumber/mine items
+
+
+### Fixed
+- Orchestration of messages: Only send one message per tick
+- Higher cooldown times of message channels
+- `/bud delete --world` and `/bud delete --playername <other player>` now require admin permission, closing a griefing vector where any player could wipe every Bud on the server with one command.
+- Upgrades server version
+- Buds will now spawn in front of player
+
+### Performance
+- Skip the memory-summary LLM call entirely for trivial one-line Bud responses (configurable via `ConversationMemoryMinMessageLength`, default 40 characters), instead of always generating a summary and discarding it afterwards.
+- Memory-summary and legendary-replacement calls now request a much smaller `max_tokens` budget (configurable via `StructuredResponseMaxTokens`, default 80) since they only return compact JSON, instead of sharing the full conversational `MaxTokens` budget — shortens local LLM generation time for these background calls.
+- `LLMCaller` now reuses a single shared virtual-thread executor instead of creating a brand new one on every LLM call.
+- Log level is now configurable (`DebugConfig.LogLevel`, default `INFO`) instead of being hardcoded to `ALL`, avoiding the cost of building and emitting verbose trace/prompt/response log messages on every interaction during normal play.
+- Fixed a memory leak: `RecentBlockCache`, `RecentItemCache`, `RecentCraftCache`, `RecentDiscoverCache`, and `RecentOpponentCache` never released their per-player tracking state after a player left, unlike the other trackers. They're now cleared on player disconnect.
+- `DialogModeTracker.triggerDialogNow` now waits with a 5s timeout instead of blocking forever if the world never executes the scheduled callback.
+
+---
+
 ## [1.9.0]
 ### Added
 - **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.

@@ -55,8 +55,8 @@ public class BudDebugInfo {
                 }
                 PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
                 if (playerBudComponent != null) {
-                    playerBudComponent.getBudTypes().forEach(budType -> LoggerUtil.getLogger()
-                            .fine(() -> "Player has Bud of type: " + budType));
+                    playerBudComponent.getBudIds().forEach(budId -> LoggerUtil.getLogger()
+                            .fine(() -> "Player has Bud of id: " + budId));
                 } else {
                     LoggerUtil.getLogger().warning(() -> "PlayerBudComponent: NULL");
                 }
@@ -81,13 +81,11 @@ public class BudDebugInfo {
             LoggerUtil.getLogger().fine(() -> "Can Lead Flock: " + role.isCanLeadFlock());
             LoggerUtil.getLogger().fine(() -> "Is Avoiding Entities: " + role.isAvoidingEntities());
 
-            // Attitude Info
             LoggerUtil.getLogger()
                     .fine(() -> "Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
             LoggerUtil.getLogger()
                     .fine(() -> "Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
 
-            // Damage Groups Info
             LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
             CombatSupport combatSupport = role.getCombatSupport();
             int[] disableGroups = combatSupport.getDisableDamageGroups();
@@ -95,7 +93,6 @@ public class BudDebugInfo {
                 LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
                 IndexedLookupTableAssetMap<String, AttitudeGroup> assetMap = AttitudeGroup.getAssetMap();
 
-                // --- REVERSE LOOKUP DEBUG ---
                 Map<Integer, String> reverseMap = new HashMap<>();
                 try {
                     Map<?, ?> rawMap = assetMap.getAssetMap();
@@ -105,7 +102,6 @@ public class BudDebugInfo {
                         if (val instanceof Integer intVal) {
                             reverseMap.put(intVal, String.valueOf(key));
                         } else {
-                            // Try to get index from key
                             try {
                                 int id = assetMap.getIndex((String) key);
                                 reverseMap.put(id, String.valueOf(key));
@@ -116,7 +112,6 @@ public class BudDebugInfo {
                 } catch (Exception e) {
                     LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
                 }
-                // ----------------------------
 
                 for (int g : disableGroups) {
                     String logGroupName;
@@ -138,7 +133,6 @@ public class BudDebugInfo {
             LoggerUtil.getLogger()
                     .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
 
-            // Check if it's friendly now
             LoggerUtil.getLogger().fine(() -> "--- Current Status ---");
             LoggerUtil.getLogger().fine(() -> "Is Backing Away: " + role.isBackingAway());
 
@@ -146,7 +140,6 @@ public class BudDebugInfo {
             try {
                 StateMappingHelper stateHelper = role.getStateSupport().getStateHelper();
                 LoggerUtil.getLogger().fine(() -> "Current State: " + role.getStateSupport().getStateName());
-                // Try to get state indices for common states
                 int idleIdx = stateHelper.getStateIndex("Idle");
                 int petPassiveIdx = stateHelper.getStateIndex("PetPassive");
                 int petDefensiveIdx = stateHelper.getStateIndex("PetDefensive");

@@ -3,267 +3,84 @@
   <img src="https://fuksa.de/hytale/buddies.avif" width="600px">
   <p><i>Used template by <a href="https://github.com/UpcraftLP">Up</a>, slightly modified by <a href="https://github.com/Kaupenjoe">Kaupenjoe</a>.</i><br>
   <i>Inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends">MyFriends</a> by LukeysMods.</i></p>
+  Bud Work Feature inspired by <a href="https://www.curseforge.com/hytale/mods/ancient-constructs">Ancient Constructs</a> by <a href="https://www.curseforge.com/members/danbagh/projects">DanBagh</a>.
+</div>
+
+<br>
+
+<div align="center">
+
+📖 **[Full documentation, guides and configuration reference →](https://saschafuksa.github.io/hytale-bud-plugin/)**
+
 </div>
 
 <br>
 
 ## 🌟 Overview
 
-This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles.
+This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles. The mod works fully without an LLM configured too — the AI layer is what makes it come alive, not what it depends on.
 
-<br>
+> Upgrading from an older version? Remove the `/prompts` folder, or update it with `/bud prompt reset`.
 
-## Update information:
+### Meet the Buddies
 
-If you have an older version of the plugin, remove the **/prompts** folder or update it after you added an newer version with **/bud prompt reset**.
-For a robust cleanup of this plugin, you can delete the old plugin folder in your world's mods folder.
+| | Bud | Role | Worker role |
+|:--- |:--- |:--- |:--- |
+| 🦊 | **Veri** — Feran, agile and curious, fights with daggers | Combat companion | Mining |
+| 👹 | **Gronkh** — Trork, grumpy but loyal, fights with a mace | Combat companion | Lumbering |
+| 🍃 | **Keyleth** — Kweebec, shy and intelligent, supports with a bow | Combat companion | Farming |
 
-## New in 1.9.0
-### Added
-- **Card Item For Spawn/Despawn Bud**: New card-items are created to spawn/despawn your buds without using commands. This cards can be crafted on arcane workbench.
-
-### Fixed
-- Now disable friendly fire for Buds
-- Also Buds will now attack hostile mobs that attack the player, and will assist the player in combat for a short duration after being attacked.
-- Commands for memories: See all current memories/legendary memories
-
-(See more changes in GitHub Repository in the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>)
-
-### Quote of the release:
-
-After hitting grass...
-Gronkh: 
->Grass? Og Og-what's wrong with that fool, smashing tender things like flowers? Too weak for even my stone mace's respect.
-
-<br>
-
-### Meet your Buddies
-
-<table>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Veri.avif" alt="Veri"></td>
-    <td>
-      <h3>🦊 Veri</h3>
-      <p>A Feran buddy who is a little childish, but extremely curious and friendly. Veri is agile and supports you in combat using <b>daggers</b>.</p>
-      <p>Veri travels with you to find the rare antidote for his sick Feran clan infected by strange disease from the toxic Skaraks.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Gronkh.avif" alt="Gronkh"></td>
-    <td>
-      <h3>👹 Gronkh</h3>
-      <p>A Trork buddy who might seem grumpy at first, but is fiercely loyal and strong. He's a powerhouse who supports you with a heavy <b>mace</b>.</p>
-      <p>Gronkh is on a mission to protect the northern tribe from the icy 'white wanderers' and is training to crush the undead forces threatening their lands.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="200", padding="10px"><img src="https://fuksa.de/hytale/Keyleth.avif" alt="Keyleth"></td>
-    <td>
-      <h3>🍃 Keyleth</h3>
-      <p>A Kweebec buddy who is highly intelligent but a bit shy. She prefers to keep her distance and supports you from afar with a <b>bow</b>.</p>
-      <p>Keyleth is on a quest to uncover ancient knowledge in lost temples. She wants to balance by connecting old temples to defeat Shadow Knight and the dark army.</p>
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🎴 Bud Cards
-
-Summon and dismiss your Buds with an item instead of chat commands. Each companion has its own **Card**, craftable at the Arcane Workbench under the *Arcane Misc* category.
-
-Image shows the arcane workbench misc menu with all the recipes:
-<img src="https://fuksa.de/hytale/card-crafting.png" alt="Card Crafting">
-
-| Card | Recipe |
-|:--- |:--- |
-| **Keyleth** | Iron Shortbow, Health Crop x3, Fibre x50, Azure Trunk Wood x20, Gold Bar x20, Pumpkin x10, Concentrated Life Essence |
-| **Veri** | Iron Daggers, Stamina Crop x3, Antidote Potion x10, Silver Bar x30, Gold Bar x30, Fire Essence x10, Concentrated Life Essence |
-| **Gronkh** | Iron Mace, Mana Crop x3, Ice Rock x30, Mossy Cobblestone x90, Silver Bar x20, Ice Essence x10, Concentrated Life Essence |
-
-Once crafted, just hold the card in your hand:
-
-<img src="https://fuksa.de/hytale/card-slot.png" alt="Card Slot">
-
-*   **Left-Click (Primary)**: Summons the matching Bud next to you. If bud is already present, respawn them.
-*   **Right-Click (Secondary)**: Despawn that Bud again.
-
-Each card only ever spawns/despawns its own Bud, so you can carry all three and freely mix and match your active companions.
+Every Bud is fully data-driven — new companions are added via a YAML definition, no plugin rebuild required. → [Meet the Buddies in full](https://saschafuksa.github.io/hytale-bud-plugin/#buddies)
 
 <br>
 
 ## 🚀 Features
 
+- **LLM Reactions** — your Buds react in character to combat, block placement, crafting, item pickups, weather, new zones, your chat, even your status effects — generated live by an LLM, or a hand-written fallback line when none is configured.
+- **Bud Cards + Crafting** — summon and dismiss companions with a craftable card instead of chat commands. → [How to craft & use them](https://saschafuksa.github.io/hytale-bud-plugin/cards.html)
+- **Bud Work Stations** — assign a Bud to a Workstation and it farms, logs, or mines a field on its own. → [How Work Stations work](https://saschafuksa.github.io/hytale-bud-plugin/work-stations.html)
 
-### 🤖 Intelligent Interaction
-*   **Dynamic Modes**: Toggle between *Defensive* (attacks), *Passive* (follows), and *Sitting* (stays put).
-*   **World Awareness**: Buds send chat messages about current world information (zone, biome, time, weather) every few minutes.
-*   **Combat Interaction**: Your companions react to your recent fights with context-aware dialogue.
-*   **Block Interaction**: Your companions react to your recent block placements or block breaks.
-*   **Item Interaction**: Your companions react to your recent item collections.
-*   **Weather Interaction**: If weather changes, one of your companions will react to it with context-aware dialogue.
-*   **Mood System**: Your Buds have moods that can change over time, influencing their dialogue and reactions. (Currently only changes randomly every 3 minutes)
-*   **Favorite Day**: Each Bud has a favorite day of the week, and they will react overmotivated on that day.
-*   **Discover Zone Reaction**: When you enter a new zone for the first time, your Buds will react to the discovery with unique dialogue based on the zone's characteristics.
-*   **Crafting Reaction**: When you craft an item, your Buds will react to the crafting event, providing feedback based on the type of item crafted (e.g., tools, weapons, armor, etc.).
-*   **Player Chat Reaction**: Buds can react to your chat messages. Mention one or more Bud names (e.g. "veri", "gronkh", "keyleth") to target them directly; without mention, one random Bud responds.
-
-### Memory System
-*   **Memory Storage**: Buds remember past interactions with the player, allowing for context-aware responses and interactions based on previous events. 
-*   **Memory Prioritization**: Memories are prioritized based on their importance, with more significant events being retained longer and influencing Bud behavior more strongly.
-*   **Memory Eviction**: Memories priority is decayed over time, and less important memories are evicted when the memory capacity is reached.
-*   **Legendary Memories**: Certain significant events can be marked as "legendary," ensuring they are retained in memory for longer periods.
+→ [See every feature](https://saschafuksa.github.io/hytale-bud-plugin/#features)
 
 <br>
 
-### 🎮 Commands
-The plugin is primarily controlled via simple chat commands:
+## 🆕 New Features
 
-*   **`/bud`** - Shows all commands.
+Highlights of the latest release:
 
-#### Creation Commands
+- **Bud-to-Bud Reactions & Memories** — Buds react to each other and build shared memories.
+- **Bud Work Stations** — send a Bud to farm, log, or mine autonomously.
+- **Data-driven Bud Registry** — new companions via YAML, no rebuild.
+- **Central content versioning** — prompts and Bud definitions auto-update safely.
 
-*   **`/bud create`** - Creates all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud create [--veri|--gronkh|--keyleth]`** - Target a specific buddy for spawning or teleportation.
-*   **`/bud reset`** - Recreate all your buddies.
-
-#### Deletion Commands
-
-*   **`/bud delete`** - Deletes all three Buddies (Veri, Gronkh, Keyleth) at once.
-*   **`/bud delete [--veri|--gronkh|--keyleth]`** - Deletes a specific buddy.
-*   **`/bud delete --world`** - Deletes all buddies of all worlds.
-
-#### State Commands
-
-*   **`/bud state`** - Change the behavior mode for all active Buds to the next state.
-*   **`/bud state --defensive`** - Change the behavior mode for all active Buds to Defensive.
-*   **`/bud state --passive`** - Change the behavior mode for all active Buds to Passive.
-*   **`/bud state --sitting`** - Change the behavior mode for all active Buds to Sitting.
-
-#### Prompt Commands
-
-*   **`/bud prompt`** - Reload missing LLM prompt configurations without restarting the server.
-*   **`/bud prompt --reset`** - Reset all LLM prompt configurations to default (use with caution, backup your custom prompts first!).
-
-#### Debug Commands
-
-*   **`/bud debug`** - Shows the available debug flags.
-*   **`/bud debug --componentData`** - Shows the current and persisted Bud data for the player in chat.
-*   **`/bud debug --mood`** - Shows the current mood of each active Bud and their favorite day in chat.
-*   **`/bud debug --weather`** - Shows the current weather in chat.
-*   **`/bud debug --time`** - Shows the current time of day and day of week in chat.
-*   **`/bud debug --world`** - Shows the current zone and biome in chat.
+→ [Full changelog](https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md)
 
 <br>
 
-## ⚙️ Configuration (LLM)
+## 🎮 Commands
 
-To enable the AI features, edit the `LLM.json` in your server's mod folder:
+Everything runs through `/bud <subcommand>` — creation, deletion, state, memory, prompts, reload, debug.
 
+→ [Full command reference](https://saschafuksa.github.io/hytale-bud-plugin/commands.html)
 
-### LLM Configuration
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableLLM` | Toggle LLM features | `true` |`
-| `UsePlayer2API` | Toggle to use Player2 API for LLM <br>(EnableLLM must be true) | `false` |
-| `Url` | Your LLM API Endpoint | `v1/chat/completions` |
-| `Model` | The AI model identifier | `mistralai/ministral-3-3b` |
-| `ApiKey` | The API key for your LLM service | `not_needed` |
-| `MaxTokens` | Limit the length of AI responses | `100` |
-| `Temperature` | Control randomness (0.0 - 1.0) | `0.9` |
 <br>
 
-### Reaction Configuration
+## ⚙️ Configuration
 
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableCombatReactions` | Enable or disable combat reaction messages | `true` |
-| `EnableBlockReactions` | Enable or disable block reaction messages | `true` |
-| `EnableItemReactions` | Enable or disable item reaction messages | `true` |
-| `EnableDiscoverReactions` | Enable or disable discover reaction messages | `true` |
-| `EnableCraftingReactions` | Enable or disable crafting reaction messages | `true` |
-| `EnableWorldReactions` | Enable or disable world reaction messages | `true` |
-| `WorldReactionPeriod` | Interval for world reaction messages (in seconds) | `60L` |
-| `EnableWeatherReactions` | Enable or disable weather reaction messages | `true` |
-| `WeatherReactionPeriod` | Interval for weather reaction messages (in seconds) | `5L` |
-| `EnableMoodReactions` | Enable or disable mood reaction messages | `true` |
-| `MoodReactionPeriod` | Interval for mood reaction messages (in seconds) | `180L` |
-| `EnablePlayerChatReactions` | Enable or disable player chat reaction messages | `true` |
-<br>
+Six JSON files, one per concern (LLM, Reaction, Orchestrator, Work, Debug, Conversation), plus the Bud Registry and prompt YAMLs.
 
-### Orchestration Configuration (Only change if needed for performance tuning)
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `OrchestratorGlobalCooldownMs` | Global cooldown for orchestrator actions (in milliseconds) | `3000L` |
-| `OrchestratorChannelCooldownMs` | Channel-specific cooldown for orchestrator actions (in milliseconds) | `5000L` |
-| `OrchestratorMaxQueueDepth` | Maximum queue depth for orchestrator actions | `3` |
-| `OrchestratorTickIntervalMs` | Tick interval for orchestrator actions (in milliseconds) | `1000L` |
-| `OrchestratorEntryTtlMs` | Time-to-live for orchestrator entries (in milliseconds) | `60000L` |
-<br>
-
-### Debug Configuration
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnablePlayerInfo` | Log player information for debugging purposes | `false` |
-| `EnableBudDebugInfo` | Log bud information for debugging purposes | `false` |
-| `EnableMoodChangeDebugInfo` | Chat message mood change information for debugging purposes | `false` |
-
-### Conversation Configuration
-
-| Setting | Description | Default |
-|:--- |:--- |:--- |
-| `EnableConversationMemory` | Enable conversation memory | `true` |
-| `ConversationMemoryDepth` | Depth of conversation memory | `8` |
-| `ConversationMemoryDecayFactor` | Decay factor for conversation memory | `0.9` |
-| `ConversationMemoryMinImportance` | Minimum importance for conversation memory | `4` |
-| `EnableLegendaryMemory` | Enable legendary memory | `true` |
-| `LegendaryMemorySlotsPerBud` | Number of legendary memory slots per bud | `3` |
-| `EnableDialogMode` | Enable dialog mode | `true` |
-| `DialogModeIdleSeconds` | Idle time for dialog mode (in seconds) | `180L` |
-| `DialogModeActiveSeconds` | Active time for dialog mode (in seconds) | `30L` |
-| `DialogModeTurnIntervalSeconds` | Turn interval for dialog mode (in seconds) | `8L` |
-
-**LLM Usage:**
-- You can use your own local LLM Client (like LM Studio)
-- Or use an API provider like DeepSeek, Qwen, etc. Make sure to set the correct `Url`, `Model`, and `ApiKey` in the config.
-- Or use Player2 API support by enabling `UsePlayer2API` and following the Player2 API setup instructions.
-
-
-
-### 🧠 Prompt Management
-The LLM prompts are now stored in external `YAML` files located in the mod folder. This allows for easier editing and customization of NPC personalities without modifying the code. Each buddy has its own prompt file, and there are prompts for world interactions.
-
-First time the server starts, the default prompts will be copied from the resources to the mod folder. You can then edit these files to customize the behavior and personality of your Buds.
-
-**Attention**: The command `/bud prompt reset` will overwrite the existing prompt files with the default ones from the resources. Make sure to backup your custom prompts before using this command.
-
-
-### ⚠️ LLM Performance Note (Reasoning Models)
-
-If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
-*   **Disable "Thinking":** These models generate many `<think>` tokens which can cause delays or cut-off messages. It is recommended to use models without a "thinking" phase or to disable it in your API provider's settings.
-*   **Token Limit:** If messages are cut off, increase `MaxTokens` in your config to at least `200`.
-*   **Filter:** The plugin automatically tries to filter `<think>` tags, but native "No-Thinking" models provide the best experience.
+→ [Full configuration reference](https://saschafuksa.github.io/hytale-bud-plugin/configuration.html)
 
 <br>
 
 ## 🛠️ Development
 
-### Dev Workflow
 1.  **Initial Setup**: `.\gradlew decompileServer`
 2.  **Build**: `.\gradlew build`
 3.  **Run Server**: `.\gradlew runServer`
 4.  **Auth Login**: `/auth login device`
 5.  **Persist Login**: `/auth persistence Encrypted`
 
-<br>
-
-## 🗺️ Roadmap
-
-- [x] **1.9.0**: Item-based spawning instead of commands
-- [ ] **2.0.0**: Bud-2-Bud Interactions - and if possible: Bud to world interactions like mine some stones if player asks for
 <br>
 
 ## Known Issues
@@ -275,6 +92,7 @@ If you are using **Reasoning Models** (e.g., DeepSeek-R1, Qwen-Reasoning):
 ## 📜 History
 
 For a detailed list of all changes and version history, please see the <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md">CHANGELOG.md</a>.
+
 ---
 <div align="center">
   <p><i>"This mod will also work without LLM, but the main goal is to have interactive buddies."</i></p>

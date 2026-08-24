@@ -2,19 +2,21 @@ package com.bud.llm;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.bud.core.registry.BudDefinition;
 import com.bud.llm.client.ILLMClient;
 import com.bud.llm.client.LLMClientFactory;
-import com.bud.llm.profiles.IBudProfile;
 import com.bud.llm.prompt.Prompt;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class LLMCaller {
 
     private static final LLMCaller INSTANCE = new LLMCaller();
+    private static final ExecutorService VIRTUAL_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
     private static final Pattern TRAILING_FORMATTED_ASIDE = Pattern
             .compile("(?is)\\s+[\\*_`~]+\\s*[\\(\\[].*$");
     private static final Pattern TRAILING_LABELED_META = Pattern
@@ -30,19 +32,19 @@ public class LLMCaller {
         return INSTANCE;
     }
 
-    public CompletableFuture<String> callLLM(Prompt prompt, IBudProfile budProfile) {
+    public CompletableFuture<String> callLLM(Prompt prompt, BudDefinition budProfile) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String response = this.llmClient.callLLM(prompt);
-                String message = sanitizeBudResponse(budProfile.getNPCDisplayName(), response);
+                String message = sanitizeBudResponse(budProfile.getDisplayName(), response);
                 LoggerUtil.getLogger().info(() -> "[BUD] LLM response: "
-                        + formatBudResponse(budProfile.getNPCDisplayName(), message));
+                        + formatBudResponse(budProfile.getDisplayName(), message));
                 return message;
             } catch (IOException | InterruptedException e) {
                 LoggerUtil.getLogger().severe(() -> "[BUD] LLM Error: " + e.getMessage());
                 return LLMErrorMessageUtils.buildUserFacingMessage(e.getMessage());
             }
-        }, Executors.newVirtualThreadPerTaskExecutor());
+        }, VIRTUAL_EXECUTOR);
     }
 
     public CompletableFuture<String> callRawLLM(Prompt prompt) {
@@ -53,7 +55,7 @@ public class LLMCaller {
                 LoggerUtil.getLogger().severe(() -> "[BUD] LLM Error: " + e.getMessage());
                 return null;
             }
-        }, Executors.newVirtualThreadPerTaskExecutor());
+        }, VIRTUAL_EXECUTOR);
     }
 
     private String formatBudResponse(String budName, String response) {

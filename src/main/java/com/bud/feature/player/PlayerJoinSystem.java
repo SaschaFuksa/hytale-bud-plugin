@@ -1,5 +1,8 @@
 package com.bud.feature.player;
 
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.annotation.Nonnull;
 
 import com.bud.core.BudManager;
@@ -8,13 +11,21 @@ import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
 import com.bud.core.debug.BudDebugInfo;
-import com.bud.core.types.BudType;
+import com.bud.core.registry.BudRegistry;
+import com.bud.feature.LLMPromptManager;
+import com.bud.feature.block.RecentBlockCache;
 import com.bud.feature.bud.MoodTracker;
+import com.bud.feature.bud.reaction.BudReactionChainTracker;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.chat.conversation.DialogModeTracker;
+import com.bud.feature.combat.RecentOpponentCache;
+import com.bud.feature.crafting.RecentCraftCache;
+import com.bud.feature.discover.RecentDiscoverCache;
+import com.bud.feature.item.RecentItemCache;
 import com.bud.feature.queue.creation.BudCreationEntry;
 import com.bud.feature.queue.creation.BudCreationQueue;
 import com.bud.feature.queue.orchestrator.Orchestrator;
+import com.bud.feature.player.state.PlayerStateTracker;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.WorldTracker;
 import com.bud.feature.world.weather.WeatherTracker;
@@ -28,10 +39,13 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 public class PlayerJoinSystem extends RefSystem<EntityStore> {
+
+    private static final AtomicBoolean VERSION_MISMATCH_REMINDER_PENDING = new AtomicBoolean(true);
 
     @Override
     public Query<EntityStore> getQuery() {
@@ -39,7 +53,6 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
     }
 
     @Override
-    @SuppressWarnings("null")
     public void onEntityAdded(@Nonnull Ref<EntityStore> ref, @Nonnull AddReason addReason,
             @Nonnull Store<EntityStore> store,
             @Nonnull CommandBuffer<EntityStore> commandBuffer) {
@@ -52,18 +65,22 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (playerBudComponent == null) {
             PlayerBudComponent newPlayerBudComponent = new PlayerBudComponent(playerRef);
             initializeWeatherBaseline(playerRef, newPlayerBudComponent);
+            initializePlayerStateBaseline(store, ref, newPlayerBudComponent);
             commandBuffer.addComponent(ref, PlayerBudComponent.getComponentType(), newPlayerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Added PlayerBudComponent for player " + playerRef.getUsername());
         } else {
             playerBudComponent.setPlayerRef(playerRef);
             initializeWeatherBaseline(playerRef, playerBudComponent);
+            initializePlayerStateBaseline(store, ref, playerBudComponent);
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] PlayerBudComponent already exists for player " + playerRef.getUsername());
-            for (BudType budType : playerBudComponent.getBudTypes()) {
+            Set<String> budIds = playerBudComponent.getBudIds();
+            if (!budIds.isEmpty()) {
                 BudCreationQueue.getInstance()
-                        .addToCache(new BudCreationEntry(ref, budType));
+                        .addToCache(new BudCreationEntry(ref, budIds));
             }
+            ConversationMemoryService.getInstance().restoreForOwner(playerRef.getUsername(), playerBudComponent);
         }
         MoodTracker.getInstance().startPolling();
         if (ReactionConfig.getInstance().isEnableWorldReactions()) {
@@ -72,6 +89,9 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (ReactionConfig.getInstance().isEnableWeatherReactions()) {
             WeatherTracker.getInstance().startPolling();
         }
+        if (ReactionConfig.getInstance().isEnablePlayerStateReactions()) {
+            PlayerStateTracker.getInstance().startPolling();
+        }
         if (ConversationConfig.getInstance().isEnableDialogMode()) {
             DialogModeTracker.getInstance().startPolling();
         }
@@ -79,6 +99,22 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         if (DebugConfig.getInstance().isEnablePlayerInfo()) {
             BudDebugInfo.getInstance().logPlayerInfo(playerRef, store);
         }
+        remindContentVersionMismatchOnce();
+    }
+
+    private static void remindContentVersionMismatchOnce() {
+        if (!VERSION_MISMATCH_REMINDER_PENDING.compareAndSet(true, false)) {
+            return;
+        }
+        boolean mismatch = LLMPromptManager.getInstance().isContentVersionMismatch()
+                || BudRegistry.getInstance().isContentVersionMismatch();
+        if (!mismatch) {
+            return;
+        }
+        LoggerUtil.getLogger().warning(
+                () -> "[BUD] Reminder: packaged prompt and/or Bud content is newer than the runtime copy. "
+                        + "Run '/bud prompt --reset' and/or '/bud reload buds --reset' to update "
+                        + "(overwrites your customizations!).");
     }
 
     @Override
@@ -92,6 +128,12 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             Orchestrator.getInstance().clearPlayer(playerRef.getUsername());
             DialogModeTracker.getInstance().clearPlayer(playerRef.getUsername());
             ConversationMemoryService.getInstance().clearPlayer(playerRef.getUsername());
+            BudReactionChainTracker.getInstance().clearPlayer(playerRef.getUsername());
+            RecentBlockCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentItemCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentCraftCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentDiscoverCache.getInstance().clearPlayer(playerRef.getUsername());
+            RecentOpponentCache.getInstance().clearPlayer(playerRef.getUsername());
         }
     }
 
@@ -102,6 +144,16 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
             return;
         }
         playerBudComponent.setLastKnownWeatherId(weather.getId());
+    }
+
+    public static void initializePlayerStateBaseline(@Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> playerRef, @Nonnull PlayerBudComponent playerBudComponent) {
+        EffectControllerComponent effectController = store.getComponent(playerRef,
+                EffectControllerComponent.getComponentType());
+        if (effectController == null) {
+            return;
+        }
+        playerBudComponent.setLastKnownEffectIds(PlayerStateTracker.resolveActiveEffectIds(effectController));
     }
 
 }

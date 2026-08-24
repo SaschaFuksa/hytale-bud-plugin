@@ -1,0 +1,88 @@
+{
+  "TranslationProperties": {
+    "Name": "Roster Card",
+    "Description": "Card to spawn and despawn all roster Buds"
+  },
+  "Parent": "Tool_Hatchet_Crude",
+  "Icon": "Icons/ItemsGenerated/icon_roster.png",
+  "Model": "Items/card.blockymodel",
+  "Texture": "Items/card_roster.png",
+  "IconProperties": {
+    "Scale": 0.7,
+    "Rotation": [
+      28,
+      91,
+      0
+    ],
+    "Translation": [
+      -7,
+      -13
+    ]
+  },
+  "Light": {
+    "Color": "#fff"
+  },
+  "Recipe": {
+    "Input": [
+      {
+        "ItemId": "Weapon_Mace_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Weapon_Shortbow_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Weapon_Daggers_Iron",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Plant_Crop_Stamina3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Plant_Crop_Mana3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Plant_Crop_Health3",
+        "Quantity": 3
+      },
+      {
+        "ItemId": "Ingredient_Bar_Silver",
+        "Quantity": 60
+      },
+      {
+        "ItemId": "Ingredient_Bar_Gold",
+        "Quantity": 60
+      },
+      {
+        "ItemId": "Ingredient_Fire_Essence",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Ice_Essence",
+        "Quantity": 10
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence_Concentrated",
+        "Quantity": 3
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Id": "Arcanebench",
+        "RequiredTierLevel": 0,
+        "Categories": [
+          "Arcane_Misc"
+        ]
+      }
+    ],
+    "TimeSeconds": 5
+  },
+  "Interactions": {
+    "Primary": "CardRoster",
+    "Secondary": "CardRoster"
+  }
+}

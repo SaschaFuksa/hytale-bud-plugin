@@ -8,15 +8,15 @@
   "Model": "Items/card.blockymodel",
   "Texture": "Items/card_veri.png",
   "IconProperties": {
-    "Scale": 0.9,
+    "Scale": 0.7,
     "Rotation": [
-      43,
-      102,
-      19
+      28,
+      91,
+      0
     ],
     "Translation": [
-      -14,
-      -2
+      -7,
+      -13
     ]
   },
   "Light": {

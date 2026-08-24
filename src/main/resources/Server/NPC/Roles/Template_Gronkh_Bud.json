@@ -78,6 +78,7 @@
   "MaxHealth": {
     "Compute": "MaxHealth"
   },
+  "HotbarSize": 8,
   "AttitudeGroup": {
     "Compute": "AttitudeGroup"
   },
@@ -98,7 +99,10 @@
       "RunThresholdRange": 0.1,
       "Gravity": 10,
       "MaxFallSpeed": 20,
-      "Acceleration": 10
+      "Acceleration": 10,
+      "MaxClimbHeight": 1,
+      "DescendFlatness": 0.7,
+      "DescendSpeedCompensation": 0.5
     }
   ],
   "Instructions": [
@@ -1102,6 +1106,98 @@
               }
             }
           ]
+        },
+        {
+          "$Comment": "=== MODE 4: WORKING (Sub-states: .Default while actively working, .Resting when the Workstation is out of fuel or manually paused - see docs/bud-worker-mode-plan.md, 'Working/Resting Sub-States'. Both sub-states are set programmatically only (WorkstationFuelTickSystem via StateSupport.setSubState(...)), never reachable via a JSON Action/player interaction.) ===",
+          "Sensor": {
+            "Type": "State",
+            "State": "Working"
+          },
+          "Instructions": [
+            {
+              "$Comment": "--- .Resting: fuel exhausted or the native Processing Bench 'TURN OFF' toggle is active - Crouch/sitting pose (swapped from the initial placement, see docs/bud-worker-mode-plan.md, 'Working/Resting-Animation vertauscht') ---",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Resting"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status",
+                  "Animation": "Sleep"
+                },
+                {
+                  "Type": "Inventory",
+                  "UseTarget": false,
+                  "Operation": "ClearHeldItem"
+                },
+                {
+                  "$Comment": "Self-referential no-op setter, required only to satisfy the engine's static validation ('State sensor or State setter action/motion exists without accompanying state/setter'). Never opens a new transition into .Resting from outside - the Sensor above already requires State == .Resting.",
+                  "Type": "State",
+                  "State": ".Resting"
+                }
+              ]
+            },
+            {
+              "$Comment": "--- .Default bookkeeping: Crouch false (active work pose, Gronkhs eigene Visual-Konvention statt Keyleths Sit-Animation-Clear) + Working self-setter, unconditional on every tick in .Default via Continue - decoupled from BodyMotion so it can't clobber whatever the Farm-Loop below sets. War vorher der einzige .Default-Block (reiner Platzhalter, 'real movement follows in Phase 5') - jetzt um den echten Farm-Loop + Idle-Fallback ergänzt (Lumbering Slice A/B Debugging, 2026-08-15: Gronkh bekam nie ein WorkTarget-Sensor/FarmWork-Action zugewiesen, stand deshalb trotz korrekt zugewiesenem WorkTarget nur still). ---",
+              "Continue": true,
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "Actions": [
+                {
+                  "Type": "PlayAnimation",
+                  "Slot": "Status"
+                },
+                {
+                  "$Comment": "Self-referential no-op setter for the top-level Working state, required by engine validation. Never opens a transition into Working from outside - the Sensor above already requires it.",
+                  "Type": "State",
+                  "State": "Working"
+                }
+              ]
+            },
+            {
+              "$Comment": "--- Lumbering-Loop: analog zum Farm-Loop in Template_Keyleth_Bud.json, aber ueber LumberingWorkAction statt FarmWorkAction - die Workstation (WorkstationFuelTickSystem) schreibt Position (Laufziel zur begehbaren Nachbarzelle) + WorkType generisch nach BudComponent, dieser (rollenunabhaengige) Sensor liest nur zurueck. Seeks toward it every tick; LumberingWorkAction's own canExecute re-checks interaction distance and the field radius (gegen den echten Wood_-Block, siehe BudComponent.pendingFellBlockPosition), dann fuehrt den Fell aus. ---",
+              "Sensor": {
+                "Type": "And",
+                "Sensors": [
+                  {
+                    "Type": "State",
+                    "State": ".Default"
+                  },
+                  {
+                    "Type": "WorkTarget"
+                  }
+                ]
+              },
+              "BodyMotion": {
+                "Type": "Seek",
+                "SlowDownDistance": 2.0,
+                "StopDistance": 1.0,
+                "RelativeSpeed": 0.5
+              },
+              "ActionsBlocking": true,
+              "Actions": [
+                {
+                  "Type": "LumberingWork"
+                }
+              ]
+            },
+            {
+              "$Comment": "--- .Default idle fallback: kein WorkTarget zugewiesen - stehen bleiben. ---",
+              "Sensor": {
+                "Type": "State",
+                "State": ".Default"
+              },
+              "BodyMotion": {
+                "Type": "Nothing"
+              }
+            }
+          ]
         }
       ]
     }
@@ -1225,6 +1321,18 @@
               {
                 "Type": "State",
                 "State": "PetDefensive"
+              }
+            ]
+          },
+          {
+            "Sensor": {
+              "Type": "State",
+              "State": "Working"
+            },
+            "ActionsBlocking": false,
+            "Actions": [
+              {
+                "Type": "WorkTalk"
               }
             ]
           }

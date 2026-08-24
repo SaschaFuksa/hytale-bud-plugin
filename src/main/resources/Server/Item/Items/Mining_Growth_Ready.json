@@ -1,0 +1,45 @@
+{
+  "TranslationProperties": {
+    "Name": "Mining Growth Ready",
+    "Description": "A grown stone, ready for a Mining Bud to mine."
+  },
+  "Icon": "Icons/ItemsGenerated/Rock_Stone_Cobble.png",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Cube",
+    "Group": "Cobble",
+    "Flags": {},
+    "BlockEntity": {
+      "Components": {
+        "OreGrowthBlock": {}
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "ItemId": "Rock_Stone_Cobble"
+      }
+    },
+    "BlockParticleSetId": "Stone",
+    "Textures": [
+      {
+        "Sides": "BlockTextures/Rock_Stone_Cobble_Side.png",
+        "UpDown": "BlockTextures/Rock_Stone_Cobble_Top.png",
+        "Weight": 1
+      }
+    ],
+    "ParticleColor": "#615d44",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "TextureComputedColor": "#5E5C43"
+  },
+  "PlayerAnimationsId": "Block",
+  "Tags": {
+    "Type": [
+      "Rock"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 1,
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

@@ -9,13 +9,13 @@ import org.joml.Vector3d;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
+import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.DayOfWeek;
 import com.bud.core.types.TimeOfDay;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.conversation.ConversationMemoryEntry;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
 import com.bud.feature.chat.conversation.DialogModeTracker;
-import com.bud.feature.profiles.BudProfileMapper;
 import com.bud.feature.world.WorldInformationUtil;
 import com.bud.feature.world.time.TimeInformationUtil;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -108,7 +108,7 @@ public class DebugCommand extends AbstractPlayerCommand {
             return;
         }
 
-        if (playerBudComponent.getCurrentBuds().isEmpty() && playerBudComponent.getBudTypes().isEmpty()) {
+        if (playerBudComponent.getCurrentBuds().isEmpty() && playerBudComponent.getBudIds().isEmpty()) {
             ChatEvent.dispatch(playerRef, "ComponentData: no Bud data found.");
             return;
         }
@@ -116,8 +116,8 @@ public class DebugCommand extends AbstractPlayerCommand {
         for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
             ChatEvent.dispatch(playerRef, "ComponentData current: " + bud.getNPCTypeId());
         }
-        playerBudComponent.getBudTypes().forEach(budType -> ChatEvent.dispatch(playerRef,
-                "ComponentData persisted: " + budType.getName()));
+        playerBudComponent.getBudIds().forEach(budId -> ChatEvent.dispatch(playerRef,
+                "ComponentData persisted: " + budId));
     }
 
     private void sendMoodData(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef) {
@@ -137,12 +137,8 @@ public class DebugCommand extends AbstractPlayerCommand {
             if (budComponent == null) {
                 continue;
             }
-            String budDisplayName = BudProfileMapper.getInstance()
-                    .getProfileForBudType(budComponent.getBudType())
-                    .getNPCDisplayName();
-            DayOfWeek favoriteDay = BudProfileMapper.getInstance()
-                    .getProfileForBudType(budComponent.getBudType())
-                    .getFavoriteDay();
+            String budDisplayName = BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName();
+            DayOfWeek favoriteDay = BudRegistry.getInstance().get(budComponent.getBudId()).getFavoriteDay();
             lines.add("Mood " + budDisplayName + ": " + formatDisplayValue(budComponent.getCurrentMood().name())
                     + " (Favorite Day: " + formatDisplayValue(favoriteDay.name()) + ")");
         }

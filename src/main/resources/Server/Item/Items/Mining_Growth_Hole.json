@@ -1,0 +1,49 @@
+{
+  "TranslationProperties": {
+    "Name": "Mining Growth Hole",
+    "Description": "A freshly dug spot where Mining ore growth is in progress."
+  },
+  "Icon": "Icons/ItemsGenerated/Rubble_Stone.png",
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Transparent",
+    "CustomModel": "Blocks/Stone/Rubble_Small.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Items/Rubble/Rubble_Textures/Stone.png",
+        "Weight": 1
+      }
+    ],
+    "Group": "Stone",
+    "HitboxType": "Rubble",
+    "Flags": {},
+    "RandomRotation": "YawStep1",
+    "BlockEntity": {
+      "Components": {
+        "OreGrowthBlock": {}
+      }
+    },
+    "BlockParticleSetId": "Dust",
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "ParticleColor": "#75755b",
+    "BlockSoundSetId": "Stone",
+    "PhysicalMaterialId": "Stone",
+    "TextureComputedColor": "#585740"
+  },
+  "PlayerAnimationsId": "Item",
+  "Tags": {
+    "Type": [
+      "Rubble"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 1,
+  "ItemSoundSetId": "ISS_Blocks_Stone"
+}

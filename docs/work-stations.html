@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Stations — Bud Plugin</title>
+<meta name="description" content="How to build a Workstation, bind a Bud to it, and everything about Farming, Lumbering and Mining work — including the full Work Configuration reference and tree root tuning.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Bud Plugin
+    </a>
+    <div class="nav-links">
+      <a href="index.html#buddies">Buddies</a>
+      <a href="index.html#features">Features</a>
+      <a href="cards.html">Cards</a>
+      <a href="work-stations.html">Work Stations</a>
+      <a href="configuration.html">Configuration</a>
+      <a href="commands.html">Commands</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme">🌙</button>
+      <a class="btn btn-secondary" href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subpage-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="index.html">← Overview</a></p>
+    <span class="eyebrow">New in 2.0</span>
+    <h1>Work Stations</h1>
+    <p>Bind a Bud to a Workstation and it works a field on its own — tilling, planting, felling, digging, mining — as long as it's fed. Here's exactly how to set one up and tune it.</p>
+  </div>
+</header>
+
+<main class="container docs-layout">
+  <nav class="toc" aria-label="On this page">
+    <span class="toc-label">On this page</span>
+    <a href="#crafting">Crafting a Workstation</a>
+    <a href="#binding">Binding a Bud</a>
+    <a href="#fuel">Fuel &amp; resting</a>
+    <a href="#farming">Farming — Keyleth</a>
+    <a href="#lumbering">Lumbering — Gronkh</a>
+    <a href="#mining">Mining — Veri</a>
+    <a href="#field-size">Field size</a>
+    <a href="#tree-roots">Tree roots</a>
+    <a href="#work-config">Work Configuration reference</a>
+  </nav>
+
+  <div class="docs-content">
+
+    <section id="crafting">
+      <h2>Crafting a Workstation</h2>
+      <p>All three Workstations are crafted at a regular <strong>Workbench</strong> and share the same recipe shape:</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Workstation</th><th>Ingredients</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr><td>Farming</td><td>Wood Trunk ×10, Rock ×10, Red Berries ×10</td><td class="num">3s</td></tr>
+            <tr><td>Lumbering</td><td>Wood Trunk ×10, Rock ×10, Fibre ×10</td><td class="num">3s</td></tr>
+            <tr><td>Mining</td><td>Wood Trunk ×10, Rock ×10, Red Berries ×10</td><td class="num">3s</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Place the Workstation, then open it — it has a card slot, a secondary input slot (seeds/saplings/ore, depending on role), and a fuel slot with 8 output slots.</p>
+    </section>
+
+    <section id="binding">
+      <h2>Binding a Bud</h2>
+      <p>Drop the matching <a href="cards.html">Bud Card</a> into the Workstation's card slot — the Bud spawns (or teleports in, if already active) directly at the station and switches into its Working state. Each Workstation only accepts the Bud whose role matches: Keyleth for Farming, Gronkh for Lumbering, Veri for Mining. Removing the card unbinds and despawns the Bud again.</p>
+    </section>
+
+    <section id="fuel">
+      <h2>Fuel &amp; resting</h2>
+      <p>A bound Bud needs fuel in the Workstation's fuel slot to keep working — each accepted food item covers <code>FuelDurationSeconds</code> (120s by default) of work. Out of fuel, or nothing left to do in the field, and the Bud switches to its Resting sub-state (idle pose, near or on the station) until fuel is added or new work appears.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Role</th><th>Accepted fuel</th></tr></thead>
+          <tbody>
+            <tr><td>Farming</td><td><code>Plant_Fruit_Berries_Red</code></td></tr>
+            <tr><td>Lumbering</td><td><code>Food_Wildmeat_Cooked</code></td></tr>
+            <tr><td>Mining</td><td><code>Food_Fish_Grilled</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Edit <code>allowedFuel</code> in <code>work/recipes.yml</code> to change what each role accepts.</p>
+    </section>
+
+    <section id="farming">
+      <h2>Farming — Keyleth</h2>
+      <p>Scans the field for soil to till, plants an accepted seed if one sits in the input slot, waters and fertilizes tilled soil, and harvests ripe crops into the output slots.</p>
+      <div class="loop-steps">
+        <span class="loop-step">Till</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Plant</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Water</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Fertilize</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Harvest</span>
+      </div>
+      <p>Accepted seeds (<code>allowedSeeds: FARMING</code> in <code>work/recipes.yml</code>): Aubergine, Carrot, Cauliflower, Chilli, Corn, Cotton, Lettuce, Onion, Potato, Pumpkin, Rice, Tomato, Turnip, Wheat — plus each crop's Eternal variant.</p>
+    </section>
+
+    <section id="lumbering">
+      <h2>Lumbering — Gronkh</h2>
+      <p>Prepares the soil under each tree spot with a shovel first (see <a href="#tree-roots">Tree roots</a> below), tills and plants a sapling if one sits in the input slot, and fells any full-grown tree in the field — drops (including Life Essence) go straight into the output slots, no loot to pick up off the ground.</p>
+      <div class="loop-steps">
+        <span class="loop-step">Prepare Soil</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Till</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Plant</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Fell</span>
+      </div>
+      <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow.</p>
+    </section>
+
+    <section id="mining">
+      <h2>Mining — Veri</h2>
+      <p>Digs holes scattered across the field that grow into minable stone over time, and works the field's ore-bearing main nodes for a steady, renewable ore yield.</p>
+      <div class="loop-steps">
+        <span class="loop-step">Dig</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Wait for growth</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Mine</span>
+      </div>
+      <p>Accepted ore (<code>allowedSeeds: MINING</code>): Adamantite, Cobalt, Copper, Gold, Iron, Mithril, Onyxium, Prisma, Silver, Thorium.</p>
+    </section>
+
+    <section id="field-size">
+      <h2>Field size</h2>
+      <p>Set independently per role via <code>FarmingFieldSize</code> / <code>LumberingFieldSize</code> / <code>MiningFieldSize</code> (<code>SMALL</code>, <code>MEDIUM</code>, <code>LARGE</code>).</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Size</th><th>Farming radius</th><th>Lumbering radius / spots</th><th>Mining radius / nodes</th></tr></thead>
+          <tbody>
+            <tr><td>SMALL</td><td class="num">4</td><td class="num">3 / 2</td><td class="num">3 / 2</td></tr>
+            <tr><td>MEDIUM (default)</td><td class="num">5</td><td class="num">5 / 4</td><td class="num">5 / 4</td></tr>
+            <tr><td>LARGE</td><td class="num">6</td><td class="num">7 / 8</td><td class="num">7 / 8</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tree-roots">
+      <h2>Tree roots</h2>
+      <p>Hytale's tree prefabs don't only grow upward — from the third growth stage on they also place root blocks <em>below</em> the sapling, and the engine only accepts a growth stage if every block it needs is either air or soil. Hit stone under a sapling and the placement is rejected silently: the growth timer keeps running, the tree never visibly changes, and once the timer finishes the block entity is deleted — the tree is then frozen forever, waiting doesn't help.</p>
+      <p>That's why Gronkh performs a soil-preparation step with a shovel <strong>before</strong> tilling: at each tree spot he turns every non-soil, non-air block into <code>Soil_Dirt</code>, both at the surface and <code>TreeRootDepth</code> blocks down, across a <code>TreeRootRadius</code> column. Already-soil blocks are left alone, and a spot with something already planted on it is skipped, so a growing tree's own roots are never dug back up.</p>
+      <p>The defaults (depth <code>4</code>, radius <code>1</code>) cover the common trees. Species with deeper roots need larger values, or they'll stall exactly as described above:</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Tree</th><th>Required <code>TreeRootDepth</code></th><th>Required <code>TreeRootRadius</code></th></tr></thead>
+          <tbody>
+            <tr><td>Oak, Poisoned</td><td class="num">3</td><td class="num">1</td></tr>
+            <tr><td>Redwood</td><td class="num">1</td><td class="num">2</td></tr>
+            <tr><td>Cedar (burnt variant)</td><td class="num">4</td><td class="num">3</td></tr>
+            <tr><td>Fir</td><td class="num">6</td><td class="num">4</td></tr>
+            <tr><td>Fir (snow variant)</td><td class="num">8</td><td class="num">4</td></tr>
+            <tr><td>Wisteria</td><td class="num">9</td><td class="num">10</td></tr>
+            <tr><td>All other species</td><td colspan="2">no roots at all</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <span class="callout-body"><strong>Mind the cost</strong> before raising these: the cleared volume is <code>(2 × radius + 1)² × depth</code> blocks <em>per tree spot</em>. The defaults clear 36 blocks; Fir's 6/4 clears 486; Wisteria's 9/10 clears 3969. If you only plant Oak, leave the defaults alone — the cheaper alternative to a large radius is restricting <code>allowedSeeds: LUMBERING</code> in <code>work/recipes.yml</code> to species your setting actually covers.</span>
+      </div>
+    </section>
+
+    <section id="work-config">
+      <h2>Work Configuration reference</h2>
+      <p>Every setting below lives in <code>Work.json</code> in the mod's server folder.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>FarmingFieldSize</code></td><td>Field size of a Farming Workstation.</td><td class="num">MEDIUM</td></tr>
+            <tr><td><code>LumberingFieldSize</code></td><td>Field size of a Lumbering Workstation.</td><td class="num">MEDIUM</td></tr>
+            <tr><td><code>MiningFieldSize</code></td><td>Field size of a Mining Workstation.</td><td class="num">MEDIUM</td></tr>
+            <tr><td><code>FieldMaxHeight</code></td><td>Maximum vertical distance (blocks) from the Workstation a tillable block may be at.</td><td class="num">3</td></tr>
+            <tr><td><code>TargetTimeoutSeconds</code></td><td>How long a working Bud may take to reach/till its currently assigned block before the Workstation gives up on it and picks another.</td><td class="num">8</td></tr>
+            <tr><td><code>PrepareSoilIntervalSeconds</code></td><td>Pacing: how long a Lumbering Bud waits after loosening one tree spot before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>TillIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after tilling a block before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>PlantIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after planting a seed before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>WaterIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after watering soil before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>WaterDurationSeconds</code></td><td>How long one watering keeps tilled soil watered — matches the native watering can's own duration, so a Bud waters no more/less often than a player would.</td><td class="num">86400</td></tr>
+            <tr><td><code>FertilizeIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after fertilizing soil before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>HarvestIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after harvesting a ripe crop before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>FellIntervalSeconds</code></td><td>Pacing: how long a working Bud waits after felling a tree before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>DigIntervalSeconds</code></td><td>Pacing: how long a Mining Bud waits after digging a hole before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>MineIntervalSeconds</code></td><td>Pacing: how long a Mining Bud waits after mining a grown stone before the Workstation releases the next one.</td><td class="num">1</td></tr>
+            <tr><td><code>IdleRetrySeconds</code></td><td>How long a working Bud waits before re-scanning the field when no work was found.</td><td class="num">5</td></tr>
+            <tr><td><code>TreeMinDistance</code></td><td>Minimum distance (blocks) enforced between trees a Lumbering Bud plants.</td><td class="num">3</td></tr>
+            <tr><td><code>TreeRootDepth</code></td><td>See <a href="#tree-roots">Tree roots</a> above.</td><td class="num">4</td></tr>
+            <tr><td><code>TreeRootRadius</code></td><td>See <a href="#tree-roots">Tree roots</a> above.</td><td class="num">1</td></tr>
+            <tr><td><code>OreMinDistance</code></td><td>Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field.</td><td class="num">2</td></tr>
+            <tr><td><code>MiningGrowthGameSecondsMin</code></td><td>Lower bound of the <strong>game-time</strong> seconds a dug hole takes to grow its stone. Game time stands still while the server is down. The game clock runs at 30× real time by default (<code>86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)</code>), so 28800 is roughly 16 real minutes.</td><td class="num">28800</td></tr>
+            <tr><td><code>MiningGrowthGameSecondsMax</code></td><td>Upper bound of the same span; each hole rolls its own duration so dig sites don't all mature in lockstep.</td><td class="num">30600</td></tr>
+            <tr><td><code>FuelDurationSeconds</code></td><td>How long one unit of fuel keeps a bound Bud working.</td><td class="num">120</td></tr>
+            <tr><td><code>RebindRetrySeconds</code></td><td>Retry interval for re-binding a Bud to its Workstation after the owner wasn't online at load time.</td><td class="num">10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>work/recipes.yml</code> holds the item-level side of things — <code>allowedSeeds</code> / <code>allowedFuel</code> per role, tillable/diggable block lists, and <code>treeGrowthStageSeconds</code> (game-seconds per sapling growth stage; <code>{default: 10000}</code> ships out of the box). Both files follow the same copy-on-first-start convention as everything else in the mod: the packaged default is only written if the file is missing, so your edits are never overwritten.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Bud Plugin
+      </a>
+      <p class="footer-note">A proof-of-concept Hytale server plugin. Template by <a href="https://github.com/UpcraftLP" target="_blank" rel="noopener">Up</a>, modified by <a href="https://github.com/Kaupenjoe" target="_blank" rel="noopener">Kaupenjoe</a>, inspired by <a href="https://www.curseforge.com/hytale/mods/my-friends" target="_blank" rel="noopener">MyFriends</a> by LukeysMods.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/SaschaFuksa/hytale-bud-plugin/blob/main/LICENSE.md" target="_blank" rel="noopener">License (CC0)</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

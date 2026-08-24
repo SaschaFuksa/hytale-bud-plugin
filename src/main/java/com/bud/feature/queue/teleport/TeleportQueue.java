@@ -41,7 +41,7 @@ public class TeleportQueue extends AbstractQueue {
     }
 
     private void handleTeleport(@Nonnull TeleportEntry entry) {
-        LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budComponent().getBudType().getName());
+        LoggerUtil.getLogger().fine(() -> "[BUD] Handling teleport: " + entry.budComponent().getBudId());
         BudComponent budComponent = entry.getBudComponent();
         Ref<EntityStore> entityRef = budComponent.getBud().getReference();
         if (entityRef == null) {

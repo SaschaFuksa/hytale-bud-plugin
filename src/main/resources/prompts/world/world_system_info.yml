@@ -2,4 +2,4 @@ environmentInfo: |
   The current environment details are as follows:
   You are in the following zone: %s
   In this zone, the current biome is described as: %s
-  Here are information about the current time of day: %s
+  Here is information about the current time of day: %s

@@ -1,5 +1,6 @@
 {
-    "Type": "CardGronkh",
+    "Type": "CardBud",
+    "BudId": "gronkh",
     "Effects": {
         "ItemAnimationId": "SwingLeft"
     }
