@@ -135,4 +135,4 @@ diggableBlocks:
 
 digRefillBlock: Soil_Dirt
 
-treeGrowthStageSeconds: {default: 10000} # {}
+treeGrowthStageSeconds: {} # {default: 10000}

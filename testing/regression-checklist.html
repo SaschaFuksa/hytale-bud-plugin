@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bud Plugin Regression Pass</title>
+<meta name="description" content="Checkbox-driven regression test for Bud Plugin v2.0.0 - Cards, Commands, LLM reactions, all three Workstations across all field sizes, teleport, and content versioning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #faf7f0;
+  --bg-elevated: #ffffff;
+  --surface: #fffdf8;
+  --surface-border: #e6ddc9;
+  --text: #26241d;
+  --text-muted: #6b6656;
+  --text-faint: #7a7460;
+  --accent: #8f5e20;
+  --accent-strong: #7c4f19;
+  --accent-soft: #f1e1c4;
+  --accent-contrast: #fffaf0;
+  --veri: #2f7f6e;
+  --gronkh: #a1432c;
+  --keyleth: #4a7a3a;
+  --done: #38638a;
+  --done-soft: #dfe9f2;
+  --shadow: 0 1px 2px rgba(38, 36, 29, 0.07), 0 10px 26px -14px rgba(38, 36, 29, 0.22);
+  --radius-lg: 16px;
+  --radius-md: 11px;
+  --radius-sm: 7px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15181a;
+    --bg-elevated: #1b1f21;
+    --surface: #1c2123;
+    --surface-border: #2c3336;
+    --text: #ecebe6;
+    --text-muted: #a8ada9;
+    --text-faint: #83898a;
+    --accent: #e0a940;
+    --accent-strong: #f0bd5c;
+    --accent-soft: #35301f;
+    --accent-contrast: #1b1a14;
+    --veri: #4fb39d;
+    --gronkh: #d9744f;
+    --keyleth: #7cb464;
+    --done: #7fa8d4;
+    --done-soft: #223140;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.32), 0 12px 30px -16px rgba(0, 0, 0, 0.55);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #15181a;
+  --bg-elevated: #1b1f21;
+  --surface: #1c2123;
+  --surface-border: #2c3336;
+  --text: #ecebe6;
+  --text-muted: #a8ada9;
+  --text-faint: #83898a;
+  --accent: #e0a940;
+  --accent-strong: #f0bd5c;
+  --accent-soft: #35301f;
+  --accent-contrast: #1b1a14;
+  --veri: #4fb39d;
+  --gronkh: #d9744f;
+  --keyleth: #7cb464;
+  --done: #7fa8d4;
+  --done-soft: #223140;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.32), 0 12px 30px -16px rgba(0, 0, 0, 0.55);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 {
+  font-family: "Cinzel", Georgia, serif;
+  text-wrap: balance;
+  margin: 0;
+}
+
+code, .mono {
+  font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+a { color: var(--accent-strong); }
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+
+/* Sticky header / progress */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.topbar-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.1rem 1.25rem 0.9rem;
+}
+
+.topbar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-faint);
+  margin-bottom: 0.3em;
+}
+
+h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: 0.01em; }
+
+.reset-btn {
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reset-btn:hover { color: var(--text); border-color: var(--text-faint); }
+.reset-btn:focus-visible, .icon-toggle:focus-visible, summary:focus-visible, input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.85rem;
+}
+
+.progress-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--done);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.progress-count {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86rem;
+  color: var(--done);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.scope-note {
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-left: 3px solid var(--surface-border);
+  padding-left: 0.75rem;
+}
+
+.scope-note b { color: var(--text); }
+
+/* Sections */
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  margin-top: 1.1rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.section[open] > summary { border-bottom: 1px solid var(--surface-border); }
+
+.section > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.section > summary::-webkit-details-marker { display: none; }
+
+.section-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  width: 1.6rem;
+  text-align: center;
+}
+
+.section-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-title h2 { font-size: 1.04rem; font-weight: 600; }
+.section-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15em; }
+
+.section-count {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--done);
+  background: var(--done-soft);
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.section-count.zero { color: var(--text-faint); background: var(--accent-soft); }
+
+.chevron {
+  color: var(--text-faint);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.section[open] .chevron { transform: rotate(90deg); }
+
+.section-body { padding: 0.4rem 1.25rem 1.2rem; }
+
+.role-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: 1px;
+}
+
+.role-veri { color: var(--veri); background: color-mix(in srgb, var(--veri) 14%, transparent); }
+.role-gronkh { color: var(--gronkh); background: color-mix(in srgb, var(--gronkh) 14%, transparent); }
+.role-keyleth { color: var(--keyleth); background: color-mix(in srgb, var(--keyleth) 14%, transparent); }
+
+.subhead {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin: 1.1rem 0 0.4rem;
+}
+
+.subhead:first-child { margin-top: 0.3rem; }
+
+/* Checklist items */
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.5rem 0.2rem;
+  border-radius: var(--radius-sm);
+}
+
+.item:hover { background: var(--accent-soft); }
+
+.item input[type="checkbox"] {
+  appearance: none;
+  width: 19px;
+  height: 19px;
+  margin: 0.12rem 0 0;
+  flex-shrink: 0;
+  border: 1.5px solid var(--surface-border);
+  border-radius: 5px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  position: relative;
+}
+
+.item input[type="checkbox"]:checked {
+  background: var(--done);
+  border-color: var(--done);
+}
+
+.item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1.5px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--accent-contrast);
+  border-width: 0 2px 2px 0;
+  transform: rotate(40deg);
+}
+
+.item label { cursor: pointer; flex: 1; min-width: 0; }
+
+.item .item-title { color: var(--text); }
+.item input:checked ~ label .item-title,
+.item label.checked .item-title {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--surface-border);
+}
+
+.item-detail {
+  display: block;
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  margin-top: 0.1em;
+}
+
+.item-detail code {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  padding: 0.05em 0.4em;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+
+.size-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin: 0.5rem 0 0.9rem;
+}
+
+.size-card {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.8rem;
+  background: var(--bg-elevated);
+}
+
+.size-card .item { padding: 0.3rem 0; }
+.size-card .size-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+footer.page-footer {
+  max-width: 760px;
+  margin: 2rem auto 0;
+  padding: 0 1.25rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .size-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill, .chevron { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-head">
+      <div>
+        <span class="eyebrow">Bud Plugin · v2.0.0</span>
+        <h1>Regression Pass</h1>
+      </div>
+      <button class="reset-btn" id="reset-btn" type="button">Reset progress</button>
+    </div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-count" id="progress-count">0 / 0</span>
+    </div>
+    <p class="scope-note"><b>Scope:</b> local LLM only (a generic OpenAI-compatible endpoint, e.g. LM Studio). Not covered this pass: the Player2 API path, and hosted-provider API key entry — both need a different setup to test meaningfully.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <details class="section" id="sec-regressions" open>
+    <summary>
+      <span class="section-icon">🩹</span>
+      <div class="section-title">
+        <h2>This session's changes</h2>
+        <div class="section-sub">The actual regression risk — check these first</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-r1"><label for="i-r1"><span class="item-title">Keyleth walks onto <em>and sits on top of</em> the Farming Workstation when resting</span><span class="item-detail">Not just standing next to it — she should be visibly seated on the tabletop.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r2"><label for="i-r2"><span class="item-title">Workstation F-interaction hitbox covers the full 2-block-wide bench</span><span class="item-detail">Try opening it while standing at each end, not just dead center.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r3"><label for="i-r3"><span class="item-title">A freshly planted sapling reaches its final growth stage</span><span class="item-detail">Plant on a spot with stone/rock close under the surface — the case that used to freeze mid-growth. Oak is fastest to confirm.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r4"><label for="i-r4"><span class="item-title">Gronkh visibly prepares the soil (shovel) before tilling a new tree spot</span><span class="item-detail">First action at a fresh tree spot, before <code>Till</code>.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r5"><label for="i-r5"><span class="item-title">Gronkh never stacks a dirt block <em>above</em> ground level while doing so</span><span class="item-detail">Watch a spot where a sapling is about to be planted — no floating dirt.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r6"><label for="i-r6"><span class="item-title">All three Workstations craft with their new recipes</span><span class="item-detail">Farming: <code>Wood Trunk, Rock, Onion, Pumpkin, Red Berries</code> · Lumbering: <code>Wood Trunk, Rock, Fire/Crystal/Azure Wood Trunk</code> · Mining: <code>Wood Trunk, Rock, Ruby, Diamond, Emerald</code></span></label></div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-cards" open>
+    <summary>
+      <span class="section-icon">🎴</span>
+      <div class="section-title">
+        <h2>Bud Cards</h2>
+        <div class="section-sub">Crafting, summon, dismiss</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <p class="subhead">Craft at the Arcane Workbench</p>
+      <div class="item"><input type="checkbox" id="i-c1"><label for="i-c1"><span class="item-title">Veri Card</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c2"><label for="i-c2"><span class="item-title">Gronkh Card</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c3"><label for="i-c3"><span class="item-title">Keyleth Card</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c4"><label for="i-c4"><span class="item-title">Roster Card</span></label></div>
+      <p class="subhead">Use</p>
+      <div class="item"><input type="checkbox" id="i-c5"><label for="i-c5"><span class="item-title">Left-click a personal card summons the matching Bud next to you</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c6"><label for="i-c6"><span class="item-title">Right-click that card dismisses the same Bud</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c7"><label for="i-c7"><span class="item-title">Roster Card summons the whole default roster at once</span></label></div>
+      <div class="item"><input type="checkbox" id="i-c8"><label for="i-c8"><span class="item-title">Roster Card dismisses the whole roster at once</span></label></div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-commands">
+    <summary>
+      <span class="section-icon">⌨️</span>
+      <div class="section-title">
+        <h2>Commands</h2>
+        <div class="section-sub">Every /bud subcommand and flag</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <p class="subhead">Creation</p>
+      <div class="item"><input type="checkbox" id="i-cmd1"><label for="i-cmd1"><span class="item-title"><code>/bud create</code> — spawns the default roster</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd2"><label for="i-cmd2"><span class="item-title"><code>/bud create &lt;bud&gt;</code> — spawns/teleports one Bud, tab-completes</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd3"><label for="i-cmd3"><span class="item-title"><code>/bud reset</code> — recreates all your buddies</span></label></div>
+      <p class="subhead">Deletion</p>
+      <div class="item"><input type="checkbox" id="i-cmd4"><label for="i-cmd4"><span class="item-title"><code>/bud delete</code> — dismisses all active Buds</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd5"><label for="i-cmd5"><span class="item-title"><code>/bud delete --veri</code> / <code>--keyleth</code> / <code>--gronkh</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd6"><label for="i-cmd6"><span class="item-title"><code>/bud delete --world</code><span class="role-tag role-gronkh">Admin</span></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd7"><label for="i-cmd7"><span class="item-title"><code>/bud delete --playername &lt;name&gt;</code><span class="role-tag role-gronkh">Admin for others</span></span></label></div>
+      <p class="subhead">State</p>
+      <div class="item"><input type="checkbox" id="i-cmd8"><label for="i-cmd8"><span class="item-title"><code>/bud state</code> — cycles to the next mode</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd9"><label for="i-cmd9"><span class="item-title"><code>/bud state --defensive</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd10"><label for="i-cmd10"><span class="item-title"><code>/bud state --passive</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd11"><label for="i-cmd11"><span class="item-title"><code>/bud state --sitting</code></span></label></div>
+      <p class="subhead">Memory</p>
+      <div class="item"><input type="checkbox" id="i-cmd12"><label for="i-cmd12"><span class="item-title"><code>/bud memory</code> — lists memories with IDs</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd13"><label for="i-cmd13"><span class="item-title"><code>/bud memory --legendary</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd14"><label for="i-cmd14"><span class="item-title"><code>/bud memory --veri</code> / <code>--keyleth</code> / <code>--gronkh</code> (filter)</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd15"><label for="i-cmd15"><span class="item-title"><code>/bud memory set &lt;bud&gt; "&lt;text&gt;" [--legendary]</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd16"><label for="i-cmd16"><span class="item-title"><code>/bud memory delete &lt;bud&gt; &lt;id&gt; [--legendary]</code></span></label></div>
+      <p class="subhead">Prompt &amp; Reload</p>
+      <div class="item"><input type="checkbox" id="i-cmd17"><label for="i-cmd17"><span class="item-title"><code>/bud prompt</code> — reloads missing prompt files</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd18"><label for="i-cmd18"><span class="item-title"><code>/bud prompt --reset</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd19"><label for="i-cmd19"><span class="item-title"><code>/bud reload buds</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd20"><label for="i-cmd20"><span class="item-title"><code>/bud reload buds --reset</code></span></label></div>
+      <p class="subhead">Debug</p>
+      <div class="item"><input type="checkbox" id="i-cmd21"><label for="i-cmd21"><span class="item-title"><code>/bud debug --componentData</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd22"><label for="i-cmd22"><span class="item-title"><code>/bud debug --mood</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd23"><label for="i-cmd23"><span class="item-title"><code>/bud debug --weather</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd24"><label for="i-cmd24"><span class="item-title"><code>/bud debug --time</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd25"><label for="i-cmd25"><span class="item-title"><code>/bud debug --world</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd26"><label for="i-cmd26"><span class="item-title"><code>/bud debug --memory</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd27"><label for="i-cmd27"><span class="item-title"><code>/bud debug --dialog</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd28"><label for="i-cmd28"><span class="item-title"><code>/bud state --working</code><span class="role-tag role-gronkh">Debug only</span></span><span class="item-detail">Only with <code>EnableWorkingStateDebugCommand: true</code> in Debug.json.</span></label></div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-llm">
+    <summary>
+      <span class="section-icon">💬</span>
+      <div class="section-title">
+        <h2>LLM Reactions</h2>
+        <div class="section-sub">Experience each once, local LLM only</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <p class="subhead">Event-triggered</p>
+      <div class="item"><input type="checkbox" id="i-l1"><label for="i-l1"><span class="item-title">Combat — fight near a Bud in Defensive mode</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l2"><label for="i-l2"><span class="item-title">Block place / break</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l3"><label for="i-l3"><span class="item-title">Item pickup</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l4"><label for="i-l4"><span class="item-title">Discover a new zone</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l5"><label for="i-l5"><span class="item-title">Crafting an item</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l6"><label for="i-l6"><span class="item-title">Player chat — mention a Bud's name</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l7"><label for="i-l7"><span class="item-title">Player status effect (e.g. poisoned, regenerating)</span></label></div>
+      <p class="subhead">Periodic (ambient)</p>
+      <div class="item"><input type="checkbox" id="i-l8"><label for="i-l8"><span class="item-title">World info — zone / biome / time / weather</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l9"><label for="i-l9"><span class="item-title">Weather changes</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l10"><label for="i-l10"><span class="item-title">Mood shifts on its own</span></label></div>
+      <p class="subhead">Working state</p>
+      <div class="item"><input type="checkbox" id="i-l11"><label for="i-l11"><span class="item-title">Work starts (bound to a Workstation)</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l12"><label for="i-l12"><span class="item-title">Work ends (card removed / despawned)</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l13"><label for="i-l13"><span class="item-title">Interacted with while working</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l14"><label for="i-l14"><span class="item-title">Output storage full</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l15"><label for="i-l15"><span class="item-title">Out of fuel</span></label></div>
+      <p class="subhead">Bud-to-Bud</p>
+      <div class="item"><input type="checkbox" id="i-l16"><label for="i-l16"><span class="item-title">Reacts to another Bud's mood change</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l17"><label for="i-l17"><span class="item-title">Greets another Bud</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l18"><label for="i-l18"><span class="item-title">Reacts to another Bud's legendary memory</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l19"><label for="i-l19"><span class="item-title">Reacts to another Bud's state change (e.g. sitting down)</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l20"><label for="i-l20"><span class="item-title">A named back-and-forth reply chain plays out between two Buds</span></label></div>
+      <p class="subhead">Memory &amp; dialog</p>
+      <div class="item"><input type="checkbox" id="i-l21"><label for="i-l21"><span class="item-title">A memory forms, then gets referenced in a later conversation</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l22"><label for="i-l22"><span class="item-title">A legendary memory forms and persists</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l23"><label for="i-l23"><span class="item-title">Dialog mode — a turn-based back-and-forth exchange</span></label></div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-farming">
+    <summary>
+      <span class="section-icon">🌾</span>
+      <div class="section-title">
+        <h2>Work Station — Farming<span class="role-tag role-keyleth">Keyleth</span></h2>
+        <div class="section-sub">Till → plant → water → fertilize → harvest</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-f1"><label for="i-f1"><span class="item-title">Craft, place, bind Keyleth with her card, feed Red Berries</span></label></div>
+      <div class="item"><input type="checkbox" id="i-f2"><label for="i-f2"><span class="item-title">Full loop plays out: till, plant, water, fertilize, harvest into output</span></label></div>
+      <div class="item"><input type="checkbox" id="i-f3"><label for="i-f3"><span class="item-title">Rests near/on the station when idle or out of fuel, resumes after refuel</span></label></div>
+      <p class="subhead">Field size (<code>FarmingFieldSize</code>)</p>
+      <div class="size-grid">
+        <div class="size-card"><span class="size-label">Small · r4</span><div class="item"><input type="checkbox" id="i-fs1"><label for="i-fs1"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Medium · r5</span><div class="item"><input type="checkbox" id="i-fs2"><label for="i-fs2"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Large · r6</span><div class="item"><input type="checkbox" id="i-fs3"><label for="i-fs3"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-lumbering">
+    <summary>
+      <span class="section-icon">🪓</span>
+      <div class="section-title">
+        <h2>Work Station — Lumbering<span class="role-tag role-gronkh">Gronkh</span></h2>
+        <div class="section-sub">Prepare soil → till → plant → fell</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-w1"><label for="i-w1"><span class="item-title">Craft, place, bind Gronkh with his card, feed cooked Wildmeat</span></label></div>
+      <div class="item"><input type="checkbox" id="i-w2"><label for="i-w2"><span class="item-title">Full loop: prepare soil, till, plant a sapling, fell a grown tree</span></label></div>
+      <div class="item"><input type="checkbox" id="i-w3"><label for="i-w3"><span class="item-title">Felled tree's drops (incl. Life Essence) land in the output slots</span></label></div>
+      <div class="item"><input type="checkbox" id="i-w4"><label for="i-w4"><span class="item-title">Rests near the station when idle or out of fuel, resumes after refuel</span></label></div>
+      <p class="subhead">Field size (<code>LumberingFieldSize</code>)</p>
+      <div class="size-grid">
+        <div class="size-card"><span class="size-label">Small · r3 / 2 spots</span><div class="item"><input type="checkbox" id="i-ws1"><label for="i-ws1"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Medium · r5 / 4 spots</span><div class="item"><input type="checkbox" id="i-ws2"><label for="i-ws2"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Large · r7 / 8 spots</span><div class="item"><input type="checkbox" id="i-ws3"><label for="i-ws3"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-mining">
+    <summary>
+      <span class="section-icon">⛏️</span>
+      <div class="section-title">
+        <h2>Work Station — Mining<span class="role-tag role-veri">Veri</span></h2>
+        <div class="section-sub">Dig → wait for growth → mine</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-m1"><label for="i-m1"><span class="item-title">Craft, place, bind Veri with his card, feed grilled Fish</span></label></div>
+      <div class="item"><input type="checkbox" id="i-m2"><label for="i-m2"><span class="item-title">Digs holes that visibly grow into minable stone over time</span></label></div>
+      <div class="item"><input type="checkbox" id="i-m3"><label for="i-m3"><span class="item-title">Works an ore-bearing main node for a steady ore yield</span></label></div>
+      <div class="item"><input type="checkbox" id="i-m4"><label for="i-m4"><span class="item-title">Rests near the station when idle or out of fuel, resumes after refuel</span></label></div>
+      <p class="subhead">Field size (<code>MiningFieldSize</code>)</p>
+      <div class="size-grid">
+        <div class="size-card"><span class="size-label">Small · r3 / 2 nodes</span><div class="item"><input type="checkbox" id="i-ms1"><label for="i-ms1"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Medium · r5 / 4 nodes</span><div class="item"><input type="checkbox" id="i-ms2"><label for="i-ms2"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+        <div class="size-card"><span class="size-label">Large · r7 / 8 nodes</span><div class="item"><input type="checkbox" id="i-ms3"><label for="i-ms3"><span class="item-title">Field matches, stays in bounds</span></label></div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-teleport">
+    <summary>
+      <span class="section-icon">🧭</span>
+      <div class="section-title">
+        <h2>Teleport &amp; Spawning</h2>
+        <div class="section-sub">Known trouble spot — see Known Issues</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-t1"><label for="i-t1"><span class="item-title">A single Bud spawns in front of you, facing your direction</span></label></div>
+      <div class="item"><input type="checkbox" id="i-t2"><label for="i-t2"><span class="item-title">Spawning all three at once fans them out side by side, not stacked</span></label></div>
+      <div class="item"><input type="checkbox" id="i-t3"><label for="i-t3"><span class="item-title">Spawning against a wall still finds a free spot instead of failing</span></label></div>
+      <div class="item"><input type="checkbox" id="i-t4"><label for="i-t4"><span class="item-title">Teleport yourself (warp/portal) with a Bud active</span><span class="item-detail">Known issue: it may go invisible/stuck.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-t5"><label for="i-t5"><span class="item-title"><code>/bud reset</code> reliably recovers a broken Bud after that, no duplicate left behind</span></label></div>
+    </div>
+  </details>
+
+  <details class="section" id="sec-versioning">
+    <summary>
+      <span class="section-icon">🔄</span>
+      <div class="section-title">
+        <h2>Content Versioning</h2>
+        <div class="section-sub"><code>versions.yml</code>, auto-update, exclusions</div>
+      </div>
+      <span class="section-count" data-count></span>
+      <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" id="i-v1"><label for="i-v1"><span class="item-title">Fresh server start writes <code>versions.yml</code> matching the packaged <code>budVersion</code>/<code>promptVersion</code></span></label></div>
+      <div class="item"><input type="checkbox" id="i-v2"><label for="i-v2"><span class="item-title">Lower a version number by hand, restart with <code>AutoUpdateContentOnVersionMismatch: true</code></span><span class="item-detail">Content resyncs, and the number in <code>versions.yml</code> is written back up.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-v3"><label for="i-v3"><span class="item-title">Add a file to <code>excludedPrompts</code> or <code>excludedBuds</code>, repeat the mismatch</span><span class="item-detail">That one file stays untouched while everything else updates.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-v4"><label for="i-v4"><span class="item-title"><code>/bud prompt --reset</code> overwrites every prompt file, ignoring exclusions</span></label></div>
+      <div class="item"><input type="checkbox" id="i-v5"><label for="i-v5"><span class="item-title"><code>/bud reload buds --reset</code> overwrites every Bud file, ignoring exclusions</span></label></div>
+      <div class="item"><input type="checkbox" id="i-v6"><label for="i-v6"><span class="item-title">With <code>AutoUpdateContentOnVersionMismatch: false</code>, a mismatch only logs once and touches nothing</span></label></div>
+    </div>
+  </details>
+
+</div>
+
+<footer class="page-footer">Checkbox state is saved in this browser only (nothing is sent anywhere) — reopen this page anytime to pick up where you left off.</footer>
+
+<script>
+(function () {
+  var STORE_KEY = "bud-regression-v2.0.0";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch (e) { state = {}; }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.item input[type="checkbox"]'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll("details.section"));
+
+  boxes.forEach(function (box) {
+    if (state[box.id]) box.checked = true;
+    box.addEventListener("change", function () {
+      state[box.id] = box.checked;
+      save();
+      updateCounts();
+    });
+  });
+
+  sections.forEach(function (sec) {
+    var key = "open:" + sec.id;
+    if (Object.prototype.hasOwnProperty.call(state, key)) {
+      sec.open = !!state[key];
+    }
+    sec.addEventListener("toggle", function () {
+      state[key] = sec.open;
+      save();
+    });
+  });
+
+  function updateCounts() {
+    var totalChecked = 0, totalAll = 0;
+    sections.forEach(function (sec) {
+      var secBoxes = sec.querySelectorAll('.item input[type="checkbox"]');
+      var checked = 0;
+      secBoxes.forEach(function (b) { if (b.checked) checked++; });
+      totalChecked += checked;
+      totalAll += secBoxes.length;
+      var pill = sec.querySelector("[data-count]");
+      if (pill) {
+        pill.textContent = checked + " / " + secBoxes.length;
+        pill.classList.toggle("zero", checked === 0);
+      }
+    });
+    var pct = totalAll ? Math.round((totalChecked / totalAll) * 100) : 0;
+    document.getElementById("progress-fill").style.width = pct + "%";
+    document.getElementById("progress-count").textContent = totalChecked + " / " + totalAll;
+  }
+
+  document.getElementById("reset-btn").addEventListener("click", function () {
+    if (!window.confirm("Reset all checked items? This can't be undone.")) return;
+    boxes.forEach(function (b) { b.checked = false; });
+    state = {};
+    sections.forEach(function (sec) { state["open:" + sec.id] = sec.open; });
+    save();
+    updateCounts();
+  });
+
+  updateCounts();
+})();
+</script>
+</body>
+</html>
