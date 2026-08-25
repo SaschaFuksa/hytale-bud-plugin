@@ -36,7 +36,7 @@
     "Fell": {
       "Animations": [
         {
-          "Animation": "NPC/Intelligent/Trork/Animations/Items/Axe/Attacks/Swing_Down/Swing_Down.blockyanim",
+          "Animation": "NPC/Intelligent/Trork/Animations/Items/Battleaxe/Interact.blockyanim",
           "Looping": false
         }
       ]

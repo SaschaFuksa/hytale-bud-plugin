@@ -254,11 +254,23 @@ public abstract class AbstractWorkAction extends ActionBase {
             @Nonnull String animationName) {
         ComponentType<EntityStore, NPCEntity> npcType = NPCEntity.getComponentType();
         if (npcType == null) {
+            if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                LoggerUtil.getLogger().info(() -> "[BUD] playWorkAnimation('" + animationName
+                        + "') aborted - NPCEntity.getComponentType() returned null.");
+            }
             return;
         }
         NPCEntity npc = store.getComponent(ref, npcType);
         if (npc == null) {
+            if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+                LoggerUtil.getLogger().info(() -> "[BUD] playWorkAnimation('" + animationName
+                        + "') aborted - no NPCEntity component on ref " + ref + ".");
+            }
             return;
+        }
+        if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
+            LoggerUtil.getLogger().info(() -> "[BUD] playWorkAnimation - calling npc.playAnimation(Status, '"
+                    + animationName + "') on " + ref + ".");
         }
         npc.playAnimation(ref, AnimationSlot.Status, animationName, store);
     }
