@@ -11,8 +11,8 @@ import com.hypixel.hytale.server.core.HytaleServer;
 
 public abstract class AbstractQueue {
 
-    private final long INITIAL_DELAY_MS = 250L;
-    private final long POLLING_INTERVAL_MS = 250L;
+    private static final long INITIAL_DELAY_MS = 250L;
+    private static final long POLLING_INTERVAL_MS = 250L;
 
     private volatile ScheduledFuture<?> pollingTask;
 

@@ -24,7 +24,7 @@ public final class WorkRecipeConfig {
 
     private static final String PACKAGED_FILE = "recipes.yml";
 
-    private static WorkRecipeConfig instance;
+    private static volatile WorkRecipeConfig instance;
 
     private final Map<WorkRole, Set<String>> allowedSeedsByRole = new EnumMap<>(WorkRole.class);
 

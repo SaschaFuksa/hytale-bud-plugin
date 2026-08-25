@@ -17,21 +17,6 @@ public abstract class AbstractCache {
 
     private final long enqueueCooldownMs = OrchestratorConfig.getInstance().getOrchestratorChannelCooldownMs();
 
-    public LinkedList<IQueueEntry> getHistory(String playerName) {
-        return new LinkedList<>(cache.getOrDefault(playerName, new LinkedList<>()));
-    }
-
-    public IQueueEntry pollHistory(String playerName) {
-        final IQueueEntry[] result = new IQueueEntry[1];
-        cache.computeIfPresent(playerName, (name, list) -> {
-            if (!list.isEmpty()) {
-                result[0] = list.removeFirst();
-            }
-            return list.isEmpty() ? null : list;
-        });
-        return result[0];
-    }
-
     protected boolean shouldEnqueue(String playerName) {
         long now = System.currentTimeMillis();
         long last = lastEnqueueTime.getOrDefault(playerName, 0L);

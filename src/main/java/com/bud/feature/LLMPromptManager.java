@@ -27,7 +27,7 @@ import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public class LLMPromptManager {
 
-    private static LLMPromptManager instance;
+    private static volatile LLMPromptManager instance;
 
     private final Map<String, BudMessage> budMessages = new ConcurrentHashMap<>();
     private WorldMessage worldInfoTemplate;

@@ -7,25 +7,13 @@ pass — re-check before fixing since neighboring lines shift.
 
 ## Bad Code Quality
 
-### 1. Default LLM config ships what looks like a real API key and a personal LAN IP
+### 1. Default LLM config ships what looks like a real API key and a personal LAN IP — kept as-is, intentional
 
-`src/main/java/com/bud/core/config/LLMConfig.java:13-15`:
-
-```java
-private String url = "http://192.168.178.25:1234/v1/chat/completions";
-private String model = "mistralai/ministral-3-3b";
-private String apiKey = "sk-lm-KbCP0975:4MGo9MUOSThOoMCmP9CG";
-```
-
-These are compiled into the jar as the field defaults used the moment `LLMConfig.CODEC`
-first writes out `LLM.json` on a fresh server (`BudPlugin.setupConfig()` calls
-`this.llmConfig.save()` right after construction). Whether or not this specific key is
-still live, shipping a credential-shaped default in source control trains
-users/contributors to treat it as normal, and it's a personal LAN address that has no
-business being a public default. Fix: default `url`/`apiKey` to `""` (or a placeholder
-like `"http://localhost:1234/v1/chat/completions"` / `"sk-..."`), and document in the
-README that they must be filled in — which is exactly the pattern `LLMConfig.isEnableLLM()`
-already exists to gate around.
+`src/main/java/com/bud/core/config/LLMConfig.java:13-15` ships a real-looking LAN IP,
+model id, and credential-shaped API key as the field defaults. Raised and explicitly
+confirmed with the project owner: not a live/sensitive credential, and deliberately left
+as a concrete example of the shape a value here should take rather than an empty
+placeholder. No action needed.
 
 ### 2. Exception handling systematically discards stack traces
 
@@ -63,46 +51,18 @@ static-shaped helper math parameterized by `PlayerRef`/`World`. Fix: extract the
 positioning block into its own `BudSpawnPositioning` (or similar) class; keep `BudManager`
 to entity/component lookup and player tracking.
 
-### 4. Singleton thread-safety is inconsistent across near-identical classes
+### 4. Singleton thread-safety is inconsistent across near-identical classes — done
 
-Every `com.bud.core.config.*` class uses `private static volatile T instance;` for its
-singleton field (`LLMConfig`, `ReactionConfig`, `OrchestratorConfig`, `ConversationConfig`,
-`DebugConfig`, `WorkConfig`), but three other singletons that follow the exact same
-"lazy-init in `getInstance()`" pattern omit `volatile`:
+`BudRegistry`, `LLMPromptManager`, and `WorkRecipeConfig` now use
+`private static volatile T instance;`, matching the rest of `com.bud.core.config.*`.
 
-- `src/main/java/com/bud/core/registry/BudRegistry.java:31`
-- `src/main/java/com/bud/feature/LLMPromptManager.java:30`
-- `src/main/java/com/bud/feature/work/WorkRecipeConfig.java:27`
+### 5. Inconsistent indentation in `LLMCombatMessageCreation` — done
 
-All three are read from LLM-call virtual threads as well as the world thread (e.g.
-`BudRegistry.getInstance().get(budId)` from `LLM*MessageCreation` classes). Without
-`volatile`, a thread that didn't perform the lazy-init has no guarantee of seeing the
-assignment promptly. In practice this window is startup-only and narrow, but the
-inconsistency itself is the bug magnet — a future edit that adds a genuine `getInstance()`
-race (e.g. behind a reload command) will silently inherit the missing `volatile`. Fix: add
-`volatile` to all three for consistency with the established config-class pattern.
+Reformatted to the 4-space convention used by every sibling `LLM*MessageCreation` class.
 
-### 5. Inconsistent indentation in `LLMCombatMessageCreation`
+### 6. "Constants" declared as non-static final instance fields — done
 
-`src/main/java/com/bud/feature/combat/LLMCombatMessageCreation.java:14-84` indents the
-entire class body with 8 spaces instead of the 4-space convention used by every sibling
-`LLM*MessageCreation` class (compare `LLMBlockMessageCreation.java` or
-`LLMCraftMessageCreation.java`). Cosmetic, but worth a reformat pass since it's the one
-outlier file.
-
-### 6. "Constants" declared as non-static final instance fields
-
-`src/main/java/com/bud/feature/queue/AbstractQueue.java:14-15`:
-
-```java
-private final long INITIAL_DELAY_MS = 250L;
-private final long POLLING_INTERVAL_MS = 250L;
-```
-
-`UPPER_SNAKE_CASE` signals a constant, but these are per-instance fields, not `static`.
-Harmless here only because every subclass is itself a singleton, but it's misleading and
-inconsistent with `AbstractCache.MAX_HISTORY` (`protected static final int MAX_HISTORY = 3`)
-in the same package. Fix: make both `private static final`.
+`AbstractQueue.INITIAL_DELAY_MS`/`POLLING_INTERVAL_MS` are now `private static final`.
 
 ### 7. `AbstractCache` bakes a config value in at construction time
 
@@ -193,21 +153,9 @@ both subcommands already call into for `resolveBudDisplayName`).
 
 ## Dead Code
 
-### 1. `AbstractCache.getHistory()` / `pollHistory()` are never called
+### 1. `AbstractCache.getHistory()` / `pollHistory()` are never called — done
 
-`src/main/java/com/bud/feature/AbstractCache.java:20-33`:
-
-```java
-public LinkedList<IQueueEntry> getHistory(String playerName) { ... }
-public IQueueEntry pollHistory(String playerName) { ... }
-```
-
-Neither method has a single caller anywhere in `src/main/java` (checked across the whole
-tree). They're inherited by every `Recent*Cache` subclass as public API, so they're not
-even self-contained — removing them shrinks the surface of five classes at once. Fix:
-delete both, or if they were added for planned-but-unbuilt functionality (e.g. a debug/
-inspection command), wire that up now or note it in a TODO instead of leaving live-looking
-dead API on a shared base class.
+Verified zero callers anywhere in `src/main/java`, then deleted both methods.
 
 ## Wrong Separation (Configs)
 

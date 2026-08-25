@@ -28,7 +28,7 @@ public class BudRegistry {
     private static final String[] PACKAGED_DEFINITIONS = { "veri.yml", "keyleth.yml", "gronkh.yml" };
     private static final String ROSTER_FILE = "roster.yml";
 
-    private static BudRegistry instance;
+    private static volatile BudRegistry instance;
 
     private final Map<String, BudDefinition> definitions = new ConcurrentHashMap<>();
     private final List<String> defaultBudIds = new ArrayList<>();
