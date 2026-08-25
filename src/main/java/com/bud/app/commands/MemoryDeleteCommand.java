@@ -56,7 +56,7 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
         try {
             budDisplayName = MemoryCommand.resolveBudDisplayName(rawBudName);
         } catch (IllegalArgumentException exception) {
-            ChatEvent.dispatch(playerRef, "Unknown bud: " + rawBudName + ". Valid: veri, gronkh, keyleth.");
+            ChatEvent.dispatch(playerRef, MemoryCommand.unknownBudMessage(rawBudName));
             return;
         }
 

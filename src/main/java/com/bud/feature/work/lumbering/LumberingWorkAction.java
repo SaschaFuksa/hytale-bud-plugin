@@ -142,6 +142,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
         if (!hasRoom) {
             WorkstationBlockEntity workstation = WorkstationLookup.resolveLive(world, anchorX, anchorY, anchorZ);
             if (workstation != null) {
+                workstation.lockHarvestOutputTarget(base);
                 WorkstationOutputFullReactions.fireIfDue(workstation, null);
             }
             return;

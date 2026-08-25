@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.joml.Vector3d;
+import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
@@ -105,6 +106,7 @@ public class FarmWorkAction extends AbstractWorkAction {
         if (!output.canAddItemStacks(drops, false, false)) {
             WorkstationBlockEntity workstation = WorkstationLookup.resolveLive(world, anchorX, anchorY, anchorZ);
             if (workstation != null) {
+                workstation.lockHarvestOutputTarget(new Vector3i(x, y, z));
                 WorkstationOutputFullReactions.fireIfDue(workstation, harvestType.getItemId());
             }
             return;

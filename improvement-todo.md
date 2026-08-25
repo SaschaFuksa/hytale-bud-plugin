@@ -141,15 +141,10 @@ shared `cache`, shared `addToCache()`/`startPolling()`). Every sibling queue —
 the others (folding `BudCreationEntry` into the shared `IQueueEntry`-typed `cache` if it
 isn't already).
 
-### 4. Duplicated hardcoded error string
+### 4. Duplicated hardcoded error string — done
 
-`src/main/java/com/bud/app/commands/MemorySetCommand.java:56` and
-`src/main/java/com/bud/app/commands/MemoryDeleteCommand.java:59` both hardcode the
-identical literal `"Unknown bud: " + rawBudName + ". Valid: veri, gronkh, keyleth."`. Beyond
-the duplication, see "Wrong separation" #3 below — this list goes stale the moment a
-server operator adds a fourth Bud. Fix along with that item: derive the message from
-`BudRegistry.getInstance().getIds()` in one shared helper (e.g. on `MemoryCommand`, which
-both subcommands already call into for `resolveBudDisplayName`).
+Both call sites now go through a new shared `MemoryCommand.unknownBudMessage(rawBudName)`,
+which derives the "Valid: ..." list from `BudRegistry.getInstance().getIds()`.
 
 ## Dead Code
 

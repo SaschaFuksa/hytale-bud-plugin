@@ -46,6 +46,12 @@ public class MemoryCommand extends AbstractPlayerCommand {
         return BudRegistry.getInstance().get(budId).getDisplayName();
     }
 
+    @Nonnull
+    static String unknownBudMessage(@Nonnull String rawBudName) {
+        return "Unknown bud: " + rawBudName + ". Valid: "
+                + String.join(", ", BudRegistry.getInstance().getIds()) + ".";
+    }
+
     @Override
     protected boolean canGeneratePermission() {
         return false;
@@ -72,7 +78,7 @@ public class MemoryCommand extends AbstractPlayerCommand {
         if (this.gronkhFlag.get(context)) {
             return Objects.requireNonNull(Set.of("gronkh"));
         }
-        return Objects.requireNonNull(Set.of("veri", "keyleth", "gronkh"));
+        return BudRegistry.getInstance().getIds();
     }
 
     @Nullable
