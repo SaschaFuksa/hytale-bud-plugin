@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,6 +65,12 @@ public final class WorkRecipeConfig {
     private static final Set<String> LOGGED_UNRESOLVED_ORES = Objects
             .requireNonNull(java.util.Collections.synchronizedSet(new HashSet<>()));
 
+    @Nonnull
+    private Set<String> oreBlockIdCandidates = Objects.requireNonNull(Set.of());
+
+    @Nonnull
+    private final Map<String, String> resolvedOreTargetBlocks = new ConcurrentHashMap<>();
+
     private WorkRecipeConfig() {
     }
 
@@ -117,6 +124,7 @@ public final class WorkRecipeConfig {
         treeGrowthStageSeconds.clear();
         treeGrowthDefaultSeconds = null;
         LOGGED_UNRESOLVED_ORES.clear();
+        resolvedOreTargetBlocks.clear();
         if (!Files.exists(path)) {
             LoggerUtil.getLogger().warning(() -> "[BUD] Farming recipe file missing: " + path);
             return;
@@ -161,6 +169,7 @@ public final class WorkRecipeConfig {
                         .warning(() -> "[BUD] Unknown WorkRole '" + roleName + "' in " + path + ", skipping.");
             }
         }
+        oreBlockIdCandidates = buildOreBlockIdCandidates();
         for (Map.Entry<String, List<String>> entry : yaml.getAllowedFuel().entrySet()) {
             try {
                 WorkRole role = WorkRole.valueOf(entry.getKey());
@@ -288,9 +297,14 @@ public final class WorkRecipeConfig {
         if (!isSeedAllowed(WorkRole.MINING, oreItemId)) {
             return null;
         }
+        String cachedCandidate = resolvedOreTargetBlocks.get(oreItemId);
+        if (cachedCandidate != null) {
+            return cachedCandidate;
+        }
         for (String suffix : ORE_BLOCK_SUFFIXES) {
             String candidate = oreItemId + suffix;
             if (BlockType.fromString(candidate) != null) {
+                resolvedOreTargetBlocks.put(oreItemId, candidate);
                 if (LOGGED_UNRESOLVED_ORES.add(oreItemId)) {
                     LoggerUtil.getLogger()
                             .info(() -> "[BUD] Ore " + oreItemId + " grows as world block '" + candidate + "'.");
@@ -306,17 +320,18 @@ public final class WorkRecipeConfig {
     }
 
     public boolean isOreBlock(@Nonnull String blockTypeId) {
-        for (String suffix : ORE_BLOCK_SUFFIXES) {
-            if (!blockTypeId.endsWith(suffix)) {
-                continue;
-            }
-            String oreItemId = Objects
-                    .requireNonNull(blockTypeId.substring(0, blockTypeId.length() - suffix.length()));
-            if (isSeedAllowed(WorkRole.MINING, oreItemId)) {
-                return true;
+        return oreBlockIdCandidates.contains(blockTypeId);
+    }
+
+    @Nonnull
+    private Set<String> buildOreBlockIdCandidates() {
+        Set<String> candidates = new HashSet<>();
+        for (String oreItemId : getAllowedSeeds(WorkRole.MINING)) {
+            for (String suffix : ORE_BLOCK_SUFFIXES) {
+                candidates.add(oreItemId + suffix);
             }
         }
-        return false;
+        return Objects.requireNonNull(Set.copyOf(candidates));
     }
 
 }

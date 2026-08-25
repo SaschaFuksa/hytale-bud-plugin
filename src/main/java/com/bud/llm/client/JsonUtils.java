@@ -1,7 +1,9 @@
 package com.bud.llm.client;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,7 +16,15 @@ public final class JsonUtils {
     private static final Pattern JSON_ARRAY_PATTERN = Pattern.compile("\"%s\"\\s*:\\s*\\[(.*?)\\]", Pattern.DOTALL);
     private static final Pattern JSON_ARRAY_STRING_PATTERN = Pattern.compile("\"((?:\\\\.|[^\\\"])*)\"");
 
+    private static final Map<String, Pattern> FIELD_PATTERN_CACHE = new ConcurrentHashMap<>();
+
     private JsonUtils() {
+    }
+
+    private static Pattern fieldPattern(Pattern template, String key) {
+        String cacheKey = template.pattern() + "#" + key + "#" + template.flags();
+        return FIELD_PATTERN_CACHE.computeIfAbsent(cacheKey,
+                ignored -> Pattern.compile(template.pattern().formatted(Pattern.quote(key)), template.flags()));
     }
 
     public static String escapeJson(String input) {
@@ -40,7 +50,7 @@ public final class JsonUtils {
     }
 
     public static String extractString(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_STRING_PATTERN.pattern().formatted(Pattern.quote(key)));
+        Pattern pattern = fieldPattern(JSON_STRING_PATTERN, key);
         Matcher matcher = pattern.matcher(json);
         if (!matcher.find()) {
             return null;
@@ -50,7 +60,7 @@ public final class JsonUtils {
     }
 
     public static Integer extractInt(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_NUMBER_PATTERN.pattern().formatted(Pattern.quote(key)));
+        Pattern pattern = fieldPattern(JSON_NUMBER_PATTERN, key);
         Matcher matcher = pattern.matcher(json);
         if (!matcher.find()) {
             return null;
@@ -59,13 +69,13 @@ public final class JsonUtils {
     }
 
     public static boolean extractBoolean(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_BOOLEAN_PATTERN.pattern().formatted(Pattern.quote(key)));
+        Pattern pattern = fieldPattern(JSON_BOOLEAN_PATTERN, key);
         Matcher matcher = pattern.matcher(json);
         return matcher.find() && Boolean.parseBoolean(matcher.group(1));
     }
 
     public static Set<String> extractStringArray(String json, String key) {
-        Pattern pattern = Pattern.compile(JSON_ARRAY_PATTERN.pattern().formatted(Pattern.quote(key)), Pattern.DOTALL);
+        Pattern pattern = fieldPattern(JSON_ARRAY_PATTERN, key);
         Matcher matcher = pattern.matcher(json);
         if (!matcher.find()) {
             return Set.of();

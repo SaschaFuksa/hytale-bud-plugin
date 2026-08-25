@@ -21,6 +21,7 @@ public class LLMCaller {
             .compile("(?is)\\s+[\\*_`~]+\\s*[\\(\\[].*$");
     private static final Pattern TRAILING_LABELED_META = Pattern
             .compile("(?is)\\s+[\\(\\[]?\\s*(focus|thought|reasoning|note|internal|aside|commentary|meta|ooc)\\s*:");
+    private static final Pattern WHITESPACE_RUN = Pattern.compile("\\s+");
 
     private LLMCaller() {
         this.llmClient = LLMClientFactory.createClient();
@@ -81,7 +82,7 @@ public class LLMCaller {
         if (cutoffIndex >= 0) {
             sanitized = sanitized.substring(0, cutoffIndex).trim();
         }
-        return sanitized.replaceAll("\\s+", " ").trim();
+        return WHITESPACE_RUN.matcher(sanitized).replaceAll(" ").trim();
     }
 
     private int findCutoffIndex(String response) {

@@ -1,10 +1,14 @@
 package com.bud.llm.client;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 
 public abstract class AbstractLLMClient implements ILLMClient {
+
+    private static final Pattern THINK_TAG_PATTERN = Pattern.compile("(?s)<think>.*?</think>");
+    private static final Pattern EMOJI_PATTERN = Pattern.compile("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+");
 
     protected void logUsage(String clientName, String jsonResponse) {
         try {
@@ -24,9 +28,9 @@ public abstract class AbstractLLMClient implements ILLMClient {
             throw new IOException("Could not find content field in response");
         }
 
-        return content
-                .replaceAll("(?s)<think>.*?</think>", "")
-                .replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "")
+        String withoutThinkTags = THINK_TAG_PATTERN.matcher(content).replaceAll("");
+        String withoutEmoji = EMOJI_PATTERN.matcher(withoutThinkTags).replaceAll("");
+        return withoutEmoji
                 .replace("\u2013", "-")
                 .replace("\u2014", "-")
                 .replace("\u2018", "'")
