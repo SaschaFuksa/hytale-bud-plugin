@@ -20,6 +20,7 @@
 
 This is a proof of concept (PoC) plugin for Hytale that integrates **Large Language Models (LLM)** to create truly interactive RPG-style companions. These "Buds" don't just follow you—they talk, react to the world, and remember your battles. The mod works fully without an LLM configured too — the AI layer is what makes it come alive, not what it depends on.
 
+> Only tested in single player mode.
 > Upgrading from an older version? Remove the `/prompts` folder, or update it with `/bud prompt reset`.
 
 ### Meet the Buddies

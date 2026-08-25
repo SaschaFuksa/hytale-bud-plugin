@@ -56,12 +56,12 @@ public final class WorkstationSeedUtil {
 
     @Nullable
     private static String deriveCropBlockType(@Nonnull String seedItemId, @Nonnull WorkRole workRole) {
-        if (!seedItemId.startsWith(SEED_PREFIX)) {
-            return null;
-        }
         String override = WorkRecipeConfig.getInstance().getSeedTargetOverride(seedItemId);
         if (override != null) {
             return BlockType.fromString(override) != null ? override : null;
+        }
+        if (!seedItemId.startsWith(SEED_PREFIX)) {
+            return null;
         }
         WorkRecipeConfig.SeedTargetPattern pattern = WorkRecipeConfig.getInstance()
                 .getSeedTargetPattern(workRole);

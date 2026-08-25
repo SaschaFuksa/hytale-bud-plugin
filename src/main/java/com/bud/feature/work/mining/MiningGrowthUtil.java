@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import org.joml.Vector3i;
 
 import com.bud.core.config.WorkConfig;
+import com.bud.feature.work.FieldCandidates;
 import com.bud.feature.work.GameClock;
 import com.bud.feature.work.WorkRecipeConfig;
 import com.bud.feature.work.WorldBlockEntities;
@@ -199,6 +200,9 @@ public final class MiningGrowthUtil {
 
     @Nullable
     public static OreGrowthBlock getGrowth(@Nonnull World world, @Nonnull Vector3i position) {
+        if (!FieldCandidates.isChunkLoaded(world, position.x, position.z)) {
+            return null;
+        }
         Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
         if (holder == null) {
             return null;

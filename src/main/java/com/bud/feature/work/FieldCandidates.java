@@ -18,6 +18,7 @@ import com.bud.core.types.WorkRole;
 import com.hypixel.hytale.builtin.adventure.farming.states.TilledSoilBlock;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -30,7 +31,14 @@ public final class FieldCandidates {
 
     @Nullable
     public static BlockType getBlockType(@Nonnull World world, int x, int y, int z) {
+        if (!isChunkLoaded(world, x, z)) {
+            return null;
+        }
         return world.getBlockType(x, y, z);
+    }
+
+    public static boolean isChunkLoaded(@Nonnull World world, int x, int z) {
+        return world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z)) != null;
     }
 
     @Nullable

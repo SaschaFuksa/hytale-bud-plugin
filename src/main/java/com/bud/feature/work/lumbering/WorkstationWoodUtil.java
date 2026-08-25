@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 import org.joml.Vector3i;
 
 import com.bud.feature.work.BlockDrops;
+import com.bud.feature.work.FieldCandidates;
 import com.hypixel.hytale.builtin.adventure.farming.states.FarmingBlock;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
@@ -56,6 +57,9 @@ public final class WorkstationWoodUtil {
             return true;
         }
         for (Vector3i position : connectedWoodBlocks) {
+            if (!FieldCandidates.isChunkLoaded(world, position.x, position.z)) {
+                continue;
+            }
             Holder<ChunkStore> holder = world.getBlockComponentHolder(position.x, position.y, position.z);
             if (holder != null && holder.getComponent(farmingType) != null) {
                 return false;
@@ -66,7 +70,7 @@ public final class WorkstationWoodUtil {
 
     public static boolean hasTrunkBlock(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {
         for (Vector3i position : connectedWoodBlocks) {
-            BlockType blockType = world.getBlockType(position.x, position.y, position.z);
+            BlockType blockType = FieldCandidates.getBlockType(world, position.x, position.y, position.z);
             String blockId = blockType != null ? blockType.getId() : null;
             if (blockId != null && blockId.contains(TRUNK_BLOCK_MARKER)) {
                 return true;
@@ -78,7 +82,7 @@ public final class WorkstationWoodUtil {
     @Nonnull
     public static List<Vector3i> connectedWoodBlocks(@Nonnull World world, @Nonnull Vector3i start, int maxBlocks) {
         List<Vector3i> result = new ArrayList<>();
-        if (!isWoodBlock(world.getBlockType(start.x, start.y, start.z))) {
+        if (!isWoodBlock(FieldCandidates.getBlockType(world, start.x, start.y, start.z))) {
             return result;
         }
         Deque<Vector3i> queue = new ArrayDeque<>();
@@ -90,7 +94,8 @@ public final class WorkstationWoodUtil {
             result.add(current);
             for (int[] offset : NEIGHBOR_OFFSETS) {
                 Vector3i neighbor = new Vector3i(current.x + offset[0], current.y + offset[1], current.z + offset[2]);
-                if (visited.add(neighbor) && isWoodBlock(world.getBlockType(neighbor.x, neighbor.y, neighbor.z))) {
+                if (visited.add(neighbor)
+                        && isWoodBlock(FieldCandidates.getBlockType(world, neighbor.x, neighbor.y, neighbor.z))) {
                     queue.add(neighbor);
                 }
             }

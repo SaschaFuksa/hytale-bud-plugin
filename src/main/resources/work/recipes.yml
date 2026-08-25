@@ -52,6 +52,30 @@ allowedSeeds:
     - Plant_Seeds_Sallow
     - Plant_Seeds_Spiral
     - Plant_Seeds_Willow
+    # Raw saplings (from vanilla crafting), accepted alongside seed bags in the same slot.
+    - Plant_Sapling_Ash
+    - Plant_Sapling_Aspen
+    - Plant_Sapling_Azure
+    - Plant_Sapling_Bamboo
+    - Plant_Sapling_Beech
+    - Plant_Sapling_Birch
+    - Plant_Sapling_Bottletree
+    - Plant_Sapling_Cedar
+    - Plant_Sapling_Crystal
+    - Plant_Sapling_Dry
+    - Plant_Sapling_Fire
+    - Plant_Sapling_Gumboab
+    - Plant_Sapling_Ice
+    - Plant_Sapling_Jungle
+    - Plant_Sapling_Maple
+    - Plant_Sapling_Oak
+    - Plant_Sapling_Palm
+    - Plant_Sapling_Palo
+    - Plant_Sapling_Redwood
+    - Plant_Sapling_Sallow
+    - Plant_Sapling_Spiral
+    - Plant_Sapling_Spruce
+    - Plant_Sapling_Windwillow
   MINING:
     - Ore_Adamantite
     - Ore_Cobalt
@@ -84,6 +108,30 @@ seedTargetOverrides:
   Plant_Seeds_Fir: Plant_Sapling_Spruce_Bud
   Plant_Seeds_Frostwood: Plant_Sapling_Ice_Bud
   Plant_Seeds_Willow: Plant_Sapling_Windwillow_Bud
+  # Raw saplings map straight to the same "_Bud" block their matching seed bag already plants.
+  Plant_Sapling_Ash: Plant_Sapling_Ash_Bud
+  Plant_Sapling_Aspen: Plant_Sapling_Aspen_Bud
+  Plant_Sapling_Azure: Plant_Sapling_Azure_Bud
+  Plant_Sapling_Bamboo: Plant_Sapling_Bamboo_Bud
+  Plant_Sapling_Beech: Plant_Sapling_Beech_Bud
+  Plant_Sapling_Birch: Plant_Sapling_Birch_Bud
+  Plant_Sapling_Bottletree: Plant_Sapling_Bottletree_Bud
+  Plant_Sapling_Cedar: Plant_Sapling_Cedar_Bud
+  Plant_Sapling_Crystal: Plant_Sapling_Crystal_Bud
+  Plant_Sapling_Dry: Plant_Sapling_Dry_Bud
+  Plant_Sapling_Fire: Plant_Sapling_Fire_Bud
+  Plant_Sapling_Gumboab: Plant_Sapling_Gumboab_Bud
+  Plant_Sapling_Ice: Plant_Sapling_Ice_Bud
+  Plant_Sapling_Jungle: Plant_Sapling_Jungle_Bud
+  Plant_Sapling_Maple: Plant_Sapling_Maple_Bud
+  Plant_Sapling_Oak: Plant_Sapling_Oak_Bud
+  Plant_Sapling_Palm: Plant_Sapling_Palm_Bud
+  Plant_Sapling_Palo: Plant_Sapling_Palo_Bud
+  Plant_Sapling_Redwood: Plant_Sapling_Redwood_Bud
+  Plant_Sapling_Sallow: Plant_Sapling_Sallow_Bud
+  Plant_Sapling_Spiral: Plant_Sapling_Spiral_Bud
+  Plant_Sapling_Spruce: Plant_Sapling_Spruce_Bud
+  Plant_Sapling_Windwillow: Plant_Sapling_Windwillow_Bud
 
 tillableBlocks:
   - Soil_Dirt
@@ -135,4 +183,4 @@ diggableBlocks:
 
 digRefillBlock: Soil_Dirt
 
-treeGrowthStageSeconds: {default: 15000}
+treeGrowthStageSeconds: {default: 10000}
