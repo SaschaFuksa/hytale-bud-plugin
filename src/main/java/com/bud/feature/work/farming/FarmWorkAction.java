@@ -12,6 +12,7 @@ import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.WorkToolItems;
 import com.bud.feature.work.WorkstationBlockEntity;
+import com.bud.feature.work.WorkstationLookup;
 import com.bud.feature.work.WorkstationOutputFullReactions;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.component.ComponentType;
@@ -102,7 +103,7 @@ public class FarmWorkAction extends AbstractWorkAction {
         List<ItemStack> drops = BlockHarvestUtils.getDrops(above, 1, harvestType.getItemId(),
                 harvestType.getDropListId());
         if (!output.canAddItemStacks(drops, false, false)) {
-            WorkstationBlockEntity workstation = anchorHolder.getComponent(WorkstationBlockEntity.getComponentType());
+            WorkstationBlockEntity workstation = WorkstationLookup.resolveLive(world, anchorX, anchorY, anchorZ);
             if (workstation != null) {
                 WorkstationOutputFullReactions.fireIfDue(workstation, harvestType.getItemId());
             }

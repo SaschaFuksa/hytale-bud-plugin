@@ -434,14 +434,8 @@ footer.page-footer {
       <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </summary>
     <div class="section-body">
-      <div class="item"><input type="checkbox" id="i-r1"><label for="i-r1"><span class="item-title">Farming full loop still works (till → water → fertilize → harvest)</span><span class="item-detail">The deprecated engine call that lazily creates a block's data entity (<code>BlockModule.ensureBlockEntity</code>) was replaced with our own non-deprecated, thread-safe reimplementation — this is the code path watering/fertilizing tilled soil goes through right after tilling.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r2"><label for="i-r2"><span class="item-title">Mining holes still grow into minable stone</span><span class="item-detail">Same underlying replacement as above — Mining's growth-hole placement uses the identical lazy block-entity path.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r3"><label for="i-r3"><span class="item-title"><code>/bud debug --setMood</code> is gone; <code>/bud mood &lt;bud&gt; &lt;mood&gt;</code> replaces it</span><span class="item-detail">Same behavior (forces the mood, fires the bud-to-bud reaction), new top-level command — verify the old flag no longer appears in <code>/bud debug</code>'s flag list and the new command works standalone.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r4"><label for="i-r4"><span class="item-title">"Output storage full" reaction now repeats every ~5 min while stuck, and now also fires for Mining</span><span class="item-detail">Fill a Workstation's output completely, then keep working past it — expect a reminder line roughly every <code>OutputFullReactionPeriod</code> seconds (default 300) instead of just once. Check all three roles: Farming harvest, Lumbering fell, and Mining (new — was silently missing before).</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r5"><label for="i-r5"><span class="item-title">Veri's DIG clears grass/rubble on top of the block before digging, like Keyleth's TILL does</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r6"><label for="i-r6"><span class="item-title">No more "Store is currently processing" chunk-load crash near the Lumbering station</span><span class="item-detail">A multi-block uneven-terrain fell-fill (since reverted) triggered a chunk-loading crash on server restart — confirmed by zero occurrences in 5 clean sessions vs. 578 in the session right after that change went in. Reverted back to the single-block fell-fill that was safe across all 5 prior sessions. Restart the server a few times near the Lumbering station and confirm the log stays clean of "Store is currently processing" / "Chunk failure backoff".</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r7"><label for="i-r7"><span class="item-title">"Output storage full" reaction now actually fires for Farming and Lumbering</span><span class="item-detail">The first fix only wired the reaction into the field-scan's pre-check, but the real rejection almost always happens at the moment of harvesting/felling itself (a separate, stricter check) — that path had zero reaction wiring. Now fixed in both places. Fill the output completely, then let Keyleth/Gronkh actually attempt a harvest/fell — a line should appear.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r8"><label for="i-r8"><span class="item-title"><code>/bud memory set &lt;bud&gt; "&lt;text&gt;" --legendary</code> now triggers the bud-to-bud legendary reaction</span><span class="item-detail">The manual command path stored the memory but never called the reaction trigger at all — only the automatic (LLM-summarized) path did. Now both do. Set a legendary memory for one Bud and confirm another Bud reacts, mentioning the memory's content.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r11"><label for="i-r11"><span class="item-title">Lumbering fell-fill restored to the last known-good version (2026-08-24)</span><span class="item-detail">Today's fell-fill experiments (a per-block "is this a root?" check, then a "one block only" simplification) both left dirt floating under branches/leaves and/or left root pits half-filled. Reverted to the exact working logic from before today: it fills a dirt column from each ground-contact block up to the Workstation's own ground level. Fell several trees and confirm: no dirt appears under leaves/branches, and root pits directly under the trunk are fully filled, no holes.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-r10"><label for="i-r10"><span class="item-title">"Output storage full" reaction fires roughly every 5 min, not every ~10-20s</span><span class="item-detail">The fix that made the reaction fire from the actual harvest/fell/mine rejection point (not just the field-scan pre-check) fetched the Workstation via a lookup that silently returns a detached copy — so the "last fired" timestamp it wrote never persisted, and the cooldown never actually applied. Fixed by fetching the Workstation via a live ECS reference instead. Fill an output completely and keep working past it for several minutes: the reminder should repeat roughly every <code>OutputFullReactionPeriod</code> seconds (default 300), not every attempt.</span></label></div>
     </div>
   </details>
 
@@ -733,8 +727,24 @@ footer.page-footer {
     document.getElementById("progress-count").textContent = totalChecked + " / " + totalAll;
   }
 
-  document.getElementById("reset-btn").addEventListener("click", function () {
-    if (!window.confirm("Reset all checked items? This can't be undone.")) return;
+  var resetBtn = document.getElementById("reset-btn");
+  var resetArmed = false;
+  var resetArmTimer = null;
+  var resetLabel = resetBtn.textContent;
+
+  resetBtn.addEventListener("click", function () {
+    if (!resetArmed) {
+      resetArmed = true;
+      resetBtn.textContent = "Click again to confirm";
+      resetArmTimer = setTimeout(function () {
+        resetArmed = false;
+        resetBtn.textContent = resetLabel;
+      }, 3000);
+      return;
+    }
+    clearTimeout(resetArmTimer);
+    resetArmed = false;
+    resetBtn.textContent = resetLabel;
     boxes.forEach(function (b) { b.checked = false; });
     state = {};
     sections.forEach(function (sec) { state["open:" + sec.id] = sec.open; });

@@ -83,11 +83,9 @@ public class TreeGrowthTickSystem extends EntityTickingSystem<ChunkStore> {
         Set<BlockType> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         List<BlockType> saplings = new ArrayList<>();
         Map<String, BlockType> byKey = assetMap.getAssetMap();
-        if (byKey != null) {
-            for (BlockType blockType : byKey.values()) {
-                if (isSapling(blockType) && seen.add(blockType)) {
-                    saplings.add(blockType);
-                }
+        for (BlockType blockType : byKey.values()) {
+            if (isSapling(blockType) && seen.add(blockType)) {
+                saplings.add(blockType);
             }
         }
         int assetCount = assetMap.getNextIndex();
