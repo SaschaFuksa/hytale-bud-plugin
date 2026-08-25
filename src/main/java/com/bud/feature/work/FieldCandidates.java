@@ -2,7 +2,10 @@ package com.bud.feature.work;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -69,14 +72,9 @@ public final class FieldCandidates {
         return above != null && above == BlockType.EMPTY;
     }
 
-    public static boolean isTooCloseToExistingTree(@Nonnull World world, @Nonnull WorkRole workRole,
-            @Nonnull Vector3i position) {
+    public static boolean isTooCloseToExistingTree(@Nonnull WorkRole workRole, @Nonnull Vector3i position,
+            @Nonnull Set<Vector3i> existingTreePositions) {
         if (workRole != WorkRole.LUMBERING) {
-            return false;
-        }
-        WorkRecipeConfig.SeedTargetPattern pattern = WorkRecipeConfig.getInstance()
-                .getSeedTargetPattern(WorkRole.LUMBERING);
-        if (pattern == null) {
             return false;
         }
         int minDistance = WorkConfig.getInstance().getTreeMinDistance();
@@ -89,8 +87,7 @@ public final class FieldCandidates {
                 if ((long) dx * dx + (long) dz * dz > minDistanceSquared) {
                     continue;
                 }
-                String blockId = getBlockId(getBlockType(world, position.x + dx, position.y + 1, position.z + dz));
-                if (blockId != null && blockId.startsWith(pattern.prefix())) {
+                if (existingTreePositions.contains(new Vector3i(position.x + dx, position.y + 1, position.z + dz))) {
                     return true;
                 }
             }
@@ -98,33 +95,68 @@ public final class FieldCandidates {
         return false;
     }
 
-    public static boolean isNeverWateredCandidate(@Nonnull World world, @Nonnull Vector3i position) {
-        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
-            return false;
+    @Nonnull
+    public static Set<Vector3i> collectExistingTreePositions(@Nonnull World world, @Nonnull Vector3d anchor,
+            int fieldRadius) {
+        WorkRecipeConfig.SeedTargetPattern pattern = WorkRecipeConfig.getInstance()
+                .getSeedTargetPattern(WorkRole.LUMBERING);
+        if (pattern == null) {
+            return Objects.requireNonNull(Set.of());
         }
-        TilledSoilBlock soil = getTilledSoilComponent(world, position);
-        return soil == null || soil.getWateredUntil() == null;
+        int minDistance = WorkConfig.getInstance().getTreeMinDistance();
+        int scanRadius = fieldRadius + minDistance;
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorY = (int) Math.floor(anchor.y);
+        int anchorZ = (int) Math.floor(anchor.z);
+        Set<Vector3i> treePositions = new HashSet<>();
+        for (int dx = -scanRadius; dx <= scanRadius; dx++) {
+            for (int dz = -scanRadius; dz <= scanRadius; dz++) {
+                int x = anchorX + dx;
+                int y = anchorY + 1;
+                int z = anchorZ + dz;
+                String blockId = getBlockId(getBlockType(world, x, y, z));
+                if (blockId != null && blockId.startsWith(pattern.prefix())) {
+                    treePositions.add(new Vector3i(x, y, z));
+                }
+            }
+        }
+        return treePositions;
+    }
+
+    public static boolean isNeverWateredCandidate(@Nonnull World world, @Nonnull Vector3i position) {
+        return resolveTilledSoilCandidates(world, position, null).neverWatered();
     }
 
     public static boolean isWaterRefreshCandidate(@Nonnull World world, @Nonnull Vector3i position,
             @Nonnull Instant now) {
-        if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
-            return false;
-        }
-        TilledSoilBlock soil = getTilledSoilComponent(world, position);
-        if (soil == null) {
-            return false;
-        }
-        Instant wateredUntil = soil.getWateredUntil();
-        return wateredUntil != null && !wateredUntil.isAfter(now);
+        return resolveTilledSoilCandidates(world, position, now).needsWaterRefresh();
     }
 
     public static boolean isFertilizeCandidate(@Nonnull World world, @Nonnull Vector3i position) {
+        return resolveTilledSoilCandidates(world, position, null).needsFertilize();
+    }
+
+    public record TilledSoilCandidates(boolean neverWatered, boolean needsFertilize, boolean needsWaterRefresh) {
+
+        @Nonnull
+        public static final TilledSoilCandidates NONE = new TilledSoilCandidates(false, false, false);
+    }
+
+    @Nonnull
+    public static TilledSoilCandidates resolveTilledSoilCandidates(@Nonnull World world, @Nonnull Vector3i position,
+            @Nullable Instant now) {
         if (!isTilledSoil(getBlockType(world, position.x, position.y, position.z))) {
-            return false;
+            return TilledSoilCandidates.NONE;
         }
         TilledSoilBlock soil = getTilledSoilComponent(world, position);
-        return soil == null || !soil.isFertilized();
+        boolean neverWatered = soil == null || soil.getWateredUntil() == null;
+        boolean needsFertilize = soil == null || !soil.isFertilized();
+        boolean needsWaterRefresh = false;
+        if (soil != null && now != null) {
+            Instant wateredUntil = soil.getWateredUntil();
+            needsWaterRefresh = wateredUntil != null && !wateredUntil.isAfter(now);
+        }
+        return new TilledSoilCandidates(neverWatered, needsFertilize, needsWaterRefresh);
     }
 
     @Nullable

@@ -4,36 +4,36 @@ Findings from a pass over `src/main/java` looking for CPU/allocation hotspots. O
 roughly by expected impact. File:line references point at the code as of this pass —
 re-check before fixing since neighboring lines shift.
 
-## 1. Work field scans re-walk the whole field multiple times per assignment (highest impact)
+## 1. Work field scans re-walk the whole field multiple times per assignment (highest impact) — partially done
 
-`WorkstationFuelTickSystem.findNextWorkAssignment()` (`src/main/java/com/bud/feature/work/WorkstationFuelTickSystem.java:315`)
-runs whenever a bound Bud has no current work target (i.e. after every completed action,
-and every `IdleRetrySeconds` — default 5s — while idle). At `MEDIUM` field size that's
-already ~5×5=25 radius-squared → ~400 `Vector3i` positions per scan (farming/mining), more
-for `LARGE`. Per call it currently:
+`WorkstationFuelTickSystem.findNextWorkAssignment()` runs whenever a bound Bud has no current
+work target (i.e. after every completed action, and every `IdleRetrySeconds` — default 5s —
+while idle). Three of the four sub-issues found here are fixed:
 
-- Rebuilds the full position list from scratch every time (`FieldCandidates.serpentinePositions`
-  / `LumberingFieldScan.treeEdgePositions`, both fresh `ArrayList<Vector3i>` with a new
-  `Vector3i` per cell — lines 322-325).
-- Does **up to 7 separate full linear passes** over that same list — one each for
-  prepare-soil, till, plant, water-new, fertilize, harvest, water-refresh (lines 338-421) —
-  instead of one pass that evaluates all candidate kinds together and short-circuits.
-- For lumbering, recomputes an entirely separate full `serpentinePositions` list
-  (`fellPositions`, line 468) on top of the edge-only list already computed above.
-- The plant-candidate loop calls `FieldCandidates.isTooCloseToExistingTree()`
-  (`src/main/java/com/bud/feature/work/FieldCandidates.java:72`), which does its own nested
-  `O(minDistance²)` block-lookup loop **per candidate position** — so a field with no valid
-  plant spot can multiply out to (positions × minDistance²) block lookups in the worst case.
-  `MiningFieldScan.isTooCloseToGrowthBlock()` (`src/main/java/com/bud/feature/work/mining/MiningFieldScan.java:48`)
-  has the identical shape for mining.
-
-Each "block lookup" here is a chunk/component resolve (`world.getBlockType`,
-`world.getBlockComponentHolder`), not a cheap array read, so this adds up fast with
-multiple working Buds on a server. Fix direction: single combined pass over positions that
-evaluates every candidate kind per cell and tracks the best winner per category, cache/reuse
-the position list per anchor+radius (it only changes when config changes), and hoist the
-proximity check out of the inner candidate loop (e.g. precompute a spatial set of existing
-tree/growth positions once per scan instead of re-deriving it per candidate).
+- **Done** — the position list (`FieldCandidates.serpentinePositions` /
+  `LumberingFieldScan.treeEdgePositions`) is no longer rebuilt from scratch every call; it's
+  cached per-Workstation on `WorkstationBlockEntity` (`cachedSerpentinePositions`/
+  `cachedEdgePositions`), keyed by anchor+radius+height(+edgeCount), and reused until one of
+  those actually changes. Lumbering's second list (`fellPositions`) uses the same cache slot.
+- **Done** — `isNeverWateredCandidate`/`isFertilizeCandidate`/`isWaterRefreshCandidate` used to
+  each independently re-fetch the same `TilledSoilBlock` component for the same position
+  across three separate passes. Merged into one loop backed by
+  `FieldCandidates.resolveTilledSoilCandidates()`, which fetches it once per position.
+- **Done, farming/lumbering only** — `FieldCandidates.isTooCloseToExistingTree()` no longer
+  does a fresh `O(minDistance²)` block-lookup scan per plant candidate; a
+  `Set<Vector3i>` of existing tree-trunk positions is built once per scan
+  (`FieldCandidates.collectExistingTreePositions()`, scanning `fieldRadius + treeMinDistance`
+  around the anchor at the fixed trunk Y-layer) and the per-candidate check is now a set
+  lookup. **Not applied to `MiningFieldScan.isTooCloseToGrowthBlock()`**: its neighborhood
+  check spans a Y-band relative to each candidate's own height rather than one fixed layer, so
+  a correct global precompute would cost roughly as much to build as doing it inline — not a
+  clean win, left as-is.
+- **Not done** — merging the up to 7 separate linear passes (prepare-soil, till, plant,
+  water/fertilize, harvest) into one combined per-cell pass. The passes themselves are cheap
+  iteration over an already-materialized list; the above three fixes already remove the actual
+  duplicate/expensive engine lookups. A full merge would be a much larger rewrite of the core
+  winner-selection logic for comparatively little additional win on top of the above — only
+  worth revisiting if the above turns out insufficient in practice.
 
 ## 2. `JsonUtils` compiles a fresh regex `Pattern` on every field extraction
 

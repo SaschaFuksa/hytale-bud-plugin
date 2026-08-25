@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.Nonnull;
@@ -319,10 +320,15 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         WorkRole workRole = workstation.getWorkRole();
         int fieldRadius = WorkConfig.getInstance().getFieldRadius(workRole);
         int fieldMaxHeight = WorkConfig.getInstance().getFieldMaxHeight();
+        Vector3i flooredAnchor = new Vector3i((int) Math.floor(anchor.x), (int) Math.floor(anchor.y),
+                (int) Math.floor(anchor.z));
         List<Vector3i> positions = isLumbering
-                ? LumberingFieldScan.treeEdgePositions(anchor, fieldRadius, fieldMaxHeight,
-                        WorkConfig.getInstance().getFieldStructureCount(workRole))
-                : FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight);
+                ? workstation.cachedEdgePositions(flooredAnchor, fieldRadius, fieldMaxHeight,
+                        WorkConfig.getInstance().getFieldStructureCount(workRole),
+                        () -> LumberingFieldScan.treeEdgePositions(anchor, fieldRadius, fieldMaxHeight,
+                                WorkConfig.getInstance().getFieldStructureCount(workRole)))
+                : workstation.cachedSerpentinePositions(flooredAnchor, fieldRadius, fieldMaxHeight,
+                        () -> FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight));
 
         Instant now = GameClock.now(world);
 
@@ -357,11 +363,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     .getItemStack(WorkstationSeedUtil.SEEDBAG_SLOT);
             cropBlockType = WorkstationSeedUtil.resolveCropBlockType(seedStack, workstation.getWorkRole());
             if (cropBlockType != null) {
+                Set<Vector3i> existingTreePositions = isLumbering
+                        ? FieldCandidates.collectExistingTreePositions(world, anchor, fieldRadius)
+                        : Objects.requireNonNull(Set.of());
                 for (Vector3i position : positions) {
                     if (position != null && !workstation.isRecentlyFailedTarget(position)
                             && FieldCandidates.isPlantCandidate(world, position)
-                            && !FieldCandidates.isTooCloseToExistingTree(world, workstation.getWorkRole(),
-                                    position)) {
+                            && !FieldCandidates.isTooCloseToExistingTree(workstation.getWorkRole(), position,
+                                    existingTreePositions)) {
                         plantWinner = position;
                         break;
                     }
@@ -369,18 +378,22 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             }
 
             for (Vector3i position : positions) {
-                if (position != null && !workstation.isRecentlyFailedTarget(position)
-                        && FieldCandidates.isNeverWateredCandidate(world, position)) {
-                    waterNewWinner = position;
+                if (position == null || workstation.isRecentlyFailedTarget(position)) {
+                    continue;
+                }
+                if (waterNewWinner != null && fertilizeWinner != null && (now == null || waterRefreshWinner != null)) {
                     break;
                 }
-            }
-
-            for (Vector3i position : positions) {
-                if (position != null && !workstation.isRecentlyFailedTarget(position)
-                        && FieldCandidates.isFertilizeCandidate(world, position)) {
+                FieldCandidates.TilledSoilCandidates soilCandidates = FieldCandidates
+                        .resolveTilledSoilCandidates(world, position, now);
+                if (waterNewWinner == null && soilCandidates.neverWatered()) {
+                    waterNewWinner = position;
+                }
+                if (fertilizeWinner == null && soilCandidates.needsFertilize()) {
                     fertilizeWinner = position;
-                    break;
+                }
+                if (now != null && waterRefreshWinner == null && soilCandidates.needsWaterRefresh()) {
+                    waterRefreshWinner = position;
                 }
             }
 
@@ -404,19 +417,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     }
                     harvestWinner = position;
                     break;
-                }
-            }
-
-            if (now != null) {
-                for (Vector3i position : positions) {
-                    if (position == null) {
-                        continue;
-                    }
-                    if (!workstation.isRecentlyFailedTarget(position)
-                            && FieldCandidates.isWaterRefreshCandidate(world, position, now)) {
-                        waterRefreshWinner = position;
-                        break;
-                    }
                 }
             }
         }
@@ -465,8 +465,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         Vector3i fellWinner = null;
         Vector3i fellWinnerWalkTarget = null;
         if (isLumbering) {
-            List<Vector3i> fellPositions = FieldCandidates.serpentinePositions(anchor,
-                    fieldRadius, fieldMaxHeight);
+            List<Vector3i> fellPositions = workstation.cachedSerpentinePositions(flooredAnchor, fieldRadius,
+                    fieldMaxHeight, () -> FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight));
             List<Vector3i> rawFellCandidates = new ArrayList<>();
             for (Vector3i position : fellPositions) {
                 if (position == null) {

@@ -3,8 +3,11 @@ package com.bud.feature.work;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,6 +79,28 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     private long outputFullReactionLastFiredMillis;
 
     private boolean outOfFuelReactionSent;
+
+    @Nullable
+    private List<Vector3i> cachedSerpentinePositions;
+
+    @Nullable
+    private Vector3i cachedSerpentineAnchor;
+
+    private int cachedSerpentineRadius = Integer.MIN_VALUE;
+
+    private int cachedSerpentineMaxHeight = Integer.MIN_VALUE;
+
+    @Nullable
+    private List<Vector3i> cachedEdgePositions;
+
+    @Nullable
+    private Vector3i cachedEdgeAnchor;
+
+    private int cachedEdgeRadius = Integer.MIN_VALUE;
+
+    private int cachedEdgeMaxHeight = Integer.MIN_VALUE;
+
+    private int cachedEdgeCount = Integer.MIN_VALUE;
 
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
@@ -257,6 +282,39 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     public void onOutputContainerChanged() {
         clearHarvestOutputLocks();
+    }
+
+    @Nonnull
+    public List<Vector3i> cachedSerpentinePositions(@Nonnull Vector3i flooredAnchor, int radius, int maxHeight,
+            @Nonnull Supplier<List<Vector3i>> compute) {
+        List<Vector3i> cached = cachedSerpentinePositions;
+        if (cached != null && flooredAnchor.equals(cachedSerpentineAnchor) && cachedSerpentineRadius == radius
+                && cachedSerpentineMaxHeight == maxHeight) {
+            return cached;
+        }
+        List<Vector3i> computed = Objects.requireNonNull(compute.get());
+        cachedSerpentinePositions = computed;
+        cachedSerpentineAnchor = flooredAnchor;
+        cachedSerpentineRadius = radius;
+        cachedSerpentineMaxHeight = maxHeight;
+        return computed;
+    }
+
+    @Nonnull
+    public List<Vector3i> cachedEdgePositions(@Nonnull Vector3i flooredAnchor, int radius, int maxHeight,
+            int edgeCount, @Nonnull Supplier<List<Vector3i>> compute) {
+        List<Vector3i> cached = cachedEdgePositions;
+        if (cached != null && flooredAnchor.equals(cachedEdgeAnchor) && cachedEdgeRadius == radius
+                && cachedEdgeMaxHeight == maxHeight && cachedEdgeCount == edgeCount) {
+            return cached;
+        }
+        List<Vector3i> computed = Objects.requireNonNull(compute.get());
+        cachedEdgePositions = computed;
+        cachedEdgeAnchor = flooredAnchor;
+        cachedEdgeRadius = radius;
+        cachedEdgeMaxHeight = maxHeight;
+        cachedEdgeCount = edgeCount;
+        return computed;
     }
 
     public boolean isOutOfFuelReactionSent() {
