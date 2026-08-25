@@ -34,7 +34,7 @@ import com.hypixel.hytale.server.npc.asset.builder.BuilderSupport;
 
 public class LumberingWorkAction extends AbstractWorkAction {
 
-    private static final String FELL_ANIMATION = "Fell";
+    private static final String FELL_ANIMATION = "Chop";
 
     private static final String DIRT_BLOCK_ID = "Soil_Dirt";
 
