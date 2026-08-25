@@ -73,7 +73,7 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
     @Nonnull
     private final Set<Vector3i> lockedHarvestOutputTargets = new HashSet<>();
 
-    private boolean outputFullReactionSent;
+    private long outputFullReactionLastFiredMillis;
 
     private boolean outOfFuelReactionSent;
 
@@ -243,17 +243,20 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
         lockedHarvestOutputTargets.clear();
     }
 
-    public boolean isOutputFullReactionSent() {
-        return outputFullReactionSent;
+    public boolean hasLockedHarvestOutputTargets() {
+        return !lockedHarvestOutputTargets.isEmpty();
     }
 
-    public void setOutputFullReactionSent(boolean outputFullReactionSent) {
-        this.outputFullReactionSent = outputFullReactionSent;
+    public boolean isOutputFullReactionDue(long cooldownMillis) {
+        return System.currentTimeMillis() - outputFullReactionLastFiredMillis >= cooldownMillis;
+    }
+
+    public void markOutputFullReactionFired() {
+        outputFullReactionLastFiredMillis = System.currentTimeMillis();
     }
 
     public void onOutputContainerChanged() {
         clearHarvestOutputLocks();
-        outputFullReactionSent = false;
     }
 
     public boolean isOutOfFuelReactionSent() {

@@ -400,12 +400,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                         LoggerUtil.getLogger()
                                 .warning(() -> "[BUD] Workstation output has no room for the ripe tile at "
                                         + position + " - HARVEST paused there until a slot is freed.");
-                        if (!workstation.isOutputFullReactionSent()
-                                && ReactionConfig.getInstance().isEnableWorkReactions()) {
-                            workstation.setOutputFullReactionSent(true);
-                            fireOutputFullReaction(workstation,
-                                    FarmingFieldScan.resolveHarvestItemId(world, position));
-                        }
                         continue;
                     }
                     harvestWinner = position;
@@ -534,17 +528,16 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                         LoggerUtil.getLogger()
                                 .warning(() -> "[BUD] Workstation output has no room for the felled tree at "
                                         + lockedFellTarget + " - FELL paused there until a slot is freed.");
-                        if (!workstation.isOutputFullReactionSent()
-                                && ReactionConfig.getInstance().isEnableWorkReactions()) {
-                            workstation.setOutputFullReactionSent(true);
-                            fireOutputFullReaction(workstation, null);
-                        }
                     } else {
                         fellWinner = fellTarget;
                         fellWinnerWalkTarget = fellTargetWalkTarget;
                     }
                 }
             }
+        }
+
+        if (workstation.hasLockedHarvestOutputTargets()) {
+            WorkstationOutputFullReactions.fireIfDue(workstation, null);
         }
 
         WorkAssignment winner;
@@ -642,24 +635,6 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         return new WorkAssignment(
                 new Vector3d(movementPosition.x + 0.5, movementPosition.y + 0.5, movementPosition.z + 0.5),
                 blockPosition, WorkType.FELL, null);
-    }
-
-    private static void fireOutputFullReaction(@Nonnull WorkstationBlockEntity workstation,
-            @Nullable String blockedItemId) {
-        BudComponent boundBud = workstation.getBoundBud();
-        if (boundBud == null) {
-            return;
-        }
-        WorkEntry workEntry = new WorkEntry(boundBud, WorkReactionKind.OUTPUT_FULL, boundBud.getWorkType(),
-                blockedItemId);
-        LLMInteractionEntry entry = new LLMInteractionEntry(LLMWorkMessageCreation.getInstance(), workEntry);
-        Orchestrator.getInstance().enqueue(new OrchestratorQueue(
-                OrchestratorChannel.ACTIVITY,
-                workEntry,
-                "workOutputFull",
-                boundBud.getPlayerRef().getUsername(),
-                entry,
-                System.currentTimeMillis()));
     }
 
     private static boolean isEmpty(@Nullable ItemStack itemStack) {

@@ -2,11 +2,8 @@ package com.bud.app.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.joml.Vector3d;
 
@@ -14,9 +11,7 @@ import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.registry.BudRegistry;
 import com.bud.core.types.DayOfWeek;
-import com.bud.core.types.Mood;
 import com.bud.core.types.TimeOfDay;
-import com.bud.feature.bud.MoodTracker;
 import com.bud.feature.chat.ChatEvent;
 import com.bud.feature.chat.conversation.ConversationMemoryEntry;
 import com.bud.feature.chat.conversation.ConversationMemoryService;
@@ -29,8 +24,6 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.FlagArg;
-import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
-import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -48,9 +41,6 @@ public class DebugCommand extends AbstractPlayerCommand {
     private final FlagArg worldFlag;
     private final FlagArg memoryFlag;
     private final FlagArg dialogFlag;
-    private final FlagArg setMoodFlag;
-    private final OptionalArg<String> setMoodBudArg;
-    private final OptionalArg<String> setMoodValueArg;
 
     public DebugCommand() {
         super("debug", "Debug command for testing purposes.");
@@ -62,14 +52,6 @@ public class DebugCommand extends AbstractPlayerCommand {
         this.worldFlag = this.withFlagArg("world", "Shows the current zone and biome.");
         this.memoryFlag = this.withFlagArg("memory", "Shows the current conversation memories.");
         this.dialogFlag = this.withFlagArg("dialog", "Triggers dialog mode immediately for your current Buds.");
-        this.setMoodFlag = this.withFlagArg("setMood",
-                "Force a Bud's mood and trigger the bud-to-bud mood-change reaction, same as an automatic change. "
-                        + "Use with --budname and --moodname.");
-        this.setMoodBudArg = Objects.requireNonNull(this.withOptionalArg("budname",
-                "Bud to change (veri, gronkh, keyleth).", Objects.requireNonNull(ArgTypes.STRING)));
-        this.setMoodValueArg = Objects.requireNonNull(this.withOptionalArg("moodname",
-                "Mood to set (default, sad, insane, grumpy, dazed, overmotivated).",
-                Objects.requireNonNull(ArgTypes.STRING)));
     }
 
     @Override
@@ -112,15 +94,9 @@ public class DebugCommand extends AbstractPlayerCommand {
             handled = true;
             this.triggerDialogData(playerRef);
         }
-        if (this.setMoodFlag.get(context)) {
-            handled = true;
-            this.setMood(store, playerRef, context.get(Objects.requireNonNull(this.setMoodBudArg)),
-                    context.get(Objects.requireNonNull(this.setMoodValueArg)));
-        }
-
         if (!handled) {
             ChatEvent.dispatch(playerRef, "Debug flags: --componentData, --mood, --weather, --time, --world, "
-                    + "--memory, --dialog, --setMood --budname <bud> --moodname <mood>");
+                    + "--memory, --dialog");
         }
     }
 
@@ -237,45 +213,6 @@ public class DebugCommand extends AbstractPlayerCommand {
             return;
         }
         ChatEvent.dispatch(playerRef, "Dialog: could not trigger dialog mode. At least two active Buds are required.");
-    }
-
-    private void setMood(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
-            @Nullable String budName, @Nullable String moodName) {
-        if (budName == null || budName.isBlank() || moodName == null || moodName.isBlank()) {
-            ChatEvent.dispatch(playerRef, "SetMood: needs --budname <veri|gronkh|keyleth> --moodname <mood>.");
-            return;
-        }
-        Mood mood;
-        try {
-            mood = Mood.valueOf(moodName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            ChatEvent.dispatch(playerRef, "SetMood: unknown mood '" + moodName
-                    + "'. Valid: default, sad, insane, grumpy, dazed, overmotivated.");
-            return;
-        }
-
-        PlayerBudComponent playerBudComponent = getPlayerBudComponent(store, playerRef);
-        if (playerBudComponent == null || !playerBudComponent.hasBuds()) {
-            ChatEvent.dispatch(playerRef, "SetMood: no active Buds found.");
-            return;
-        }
-
-        String normalizedBudId = BudRegistry.normalize(budName);
-        for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
-            Ref<EntityStore> budRef = bud.getReference();
-            if (budRef == null || !budRef.isValid()) {
-                continue;
-            }
-            BudComponent budComponent = store.getComponent(budRef, BudComponent.getComponentType());
-            if (budComponent == null || !budComponent.getBudId().equals(normalizedBudId)) {
-                continue;
-            }
-            MoodTracker.getInstance().forceMood(budComponent, mood);
-            String budDisplayName = BudRegistry.getInstance().get(budComponent.getBudId()).getDisplayName();
-            ChatEvent.dispatch(playerRef, "SetMood: " + budDisplayName + " is now " + mood.getDisplayName() + ".");
-            return;
-        }
-        ChatEvent.dispatch(playerRef, "SetMood: no active Bud named '" + budName + "' found.");
     }
 
     private PlayerBudComponent getPlayerBudComponent(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef) {

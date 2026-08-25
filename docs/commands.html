@@ -50,6 +50,7 @@
     <a href="#creation">Creation</a>
     <a href="#deletion">Deletion</a>
     <a href="#state">State</a>
+    <a href="#mood">Mood</a>
     <a href="#memory">Memory</a>
     <a href="#prompt">Prompt</a>
     <a href="#reload">Reload</a>
@@ -116,6 +117,16 @@
         <div class="command-entry">
           <code class="cmd">/bud state --sitting</code>
           <p>Sets all active Buds to Sitting (stay put).</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="mood">
+      <h2>Mood</h2>
+      <div class="command-block">
+        <div class="command-entry">
+          <code class="cmd">/bud mood &lt;bud&gt; &lt;mood&gt;</code>
+          <p>Forces a Bud's mood and fires the same bud-to-bud mood-change reaction an automatic shift would. Bud: <code>veri</code>, <code>gronkh</code>, <code>keyleth</code>. Mood: <code>default</code>, <code>sad</code>, <code>insane</code>, <code>grumpy</code>, <code>dazed</code>, <code>overmotivated</code>.</p>
         </div>
       </div>
     </section>
@@ -204,10 +215,6 @@
         <div class="command-entry">
           <code class="cmd">/bud debug --dialog</code>
           <p>Immediately triggers a bud-to-bud dialog turn between your currently active Buds (needs at least two active).</p>
-        </div>
-        <div class="command-entry">
-          <code class="cmd">/bud debug --setMood --budname &lt;bud&gt; --moodname &lt;mood&gt;</code>
-          <p>Forces a Bud's mood and fires the same bud-to-bud mood-change reaction an automatic shift would. Moods: <code>default</code>, <code>sad</code>, <code>insane</code>, <code>grumpy</code>, <code>dazed</code>, <code>overmotivated</code>.</p>
         </div>
       </div>
     </section>

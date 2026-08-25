@@ -16,6 +16,8 @@ import com.bud.core.config.WorkConfig;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.WorkToolItems;
+import com.bud.feature.work.WorkstationBlockEntity;
+import com.bud.feature.work.WorkstationOutputFullReactions;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
@@ -137,6 +139,10 @@ public class LumberingWorkAction extends AbstractWorkAction {
         LoggerUtil.getLogger().fine(() -> "[BUD] executeFell at " + base + " - output capacity check: "
                 + (hasRoom ? "OK" : "FAILED, aborting fell"));
         if (!hasRoom) {
+            WorkstationBlockEntity workstation = anchorHolder.getComponent(WorkstationBlockEntity.getComponentType());
+            if (workstation != null) {
+                WorkstationOutputFullReactions.fireIfDue(workstation, null);
+            }
             return;
         }
         output.addItemStacks(drops, false, false, false);
@@ -152,12 +158,8 @@ public class LumberingWorkAction extends AbstractWorkAction {
             world.setBlock(position.x, position.y, position.z, BlockType.EMPTY_KEY);
         }
         WorkstationWoodUtil.wakeSurroundingBlocksForPhysicsRecheck(world, connectedWoodBlocks);
-        int groundLevelY = anchorY - 1;
         for (Vector3i position : groundContactBlocks) {
-            int fillFromY = Math.min(position.y, groundLevelY);
-            for (int fillY = fillFromY; fillY <= groundLevelY; fillY++) {
-                world.setBlock(position.x, fillY, position.z, DIRT_BLOCK_ID);
-            }
+            world.setBlock(position.x, position.y, position.z, DIRT_BLOCK_ID);
         }
     }
 

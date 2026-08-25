@@ -59,7 +59,7 @@ public class MemorySetCommand extends AbstractPlayerCommand {
 
         if (this.legendaryFlag.get(context)) {
             boolean stored = ConversationMemoryService.getInstance()
-                    .addManualLegendaryMemory(playerRef.getUsername(), playerRef, budDisplayName, text);
+                    .addManualLegendaryMemory(playerRef.getUsername(), playerRef, store, budDisplayName, text);
             ChatEvent.dispatch(playerRef, stored
                     ? "Added legendary memory for " + budDisplayName + "."
                     : "Legendary memory slots for " + budDisplayName + " are full and no replacement was chosen.");

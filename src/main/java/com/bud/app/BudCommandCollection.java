@@ -4,6 +4,7 @@ import com.bud.app.commands.CreationCommand;
 import com.bud.app.commands.DebugCommand;
 import com.bud.app.commands.DeletionCommand;
 import com.bud.app.commands.MemoryCommand;
+import com.bud.app.commands.MoodCommand;
 import com.bud.app.commands.PromptCommand;
 import com.bud.app.commands.ReloadCommand;
 import com.bud.app.commands.ResetCommand;
@@ -19,6 +20,7 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new DeletionCommand());
         this.addSubCommand(new StateCommand());
         this.addSubCommand(new MemoryCommand());
+        this.addSubCommand(new MoodCommand());
         this.addSubCommand(new PromptCommand());
         this.addSubCommand(new ReloadCommand());
         this.addSubCommand(new DebugCommand());

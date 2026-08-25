@@ -23,6 +23,7 @@ public class ReactionConfig {
     private boolean enablePlayerStateReactions = true;
     private long playerStateReactionPeriodSeconds = 2L;
     private boolean enableWorkReactions = true;
+    private long outputFullReactionPeriodSeconds = 300L;
 
     private static volatile ReactionConfig instance;
 
@@ -98,6 +99,10 @@ public class ReactionConfig {
         return this.enableWorkReactions;
     }
 
+    public long getOutputFullReactionPeriodSeconds() {
+        return this.outputFullReactionPeriodSeconds;
+    }
+
     static {
         CODEC = BuilderCodec.builder(ReactionConfig.class, ReactionConfig::new)
                 .append(new KeyedCodec<>("EnableCombatReactions", Codec.BOOLEAN),
@@ -159,6 +164,10 @@ public class ReactionConfig {
                 .append(new KeyedCodec<>("EnableWorkReactions", Codec.BOOLEAN),
                         (config, value) -> config.enableWorkReactions = value,
                         config -> config.enableWorkReactions)
+                .add()
+                .append(new KeyedCodec<>("OutputFullReactionPeriod", Codec.LONG),
+                        (config, value) -> config.outputFullReactionPeriodSeconds = value,
+                        config -> config.outputFullReactionPeriodSeconds)
                 .add()
                 .build();
     }

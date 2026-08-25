@@ -146,6 +146,10 @@
       </div>
       <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow.</p>
       <p>Gronkh only fells a tree once it has reached its <strong>final</strong> growth stage. A tree stuck mid-growth (see <a href="#tree-roots">Tree roots</a> — usually a root-depth problem) is left alone entirely: it won't be felled early, and it won't be endlessly retried. Once it either finishes growing or you fix what's blocking it, felling picks it up on the next field scan.</p>
+      <div class="callout warning">
+        <span class="callout-icon">⚠️</span>
+        <span class="callout-body"><strong>Keep the Lumbering field level ground</strong> for now. Felling restores one block of dirt directly under each felled trunk's contact point — correct on flat terrain, but on a slope or step the ground right beside the tree isn't leveled to match. Support for genuinely uneven terrain (filling back up to a tree's own original height) was attempted and reverted after it triggered a chunk-loading crash; it needs a safer approach before it comes back.</span>
+      </div>
     </section>
 
     <section id="mining">

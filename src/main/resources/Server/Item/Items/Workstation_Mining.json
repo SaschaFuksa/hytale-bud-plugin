@@ -75,14 +75,16 @@
           "Icon": "Icons/ItemsGenerated/icon_mining-food-slot.png"
         }
       ],
-      "OutputSlotsCount": 8
+      "OutputSlotsCount": 8,
+      "FailedSoundEventId": "SFX_Furnace_Bench_Processing_Failed"
     },
     "State": {
       "Definitions": {
         "Processing": {
           "Light": {
             "Color": "#B72"
-          }
+          },
+          "AmbientSoundEventId": "SFX_Furnace_Bench_Processing"
         },
         "ProcessCompleted": {
           "Light": {

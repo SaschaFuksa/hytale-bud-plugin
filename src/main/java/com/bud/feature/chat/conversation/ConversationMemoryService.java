@@ -18,6 +18,7 @@ import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.config.ConversationConfig;
 import com.bud.core.config.LLMConfig;
 import com.bud.core.registry.BudDefinition;
+import com.bud.core.registry.BudRegistry;
 import com.bud.feature.LLMPromptManager;
 import com.bud.feature.bud.reaction.BudReactionEntry;
 import com.bud.feature.bud.reaction.BudReactionKind;
@@ -36,6 +37,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 public class ConversationMemoryService {
 
@@ -221,7 +223,7 @@ public class ConversationMemoryService {
     }
 
     public boolean addManualLegendaryMemory(@Nonnull String ownerKey, @Nonnull PlayerRef playerRef,
-            @Nonnull String budDisplayName, @Nonnull String summary) {
+            @Nonnull Store<EntityStore> store, @Nonnull String budDisplayName, @Nonnull String summary) {
         String normalizedOwner = normalizeParticipant(ownerKey);
         ConversationMemoryEntry entry = new ConversationMemoryEntry(
                 allocateMemoryId(normalizedOwner),
@@ -237,8 +239,38 @@ public class ConversationMemoryService {
         }
         if (stored) {
             persistOwnerMemories(normalizedOwner, playerRef);
+            BudComponent speakerBud = resolveBudComponent(store, playerRef, budDisplayName);
+            if (speakerBud != null) {
+                triggerLegendaryReaction(speakerBud, BudRegistry.getInstance().get(speakerBud.getBudId()), entry);
+            }
         }
         return stored;
+    }
+
+    @Nullable
+    private BudComponent resolveBudComponent(@Nonnull Store<EntityStore> store, @Nonnull PlayerRef playerRef,
+            @Nonnull String budDisplayName) {
+        Ref<EntityStore> playerRefReference = playerRef.getReference();
+        if (playerRefReference == null) {
+            return null;
+        }
+        PlayerBudComponent playerBudComponent = store.getComponent(playerRefReference,
+                PlayerBudComponent.getComponentType());
+        if (playerBudComponent == null) {
+            return null;
+        }
+        String normalizedTargetId = BudRegistry.normalize(budDisplayName);
+        for (NPCEntity bud : playerBudComponent.getCurrentBuds()) {
+            Ref<EntityStore> budRef = bud.getReference();
+            if (budRef == null || !budRef.isValid()) {
+                continue;
+            }
+            BudComponent candidate = store.getComponent(budRef, BudComponent.getComponentType());
+            if (candidate != null && candidate.getBudId().equals(normalizedTargetId)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     public boolean removeLegendaryMemoryAt(@Nonnull String ownerKey, @Nonnull PlayerRef playerRef,
@@ -311,20 +343,19 @@ public class ConversationMemoryService {
 
         if (stored) {
             persistOwnerMemories(ownerKey, promptContext.getBudComponent().getPlayerRef());
-            triggerLegendaryReaction(promptContext, budProfile, candidateEntry);
+            triggerLegendaryReaction(promptContext.getBudComponent(), budProfile, candidateEntry);
         }
     }
 
-    private void triggerLegendaryReaction(@Nonnull IPromptContext promptContext, @Nonnull BudDefinition budProfile,
+    private void triggerLegendaryReaction(@Nonnull BudComponent speakerBud, @Nonnull BudDefinition budProfile,
             @Nonnull ConversationMemoryEntry candidateEntry) {
         try {
-            PlayerRef playerRef = promptContext.getBudComponent().getPlayerRef();
+            PlayerRef playerRef = speakerBud.getPlayerRef();
             Ref<EntityStore> ref = playerRef.getReference();
             if (ref == null) {
                 return;
             }
             Store<EntityStore> store = ref.getStore();
-            BudComponent speakerBud = promptContext.getBudComponent();
 
             store.getExternalData().getWorld().execute(() -> {
                 PlayerBudComponent playerBudComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());

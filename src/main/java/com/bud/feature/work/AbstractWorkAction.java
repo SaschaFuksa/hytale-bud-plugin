@@ -375,7 +375,7 @@ public abstract class AbstractWorkAction extends ActionBase {
         chunk.setTicking(x, y, z, true);
     }
 
-    private static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {
+    protected static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {
         BlockType above = world.getBlockType(x, y + 1, z);
         if (above != null && above != BlockType.EMPTY) {
             world.setBlock(x, y + 1, z, BlockType.EMPTY_KEY);

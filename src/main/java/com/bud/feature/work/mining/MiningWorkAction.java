@@ -16,6 +16,8 @@ import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.BlockDrops;
 import com.bud.feature.work.WorkToolItems;
+import com.bud.feature.work.WorkstationBlockEntity;
+import com.bud.feature.work.WorkstationOutputFullReactions;
 import com.bud.feature.work.WorkstationSeedUtil;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -83,6 +85,7 @@ public class MiningWorkAction extends AbstractWorkAction {
             }
             return;
         }
+        clearOvergrowth(world, x, y, z);
         Vector3d anchor = bud.getWorkstationAnchor();
         if (anchor == null) {
             return;
@@ -147,6 +150,10 @@ public class MiningWorkAction extends AbstractWorkAction {
             return;
         }
         if (!output.canAddItemStacks(drops, false, false)) {
+            WorkstationBlockEntity workstation = resolveWorkstation(world, anchor);
+            if (workstation != null) {
+                WorkstationOutputFullReactions.fireIfDue(workstation, drops.get(0).getItemId());
+            }
             return;
         }
         output.addItemStacks(drops, false, false, false);
@@ -167,6 +174,18 @@ public class MiningWorkAction extends AbstractWorkAction {
             return null;
         }
         return anchorHolder.getComponent(benchType);
+    }
+
+    @Nullable
+    private static WorkstationBlockEntity resolveWorkstation(@Nonnull World world, @Nonnull Vector3d anchor) {
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorY = (int) Math.floor(anchor.y) - 1;
+        int anchorZ = (int) Math.floor(anchor.z);
+        Holder<ChunkStore> anchorHolder = world.getBlockComponentHolder(anchorX, anchorY, anchorZ);
+        if (anchorHolder == null) {
+            return null;
+        }
+        return anchorHolder.getComponent(WorkstationBlockEntity.getComponentType());
     }
 
 }
