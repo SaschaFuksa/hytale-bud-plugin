@@ -434,12 +434,7 @@ footer.page-footer {
       <svg class="chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </summary>
     <div class="section-body">
-      <div class="item"><input type="checkbox" id="i-r1"><label for="i-r1"><span class="item-title">Keyleth walks onto <em>and sits on top of</em> the Farming Workstation when resting</span><span class="item-detail">Not just standing next to it — she should be visibly seated on the tabletop.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r2"><label for="i-r2"><span class="item-title">Workstation F-interaction hitbox covers the full 2-block-wide bench</span><span class="item-detail">Try opening it while standing at each end, not just dead center.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r3"><label for="i-r3"><span class="item-title">A freshly planted sapling reaches its final growth stage</span><span class="item-detail">Plant on a spot with stone/rock close under the surface — the case that used to freeze mid-growth. Oak is fastest to confirm.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r4"><label for="i-r4"><span class="item-title">Gronkh visibly prepares the soil (shovel) before tilling a new tree spot</span><span class="item-detail">First action at a fresh tree spot, before <code>Till</code>.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r5"><label for="i-r5"><span class="item-title">Gronkh never stacks a dirt block <em>above</em> ground level while doing so</span><span class="item-detail">Watch a spot where a sapling is about to be planted — no floating dirt.</span></label></div>
-      <div class="item"><input type="checkbox" id="i-r6"><label for="i-r6"><span class="item-title">All three Workstations craft with their new recipes</span><span class="item-detail">Farming: <code>Wood Trunk, Rock, Onion, Pumpkin, Red Berries</code> · Lumbering: <code>Wood Trunk, Rock, Fire/Crystal/Azure Wood Trunk</code> · Mining: <code>Wood Trunk, Rock, Ruby, Diamond, Emerald</code></span></label></div>
+      <p class="item-detail">Nothing pending — last round's changes were verified and cleared. Add one line per risky change here after the next work session.</p>
     </div>
   </details>
 
@@ -511,6 +506,7 @@ footer.page-footer {
       <div class="item"><input type="checkbox" id="i-cmd25"><label for="i-cmd25"><span class="item-title"><code>/bud debug --world</code></span></label></div>
       <div class="item"><input type="checkbox" id="i-cmd26"><label for="i-cmd26"><span class="item-title"><code>/bud debug --memory</code></span></label></div>
       <div class="item"><input type="checkbox" id="i-cmd27"><label for="i-cmd27"><span class="item-title"><code>/bud debug --dialog</code></span><span class="item-detail">Triggers an immediate bud-to-bud dialog turn — needs at least two active Buds.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-cmd28"><label for="i-cmd28"><span class="item-title"><code>/bud debug --setMood --budname &lt;bud&gt; --moodname &lt;mood&gt;</code></span><span class="item-detail">Forces a mood and fires the same bud-to-bud reaction an automatic shift would — use this for the mood-change item below instead of waiting for a random shift.</span></label></div>
     </div>
   </details>
 
@@ -528,7 +524,9 @@ footer.page-footer {
       <p class="subhead">Event-triggered</p>
       <div class="item"><input type="checkbox" id="i-l1"><label for="i-l1"><span class="item-title">Combat — fight near a Bud in Defensive mode</span></label></div>
       <div class="item"><input type="checkbox" id="i-l2"><label for="i-l2"><span class="item-title">Block place / break</span></label></div>
-      <div class="item"><input type="checkbox" id="i-l3"><label for="i-l3"><span class="item-title">Item pickup</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l3"><label for="i-l3"><span class="item-title">Item pickup</span><span class="item-detail">Only these trigger a reaction — pick one up off the ground: <code>Blood Rose, Bloodcap, Blood Leaf, Azure Fern, Azurecap, Azure Kelp, Storm Thistle, Stormcap, Storm Sapling, Berries, Lettuce, Wheat, Carrot, Corn, Cauliflower, Pumpkin, Eggplant, Tomato, Onion, Potato, Rice, Cotton, Apple</code>.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l3b"><label for="i-l3b"><span class="item-title">Inventory change</span><span class="item-detail">Separate logic from pickup — triggers when one of these lands in your inventory by any means (craft, loot, trade): <code>Ore, Ingot, Gem, Milk, Egg, Poop</code>.</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l3c"><label for="i-l3c"><span class="item-title">Using a crafting bench</span><span class="item-detail">Any block whose name contains one of: <code>cooking, alchemy, arcane, armour, weapon, builders, campfire, farming, furnace, furniture, salvage, tannery, workbench</code>.</span></label></div>
       <div class="item"><input type="checkbox" id="i-l4"><label for="i-l4"><span class="item-title">Discover a new zone</span></label></div>
       <div class="item"><input type="checkbox" id="i-l5"><label for="i-l5"><span class="item-title">Crafting an item</span></label></div>
       <div class="item"><input type="checkbox" id="i-l6"><label for="i-l6"><span class="item-title">Player chat — mention a Bud's name</span></label></div>
@@ -544,9 +542,9 @@ footer.page-footer {
       <div class="item"><input type="checkbox" id="i-l14"><label for="i-l14"><span class="item-title">Output storage full</span></label></div>
       <div class="item"><input type="checkbox" id="i-l15"><label for="i-l15"><span class="item-title">Out of fuel</span></label></div>
       <p class="subhead">Bud-to-Bud</p>
-      <div class="item"><input type="checkbox" id="i-l16"><label for="i-l16"><span class="item-title">Reacts to another Bud's mood change</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l16"><label for="i-l16"><span class="item-title">Reacts to another Bud's mood change</span><span class="item-detail">The reacting Bud's line should reference the specific new mood (the LLM is told the mood by name) — use <code>/bud debug --setMood</code> above to trigger this on demand.</span></label></div>
       <div class="item"><input type="checkbox" id="i-l17"><label for="i-l17"><span class="item-title">Greets another Bud</span></label></div>
-      <div class="item"><input type="checkbox" id="i-l18"><label for="i-l18"><span class="item-title">Reacts to another Bud's legendary memory</span></label></div>
+      <div class="item"><input type="checkbox" id="i-l18"><label for="i-l18"><span class="item-title">Reacts to another Bud's legendary memory</span><span class="item-detail">The reacting Bud's line should reference the specific memory (the LLM is given the exact memory text) — use <code>/bud memory set &lt;bud&gt; "&lt;text&gt;" --legendary</code> to trigger this on demand.</span></label></div>
       <div class="item"><input type="checkbox" id="i-l19"><label for="i-l19"><span class="item-title">Reacts to another Bud's state change (e.g. sitting down)</span></label></div>
       <div class="item"><input type="checkbox" id="i-l20"><label for="i-l20"><span class="item-title">A named back-and-forth reply chain plays out between two Buds</span></label></div>
       <p class="subhead">Memory &amp; dialog</p>

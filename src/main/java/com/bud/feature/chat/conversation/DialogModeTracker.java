@@ -91,13 +91,7 @@ public class DialogModeTracker extends AbstractTracker {
         World world = entityStore.getExternalData().getWorld();
         world.execute(() -> {
             try {
-                String playerName = playerRef.getUsername().toLowerCase();
-                DialogSessionState state = this.sessions.computeIfAbsent(playerName,
-                        ignored -> new DialogSessionState());
-                synchronized (state) {
-                    state.start(System.currentTimeMillis());
-                }
-                future.complete(processPlayer(playerEntityRef, playerRef));
+                future.complete(processPlayer(playerEntityRef, playerRef, true));
             } catch (Exception exception) {
                 future.completeExceptionally(exception);
             }
@@ -129,11 +123,12 @@ public class DialogModeTracker extends AbstractTracker {
 
             Store<EntityStore> entityStore = playerEntityRef.getStore();
             World world = entityStore.getExternalData().getWorld();
-            world.execute(() -> processPlayer(playerEntityRef, playerRef));
+            world.execute(() -> processPlayer(playerEntityRef, playerRef, false));
         }
     }
 
-    private boolean processPlayer(@Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef) {
+    private boolean processPlayer(@Nonnull Ref<EntityStore> playerEntityRef, @Nonnull PlayerRef playerRef,
+            boolean forceStart) {
         Store<EntityStore> entityStore = playerEntityRef.getStore();
         PlayerBudComponent playerComponent = entityStore.getComponent(playerEntityRef,
                 PlayerBudComponent.getComponentType());
@@ -158,7 +153,9 @@ public class DialogModeTracker extends AbstractTracker {
                 ignored -> new DialogSessionState());
 
         synchronized (state) {
-            if (!state.active) {
+            if (forceStart) {
+                state.start(now);
+            } else if (!state.active) {
                 long lastMessageAt = Orchestrator.getInstance().getLastGlobalMessageTime(playerRef.getUsername());
                 long idleMillis = TimeUnit.SECONDS
                         .toMillis(ConversationConfig.getInstance().getDialogModeIdleSeconds());

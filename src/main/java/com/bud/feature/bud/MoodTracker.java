@@ -140,6 +140,14 @@ public class MoodTracker extends AbstractTracker {
         }
     }
 
+    public void forceMood(@Nonnull BudComponent budComponent, @Nonnull Mood mood) {
+        BudDefinition budProfile = BudRegistry.getInstance().get(budComponent.getBudId());
+        budComponent.setCurrentMood(mood);
+        LoggerUtil.getLogger().info(() -> "[BUD] Mood force-set to " + mood.getDisplayName() + " for "
+                + budProfile.getDisplayName());
+        triggerMoodChangeReaction(budComponent, budProfile);
+    }
+
     private void triggerMoodChangeReaction(@Nonnull BudComponent budComponent, @Nonnull BudDefinition budProfile) {
         Ref<EntityStore> budRef = budComponent.getBud().getReference();
         if (budRef == null) {
