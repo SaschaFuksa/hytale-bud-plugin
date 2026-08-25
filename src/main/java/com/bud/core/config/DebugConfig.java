@@ -12,7 +12,7 @@ public class DebugConfig {
     private boolean enablePlayerInfo = false;
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
-    private boolean enableWorkingStateDebugCommand = false;
+    private boolean enableWorkingStateDebugInfo = false;
     private String logLevel = "INFO";
 
     private static volatile DebugConfig instance;
@@ -49,8 +49,8 @@ public class DebugConfig {
         return this.autoUpdateContentOnVersionMismatch;
     }
 
-    public boolean isEnableWorkingStateDebugCommand() {
-        return this.enableWorkingStateDebugCommand;
+    public boolean isEnableWorkingStateDebugInfo() {
+        return this.enableWorkingStateDebugInfo;
     }
 
     static {
@@ -75,9 +75,9 @@ public class DebugConfig {
                         (config, value) -> config.autoUpdateContentOnVersionMismatch = value,
                         config -> config.autoUpdateContentOnVersionMismatch)
                 .add()
-                .append(new KeyedCodec<>("EnableWorkingStateDebugCommand", Codec.BOOLEAN),
-                        (config, value) -> config.enableWorkingStateDebugCommand = value,
-                        config -> config.enableWorkingStateDebugCommand)
+                .append(new KeyedCodec<>("EnableWorkingStateDebugInfo", Codec.BOOLEAN),
+                        (config, value) -> config.enableWorkingStateDebugInfo = value,
+                        config -> config.enableWorkingStateDebugInfo)
                 .add()
                 .build();
     }

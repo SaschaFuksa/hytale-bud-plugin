@@ -44,6 +44,8 @@ public class BudComponent implements Component<EntityStore> {
 
     private boolean restSeated;
 
+    private boolean workTargetCorrected;
+
     @Nullable
     private WorkType workType;
 
@@ -162,6 +164,14 @@ public class BudComponent implements Component<EntityStore> {
 
     public void setRestSeated(boolean restSeated) {
         this.restSeated = restSeated;
+    }
+
+    public boolean isWorkTargetCorrected() {
+        return workTargetCorrected;
+    }
+
+    public void setWorkTargetCorrected(boolean workTargetCorrected) {
+        this.workTargetCorrected = workTargetCorrected;
     }
 
     @Nullable

@@ -238,8 +238,13 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         Vector3d currentTarget = boundBud.getWorkTarget();
         if (currentTarget != null) {
             float elapsed = workstation.getTargetElapsedSeconds() + dt;
-            if (elapsed < WorkConfig.getInstance().getTargetTimeoutSeconds()) {
+            float timeout = WorkConfig.getInstance().getTargetTimeoutSeconds();
+            if (elapsed < timeout) {
                 workstation.setTargetElapsedSeconds(elapsed);
+                if (!boundBud.isWorkTargetCorrected() && elapsed >= timeout / 2f) {
+                    correctStuckWorkPosition(chunkStore, boundBud, currentTarget);
+                    boundBud.setWorkTargetCorrected(true);
+                }
                 return;
             }
             Vector3i pendingFellBlockPosition = boundBud.getPendingFellBlockPosition();
@@ -298,6 +303,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         boundBud.setWorkType(assignment.workType());
         boundBud.setPendingCropBlockType(assignment.cropBlockType());
         boundBud.setPendingFellBlockPosition(assignment.workType() == WorkType.FELL ? assignment.position() : null);
+        boundBud.setWorkTargetCorrected(false);
         workstation.setTargetElapsedSeconds(0f);
     }
 
@@ -723,6 +729,35 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 transform.teleportPosition(target);
             }
             boundBud.setRestSeated(true);
+        });
+    }
+
+    private static final double STUCK_CORRECT_HORIZONTAL_RANGE = 3.0;
+
+    private static void correctStuckWorkPosition(@Nonnull Store<ChunkStore> chunkStore,
+            @Nonnull BudComponent boundBud, @Nonnull Vector3d target) {
+        World world = chunkStore.getExternalData().getWorld();
+        world.execute(() -> {
+            Store<EntityStore> entityStore = world.getEntityStore().getStore();
+            ComponentType<EntityStore, TransformComponent> transformType = TransformComponent.getComponentType();
+            if (entityStore == null || transformType == null) {
+                return;
+            }
+            Ref<EntityStore> budRef = boundBud.getBud().getReference();
+            if (budRef == null || !budRef.isValid()) {
+                return;
+            }
+            TransformComponent transform = entityStore.getComponent(budRef, transformType);
+            if (transform == null) {
+                return;
+            }
+            Vector3d position = transform.getPosition();
+            double dx = position.x - target.x;
+            double dz = position.z - target.z;
+            if (dx * dx + dz * dz > STUCK_CORRECT_HORIZONTAL_RANGE * STUCK_CORRECT_HORIZONTAL_RANGE) {
+                return;
+            }
+            transform.teleportPosition(new Vector3d(target.x, target.y + 0.5, target.z));
         });
     }
 

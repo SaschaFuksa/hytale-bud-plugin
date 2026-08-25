@@ -37,7 +37,7 @@ public class StateCommand extends AbstractPlayerCommand {
         passiveFlag = withFlagArg("passive", "Change Bud state to passive mode.");
         sittingFlag = withFlagArg("sitting", "Change Bud state to sitting mode.");
         workingFlag = withFlagArg("working",
-                "Debug (disabled by default, see DebugConfig.EnableWorkingStateDebugCommand): change Bud state "
+                "Debug (disabled by default, see DebugConfig.enableWorkingStateDebugInfo): change Bud state "
                         + "to working mode without a Workstation.");
     }
 
@@ -65,10 +65,10 @@ public class StateCommand extends AbstractPlayerCommand {
                             + playerRef.getUsername());
             changeState(ref, store, BudState.PET_SITTING);
         } else if (workingFlag.get(context)) {
-            if (!DebugConfig.getInstance().isEnableWorkingStateDebugCommand()) {
+            if (!DebugConfig.getInstance().isEnableWorkingStateDebugInfo()) {
                 LoggerUtil.getLogger()
                         .warning(
-                                () -> "[BUD] --working is disabled (see DebugConfig.EnableWorkingStateDebugCommand) for "
+                                () -> "[BUD] --working is disabled (see DebugConfig.enableWorkingStateDebugInfo) for "
                                         + playerRef.getUsername());
                 return;
             }
