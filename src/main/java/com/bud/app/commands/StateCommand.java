@@ -5,11 +5,9 @@ import javax.annotation.Nonnull;
 import com.bud.core.BudManager;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
-import com.bud.core.config.DebugConfig;
 import com.bud.core.types.BudState;
 import com.bud.feature.queue.state.StateChangeEntry;
 import com.bud.feature.queue.state.StateChangeQueue;
-import com.bud.feature.state.StateChangeEvent;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -29,16 +27,11 @@ public class StateCommand extends AbstractPlayerCommand {
 
     private final FlagArg sittingFlag;
 
-    private final FlagArg workingFlag;
-
     public StateCommand() {
         super("state", "Commands for checking and managing Bud state.");
         defensiveFlag = withFlagArg("defensive", "Change Bud state to defensive mode.");
         passiveFlag = withFlagArg("passive", "Change Bud state to passive mode.");
         sittingFlag = withFlagArg("sitting", "Change Bud state to sitting mode.");
-        workingFlag = withFlagArg("working",
-                "Debug (disabled by default, see DebugConfig.enableWorkingStateDebugInfo): change Bud state "
-                        + "to working mode without a Workstation.");
     }
 
     @Override
@@ -64,18 +57,6 @@ public class StateCommand extends AbstractPlayerCommand {
                     .fine(() -> "[BUD] Changing Bud state to sitting mode for player "
                             + playerRef.getUsername());
             changeState(ref, store, BudState.PET_SITTING);
-        } else if (workingFlag.get(context)) {
-            if (!DebugConfig.getInstance().isEnableWorkingStateDebugInfo()) {
-                LoggerUtil.getLogger()
-                        .warning(
-                                () -> "[BUD] --working is disabled (see DebugConfig.enableWorkingStateDebugInfo) for "
-                                        + playerRef.getUsername());
-                return;
-            }
-            LoggerUtil.getLogger()
-                    .fine(() -> "[BUD] Changing Bud state to working mode (debug) for player "
-                            + playerRef.getUsername());
-            setWorkingSilently(ref, store, playerRef);
         } else {
             LoggerUtil.getLogger()
                     .fine(() -> "[BUD] Changing Bud state to next state for player " + playerRef.getUsername());
@@ -110,23 +91,6 @@ public class StateCommand extends AbstractPlayerCommand {
             }
             StateChangeQueue.getInstance()
                     .addToCache(new StateChangeEntry(resolvedTargetState, budComponent));
-        }
-    }
-
-    private void setWorkingSilently(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
-            @Nonnull PlayerRef playerRef) {
-        PlayerBudComponent playerComponent = store.getComponent(ref, PlayerBudComponent.getComponentType());
-        for (NPCEntity bud : playerComponent.getCurrentBuds()) {
-            Ref<EntityStore> budRef = bud.getReference();
-            if (budRef == null || !budRef.isValid()) {
-                continue;
-            }
-            BudComponent budComponent = store.getComponent(budRef, BudComponent.getComponentType());
-            if (budComponent == null || budComponent.getCurrentState() == BudState.WORKING) {
-                continue;
-            }
-            budComponent.setCurrentState(BudState.WORKING);
-            StateChangeEvent.dispatch(budComponent.getBud(), playerRef, BudState.WORKING);
         }
     }
 

@@ -12,7 +12,6 @@ public class DebugConfig {
     private boolean enablePlayerInfo = false;
     private boolean enableBudDebugInfo = false;
     private boolean enableMoodChangeDebugInfo = false;
-    private boolean enableWorkingStateDebugInfo = false;
     private String logLevel = "INFO";
 
     private static volatile DebugConfig instance;
@@ -49,10 +48,6 @@ public class DebugConfig {
         return this.autoUpdateContentOnVersionMismatch;
     }
 
-    public boolean isEnableWorkingStateDebugInfo() {
-        return this.enableWorkingStateDebugInfo;
-    }
-
     static {
         CODEC = BuilderCodec.builder(DebugConfig.class, DebugConfig::new)
                 .append(new KeyedCodec<>("EnablePlayerInfo", Codec.BOOLEAN),
@@ -74,10 +69,6 @@ public class DebugConfig {
                 .append(new KeyedCodec<>("AutoUpdateContentOnVersionMismatch", Codec.BOOLEAN),
                         (config, value) -> config.autoUpdateContentOnVersionMismatch = value,
                         config -> config.autoUpdateContentOnVersionMismatch)
-                .add()
-                .append(new KeyedCodec<>("EnableWorkingStateDebugInfo", Codec.BOOLEAN),
-                        (config, value) -> config.enableWorkingStateDebugInfo = value,
-                        config -> config.enableWorkingStateDebugInfo)
                 .add()
                 .build();
     }
