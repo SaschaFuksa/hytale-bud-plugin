@@ -175,8 +175,8 @@ public final class WorkRecipeConfig {
             try {
                 WorkRole role = WorkRole.valueOf(entry.getKey());
                 Map<String, String> pattern = entry.getValue();
-                String prefix = Objects.requireNonNullElse(pattern.get("prefix"), "");
-                String suffix = Objects.requireNonNullElse(pattern.get("suffix"), "");
+                String prefix = Objects.requireNonNull(Objects.requireNonNullElse(pattern.get("prefix"), ""));
+                String suffix = Objects.requireNonNull(Objects.requireNonNullElse(pattern.get("suffix"), ""));
                 seedTargetPatternByRole.put(role, new SeedTargetPattern(prefix, suffix));
             } catch (IllegalArgumentException e) {
                 String roleName = entry.getKey();
@@ -207,7 +207,7 @@ public final class WorkRecipeConfig {
 
     @Nullable
     public Integer getTreeGrowthStageSeconds(int stage) {
-        Integer perStage = treeGrowthStageSeconds.get(Integer.valueOf(stage));
+        Integer perStage = treeGrowthStageSeconds.get(stage);
         return perStage != null ? perStage : treeGrowthDefaultSeconds;
     }
 

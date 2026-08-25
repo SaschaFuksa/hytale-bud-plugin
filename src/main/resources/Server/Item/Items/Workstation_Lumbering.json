@@ -18,15 +18,15 @@
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Wood_Fire_Trunk",
+        "ItemId": "Wood_Fire_Trunk",
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Wood_Crystal_Trunk",
+        "ItemId": "Wood_Crystal_Trunk",
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Wood_Azure_Trunk",
+        "ItemId": "Wood_Azure_Trunk",
         "Quantity": 10
       }
     ],

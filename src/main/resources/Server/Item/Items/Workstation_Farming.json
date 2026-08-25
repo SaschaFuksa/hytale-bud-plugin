@@ -18,15 +18,15 @@
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Plant_Crop_Onion_Item",
+        "ItemId": "Plant_Crop_Onion_Item",
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Plant_Crop_Pumpkin_Item",
+        "ItemId": "Plant_Crop_Pumpkin_Item",
         "Quantity": 10
       },
       {
-        "ResourceTypeId": "Plant_Fruit_Berries_Red",
+        "ItemId": "Plant_Fruit_Berries_Red",
         "Quantity": 100
       }
     ],

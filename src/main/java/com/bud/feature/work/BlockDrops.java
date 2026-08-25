@@ -1,6 +1,7 @@
 package com.bud.feature.work;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,12 +20,12 @@ public final class BlockDrops {
     @Nonnull
     public static List<ItemStack> resolveBreakingDrops(@Nullable BlockType blockType) {
         if (blockType == null) {
-            return List.of();
+            return Objects.requireNonNull(List.of());
         }
         BlockGathering gathering = blockType.getGathering();
         BlockBreakingDropType breaking = gathering != null ? gathering.getBreaking() : null;
         if (breaking == null) {
-            return List.of();
+            return Objects.requireNonNull(List.of());
         }
         return BlockHarvestUtils.getDrops(blockType, breaking.getQuantity(), breaking.getItemId(),
                 breaking.getDropListId());

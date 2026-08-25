@@ -494,7 +494,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             Map<Vector3i, Vector3i> visibleFellCandidateWalkTargets = new LinkedHashMap<>();
             for (Vector3i position : rawFellCandidates) {
                 @Nullable
-                Vector3i walkableNeighbor = LumberingFieldScan.findWalkableFellNeighbor(world, position);
+                Vector3i walkableNeighbor = LumberingFieldScan.findWalkableFellNeighbor(world,
+                        Objects.requireNonNull(position));
                 if (walkableNeighbor != null) {
                     visibleFellCandidateWalkTargets.put(position, Objects.requireNonNull(walkableNeighbor));
                 }

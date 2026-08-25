@@ -286,7 +286,7 @@ final class WorkstationBindingHandler {
         }
         BudSpawner result = spawner;
         for (int slot = 0; slot < tools.size(); slot++) {
-            result = result.addTool(tools.get(slot), (short) slot);
+            result = result.addTool(Objects.requireNonNull(tools.get(slot)), (short) slot);
         }
         return result;
     }
