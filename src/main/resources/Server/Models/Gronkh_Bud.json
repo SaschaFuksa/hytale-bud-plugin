@@ -36,7 +36,7 @@
     "Fell": {
       "Animations": [
         {
-          "Animation": "NPC/Intelligent/Trork/Animations/Items/Battleaxe/Interact.blockyanim",
+          "Animation": "Characters/Animations/Items/Dual_Handed/Battleaxe/Attacks/Swing_Down/Swing_Down.blockyanim",
           "Looping": false
         }
       ]

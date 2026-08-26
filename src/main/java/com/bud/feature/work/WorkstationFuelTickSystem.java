@@ -146,7 +146,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         }
     }
 
-    private static void updateBlockInteractionState(@Nonnull Store<ChunkStore> store, @Nonnull Ref<ChunkStore> ref,
+    static void updateBlockInteractionState(@Nonnull Store<ChunkStore> store, @Nonnull Ref<ChunkStore> ref,
             @Nonnull ProcessingBenchBlock processingBenchBlock, boolean active) {
         Vector3i position = WorkstationBindingHandler.resolveWorkstationBlockPosition(store, ref);
         if (position == null) {

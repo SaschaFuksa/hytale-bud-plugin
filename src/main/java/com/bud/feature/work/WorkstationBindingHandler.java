@@ -162,6 +162,7 @@ final class WorkstationBindingHandler {
         boolean hasFuel = !isEmptyStack(processingBenchBlock.getFuelContainer().getItemStack(FEED_SLOT));
         workstation.setFuelSecondsRemaining(hasFuel ? WorkConfig.getInstance().getFuelDurationSeconds() : 0f);
         workstation.setResting(!hasFuel);
+        WorkstationFuelTickSystem.updateBlockInteractionState(chunkStore, ref, processingBenchBlock, hasFuel);
 
         BlockModule.BlockStateInfo blockStateInfo = chunkStore.getComponent(ref,
                 Objects.requireNonNull(BlockModule.BlockStateInfo.getComponentType()));
