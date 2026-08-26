@@ -23,7 +23,7 @@ public enum Mood {
     }
 
     public static Mood getRandomMood() {
-        Mood[] moods = { SAD, INSANE, OVERMOTIVATED, GRUMPY, DAZED };
+        Mood[] moods = { SAD, INSANE, GRUMPY, DAZED };
         return moods[RANDOM.nextInt(moods.length)];
     }
 }
