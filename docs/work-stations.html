@@ -234,7 +234,7 @@
             <tr><td><code>OreMinDistance</code></td><td>Minimum horizontal distance (blocks) a Mining Bud keeps between its dig sites, so holes stay spread across the field.</td><td class="num">2</td></tr>
             <tr><td><code>MiningGrowthGameSecondsMin</code></td><td>Lower bound of the <strong>game-time</strong> seconds a dug hole takes to grow its stone. Game time stands still while the server is down. The game clock runs at 30× real time by default (<code>86400 / (DaytimeDurationSeconds + NighttimeDurationSeconds)</code>), so 28800 is roughly 16 real minutes.</td><td class="num">28800</td></tr>
             <tr><td><code>MiningGrowthGameSecondsMax</code></td><td>Upper bound of the same span; each hole rolls its own duration so dig sites don't all mature in lockstep.</td><td class="num">30600</td></tr>
-            <tr><td><code>FuelDurationSeconds</code></td><td>How long one unit of fuel keeps a bound Bud working.</td><td class="num">120</td></tr>
+            <tr><td><code>FuelDurationSeconds</code></td><td>How long one unit of fuel keeps a bound Bud working.</td><td class="num">600</td></tr>
             <tr><td><code>RebindRetrySeconds</code></td><td>Retry interval for re-binding a Bud to its Workstation after the owner wasn't online at load time.</td><td class="num">10</td></tr>
           </tbody>
         </table>

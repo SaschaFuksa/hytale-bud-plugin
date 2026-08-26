@@ -33,7 +33,7 @@ public class WorkConfig {
     private int treeRootDepth = 4;
     private int treeRootRadius = 1;
     private int oreMinDistance = 2;
-    private int fuelDurationSeconds = 120;
+    private int fuelDurationSeconds = 600;
     private int rebindRetrySeconds = 10;
     private int miningGrowthGameSecondsMin = 5000;
     private int miningGrowthGameSecondsMax = 5100;
