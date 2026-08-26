@@ -132,6 +132,10 @@
         <span class="loop-step">Fertilize</span><span class="loop-arrow">→</span>
         <span class="loop-step">Harvest</span>
       </div>
+      <figure class="field-diagram">
+        <img src="images/bud_fields-farming.png" alt="Farming field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the tillable field">
+        <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow is the whole tillable field (see <a href="#field-size">Field size</a> below).</figcaption>
+      </figure>
       <p>Accepted seeds (<code>allowedSeeds: FARMING</code> in <code>work/recipes.yml</code>): Aubergine, Carrot, Cauliflower, Chilli, Corn, Cotton, Lettuce, Onion, Potato, Pumpkin, Rice, Tomato, Turnip, Wheat — plus each crop's Eternal variant.</p>
     </section>
 
@@ -144,6 +148,10 @@
         <span class="loop-step">Plant</span><span class="loop-arrow">→</span>
         <span class="loop-step">Fell</span>
       </div>
+      <figure class="field-diagram">
+        <img src="images/bud_fields-lumbering.png" alt="Lumbering field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the fixed tree-planting spots">
+        <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow the fixed compass-edge spots where Gronkh plants trees (see <a href="#field-size">Field size</a> below).</figcaption>
+      </figure>
       <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow. Both a seed bag (<code>Plant_Seeds_&lt;species&gt;</code>) and a raw crafted sapling (<code>Plant_Sapling_&lt;species&gt;</code>) work in the same slot — Gronkh plants either one identically.</p>
       <p>Gronkh only fells a tree once it has reached its <strong>final</strong> growth stage. A tree stuck mid-growth (see <a href="#tree-roots">Tree roots</a> — usually a root-depth problem) is left alone entirely: it won't be felled early, and it won't be endlessly retried. Once it either finishes growing or you fix what's blocking it, felling picks it up on the next field scan.</p>
       <div class="callout warning">
@@ -160,6 +168,10 @@
         <span class="loop-step">Wait for growth</span><span class="loop-arrow">→</span>
         <span class="loop-step">Mine</span>
       </div>
+      <figure class="field-diagram">
+        <img src="images/bud_fields-mining.png" alt="Mining field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the fixed ore-bearing main nodes">
+        <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow the field's fixed ore-bearing main nodes. Random dig holes (capped per size, see <a href="#field-size">Field size</a> below) can appear anywhere else in the field.</figcaption>
+      </figure>
       <p>Accepted ore (<code>allowedSeeds: MINING</code>): Adamantite, Cobalt, Copper, Gold, Iron, Mithril, Onyxium, Prisma, Silver, Thorium.</p>
     </section>
 
@@ -176,6 +188,7 @@
           </tbody>
         </table>
       </div>
+      <p>The Mining radius number does double duty: besides sizing the field, it caps how many <em>random</em> stone dig sites (the ones scattered across the field, as opposed to the fixed ore nodes) Veri keeps open at once — 3 on SMALL, 5 on MEDIUM, 7 on LARGE. Once that many are open and still growing, Veri holds off digging new ones until one is mined and cleared.</p>
     </section>
 
     <section id="tree-roots">

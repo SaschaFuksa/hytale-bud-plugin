@@ -48,6 +48,7 @@ public final class LumberingFieldScan {
         if (rootSpace.hasTree()) {
             return;
         }
+        world.setBlock(position.x, position.y, position.z, ROOT_FILL_BLOCK);
         for (Vector3i blocked : rootSpace.blocked()) {
             world.setBlock(blocked.x, blocked.y, blocked.z, ROOT_FILL_BLOCK);
         }
