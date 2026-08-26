@@ -98,17 +98,35 @@
           </ul>
         </div>
       </div>
+      <div class="screenshot-row">
+        <figure class="screenshot">
+          <img src="images/screenshot_craft-station.png" alt="Workbench crafting menu with the Farming Workstation recipe selected, showing its ingredient requirements">
+          <figcaption>Crafting a Workstation at the Workbench — themed ingredients per role, same as the table above.</figcaption>
+        </figure>
+        <figure class="screenshot">
+          <img src="images/screenshot_inventory-stations.png" alt="Hotbar showing the three crafted Workstation items next to a player's tools">
+          <figcaption>All three Workstations, crafted and ready to place.</figcaption>
+        </figure>
+      </div>
       <p>Place the Workstation, then open it — it has a card slot, a secondary input slot (seeds/saplings/ore, depending on role), and a fuel slot with 8 output slots.</p>
     </section>
 
     <section id="binding">
       <h2>Binding a Bud</h2>
       <p>Drop the matching <a href="cards.html">Bud Card</a> into the Workstation's card slot — the Bud spawns (or teleports in, if already active) directly at the station and switches into its Working state. Each Workstation only accepts the Bud whose role matches: Keyleth for Farming, Gronkh for Lumbering, Veri for Mining. Removing the card unbinds and despawns the Bud again.</p>
+      <figure class="screenshot">
+        <img src="images/screenshot_inventory-cards.png" alt="Hotbar showing the three Bud Cards and the Roster card next to a player's tools">
+        <figcaption>The Bud Cards that go into a Workstation's card slot — see <a href="cards.html">Bud Cards</a> for the full recipes.</figcaption>
+      </figure>
     </section>
 
     <section id="fuel">
       <h2>Fuel &amp; resting</h2>
       <p>A bound Bud needs fuel in the Workstation's fuel slot to keep working — each accepted food item covers <code>FuelDurationSeconds</code> (120s by default) of work. Out of fuel, or nothing left to do in the field, and the Bud switches to its Resting sub-state (idle pose, near or on the station) until fuel is added or new work appears.</p>
+      <figure class="screenshot">
+        <img src="images/screenshot_workstation.png" alt="Farming Workstation's own window, showing the Fuel, Input and Output slots and the Turn Off button">
+        <figcaption>A Workstation's own window — Fuel on the left (with the native Turn Off toggle), the role-specific Input in the middle, Output on the right.</figcaption>
+      </figure>
       <div class="table-scroll">
         <table class="data-table">
           <thead><tr><th>Role</th><th>Accepted fuel</th></tr></thead>
@@ -136,6 +154,10 @@
         <img src="images/bud_fields-farming.png" alt="Farming field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the tillable field">
         <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow is the whole tillable field (see <a href="#field-size">Field size</a> below).</figcaption>
       </figure>
+      <figure class="screenshot">
+        <img src="images/screenshot_farming.png" alt="Keyleth working a Farming field in-game, tilling and tending rows of crops">
+        <figcaption>Keyleth mid-shift on a Farming field — tilled rows, a watering can, and ripening crops.</figcaption>
+      </figure>
       <p>Accepted seeds (<code>allowedSeeds: FARMING</code> in <code>work/recipes.yml</code>): Aubergine, Carrot, Cauliflower, Chilli, Corn, Cotton, Lettuce, Onion, Potato, Pumpkin, Rice, Tomato, Turnip, Wheat — plus each crop's Eternal variant.</p>
     </section>
 
@@ -151,6 +173,10 @@
       <figure class="field-diagram">
         <img src="images/bud_fields-lumbering.png" alt="Lumbering field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the fixed tree-planting spots">
         <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow the fixed compass-edge spots where Gronkh plants trees (see <a href="#field-size">Field size</a> below).</figcaption>
+      </figure>
+      <figure class="screenshot">
+        <img src="images/screenshot_lumbering.png" alt="Gronkh working near the Lumbering Workstation, deep in the tree line">
+        <figcaption>Gronkh working the Lumbering field, Workstation just behind him.</figcaption>
       </figure>
       <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow. Both a seed bag (<code>Plant_Seeds_&lt;species&gt;</code>) and a raw crafted sapling (<code>Plant_Sapling_&lt;species&gt;</code>) work in the same slot — Gronkh plants either one identically.</p>
       <p>Gronkh only fells a tree once it has reached its <strong>final</strong> growth stage. A tree stuck mid-growth (see <a href="#tree-roots">Tree roots</a> — usually a root-depth problem) is left alone entirely: it won't be felled early, and it won't be endlessly retried. Once it either finishes growing or you fix what's blocking it, felling picks it up on the next field scan.</p>
@@ -171,6 +197,10 @@
       <figure class="field-diagram">
         <img src="images/bud_fields-mining.png" alt="Mining field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the fixed ore-bearing main nodes">
         <figcaption>SMALL / MEDIUM / LARGE compared — red is the Workstation, yellow the field's fixed ore-bearing main nodes. Random dig holes (capped per size, see <a href="#field-size">Field size</a> below) can appear anywhere else in the field.</figcaption>
+      </figure>
+      <figure class="screenshot">
+        <img src="images/screenshot_mining.png" alt="Veri working dig sites around the Mining Workstation, rubble from broken stone scattered nearby">
+        <figcaption>Veri working the Mining field — dig-site rubble scattered around the Workstation.</figcaption>
       </figure>
       <p>Accepted ore (<code>allowedSeeds: MINING</code>): Adamantite, Cobalt, Copper, Gold, Iron, Mithril, Onyxium, Prisma, Silver, Thorium.</p>
     </section>

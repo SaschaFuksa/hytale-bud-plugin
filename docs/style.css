@@ -976,6 +976,44 @@ footer {
   text-align: center;
 }
 
+/* Gameplay screenshots */
+
+.screenshot {
+  margin: 1.2rem 0 1.5rem;
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow);
+}
+
+.screenshot figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.screenshot-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin: 1.2rem 0 1.5rem;
+}
+
+.screenshot-row .screenshot {
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .screenshot-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Callouts */
 
 .callout {
