@@ -24,6 +24,22 @@ This is a proof of concept (PoC) plugin for Hytale that integrates **Large Langu
 
 > Upgrading from an older version? Remove the `/prompts` folder, or update it with `/bud prompt reset`.
 
+### New in 2.0.0.:
+
+- **Bud 2 Bud Reactions**: Buds now react to each other's mood changes, spawns, state changes (e.g. sitting down), and legendary memories, and can chain into a couple of named back-and-forth replies before going quiet again
+- **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds, including a shared "legendary" memory between a pair of buds
+- **Bud Player State Reactions**: Your buds will now react if you have status effects like poisoned, health regeneration e.g.
+- **Data-driven Bud registry**: Buds are no longer a hardcoded `BudType` enum. Each companion is now defined by a `buds/<id>.yml` file (`BudRegistry`/`BudDefinition`), with `buds/roster.yml` controlling the default roster `/bud create` spawns without an argument. New Buds only need a new YAML file plus matching game assets — no plugin rebuild.
+- **New Commands**:
+  - `/bud memory set <bud> "<text>" [--legendary]` — manually add a memory (or legendary memory) for a Bud.
+  - `/bud memory delete <bud> <index> [--legendary]` — remove a memory by index. `/bud memory` and `/bud memory --legendary` now print the index of each entry so you know what to pass here.
+  - `/bud delete --playername <name>` — delete another player's Buds (admin only).
+  - `/bud create <bud>` now takes a generic, tab-completed Bud id instead of fixed `--veri`/`--gronkh`/`--keyleth` flags.
+- **Central Version Management**: Global version file and prompt/bud-config reloading
+- **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
+- **Bud Cards**: Optical rework and texture now matches the card.
+- **Bud Work Stations**: Now you can send your bud to work an harvest/lumber/mine items
+
 ### Meet the Buddies
 
 <table>

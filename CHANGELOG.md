@@ -4,8 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.0]
 ### Added
-- **Bud 2 Bud Reactions**: Buds now react to each other's mood changes, spawns, state changes (e.g. sitting down), and legendary memories, and can chain into a couple of named back-and-forth replies before going quiet again.
-- **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds, including a shared "legendary" memory between a pair of buds.
+- **Bud 2 Bud Reactions**: Buds now react to each other's mood changes, spawns, state changes (e.g. sitting down), and legendary memories, and can chain into a couple of named back-and-forth replies before going quiet again
+- **Bud 2 Bud Memories**: Your buds will now have persisted memories about other buds, including a shared "legendary" memory between a pair of buds
 - **Bud Player State Reactions**: Your buds will now react if you have status effects like poisoned, health regeneration e.g.
 - **Data-driven Bud registry**: Buds are no longer a hardcoded `BudType` enum. Each companion is now defined by a `buds/<id>.yml` file (`BudRegistry`/`BudDefinition`), with `buds/roster.yml` controlling the default roster `/bud create` spawns without an argument. New Buds only need a new YAML file plus matching game assets — no plugin rebuild.
 - **New Commands**:
@@ -17,8 +17,6 @@ All notable changes to this project will be documented in this file.
 - **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
 - **Bud Cards**: Optical rework and texture now matches the card.
 - **Bud Work Stations**: Now you can send your bud to work an harvest/lumber/mine items
-- **Mining turns into a quarry**: Veri's dug-out holes now refill with `Soil_Calcite_Gravel` instead of dirt (still diggable), so a heavily-worked Mining field gradually becomes a gravel quarry.
-- **Lumbering field decoration**: Whenever Gronkh has nothing else to do, he plants `Plant_Grass_Sharp`/`Plant_Grass_Sharp_Tall` tufts on empty field ground, one at a time, up to the field radius per grass type (short grass first) — never on a tree's own planting spot.
 
 
 ### Fixed
