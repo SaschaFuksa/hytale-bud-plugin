@@ -39,6 +39,7 @@ public class WorkConfig {
     private int miningGrowthGameSecondsMax = 5100;
     private int digIntervalSeconds = 1;
     private int mineIntervalSeconds = 1;
+    private int decorateIntervalSeconds = 1;
 
     private static volatile WorkConfig instance;
 
@@ -182,6 +183,10 @@ public class WorkConfig {
         return this.mineIntervalSeconds;
     }
 
+    public int getDecorateIntervalSeconds() {
+        return this.decorateIntervalSeconds;
+    }
+
     static {
         CODEC = BuilderCodec.builder(WorkConfig.class, WorkConfig::new)
                 .append(new KeyedCodec<>("FarmingFieldSize", Codec.STRING),
@@ -279,6 +284,10 @@ public class WorkConfig {
                 .append(new KeyedCodec<>("MineIntervalSeconds", Codec.INTEGER),
                         (config, value) -> config.mineIntervalSeconds = value,
                         config -> config.mineIntervalSeconds)
+                .add()
+                .append(new KeyedCodec<>("DecorateIntervalSeconds", Codec.INTEGER),
+                        (config, value) -> config.decorateIntervalSeconds = value,
+                        config -> config.decorateIntervalSeconds)
                 .add()
                 .build();
     }

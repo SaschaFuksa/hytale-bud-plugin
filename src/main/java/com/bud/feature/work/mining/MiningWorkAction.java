@@ -18,6 +18,7 @@ import com.bud.feature.work.BlockDrops;
 import com.bud.feature.work.WorkToolItems;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationLookup;
+import com.bud.feature.work.WorkstationOrientation;
 import com.bud.feature.work.WorkstationOutputFullReactions;
 import com.bud.feature.work.WorkstationSeedUtil;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
@@ -92,13 +93,14 @@ public class MiningWorkAction extends AbstractWorkAction {
             return;
         }
         int radius = WorkConfig.getInstance().getFieldRadius(WorkRole.MINING);
-        int nodeKind = MiningFieldScan.nodeKindFor(anchor, radius, x, z);
+        boolean spotsOnXAxis = WorkstationOrientation.spotsOnXAxis(world, anchor);
+        int nodeKind = MiningFieldScan.nodeKindFor(anchor, radius, spotsOnXAxis, x, z);
         if (nodeKind == OreGrowthBlock.KIND_RANDOM) {
             MiningGrowthUtil.startGrowth(world, position, nodeKind, null);
             return;
         }
         if (nodeKind == OreGrowthBlock.KIND_NODE_ARM) {
-            String inherited = MiningFieldScan.resolveNodeOreBlock(world, anchor, radius, x, z);
+            String inherited = MiningFieldScan.resolveNodeOreBlock(world, anchor, radius, spotsOnXAxis, x, z);
             if (inherited == null) {
                 if (DebugConfig.getInstance().isEnableBudDebugInfo()) {
                     LoggerUtil.getLogger().info(() -> "[BUD] Veri arrived at node arm " + position

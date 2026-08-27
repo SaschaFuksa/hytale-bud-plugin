@@ -102,6 +102,8 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     private int cachedEdgeCount = Integer.MIN_VALUE;
 
+    private boolean cachedEdgeSpotsOnXAxis;
+
     @Nonnull
     public static final BuilderCodec<WorkstationBlockEntity> CODEC = BuilderCodec
             .builder(WorkstationBlockEntity.class, WorkstationBlockEntity::new)
@@ -302,10 +304,11 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
 
     @Nonnull
     public List<Vector3i> cachedEdgePositions(@Nonnull Vector3i flooredAnchor, int radius, int maxHeight,
-            int edgeCount, @Nonnull Supplier<List<Vector3i>> compute) {
+            int edgeCount, boolean spotsOnXAxis, @Nonnull Supplier<List<Vector3i>> compute) {
         List<Vector3i> cached = cachedEdgePositions;
         if (cached != null && flooredAnchor.equals(cachedEdgeAnchor) && cachedEdgeRadius == radius
-                && cachedEdgeMaxHeight == maxHeight && cachedEdgeCount == edgeCount) {
+                && cachedEdgeMaxHeight == maxHeight && cachedEdgeCount == edgeCount
+                && cachedEdgeSpotsOnXAxis == spotsOnXAxis) {
             return cached;
         }
         List<Vector3i> computed = Objects.requireNonNull(compute.get());
@@ -314,6 +317,7 @@ public class WorkstationBlockEntity implements Component<ChunkStore> {
         cachedEdgeRadius = radius;
         cachedEdgeMaxHeight = maxHeight;
         cachedEdgeCount = edgeCount;
+        cachedEdgeSpotsOnXAxis = spotsOnXAxis;
         return computed;
     }
 

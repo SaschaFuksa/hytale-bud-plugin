@@ -168,7 +168,8 @@
         <span class="loop-step">Prepare Soil</span><span class="loop-arrow">→</span>
         <span class="loop-step">Till</span><span class="loop-arrow">→</span>
         <span class="loop-step">Plant</span><span class="loop-arrow">→</span>
-        <span class="loop-step">Fell</span>
+        <span class="loop-step">Fell</span><span class="loop-arrow">→</span>
+        <span class="loop-step">Decorate</span>
       </div>
       <figure class="field-diagram">
         <img src="images/bud_fields-lumbering.png" alt="Lumbering field compared at SMALL, MEDIUM and LARGE size, red marking the Workstation and yellow the fixed tree-planting spots">
@@ -181,6 +182,7 @@
       <p>Accepted saplings (<code>allowedSeeds: LUMBERING</code>): Ash, Aspen, Azure, Bamboo, Beech, Birch, Bottletree, Cedar, Crystal, Dry, Fir, Fire, Frostwood, Gumboab, Jungle, Maple, Oak, Palm, Palo, Redwood, Sallow, Spiral, Willow. Both a seed bag (<code>Plant_Seeds_&lt;species&gt;</code>) and a raw crafted sapling (<code>Plant_Sapling_&lt;species&gt;</code>) work in the same slot — Gronkh plants either one identically.</p>
       <p>Gronkh only fells a tree once it has reached its <strong>final</strong> growth stage. A tree stuck mid-growth (see <a href="#tree-roots">Tree roots</a> — usually a root-depth problem) is left alone entirely: it won't be felled early, and it won't be endlessly retried. Once it either finishes growing or you fix what's blocking it, felling picks it up on the next field scan.</p>
       <p>Felling only ever removes the one tree assigned to its own planting spot, never a neighboring tree even if their canopies overlap on a LARGE field, and never a wood-built construction (fence, planks, beam, wall, roof) standing nearby — only actual tree parts (trunk, branches, roots) are recognized as "tree".</p>
+      <p>Whenever there's nothing else to do, Gronkh decorates the field with <code>Plant_Grass_Sharp</code> and <code>Plant_Grass_Sharp_Tall</code> tufts on empty ground between the tree spots, one tile at a time — short grass first, up to the field radius, then tall grass up to the same count. It never touches a tree's own planting spot, so it can't interfere with growth.</p>
       <div class="callout warning">
         <span class="callout-icon">⚠️</span>
         <span class="callout-body"><strong>Keep the Lumbering field level ground</strong> for now. Felling refills each root pit with dirt up to the Workstation's own ground level — correct on flat terrain, but on a slope or step it fills to the station's height rather than the tree's own local ground, so a felled tree well above or below the station can leave the fill looking off. Support for genuinely uneven terrain (filling back up to a tree's own original height) was attempted and reverted after it triggered a chunk-loading crash; it needs a safer approach before it comes back.</span>
@@ -204,6 +206,7 @@
         <figcaption>Veri working the Mining field — dig-site rubble scattered around the Workstation.</figcaption>
       </figure>
       <p>Accepted ore (<code>allowedSeeds: MINING</code>): Adamantite, Cobalt, Copper, Gold, Iron, Mithril, Onyxium, Prisma, Silver, Thorium.</p>
+      <p>Dug-out holes refill with <code>Soil_Calcite_Gravel</code> (<code>digRefillBlock</code> in <code>work/recipes.yml</code>) instead of dirt, so a well-worked Mining field gradually turns into a gravel quarry. It stays diggable too — gravel is on the <code>diggableBlocks</code> list, so Veri keeps reusing already-refilled ground for new holes instead of running out of field.</p>
     </section>
 
     <section id="field-size">
@@ -220,6 +223,7 @@
         </table>
       </div>
       <p>The Mining radius number does double duty: besides sizing the field, it caps how many <em>random</em> stone dig sites (the ones scattered across the field, as opposed to the fixed ore nodes) Veri keeps open at once — 3 on SMALL, 5 on MEDIUM, 7 on LARGE. Once that many are open and still growing, Veri holds off digging new ones until one is mined and cleared.</p>
+      <p>On SMALL, both roles only get 2 spots, laid out across whichever way the Workstation is facing — turn the station north/south and the two tree spots or ore nodes sit east/west of it, turn it east/west and they sit north/south. MEDIUM and LARGE aren't affected: their 4- and 8-spot layouts are symmetric in every direction.</p>
     </section>
 
     <section id="tree-roots">

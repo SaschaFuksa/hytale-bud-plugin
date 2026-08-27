@@ -180,7 +180,8 @@ diggableBlocks:
   - Rock_Stone_Mossy
   - Rock_Stone_Cobble
   - Rock_Stone_Cobble_Mossy
+  - Soil_Calcite_Gravel
 
-digRefillBlock: Soil_Dirt
+digRefillBlock: Soil_Calcite_Gravel
 
 treeGrowthStageSeconds: {default: 10000}

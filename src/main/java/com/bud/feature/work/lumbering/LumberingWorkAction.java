@@ -19,6 +19,7 @@ import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.WorkToolItems;
 import com.bud.feature.work.WorkstationBlockEntity;
 import com.bud.feature.work.WorkstationLookup;
+import com.bud.feature.work.WorkstationOrientation;
 import com.bud.feature.work.WorkstationOutputFullReactions;
 import com.hypixel.hytale.builtin.crafting.component.ProcessingBenchBlock;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
@@ -66,6 +67,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
         switch (workType) {
             case FELL -> executeFell(world, bud, x, y, z);
             case PREPARE_SOIL -> LumberingFieldScan.prepareRootSpace(world, new Vector3i(x, y, z));
+            case DECORATE -> executeDecorate(world, bud, x, y, z);
             default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         }
     }
@@ -76,6 +78,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
         return switch (workType) {
             case FELL -> WorkToolItems.FELL_TOOL_ITEM;
             case PREPARE_SOIL -> WorkToolItems.PREPARE_SOIL_TOOL_ITEM;
+            case DECORATE -> WorkToolItems.PLANT_TOOL_ITEM;
             default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         };
     }
@@ -85,6 +88,7 @@ public class LumberingWorkAction extends AbstractWorkAction {
         return switch (workType) {
             case FELL -> WorkConfig.getInstance().getFellIntervalSeconds();
             case PREPARE_SOIL -> WorkConfig.getInstance().getPrepareSoilIntervalSeconds();
+            case DECORATE -> WorkConfig.getInstance().getDecorateIntervalSeconds();
             default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
         };
     }
@@ -92,7 +96,11 @@ public class LumberingWorkAction extends AbstractWorkAction {
     @Nonnull
     @Override
     protected String extraAnimationNameFor(@Nonnull WorkType workType) {
-        return workType == WorkType.PREPARE_SOIL ? WORK_ANIMATION : FELL_ANIMATION;
+        return switch (workType) {
+            case FELL -> FELL_ANIMATION;
+            case PREPARE_SOIL, DECORATE -> WORK_ANIMATION;
+            default -> throw new IllegalStateException("LumberingWorkAction cannot handle work type " + workType);
+        };
     }
 
     @Override
@@ -130,7 +138,8 @@ public class LumberingWorkAction extends AbstractWorkAction {
         }
         List<Vector3i> plantSpotColumns = LumberingFieldScan.treeEdgeColumns(anchor,
                 WorkConfig.getInstance().getFieldRadius(WorkRole.LUMBERING),
-                WorkConfig.getInstance().getFieldStructureCount(WorkRole.LUMBERING));
+                WorkConfig.getInstance().getFieldStructureCount(WorkRole.LUMBERING),
+                WorkstationOrientation.spotsOnXAxis(world, anchor));
         WorkstationWoodUtil.WoodBlockScan scan = WorkstationWoodUtil.connectedWoodBlocks(world, base,
                 WorkstationWoodUtil.MAX_CONNECTED_BLOCKS, plantSpotColumns);
         if (scan.truncated()) {
@@ -182,6 +191,18 @@ public class LumberingWorkAction extends AbstractWorkAction {
                 }
             }
         }
+    }
+
+    private static void executeDecorate(@Nonnull World world, @Nonnull BudComponent bud, int x, int y, int z) {
+        String grassBlockId = bud.getPendingCropBlockType();
+        if (grassBlockId == null) {
+            return;
+        }
+        Vector3i position = new Vector3i(x, y, z);
+        if (!LumberingFieldScan.isDecorateCandidate(world, position)) {
+            return;
+        }
+        world.setBlock(x, y + 1, z, grassBlockId);
     }
 
 }

@@ -3,6 +3,7 @@ package com.bud.feature.work;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -320,13 +321,14 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         WorkRole workRole = workstation.getWorkRole();
         int fieldRadius = WorkConfig.getInstance().getFieldRadius(workRole);
         int fieldMaxHeight = WorkConfig.getInstance().getFieldMaxHeight();
+        boolean spotsOnXAxis = WorkstationOrientation.spotsOnXAxis(world, anchor);
         Vector3i flooredAnchor = new Vector3i((int) Math.floor(anchor.x), (int) Math.floor(anchor.y),
                 (int) Math.floor(anchor.z));
         List<Vector3i> positions = isLumbering
                 ? workstation.cachedEdgePositions(flooredAnchor, fieldRadius, fieldMaxHeight,
-                        WorkConfig.getInstance().getFieldStructureCount(workRole),
+                        WorkConfig.getInstance().getFieldStructureCount(workRole), spotsOnXAxis,
                         () -> LumberingFieldScan.treeEdgePositions(anchor, fieldRadius, fieldMaxHeight,
-                                WorkConfig.getInstance().getFieldStructureCount(workRole)))
+                                WorkConfig.getInstance().getFieldStructureCount(workRole), spotsOnXAxis))
                 : workstation.cachedSerpentinePositions(flooredAnchor, fieldRadius, fieldMaxHeight,
                         () -> FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight));
 
@@ -421,6 +423,50 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             }
         }
 
+        Vector3i decorateWinner = null;
+        String decorateBlockId = null;
+        if (isLumbering) {
+            List<Vector3i> fieldPositions = workstation.cachedSerpentinePositions(flooredAnchor, fieldRadius,
+                    fieldMaxHeight, () -> FieldCandidates.serpentinePositions(anchor, fieldRadius, fieldMaxHeight));
+            List<Vector3i> plantSpotColumns = LumberingFieldScan.treeEdgeColumns(anchor, fieldRadius,
+                    WorkConfig.getInstance().getFieldStructureCount(workRole), spotsOnXAxis);
+            Set<Vector3i> plantSpotColumnSet = new HashSet<>(plantSpotColumns);
+            int maxPerType = fieldRadius;
+            int shortGrassCount = 0;
+            int tallGrassCount = 0;
+            for (Vector3i position : fieldPositions) {
+                if (position == null) {
+                    continue;
+                }
+                String aboveBlockId = FieldCandidates
+                        .getBlockId(FieldCandidates.getBlockType(world, position.x, position.y + 1, position.z));
+                if (LumberingFieldScan.GRASS_SHORT_BLOCK_ID.equals(aboveBlockId)) {
+                    shortGrassCount++;
+                } else if (LumberingFieldScan.GRASS_TALL_BLOCK_ID.equals(aboveBlockId)) {
+                    tallGrassCount++;
+                }
+            }
+            String targetGrassBlockId = shortGrassCount < maxPerType ? LumberingFieldScan.GRASS_SHORT_BLOCK_ID
+                    : tallGrassCount < maxPerType ? LumberingFieldScan.GRASS_TALL_BLOCK_ID : null;
+            if (targetGrassBlockId != null) {
+                List<Vector3i> shuffledFieldPositions = new ArrayList<>(fieldPositions);
+                Collections.shuffle(shuffledFieldPositions, ThreadLocalRandom.current());
+                for (Vector3i position : shuffledFieldPositions) {
+                    if (position == null || workstation.isRecentlyFailedTarget(position)) {
+                        continue;
+                    }
+                    if (plantSpotColumnSet.contains(new Vector3i(position.x, 0, position.z))) {
+                        continue;
+                    }
+                    if (LumberingFieldScan.isDecorateCandidate(world, position)) {
+                        decorateWinner = position;
+                        decorateBlockId = targetGrassBlockId;
+                        break;
+                    }
+                }
+            }
+        }
+
         Vector3i mineWinner = null;
         Vector3i oreMineWinner = null;
         Vector3i nodeDigWinner = null;
@@ -430,7 +476,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
         if (isMining) {
             int radius = fieldRadius;
             String targetOreBlock = MiningFieldScan.resolveTargetOreBlock(processingBenchBlock);
-            MiningFieldScan.NodeScan nodeScan = MiningFieldScan.scanNodes(world, anchor, radius,
+            MiningFieldScan.NodeScan nodeScan = MiningFieldScan.scanNodes(world, anchor, radius, spotsOnXAxis,
                     targetOreBlock != null);
             nodeDigWinner = nodeScan.dig();
             oreMineWinner = nodeScan.mine();
@@ -441,7 +487,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                 if (position == null) {
                     continue;
                 }
-                if (MiningFieldScan.nodeKindFor(anchor, radius, position.x, position.z)
+                if (MiningFieldScan.nodeKindFor(anchor, radius, spotsOnXAxis, position.x, position.z)
                         != OreGrowthBlock.KIND_RANDOM) {
                     continue;
                 }
@@ -513,7 +559,7 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
             if (fellTarget != null) {
                 List<Vector3i> plantSpotColumns = LumberingFieldScan.treeEdgeColumns(anchor, fieldRadius,
-                        WorkConfig.getInstance().getFieldStructureCount(workRole));
+                        WorkConfig.getInstance().getFieldStructureCount(workRole), spotsOnXAxis);
                 WorkstationWoodUtil.WoodBlockScan scan = WorkstationWoodUtil.connectedWoodBlocks(world, fellTarget,
                         WorkstationWoodUtil.MAX_CONNECTED_BLOCKS, plantSpotColumns);
                 if (scan.truncated()) {
@@ -575,6 +621,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
             winner = toAssignment(harvestWinner, WorkType.HARVEST, null);
         } else if (waterRefreshWinner != null) {
             winner = toAssignment(waterRefreshWinner, WorkType.WATER, null);
+        } else if (decorateWinner != null) {
+            winner = toAssignment(decorateWinner, WorkType.DECORATE, decorateBlockId);
         } else {
             winner = null;
         }

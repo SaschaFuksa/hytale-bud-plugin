@@ -74,14 +74,15 @@ public final class MiningFieldScan {
     }
 
     @Nonnull
-    private static List<Vector3i> nodeCenterColumns(@Nonnull Vector3d anchor, int radius) {
+    private static List<Vector3i> nodeCenterColumns(@Nonnull Vector3d anchor, int radius, boolean spotsOnXAxis) {
         int anchorX = (int) Math.floor(anchor.x);
         int anchorZ = (int) Math.floor(anchor.z);
         int distance = Math.max(1, radius - 1);
         int count = WorkConfig.getInstance().getFieldStructureCount(WorkRole.MINING);
+        double angleOffset = spotsOnXAxis ? 0 : Math.PI / 2;
         List<Vector3i> centers = new ArrayList<>();
         for (int index = 0; index < count; index++) {
-            double angle = Math.PI / 2 + (2 * Math.PI * index) / count;
+            double angle = angleOffset + (2 * Math.PI * index) / count;
             Vector3i offset = nodeOffset(distance, angle, radius);
             centers.add(new Vector3i(anchorX + offset.x, 0, anchorZ + offset.z));
         }
@@ -107,9 +108,10 @@ public final class MiningFieldScan {
     }
 
     @Nullable
-    public static Vector3i nodeCenterColumnFor(@Nonnull Vector3d anchor, int radius, int x, int z) {
+    public static Vector3i nodeCenterColumnFor(@Nonnull Vector3d anchor, int radius, boolean spotsOnXAxis, int x,
+            int z) {
         Vector3i armCenter = null;
-        for (Vector3i center : nodeCenterColumns(anchor, radius)) {
+        for (Vector3i center : nodeCenterColumns(anchor, radius, spotsOnXAxis)) {
             if (center.x == x && center.z == z) {
                 return center;
             }
@@ -132,7 +134,7 @@ public final class MiningFieldScan {
 
     @Nonnull
     public static NodeScan scanNodes(@Nonnull World world, @Nonnull Vector3d anchor, int radius,
-            boolean hasSlotOre) {
+            boolean spotsOnXAxis, boolean hasSlotOre) {
         Vector3i mine = null;
         Vector3i dig = null;
         int growing = 0;
@@ -140,7 +142,7 @@ public final class MiningFieldScan {
         int blocked = 0;
         int nodeIndex = 0;
         int activeNode = -1;
-        for (Vector3i center : nodeCenterColumns(anchor, radius)) {
+        for (Vector3i center : nodeCenterColumns(anchor, radius, spotsOnXAxis)) {
             nodeIndex++;
             boolean centerStarted = findGrowthInColumn(world, anchor, center.x, center.z) != null
                     || findOreInColumn(world, anchor, center.x, center.z) != null;
@@ -194,9 +196,9 @@ public final class MiningFieldScan {
     }
 
     @Nullable
-    public static String resolveNodeOreBlock(@Nonnull World world, @Nonnull Vector3d anchor, int radius, int x,
-            int z) {
-        Vector3i center = nodeCenterColumnFor(anchor, radius, x, z);
+    public static String resolveNodeOreBlock(@Nonnull World world, @Nonnull Vector3d anchor, int radius,
+            boolean spotsOnXAxis, int x, int z) {
+        Vector3i center = nodeCenterColumnFor(anchor, radius, spotsOnXAxis, x, z);
         if (center == null) {
             return null;
         }
@@ -255,8 +257,8 @@ public final class MiningFieldScan {
         return findInColumn(anchor, x, z, position -> isDigCandidate(world, position));
     }
 
-    public static int nodeKindFor(@Nonnull Vector3d anchor, int radius, int x, int z) {
-        Vector3i center = nodeCenterColumnFor(anchor, radius, x, z);
+    public static int nodeKindFor(@Nonnull Vector3d anchor, int radius, boolean spotsOnXAxis, int x, int z) {
+        Vector3i center = nodeCenterColumnFor(anchor, radius, spotsOnXAxis, x, z);
         if (center == null) {
             return OreGrowthBlock.KIND_RANDOM;
         }

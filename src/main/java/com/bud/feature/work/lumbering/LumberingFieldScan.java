@@ -19,7 +19,9 @@ import com.hypixel.hytale.server.core.universe.world.World;
 
 public final class LumberingFieldScan {
 
-    private static final double[] EDGE_ANGLES_DEGREES_HORIZONTAL = { 90, 270 };
+    private static final double[] EDGE_ANGLES_DEGREES_HORIZONTAL_X = { 90, 270 };
+
+    private static final double[] EDGE_ANGLES_DEGREES_HORIZONTAL_Z = { 0, 180 };
 
     private static final double[] EDGE_ANGLES_DEGREES_CROSS = { 0, 90, 180, 270 };
 
@@ -29,7 +31,20 @@ public final class LumberingFieldScan {
 
     private static final String ROOT_FILL_BLOCK = "Soil_Dirt";
 
+    public static final String GRASS_SHORT_BLOCK_ID = "Plant_Grass_Sharp";
+
+    public static final String GRASS_TALL_BLOCK_ID = "Plant_Grass_Sharp_Tall";
+
     private LumberingFieldScan() {
+    }
+
+    public static boolean isDecorateCandidate(@Nonnull World world, @Nonnull Vector3i position) {
+        BlockType blockType = FieldCandidates.getBlockType(world, position.x, position.y, position.z);
+        String blockId = FieldCandidates.getBlockId(blockType);
+        if (blockId == null || !blockId.startsWith(SOIL_BLOCK_PREFIX)) {
+            return false;
+        }
+        return FieldCandidates.hasFreeTopFace(world, position.x, position.y, position.z);
     }
 
     public static boolean isRootCandidate(@Nonnull World world, @Nonnull Vector3i position) {
@@ -144,10 +159,10 @@ public final class LumberingFieldScan {
 
     @Nonnull
     public static List<Vector3i> treeEdgePositions(@Nonnull Vector3d anchor, int radius, int maxHeight,
-            int edgeCount) {
+            int edgeCount, boolean spotsOnXAxis) {
         List<Vector3i> positions = new ArrayList<>();
         if (edgeCount <= 2) {
-            positions.addAll(edgePositions(anchor, radius, maxHeight, EDGE_ANGLES_DEGREES_HORIZONTAL));
+            positions.addAll(edgePositions(anchor, radius, maxHeight, horizontalAngles(spotsOnXAxis)));
             return positions;
         }
         positions.addAll(edgePositions(anchor, radius, maxHeight, EDGE_ANGLES_DEGREES_CROSS));
@@ -163,10 +178,11 @@ public final class LumberingFieldScan {
      * planting slot so a fell can't cross into a neighboring tree.
      */
     @Nonnull
-    public static List<Vector3i> treeEdgeColumns(@Nonnull Vector3d anchor, int radius, int edgeCount) {
+    public static List<Vector3i> treeEdgeColumns(@Nonnull Vector3d anchor, int radius, int edgeCount,
+            boolean spotsOnXAxis) {
         List<Vector3i> columns = new ArrayList<>();
         if (edgeCount <= 2) {
-            columns.addAll(edgeColumns(anchor, radius, EDGE_ANGLES_DEGREES_HORIZONTAL));
+            columns.addAll(edgeColumns(anchor, radius, horizontalAngles(spotsOnXAxis)));
             return columns;
         }
         columns.addAll(edgeColumns(anchor, radius, EDGE_ANGLES_DEGREES_CROSS));
@@ -174,6 +190,11 @@ public final class LumberingFieldScan {
             columns.addAll(edgeColumns(anchor, radius - 1, EDGE_ANGLES_DEGREES_DIAG));
         }
         return columns;
+    }
+
+    @Nonnull
+    private static double[] horizontalAngles(boolean spotsOnXAxis) {
+        return Objects.requireNonNull(spotsOnXAxis ? EDGE_ANGLES_DEGREES_HORIZONTAL_X : EDGE_ANGLES_DEGREES_HORIZONTAL_Z);
     }
 
     @Nonnull

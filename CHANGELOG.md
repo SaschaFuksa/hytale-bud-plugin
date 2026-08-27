@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - **Bud Roster Spawning**: New card item to spawn/despawn all roster Buds at once, without needing to use commands. The card can be crafted on the arcane workbench.
 - **Bud Cards**: Optical rework and texture now matches the card.
 - **Bud Work Stations**: Now you can send your bud to work an harvest/lumber/mine items
+- **Mining turns into a quarry**: Veri's dug-out holes now refill with `Soil_Calcite_Gravel` instead of dirt (still diggable), so a heavily-worked Mining field gradually becomes a gravel quarry.
+- **Lumbering field decoration**: Whenever Gronkh has nothing else to do, he plants `Plant_Grass_Sharp`/`Plant_Grass_Sharp_Tall` tufts on empty field ground, one at a time, up to the field radius per grass type (short grass first) — never on a tree's own planting spot.
 
 
 ### Fixed
@@ -26,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Upgrades server version
 - Buds will now spawn in front of player
 - Lumbering could destroy things it had no business touching when felling a tree: any `Wood_`-prefixed block counted as "tree", so a connected fence line got chopped along with it; a too-low block cap could truncate a large tree mid-fell, leaving stumps and holes behind; and on a LARGE field, two trees close enough for their canopies to touch could take each other down in one fell. Felling now only recognizes actual tree parts (trunk/branches/roots, not fences/planks/beams/walls/decoration), assigns every wood block to its own planting spot so a fell can never cross into a neighboring tree, raises the block cap above the largest tree species and aborts cleanly instead of partially clearing an oversized one, and cleans up any dangling branch stub left at the boundary. The soil-preparation shovel step no longer bulldozes player-built wood constructions into dirt either.
+- On a SMALL field, Mining's two ore nodes always sat north/south regardless of how the Workstation was rotated, and could visually clash with Lumbering's own SMALL layout convention (east/west). Both roles now read the Workstation's own facing and lay their two spots out across it — sideways to whichever way the station is looking.
 
 ### Performance
 - Skip the memory-summary LLM call entirely for trivial one-line Bud responses (configurable via `ConversationMemoryMinMessageLength`, default 40 characters), instead of always generating a summary and discarding it afterwards.
