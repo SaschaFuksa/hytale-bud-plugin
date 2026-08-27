@@ -102,6 +102,9 @@ public final class LumberingFieldScan {
         if (blockType == null || blockType.getMaterial() == BlockMaterial.Empty) {
             return true;
         }
+        if (WorkstationWoodUtil.isProtectedWoodConstruction(blockType)) {
+            return true;
+        }
         String blockId = blockType.getId();
         if (blockId == null) {
             return false;
@@ -154,23 +157,50 @@ public final class LumberingFieldScan {
         return positions;
     }
 
+    /**
+     * The horizontal columns (x/z only) of each tree planting spot in the field - the same spots
+     * {@link #treeEdgePositions} expands vertically, used to assign a felled tree's wood blocks to their own
+     * planting slot so a fell can't cross into a neighboring tree.
+     */
+    @Nonnull
+    public static List<Vector3i> treeEdgeColumns(@Nonnull Vector3d anchor, int radius, int edgeCount) {
+        List<Vector3i> columns = new ArrayList<>();
+        if (edgeCount <= 2) {
+            columns.addAll(edgeColumns(anchor, radius, EDGE_ANGLES_DEGREES_HORIZONTAL));
+            return columns;
+        }
+        columns.addAll(edgeColumns(anchor, radius, EDGE_ANGLES_DEGREES_CROSS));
+        if (edgeCount > 4) {
+            columns.addAll(edgeColumns(anchor, radius - 1, EDGE_ANGLES_DEGREES_DIAG));
+        }
+        return columns;
+    }
+
     @Nonnull
     private static List<Vector3i> edgePositions(@Nonnull Vector3d anchor, int radius, int maxHeight,
             double[] angles) {
-        int anchorX = (int) Math.floor(anchor.x);
         int anchorY = (int) Math.floor(anchor.y);
-        int anchorZ = (int) Math.floor(anchor.z);
-
         List<Vector3i> positions = new ArrayList<>();
+        for (Vector3i column : edgeColumns(anchor, radius, angles)) {
+            for (int dy = -maxHeight; dy <= maxHeight; dy++) {
+                positions.add(new Vector3i(column.x, anchorY + dy, column.z));
+            }
+        }
+        return positions;
+    }
+
+    @Nonnull
+    private static List<Vector3i> edgeColumns(@Nonnull Vector3d anchor, int radius, double[] angles) {
+        int anchorX = (int) Math.floor(anchor.x);
+        int anchorZ = (int) Math.floor(anchor.z);
+        List<Vector3i> columns = new ArrayList<>();
         for (double angleDegrees : angles) {
             double angleRadians = Math.toRadians(angleDegrees);
             int dx = (int) Math.round(radius * Math.sin(angleRadians));
             int dz = (int) Math.round(-radius * Math.cos(angleRadians));
-            for (int dy = -maxHeight; dy <= maxHeight; dy++) {
-                positions.add(new Vector3i(anchorX + dx, anchorY + dy, anchorZ + dz));
-            }
+            columns.add(new Vector3i(anchorX + dx, 0, anchorZ + dz));
         }
-        return positions;
+        return columns;
     }
 
 }

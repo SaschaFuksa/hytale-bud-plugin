@@ -512,8 +512,18 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
                     + (loggedFellTargetWalkTarget != null ? loggedFellTargetWalkTarget.toString() : "none"));
 
             if (fellTarget != null) {
-                List<Vector3i> connectedWoodBlocks = WorkstationWoodUtil.connectedWoodBlocks(world, fellTarget,
-                        WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
+                List<Vector3i> plantSpotColumns = LumberingFieldScan.treeEdgeColumns(anchor, fieldRadius,
+                        WorkConfig.getInstance().getFieldStructureCount(workRole));
+                WorkstationWoodUtil.WoodBlockScan scan = WorkstationWoodUtil.connectedWoodBlocks(world, fellTarget,
+                        WorkstationWoodUtil.MAX_CONNECTED_BLOCKS, plantSpotColumns);
+                if (scan.truncated()) {
+                    Vector3i truncatedFellTarget = fellTarget;
+                    LoggerUtil.getLogger().warning(() -> "[BUD] FELL at " + truncatedFellTarget + " exceeds "
+                            + WorkstationWoodUtil.MAX_CONNECTED_BLOCKS
+                            + " connected Wood_ blocks - aborting this tree rather than felling it partially.");
+                    workstation.addRecentlyFailedTarget(fellTarget);
+                }
+                List<Vector3i> connectedWoodBlocks = scan.blocks();
                 if (!connectedWoodBlocks.isEmpty() && !WorkstationWoodUtil.hasTrunkBlock(world, connectedWoodBlocks)) {
                     workstation.addRecentlyFailedTarget(fellTarget);
                 } else if (!connectedWoodBlocks.isEmpty()

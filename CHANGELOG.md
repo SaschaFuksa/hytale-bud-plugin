@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - `/bud delete --world` and `/bud delete --playername <other player>` now require admin permission, closing a griefing vector where any player could wipe every Bud on the server with one command.
 - Upgrades server version
 - Buds will now spawn in front of player
+- Lumbering could destroy things it had no business touching when felling a tree: any `Wood_`-prefixed block counted as "tree", so a connected fence line got chopped along with it; a too-low block cap could truncate a large tree mid-fell, leaving stumps and holes behind; and on a LARGE field, two trees close enough for their canopies to touch could take each other down in one fell. Felling now only recognizes actual tree parts (trunk/branches/roots, not fences/planks/beams/walls/decoration), assigns every wood block to its own planting spot so a fell can never cross into a neighboring tree, raises the block cap above the largest tree species and aborts cleanly instead of partially clearing an oversized one, and cleans up any dangling branch stub left at the boundary. The soil-preparation shovel step no longer bulldozes player-built wood constructions into dirt either.
 
 ### Performance
 - Skip the memory-summary LLM call entirely for trivial one-line Bud responses (configurable via `ConversationMemoryMinMessageLength`, default 40 characters), instead of always generating a summary and discarding it afterwards.

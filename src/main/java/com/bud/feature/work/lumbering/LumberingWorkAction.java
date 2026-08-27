@@ -13,6 +13,7 @@ import org.joml.Vector3i;
 
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.WorkConfig;
+import com.bud.core.types.WorkRole;
 import com.bud.core.types.WorkType;
 import com.bud.feature.work.AbstractWorkAction;
 import com.bud.feature.work.WorkToolItems;
@@ -127,8 +128,18 @@ public class LumberingWorkAction extends AbstractWorkAction {
         if (output == null) {
             return;
         }
-        List<Vector3i> connectedWoodBlocks = WorkstationWoodUtil.connectedWoodBlocks(world, base,
-                WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
+        List<Vector3i> plantSpotColumns = LumberingFieldScan.treeEdgeColumns(anchor,
+                WorkConfig.getInstance().getFieldRadius(WorkRole.LUMBERING),
+                WorkConfig.getInstance().getFieldStructureCount(WorkRole.LUMBERING));
+        WorkstationWoodUtil.WoodBlockScan scan = WorkstationWoodUtil.connectedWoodBlocks(world, base,
+                WorkstationWoodUtil.MAX_CONNECTED_BLOCKS, plantSpotColumns);
+        if (scan.truncated()) {
+            LoggerUtil.getLogger().warning(() -> "[BUD] executeFell at " + base + " exceeds "
+                    + WorkstationWoodUtil.MAX_CONNECTED_BLOCKS
+                    + " connected Wood_ blocks - aborting this tree rather than felling it partially.");
+            return;
+        }
+        List<Vector3i> connectedWoodBlocks = scan.blocks();
         int connectedCount = connectedWoodBlocks.size();
         LoggerUtil.getLogger()
                 .fine(() -> "[BUD] executeFell at " + base + " - connected Wood_ blocks: " + connectedCount);
@@ -159,6 +170,8 @@ public class LumberingWorkAction extends AbstractWorkAction {
         for (Vector3i position : connectedWoodBlocks) {
             world.setBlock(position.x, position.y, position.z, BlockType.EMPTY_KEY);
         }
+        WorkstationWoodUtil.removeOrphanedWoodFragments(world, connectedWoodBlockSet, output,
+                WorkstationWoodUtil.MAX_CONNECTED_BLOCKS);
         WorkstationWoodUtil.wakeSurroundingBlocksForPhysicsRecheck(world, connectedWoodBlocks);
         int groundLevelY = anchorY - 1;
         for (Vector3i position : groundContactBlocks) {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -20,6 +21,7 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -30,7 +32,11 @@ public final class WorkstationWoodUtil {
 
     private static final String TRUNK_BLOCK_MARKER = "_Trunk";
 
-    public static final int MAX_CONNECTED_BLOCKS = 256;
+    private static final String[] TREE_PART_SUFFIXES = {
+            "_Trunk_Full", "_Trunk", "_Branch_Long", "_Branch_Short", "_Branch_Corner", "_Roots"
+    };
+
+    public static final int MAX_CONNECTED_BLOCKS = 4096;
 
     private static final int[][] NEIGHBOR_OFFSETS = {
             { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 }
@@ -48,7 +54,27 @@ public final class WorkstationWoodUtil {
             return false;
         }
         String blockId = blockType.getId();
-        return blockId != null && blockId.startsWith(WOOD_BLOCK_PREFIX);
+        if (blockId == null || !blockId.startsWith(WOOD_BLOCK_PREFIX)) {
+            return false;
+        }
+        for (String suffix : TREE_PART_SUFFIXES) {
+            if (blockId.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * True for a {@code Wood_}-prefixed block that is a player-built construction (fence, planks, beam, roof, wall,
+     * ...) rather than an actual tree part - see {@link #isWoodBlock} for the tree-part whitelist this excludes.
+     */
+    public static boolean isProtectedWoodConstruction(@Nullable BlockType blockType) {
+        if (blockType == null) {
+            return false;
+        }
+        String blockId = blockType.getId();
+        return blockId != null && blockId.startsWith(WOOD_BLOCK_PREFIX) && !isWoodBlock(blockType);
     }
 
     public static boolean isTreeMature(@Nonnull World world, @Nonnull List<Vector3i> connectedWoodBlocks) {
@@ -79,12 +105,27 @@ public final class WorkstationWoodUtil {
         return false;
     }
 
+    /**
+     * Result of a connected-wood-block scan. When {@code truncated} is true, {@code blocks} is always empty - the
+     * tree exceeded {@link #MAX_CONNECTED_BLOCKS} and the caller should abort rather than fell it partially.
+     */
+    public record WoodBlockScan(@Nonnull List<Vector3i> blocks, boolean truncated) {
+    }
+
+    /**
+     * Flood-fills wood blocks connected to {@code start}, restricted to the field's own planting slot: a neighbor is
+     * only followed if its horizontally nearest entry in {@code plantSpotColumns} is the same one {@code start}
+     * itself belongs to. This keeps the scan from crossing into a neighboring tree when two trees' canopies touch.
+     * Pass an empty list to disable the restriction (falls back to unrestricted flood-fill).
+     */
     @Nonnull
-    public static List<Vector3i> connectedWoodBlocks(@Nonnull World world, @Nonnull Vector3i start, int maxBlocks) {
-        List<Vector3i> result = new ArrayList<>();
+    public static WoodBlockScan connectedWoodBlocks(@Nonnull World world, @Nonnull Vector3i start, int maxBlocks,
+            @Nonnull List<Vector3i> plantSpotColumns) {
         if (!isWoodBlock(FieldCandidates.getBlockType(world, start.x, start.y, start.z))) {
-            return result;
+            return new WoodBlockScan(new ArrayList<>(), false);
         }
+        Vector3i ownerColumn = nearestColumn(plantSpotColumns, start.x, start.z);
+        List<Vector3i> result = new ArrayList<>();
         Deque<Vector3i> queue = new ArrayDeque<>();
         Set<Vector3i> visited = new HashSet<>();
         queue.add(start);
@@ -95,12 +136,118 @@ public final class WorkstationWoodUtil {
             for (int[] offset : NEIGHBOR_OFFSETS) {
                 Vector3i neighbor = new Vector3i(current.x + offset[0], current.y + offset[1], current.z + offset[2]);
                 if (visited.add(neighbor)
+                        && isWoodBlock(FieldCandidates.getBlockType(world, neighbor.x, neighbor.y, neighbor.z))
+                        && belongsToOwnerColumn(plantSpotColumns, ownerColumn, neighbor.x, neighbor.z)) {
+                    queue.add(neighbor);
+                }
+            }
+        }
+        boolean truncated = result.size() >= maxBlocks && !queue.isEmpty();
+        return new WoodBlockScan(truncated ? new ArrayList<>() : result, truncated);
+    }
+
+    private static boolean belongsToOwnerColumn(@Nonnull List<Vector3i> plantSpotColumns,
+            @Nullable Vector3i ownerColumn, int x, int z) {
+        if (plantSpotColumns.isEmpty() || ownerColumn == null) {
+            return true;
+        }
+        Vector3i nearest = nearestColumn(plantSpotColumns, x, z);
+        return nearest != null && nearest.x == ownerColumn.x && nearest.z == ownerColumn.z;
+    }
+
+    @Nullable
+    private static Vector3i nearestColumn(@Nonnull List<Vector3i> columns, int x, int z) {
+        Vector3i nearest = null;
+        long bestDistanceSquared = Long.MAX_VALUE;
+        for (Vector3i column : columns) {
+            long dx = column.x - x;
+            long dz = column.z - z;
+            long distanceSquared = dx * dx + dz * dz;
+            if (distanceSquared < bestDistanceSquared) {
+                bestDistanceSquared = distanceSquared;
+                nearest = column;
+            }
+        }
+        return nearest;
+    }
+
+    /**
+     * Removes wood-part fragments left dangling at the boundary of a just-felled tree - branch tips that crossed
+     * into a neighboring tree's planting slot and were therefore excluded from the fell itself, but structurally
+     * belonged only to the tree that's now gone. A fragment is left alone if it's still connected to a trunk that
+     * has real ground contact (i.e. it's part of a neighboring tree that's still standing) or if the scan hits
+     * {@code maxBlocks} before it can tell (conservatively assumed grounded rather than risking a real tree).
+     * Drops for removed fragments are added to {@code output} the same way the main fell's drops are.
+     */
+    public static void removeOrphanedWoodFragments(@Nonnull World world, @Nonnull Set<Vector3i> removed,
+            @Nullable ItemContainer output, int maxBlocks) {
+        Set<Vector3i> boundary = new HashSet<>();
+        for (Vector3i position : removed) {
+            for (int[] offset : NEIGHBOR_OFFSETS) {
+                Vector3i neighbor = new Vector3i(position.x + offset[0], position.y + offset[1], position.z + offset[2]);
+                if (!removed.contains(neighbor)
+                        && isWoodBlock(FieldCandidates.getBlockType(world, neighbor.x, neighbor.y, neighbor.z))) {
+                    boundary.add(neighbor);
+                }
+            }
+        }
+        Set<Vector3i> resolved = new HashSet<>();
+        for (Vector3i start : boundary) {
+            if (resolved.contains(start)) {
+                continue;
+            }
+            WoodFragment fragment = scanFragment(world, Objects.requireNonNull(start), maxBlocks);
+            resolved.addAll(fragment.blocks());
+            if (fragment.groundedTrunk()) {
+                continue;
+            }
+            List<ItemStack> drops = collectFellingDrops(world, new ArrayList<>(fragment.blocks()));
+            for (Vector3i orphan : fragment.blocks()) {
+                world.setBlock(orphan.x, orphan.y, orphan.z, BlockType.EMPTY_KEY);
+            }
+            if (output != null) {
+                output.addItemStacks(drops, false, false, false);
+            }
+        }
+    }
+
+    private record WoodFragment(@Nonnull Set<Vector3i> blocks, boolean groundedTrunk) {
+    }
+
+    @Nonnull
+    private static WoodFragment scanFragment(@Nonnull World world, @Nonnull Vector3i start, int maxBlocks) {
+        Set<Vector3i> blocks = new HashSet<>();
+        Set<Vector3i> visited = new HashSet<>();
+        Deque<Vector3i> queue = new ArrayDeque<>();
+        queue.add(start);
+        visited.add(start);
+        boolean groundedTrunk = false;
+        while (!queue.isEmpty() && blocks.size() < maxBlocks) {
+            Vector3i current = Objects.requireNonNull(queue.poll());
+            blocks.add(current);
+            if (isGroundedTrunk(world, current)) {
+                groundedTrunk = true;
+            }
+            for (int[] offset : NEIGHBOR_OFFSETS) {
+                Vector3i neighbor = new Vector3i(current.x + offset[0], current.y + offset[1], current.z + offset[2]);
+                if (visited.add(neighbor)
                         && isWoodBlock(FieldCandidates.getBlockType(world, neighbor.x, neighbor.y, neighbor.z))) {
                     queue.add(neighbor);
                 }
             }
         }
-        return result;
+        boolean truncated = blocks.size() >= maxBlocks && !queue.isEmpty();
+        return new WoodFragment(blocks, groundedTrunk || truncated);
+    }
+
+    private static boolean isGroundedTrunk(@Nonnull World world, @Nonnull Vector3i position) {
+        BlockType blockType = FieldCandidates.getBlockType(world, position.x, position.y, position.z);
+        String blockId = blockType != null ? blockType.getId() : null;
+        if (blockId == null || !blockId.contains(TRUNK_BLOCK_MARKER)) {
+            return false;
+        }
+        BlockType below = FieldCandidates.getBlockType(world, position.x, position.y - 1, position.z);
+        return below != null && below != BlockType.EMPTY && !isWoodBlock(below);
     }
 
     public static final String LIFE_ESSENCE_ITEM_ID = "Ingredient_Life_Essence";
