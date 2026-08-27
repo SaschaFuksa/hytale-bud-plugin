@@ -164,7 +164,9 @@ public class LumberingWorkAction extends AbstractWorkAction {
         for (Vector3i position : groundContactBlocks) {
             int fillFromY = Math.min(position.y, groundLevelY);
             for (int fillY = fillFromY; fillY <= groundLevelY; fillY++) {
-                world.setBlock(position.x, fillY, position.z, DIRT_BLOCK_ID);
+                if (world.getBlockType(position.x, fillY, position.z) == BlockType.EMPTY) {
+                    world.setBlock(position.x, fillY, position.z, DIRT_BLOCK_ID);
+                }
             }
         }
     }
