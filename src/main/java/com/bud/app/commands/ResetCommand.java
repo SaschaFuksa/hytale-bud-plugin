@@ -23,11 +23,7 @@ public class ResetCommand extends AbstractPlayerCommand {
 
     public ResetCommand() {
         super("reset", "Reset Bud system.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
+        this.requireNoPermission();
     }
 
     @Override

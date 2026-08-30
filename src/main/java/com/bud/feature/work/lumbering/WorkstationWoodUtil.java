@@ -15,15 +15,14 @@ import org.joml.Vector3i;
 
 import com.bud.feature.work.BlockDrops;
 import com.bud.feature.work.FieldCandidates;
+import com.bud.feature.work.WorldBlockSections;
 import com.hypixel.hytale.builtin.adventure.farming.states.FarmingBlock;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
 public final class WorkstationWoodUtil {
@@ -296,12 +295,8 @@ public final class WorkstationWoodUtil {
 
         for (int x = wakeMinX; x <= wakeMaxX; x++) {
             for (int z = wakeMinZ; z <= wakeMaxZ; z++) {
-                WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
-                if (chunk == null) {
-                    continue;
-                }
                 for (int y = minY; y <= wakeMaxY; y++) {
-                    chunk.setTicking(x, y, z, true);
+                    WorldBlockSections.setTicking(world, x, y, z, true);
                 }
             }
         }

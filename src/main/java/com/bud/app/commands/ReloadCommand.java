@@ -6,12 +6,8 @@ public class ReloadCommand extends AbstractCommandCollection {
 
     public ReloadCommand() {
         super("reload", "Reload Bud content from disk.");
+        this.requireNoPermission();
         this.addSubCommand(new ReloadBudsCommand());
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
 }

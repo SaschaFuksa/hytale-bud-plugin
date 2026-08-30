@@ -29,6 +29,7 @@ public class MemorySetCommand extends AbstractPlayerCommand {
 
     public MemorySetCommand() {
         super("set", "Add a manual conversation memory.");
+        this.requireNoPermission();
         this.budArg = Objects.requireNonNull(
                 this.withRequiredArg("bud", "Bud name (veri, gronkh, keyleth).",
                         Objects.requireNonNull(ArgTypes.STRING)));
@@ -36,11 +37,6 @@ public class MemorySetCommand extends AbstractPlayerCommand {
                 this.withRequiredArg("text", "Memory text (quote it, e.g. \"some text\").",
                         Objects.requireNonNull(ArgTypes.STRING)));
         this.legendaryFlag = this.withFlagArg("legendary", "Add as a legendary memory instead.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

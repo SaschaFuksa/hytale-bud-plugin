@@ -9,9 +9,7 @@ import org.joml.Vector3i;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.modules.block.BlockModule;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
 public final class BlockEntityPositions {
@@ -26,22 +24,11 @@ public final class BlockEntityPositions {
         if (blockStateInfo == null) {
             return null;
         }
-        Ref<ChunkStore> chunkRef = blockStateInfo.getChunkRef();
-        if (!chunkRef.isValid()) {
+        Vector3i position = new Vector3i();
+        if (!blockStateInfo.fillWorldPos(chunkStore, position)) {
             return null;
         }
-        BlockChunk blockChunk = chunkStore.getComponent(chunkRef,
-                Objects.requireNonNull(BlockChunk.getComponentType()));
-        if (blockChunk == null) {
-            return null;
-        }
-        int index = blockStateInfo.getIndex();
-        int localX = ChunkUtil.xFromBlockInColumn(index);
-        int localY = ChunkUtil.yFromBlockInColumn(index);
-        int localZ = ChunkUtil.zFromBlockInColumn(index);
-        int worldX = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), localX);
-        int worldZ = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), localZ);
-        return new Vector3i(worldX, localY, worldZ);
+        return position;
     }
 
 }

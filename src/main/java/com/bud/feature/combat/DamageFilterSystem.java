@@ -3,6 +3,7 @@ package com.bud.feature.combat;
 import javax.annotation.Nonnull;
 
 import com.bud.core.BudManager;
+import com.bud.core.BudExecutionSupport;
 import com.bud.core.components.BudComponent;
 import com.bud.core.components.PlayerBudComponent;
 import com.bud.core.types.BudState;
@@ -21,7 +22,6 @@ import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.hypixel.hytale.server.npc.role.Role;
 
 public class DamageFilterSystem extends DamageEventSystem {
 
@@ -99,19 +99,17 @@ public class DamageFilterSystem extends DamageEventSystem {
                 if (workerCheck != null && workerCheck.getCurrentState() == BudState.WORKING) {
                     continue;
                 }
-                Role budRole = bud.getRole();
-                if (budRole != null) {
-                    try {
-                        if (opponentRef != null
-                                && store.getComponent(opponentRef, BudComponent.getComponentType()) == null) {
-                            budRole.getWorldSupport().overrideAttitude(opponentRef, Attitude.HOSTILE,
-                                    ASSIST_ATTITUDE_DURATION);
-                        }
-                    } catch (NullPointerException e) {
-                        LoggerUtil.getLogger().warning(() -> "[BUD] Could not override attitude for "
-                                + bud.getRoleName()
-                                + " - its Role has no attitude-override memory allocated (needs an OverrideAttitude action in its Instructions, and a server/world restart to rebuild already-spawned NPCs).");
+                try {
+                    if (opponentRef != null
+                            && store.getComponent(opponentRef, BudComponent.getComponentType()) == null) {
+                        BudExecutionSupport.with(bud,
+                                support -> support.getWorldSupport().overrideAttitude(opponentRef,
+                                        Attitude.HOSTILE, ASSIST_ATTITUDE_DURATION));
                     }
+                } catch (NullPointerException e) {
+                    LoggerUtil.getLogger().warning(() -> "[BUD] Could not override attitude for "
+                            + bud.getRoleName()
+                            + " - its Role has no attitude-override memory allocated (needs an OverrideAttitude action in its Instructions, and a server/world restart to rebuild already-spawned NPCs).");
                 }
             }
         }

@@ -13,16 +13,15 @@ import com.bud.feature.work.FieldCandidates;
 import com.bud.feature.work.GameClock;
 import com.bud.feature.work.WorkRecipeConfig;
 import com.bud.feature.work.WorldBlockEntities;
+import com.bud.feature.work.WorldBlockSections;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
 public final class MiningGrowthUtil {
@@ -52,11 +51,7 @@ public final class MiningGrowthUtil {
     private static OreGrowthBlock placeGrowthBlock(@Nonnull World world, @Nonnull Vector3i position,
             @Nonnull String blockId) {
         world.setBlock(position.x, position.y, position.z, blockId);
-        WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(position.x, position.z));
-        if (chunk == null) {
-            return null;
-        }
-        Ref<ChunkStore> ref = WorldBlockEntities.ensureOrFetch(chunk, position.x, position.y, position.z);
+        Ref<ChunkStore> ref = WorldBlockEntities.ensureOrFetch(world, position.x, position.y, position.z);
         if (ref == null || !ref.isValid()) {
             return null;
         }
@@ -68,7 +63,7 @@ public final class MiningGrowthUtil {
                     + " carries no OreGrowthBlock component - growth stalls there.");
             return null;
         }
-        chunk.setTicking(position.x, position.y, position.z, true);
+        WorldBlockSections.setTicking(world, position.x, position.y, position.z, true);
         return growth;
     }
 

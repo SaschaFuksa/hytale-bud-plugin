@@ -25,14 +25,10 @@ public class CreationCommand extends AbstractPlayerCommand {
 
     public CreationCommand() {
         super("create", "Bud creation commands.");
+        this.requireNoPermission();
         this.budIdArg = Objects.requireNonNull(this.withOptionalArg("bud",
                 "Bud id to create. Omit to create the default roster (see roster.yml).",
                 new BudIdArgumentType()));
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

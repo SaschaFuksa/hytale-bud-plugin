@@ -15,6 +15,7 @@ public class BudCommandCollection extends AbstractCommandCollection {
 
     public BudCommandCollection() {
         super("bud", "Commands for managing Buds");
+        this.requireNoPermission();
         this.addSubCommand(new CreationCommand());
         this.addSubCommand(new ResetCommand());
         this.addSubCommand(new DeletionCommand());
@@ -24,11 +25,6 @@ public class BudCommandCollection extends AbstractCommandCollection {
         this.addSubCommand(new PromptCommand());
         this.addSubCommand(new ReloadCommand());
         this.addSubCommand(new DebugCommand());
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
 }

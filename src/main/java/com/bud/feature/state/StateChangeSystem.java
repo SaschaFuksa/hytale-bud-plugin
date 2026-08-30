@@ -2,6 +2,7 @@ package com.bud.feature.state;
 
 import javax.annotation.Nonnull;
 
+import com.bud.core.BudExecutionSupport;
 import com.bud.core.components.BudComponent;
 import com.bud.core.types.BudState;
 import com.bud.feature.queue.state.StateChangeEntry;
@@ -13,7 +14,6 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.role.Role;
 
 public class StateChangeSystem extends EntityTickingSystem<EntityStore> {
 
@@ -33,11 +33,12 @@ public class StateChangeSystem extends EntityTickingSystem<EntityStore> {
         if (budComponent.getCurrentState() == BudState.WORKING) {
             return;
         }
-        Role role = budComponent.getBud().getRole();
-        if (role == null) {
+        String stateName = BudExecutionSupport.query(budComponent.getBud(),
+                support -> support.getStateSupport().getStateName());
+        if (stateName == null) {
             return;
         }
-        String currentStateName = role.getStateSupport().getStateName().split("\\.")[0];
+        String currentStateName = stateName.split("\\.")[0];
         if (!currentStateName.equals("Idle")
                 && !currentStateName.equals(budComponent.getCurrentState().getStateName())) {
             LoggerUtil.getLogger()

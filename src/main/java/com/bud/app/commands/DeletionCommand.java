@@ -39,6 +39,7 @@ public class DeletionCommand extends AbstractPlayerCommand {
 
     public DeletionCommand() {
         super("delete", "Delete Bud commands.");
+        this.requireNoPermission();
         this.veriFlag = this.withFlagArg("veri", "Delete Veri Bud.");
         this.keylethFlag = this.withFlagArg("keyleth", "Delete Keyleth Bud.");
         this.gronkhFlag = this.withFlagArg("gronkh", "Delete Gronkh Bud.");
@@ -46,11 +47,6 @@ public class DeletionCommand extends AbstractPlayerCommand {
         this.playerNameArg = Objects.requireNonNull(this.withOptionalArg("playername",
                 "Delete Buds of a specific player by username. Requires admin permission for other players.",
                 Objects.requireNonNull(ArgTypes.STRING)));
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

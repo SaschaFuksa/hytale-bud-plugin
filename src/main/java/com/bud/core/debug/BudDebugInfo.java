@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 
 import com.bud.core.components.PlayerBudComponent;
 import com.hypixel.hytale.assetstore.map.IndexedLookupTableAssetMap;
+import com.bud.core.BudExecutionSupport;
 import com.hypixel.hytale.builtin.hytalegenerator.LoggerUtil;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
@@ -18,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.asset.builder.StateMappingHelper;
 import com.hypixel.hytale.server.npc.config.AttitudeGroup;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.hypixel.hytale.server.npc.instructions.ExecutionSupport;
 import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.CombatSupport;
 
@@ -77,87 +79,91 @@ public class BudDebugInfo {
         LoggerUtil.getLogger().fine(() -> "Role Name: " + npc.getRoleName());
         Role role = npc.getRole();
         if (role != null) {
-            LoggerUtil.getLogger().fine(() -> "--- Bud Infos ---");
-            LoggerUtil.getLogger().fine(() -> "Can Lead Flock: " + role.isCanLeadFlock());
-            LoggerUtil.getLogger().fine(() -> "Is Avoiding Entities: " + role.isAvoidingEntities());
-
-            LoggerUtil.getLogger()
-                    .fine(() -> "Default Player Attitude: " + role.getWorldSupport().getDefaultPlayerAttitude());
-            LoggerUtil.getLogger()
-                    .fine(() -> "Default NPC Attitude: " + role.getWorldSupport().getDefaultNPCAttitude());
-
-            LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
-            CombatSupport combatSupport = role.getCombatSupport();
-            int[] disableGroups = combatSupport.getDisableDamageGroups();
-            if (disableGroups != null) {
-                LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
-                IndexedLookupTableAssetMap<String, AttitudeGroup> assetMap = AttitudeGroup.getAssetMap();
-
-                Map<Integer, String> reverseMap = new HashMap<>();
-                try {
-                    Map<?, ?> rawMap = assetMap.getAssetMap();
-                    for (Entry<?, ?> entry : rawMap.entrySet()) {
-                        Object key = entry.getKey();
-                        Object val = entry.getValue();
-                        if (val instanceof Integer intVal) {
-                            reverseMap.put(intVal, String.valueOf(key));
-                        } else {
-                            try {
-                                int id = assetMap.getIndex((String) key);
-                                reverseMap.put(id, String.valueOf(key));
-                            } catch (Exception ignored) {
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
-                }
-
-                for (int g : disableGroups) {
-                    String logGroupName;
-                    AttitudeGroup groupAsset = assetMap.getAsset(g);
-                    if (groupAsset != null) {
-                        logGroupName = groupAsset.getId();
-                        final String finalLogGroupName = logGroupName;
-                        LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
-                    } else if (reverseMap.containsKey(g)) {
-                        logGroupName = reverseMap.get(g) + " (Mapped)";
-                        final String finalLogGroupName = logGroupName;
-                        LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
-                    }
-                }
-            } else {
-                LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
-            }
-
-            LoggerUtil.getLogger()
-                    .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
-
-            LoggerUtil.getLogger().fine(() -> "--- Current Status ---");
-            LoggerUtil.getLogger().fine(() -> "Is Backing Away: " + role.isBackingAway());
-
-            LoggerUtil.getLogger().fine(() -> "--- Available States ---");
-            try {
-                StateMappingHelper stateHelper = role.getStateSupport().getStateHelper();
-                LoggerUtil.getLogger().fine(() -> "Current State: " + role.getStateSupport().getStateName());
-                int idleIdx = stateHelper.getStateIndex("Idle");
-                int petPassiveIdx = stateHelper.getStateIndex("PetPassive");
-                int petDefensiveIdx = stateHelper.getStateIndex("PetDefensive");
-                int petSittingIdx = stateHelper.getStateIndex("PetSitting");
-                LoggerUtil.getLogger()
-                        .fine(() -> "State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
-                LoggerUtil.getLogger().fine(() -> "State 'PetPassive' index: "
-                        + (petPassiveIdx != Integer.MIN_VALUE ? petPassiveIdx : "NOT FOUND"));
-                LoggerUtil.getLogger().fine(() -> "State 'PetDefensive' index: "
-                        + (petDefensiveIdx != Integer.MIN_VALUE ? petDefensiveIdx : "NOT FOUND"));
-                LoggerUtil.getLogger().fine(() -> "State 'PetSitting' index: "
-                        + (petSittingIdx != Integer.MIN_VALUE ? petSittingIdx : "NOT FOUND"));
-            } catch (Exception e) {
-                LoggerUtil.getLogger().severe(() -> "Error reading states: " + e.getMessage());
-            }
+            BudExecutionSupport.with(npc, support -> logRoleInfo(role, support));
         }
 
         LoggerUtil.getLogger().fine(() -> "==================================");
+    }
+
+    private void logRoleInfo(@Nonnull Role role, @Nonnull ExecutionSupport support) {
+        LoggerUtil.getLogger().fine(() -> "--- Bud Infos ---");
+        LoggerUtil.getLogger().fine(() -> "Can Lead Flock: " + role.isCanLeadFlock());
+        LoggerUtil.getLogger().fine(() -> "Is Avoiding Entities: " + role.isAvoidingEntities());
+
+        LoggerUtil.getLogger()
+                .fine(() -> "Default Player Attitude: " + support.getWorldSupport().getDefaultPlayerAttitude());
+        LoggerUtil.getLogger()
+                .fine(() -> "Default NPC Attitude: " + support.getWorldSupport().getDefaultNPCAttitude());
+
+        LoggerUtil.getLogger().fine(() -> "--- Damage Settings ---");
+        CombatSupport combatSupport = support.getCombatSupport();
+        int[] disableGroups = combatSupport.getDisableDamageGroups();
+        if (disableGroups != null) {
+            LoggerUtil.getLogger().fine(() -> "DisableDamageGroups (Count): " + disableGroups.length);
+            IndexedLookupTableAssetMap<String, AttitudeGroup> assetMap = AttitudeGroup.getAssetMap();
+
+            Map<Integer, String> reverseMap = new HashMap<>();
+            try {
+                Map<?, ?> rawMap = assetMap.getAssetMap();
+                for (Entry<?, ?> entry : rawMap.entrySet()) {
+                    Object key = entry.getKey();
+                    Object val = entry.getValue();
+                    if (val instanceof Integer intVal) {
+                        reverseMap.put(intVal, String.valueOf(key));
+                    } else {
+                        try {
+                            int id = assetMap.getIndex((String) key);
+                            reverseMap.put(id, String.valueOf(key));
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LoggerUtil.getLogger().severe(() -> "Reverse lookup debug error: " + e);
+            }
+
+            for (int g : disableGroups) {
+                String logGroupName;
+                AttitudeGroup groupAsset = assetMap.getAsset(g);
+                if (groupAsset != null) {
+                    logGroupName = groupAsset.getId();
+                    final String finalLogGroupName = logGroupName;
+                    LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
+                } else if (reverseMap.containsKey(g)) {
+                    logGroupName = reverseMap.get(g) + " (Mapped)";
+                    final String finalLogGroupName = logGroupName;
+                    LoggerUtil.getLogger().fine(() -> " - Group ID: " + g + " (" + finalLogGroupName + ")");
+                }
+            }
+        } else {
+            LoggerUtil.getLogger().warning(() -> "DisableDamageGroups is NULL");
+        }
+
+        LoggerUtil.getLogger()
+                .fine(() -> "Is Dealing Friendly Damage: " + combatSupport.isDealingFriendlyDamage());
+
+        LoggerUtil.getLogger().fine(() -> "--- Current Status ---");
+        LoggerUtil.getLogger().fine(() -> "Is Backing Away: " + role.isBackingAway());
+
+        LoggerUtil.getLogger().fine(() -> "--- Available States ---");
+        try {
+            StateMappingHelper stateHelper = support.getStateSupport().getStateHelper();
+            LoggerUtil.getLogger().fine(() -> "Current State: " + support.getStateSupport().getStateName());
+            int idleIdx = stateHelper.getStateIndex("Idle");
+            int petPassiveIdx = stateHelper.getStateIndex("PetPassive");
+            int petDefensiveIdx = stateHelper.getStateIndex("PetDefensive");
+            int petSittingIdx = stateHelper.getStateIndex("PetSitting");
+            LoggerUtil.getLogger()
+                    .fine(() -> "State 'Idle' index: " + (idleIdx != Integer.MIN_VALUE ? idleIdx : "NOT FOUND"));
+            LoggerUtil.getLogger().fine(() -> "State 'PetPassive' index: "
+                    + (petPassiveIdx != Integer.MIN_VALUE ? petPassiveIdx : "NOT FOUND"));
+            LoggerUtil.getLogger().fine(() -> "State 'PetDefensive' index: "
+                    + (petDefensiveIdx != Integer.MIN_VALUE ? petDefensiveIdx : "NOT FOUND"));
+            LoggerUtil.getLogger().fine(() -> "State 'PetSitting' index: "
+                    + (petSittingIdx != Integer.MIN_VALUE ? petSittingIdx : "NOT FOUND"));
+        } catch (Exception e) {
+            LoggerUtil.getLogger().severe(() -> "Error reading states: " + e.getMessage());
+        }
     }
 
 }

@@ -33,16 +33,12 @@ public class MoodCommand extends AbstractPlayerCommand {
     public MoodCommand() {
         super("mood", "Forces a Bud's mood and triggers the bud-to-bud mood-change reaction, same as an "
                 + "automatic change.");
+        this.requireNoPermission();
         this.budArg = Objects.requireNonNull(this.withRequiredArg("bud", "Bud to change (veri, gronkh, keyleth).",
                 Objects.requireNonNull(ArgTypes.STRING)));
         this.moodArg = Objects.requireNonNull(this.withRequiredArg("mood",
                 "Mood to set (default, sad, insane, grumpy, dazed, overmotivated).",
                 Objects.requireNonNull(ArgTypes.STRING)));
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

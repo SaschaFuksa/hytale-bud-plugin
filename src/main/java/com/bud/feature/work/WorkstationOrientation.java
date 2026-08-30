@@ -19,10 +19,7 @@ public final class WorkstationOrientation {
         int stationX = (int) Math.floor(anchor.x);
         int stationY = (int) Math.floor(anchor.y) - 1;
         int stationZ = (int) Math.floor(anchor.z);
-        if (!FieldCandidates.isChunkLoaded(world, stationX, stationZ)) {
-            return true;
-        }
-        int rotationIndex = world.getBlockRotationIndex(stationX, stationY, stationZ);
+        int rotationIndex = WorldBlockSections.getRotationIndex(world, stationX, stationY, stationZ);
         RotationTuple rotation = RotationTuple.get(rotationIndex);
         Rotation yaw = rotation != null ? rotation.yaw() : Rotation.None;
         boolean onXAxis = yaw == Rotation.None || yaw == Rotation.OneEighty;

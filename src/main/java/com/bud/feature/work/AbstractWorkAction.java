@@ -23,20 +23,18 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.corecomponents.ActionBase;
 import com.hypixel.hytale.server.npc.corecomponents.builders.BuilderActionBase;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.instructions.ExecutionSupport;
 import com.hypixel.hytale.server.npc.sensorinfo.IPositionProvider;
 import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 import com.hypixel.hytale.server.npc.util.InventoryHelper;
@@ -59,9 +57,9 @@ public abstract class AbstractWorkAction extends ActionBase {
     }
 
     @Override
-    public boolean canExecute(@Nonnull Ref<EntityStore> ref, @Nonnull Role role, @Nullable InfoProvider infoProvider,
-            double dt, @Nonnull Store<EntityStore> store) {
-        boolean superGate = super.canExecute(ref, role, infoProvider, dt, store);
+    public boolean canExecute(@Nonnull Ref<EntityStore> ref, @Nonnull ExecutionSupport executionSupport,
+            @Nullable InfoProvider infoProvider, double dt, @Nonnull Store<EntityStore> store) {
+        boolean superGate = super.canExecute(ref, executionSupport, infoProvider, dt, store);
         if (!superGate || infoProvider == null) {
             boolean infoProviderPresent = infoProvider != null;
             LoggerUtil.getLogger().fine(() -> "[BUD] " + logTag() + " gate 'super.canExecute' = " + superGate
@@ -100,9 +98,9 @@ public abstract class AbstractWorkAction extends ActionBase {
     }
 
     @Override
-    public boolean execute(@Nonnull Ref<EntityStore> ref, @Nonnull Role role, @Nullable InfoProvider infoProvider,
-            double dt, @Nonnull Store<EntityStore> store) {
-        super.execute(ref, role, infoProvider, dt, store);
+    public boolean execute(@Nonnull Ref<EntityStore> ref, @Nonnull ExecutionSupport executionSupport,
+            @Nullable InfoProvider infoProvider, double dt, @Nonnull Store<EntityStore> store) {
+        super.execute(ref, executionSupport, infoProvider, dt, store);
         BudComponent bud = store.getComponent(ref, BudComponent.getComponentType());
         if (bud == null) {
             return true;
@@ -364,14 +362,7 @@ public abstract class AbstractWorkAction extends ActionBase {
 
     private static void mutateLiveTilledSoil(@Nonnull World world, int x, int y, int z,
             @Nonnull Consumer<TilledSoilBlock> mutator) {
-        WorldChunk chunk = world.getChunk(ChunkUtil.indexChunkFromBlock(x, z));
-        if (chunk == null) {
-            return;
-        }
-        Ref<ChunkStore> ref = chunk.getBlockComponentEntity(x, y, z);
-        if (ref == null) {
-            ref = WorldBlockEntities.ensureOrFetch(chunk, x, y, z);
-        }
+        Ref<ChunkStore> ref = WorldBlockEntities.ensureOrFetch(world, x, y, z);
         if (ref == null || !ref.isValid()) {
             return;
         }
@@ -384,7 +375,7 @@ public abstract class AbstractWorkAction extends ActionBase {
             return;
         }
         mutator.accept(soil);
-        chunk.setTicking(x, y, z, true);
+        WorldBlockSections.setTicking(world, x, y, z, true);
     }
 
     protected static void clearOvergrowth(@Nonnull World world, int x, int y, int z) {

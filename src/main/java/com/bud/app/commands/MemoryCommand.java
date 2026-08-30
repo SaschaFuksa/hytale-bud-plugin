@@ -32,6 +32,7 @@ public class MemoryCommand extends AbstractPlayerCommand {
 
     public MemoryCommand() {
         super("memory", "Query stored conversation memories.");
+        this.requireNoPermission();
         this.legendaryFlag = this.withFlagArg("legendary", "Show legendary memories instead of normal memories.");
         this.veriFlag = this.withFlagArg("veri", "Limit memories to Veri.");
         this.keylethFlag = this.withFlagArg("keyleth", "Limit memories to Keyleth.");
@@ -50,11 +51,6 @@ public class MemoryCommand extends AbstractPlayerCommand {
     static String unknownBudMessage(@Nonnull String rawBudName) {
         return "Unknown bud: " + rawBudName + ". Valid: "
                 + String.join(", ", BudRegistry.getInstance().getIds()) + ".";
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

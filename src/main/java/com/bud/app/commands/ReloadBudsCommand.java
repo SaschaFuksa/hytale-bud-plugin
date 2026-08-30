@@ -20,12 +20,8 @@ public class ReloadBudsCommand extends AbstractPlayerCommand {
 
     public ReloadBudsCommand() {
         super("buds", "Manage Bud definitions (buds/*.yml, roster.yml).");
+        this.requireNoPermission();
         this.resetFlag = this.withFlagArg("reset", "Reset Bud definitions to default.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

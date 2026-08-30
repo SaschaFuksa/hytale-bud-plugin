@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
 
+import com.bud.core.BudExecutionSupport;
 import com.bud.core.components.BudComponent;
 import com.bud.core.config.DebugConfig;
 import com.bud.core.config.ReactionConfig;
@@ -54,7 +55,6 @@ import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.npc.role.Role;
 
 public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
 
@@ -700,11 +700,8 @@ public class WorkstationFuelTickSystem extends EntityTickingSystem<ChunkStore> {
     }
 
     private static void setRestingSubState(@Nonnull BudComponent boundBud, boolean resting) {
-        Role role = boundBud.getBud().getRole();
-        if (role == null) {
-            return;
-        }
-        role.getStateSupport().setSubState(resting ? "Resting" : "Default");
+        BudExecutionSupport.with(boundBud.getBud(),
+                support -> support.getStateSupport().setSubState(resting ? "Resting" : "Default"));
     }
 
     private static final double SEAT_HORIZONTAL_RANGE = 1.4;

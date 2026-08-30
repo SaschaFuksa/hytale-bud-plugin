@@ -20,12 +20,8 @@ public class PromptCommand extends AbstractPlayerCommand {
 
     public PromptCommand() {
         super("prompt", "Manage Bud prompts.");
+        this.requireNoPermission();
         this.resetFlag = this.withFlagArg("reset", "Reset Bud prompts to default.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

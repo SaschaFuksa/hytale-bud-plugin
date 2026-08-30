@@ -11,7 +11,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.corecomponents.SensorBase;
-import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.instructions.ExecutionSupport;
 import com.hypixel.hytale.server.npc.sensorinfo.InfoProvider;
 
 public class RestTargetReachedSensor extends SensorBase {
@@ -25,9 +25,9 @@ public class RestTargetReachedSensor extends SensorBase {
     }
 
     @Override
-    public boolean matches(@Nonnull Ref<EntityStore> ref, @Nonnull Role role, double dt,
+    public boolean matches(@Nonnull Ref<EntityStore> ref, @Nonnull ExecutionSupport executionSupport, double dt,
             @Nonnull Store<EntityStore> store) {
-        if (!super.matches(ref, role, dt, store)) {
+        if (!super.matches(ref, executionSupport, dt, store)) {
             return false;
         }
         BudComponent bud = store.getComponent(ref, BudComponent.getComponentType());

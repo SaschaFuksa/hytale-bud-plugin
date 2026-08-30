@@ -32,6 +32,7 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
 
     public MemoryDeleteCommand() {
         super("delete", "Delete a conversation memory by ID.");
+        this.requireNoPermission();
         this.budArg = Objects.requireNonNull(
                 this.withRequiredArg("bud", "Bud name (veri, gronkh, keyleth).",
                         Objects.requireNonNull(ArgTypes.STRING)));
@@ -39,11 +40,6 @@ public class MemoryDeleteCommand extends AbstractPlayerCommand {
                 this.withRequiredArg("id", "Memory ID shown by /bud memory. Stable, never reused.",
                         Objects.requireNonNull(ArgTypes.INTEGER)));
         this.legendaryFlag = this.withFlagArg("legendary", "Delete a legendary memory instead.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

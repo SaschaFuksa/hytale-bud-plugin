@@ -29,14 +29,10 @@ public class StateCommand extends AbstractPlayerCommand {
 
     public StateCommand() {
         super("state", "Commands for checking and managing Bud state.");
+        this.requireNoPermission();
         defensiveFlag = withFlagArg("defensive", "Change Bud state to defensive mode.");
         passiveFlag = withFlagArg("passive", "Change Bud state to passive mode.");
         sittingFlag = withFlagArg("sitting", "Change Bud state to sitting mode.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

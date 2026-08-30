@@ -38,7 +38,7 @@ public final class FieldCandidates {
     }
 
     public static boolean isChunkLoaded(@Nonnull World world, int x, int z) {
-        return world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z)) != null;
+        return world.getChunkStore().getChunkReference(ChunkUtil.indexChunkFromBlock(x, z)) != null;
     }
 
     @Nullable

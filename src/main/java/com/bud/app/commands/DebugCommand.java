@@ -44,6 +44,7 @@ public class DebugCommand extends AbstractPlayerCommand {
 
     public DebugCommand() {
         super("debug", "Debug command for testing purposes.");
+        this.requireNoPermission();
         this.componentDataFlag = this.withFlagArg("componentData",
                 "Shows the current persisted data for the player's Buds.");
         this.moodFlag = this.withFlagArg("mood", "Shows the mood of the current Buds and their favorite day.");
@@ -52,11 +53,6 @@ public class DebugCommand extends AbstractPlayerCommand {
         this.worldFlag = this.withFlagArg("world", "Shows the current zone and biome.");
         this.memoryFlag = this.withFlagArg("memory", "Shows the current conversation memories.");
         this.dialogFlag = this.withFlagArg("dialog", "Triggers dialog mode immediately for your current Buds.");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false;
     }
 
     @Override

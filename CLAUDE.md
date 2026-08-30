@@ -42,7 +42,7 @@ Plugin id/version/author/description live in [gradle.properties](gradle.properti
 
 Both were copied directly from the local Hytale install at `C:\Users\sasch\AppData\Roaming\Hytale\install\release\package\game\latest` (the `Server` folder and `Assets.zip` respectively).
 
-**Last extracted: 2026-08-08.** This is a snapshot of whatever build happened to be installed locally, not something Gradle regenerates — re-check it roughly every month: compare the `LastWriteTime` of `Server`/`Assets.zip` at that install path against the date above, and re-extract into `reference/server`/`reference/assets` if the local install has moved on, since Hytale internals can change between builds and a stale mirror can be actively misleading. Update this date whenever you re-extract.
+**Last extracted: 2026-08-30.** This is a snapshot of whatever build happened to be installed locally, not something Gradle regenerates — re-check it roughly every month: compare the `LastWriteTime` of `Server`/`Assets.zip` at that install path against the date above, and re-extract into `reference/server`/`reference/assets` if the local install has moved on, since Hytale internals can change between builds and a stale mirror can be actively misleading. Update this date whenever you re-extract.
 
 This is separate from the `decompileServer` Gradle task (see below), which prepares attached sources for the IDE rather than populating `/reference`.
 
